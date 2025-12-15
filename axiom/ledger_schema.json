@@ -1,0 +1,6 @@
+{
+  "hash_strategy": {
+    "algorithm": ["SHA256", "BLAKE3"]
+  },
+  "receipt_types": ["training", "interpretation", "discovery", "checkpoint", "init"]
+}
