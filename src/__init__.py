@@ -76,3 +76,35 @@ try:
     ])
 except ImportError:
     pass  # ripser not available, topology functions unavailable
+
+# Optional: Witness module (pure numpy, no torch required)
+try:
+    from .witness import (
+        TENANT_ID as WITNESS_TENANT_ID,
+        KAN_ARCHITECTURE,
+        SPLINE_DEGREE as WITNESS_SPLINE_DEGREE,
+        MAX_COEFFICIENTS,
+        L1_LAMBDA,
+        MDL_ALPHA as WITNESS_MDL_ALPHA,
+        MDL_BETA as WITNESS_MDL_BETA,
+        COMPLEXITY_THRESHOLD as WITNESS_COMPLEXITY_THRESHOLD,
+        bspline_basis,
+        KANLayer,
+        KAN,
+        mdl_loss as witness_mdl_loss,
+        train as witness_train,
+        classify_spline,
+        spline_to_law,
+        witness,
+        stoprule_nan_loss,
+        stoprule_divergence,
+    )
+    __all__.extend([
+        "WITNESS_TENANT_ID", "KAN_ARCHITECTURE", "WITNESS_SPLINE_DEGREE",
+        "MAX_COEFFICIENTS", "L1_LAMBDA", "WITNESS_MDL_ALPHA", "WITNESS_MDL_BETA",
+        "WITNESS_COMPLEXITY_THRESHOLD", "bspline_basis", "KANLayer", "KAN",
+        "witness_mdl_loss", "witness_train", "classify_spline", "spline_to_law",
+        "witness", "stoprule_nan_loss", "stoprule_divergence",
+    ])
+except ImportError:
+    pass  # numpy not available or import error
