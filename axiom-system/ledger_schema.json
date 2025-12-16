@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AXIOM-SYSTEM v2 Ledger Schema",
+  "description": "CLAUDEME-compliant receipt schema for AXIOM-SYSTEM v2",
+  "type": "object",
+  "required": ["receipt_type", "ts", "tenant_id", "payload_hash"],
+  "properties": {
+    "receipt_type": {
+      "type": "string",
+      "enum": [
+        "system_tick",
+        "body_state",
+        "network_state",
+        "relay_update",
+        "cascade_event",
+        "orbital_state",
+        "sovereignty_flip",
+        "queue_entropy",
+        "entropy",
+        "solar_event",
+        "debris_event",
+        "network_event",
+        "anomaly"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tenant_id": {
+      "type": "string",
+      "const": "axiom-system"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}:[a-f0-9]{64}$",
+      "description": "SHA256:BLAKE3 dual hash"
+    }
+  },
+  "hash_strategy": {
+    "algorithm": ["SHA256", "BLAKE3"],
+    "format": "SHA256_HEX:BLAKE3_HEX",
+    "merkle_algorithm": "BLAKE3"
+  },
+  "receipt_schemas": {
+    "system_tick": {
+      "required": ["sol", "total_entropy", "system_sovereign"],
+      "properties": {
+        "sol": {"type": "integer"},
+        "total_entropy": {"type": "number"},
+        "entropy_rate": {"type": "number"},
+        "entropy_generated": {"type": "number"},
+        "entropy_exported": {"type": "number"},
+        "system_sovereign": {"type": "boolean"},
+        "bodies_sovereign": {"type": "object"},
+        "cascade_risk": {"type": "object"},
+        "orbital_kessler_risk": {"type": "number"},
+        "solar_cme_active": {"type": "boolean"}
+      }
+    },
+    "body_state": {
+      "required": ["body_id", "internal_rate", "external_rate", "sovereign"],
+      "properties": {
+        "body_id": {"type": "string"},
+        "delay_s": {"type": "number"},
+        "bandwidth_share": {"type": "number"},
+        "relay_path": {"type": "array", "items": {"type": "string"}},
+        "internal_rate": {"type": "number"},
+        "external_rate": {"type": "number"},
+        "advantage": {"type": "number"},
+        "sovereign": {"type": "boolean"},
+        "entropy": {"type": "number"},
+        "entropy_rate": {"type": "number"},
+        "status": {"type": "string"}
+      }
+    },
+    "cascade_event": {
+      "required": ["event_type", "affected_bodies"],
+      "properties": {
+        "event_type": {"type": "string"},
+        "origin": {"type": "string"},
+        "affected_bodies": {"type": "array", "items": {"type": "string"}},
+        "entropy_delta": {"type": "number"},
+        "cascade_depth": {"type": "integer"}
+      }
+    },
+    "orbital_state": {
+      "required": ["debris_count", "kessler_risk"],
+      "properties": {
+        "debris_count": {"type": "integer"},
+        "debris_ratio": {"type": "number"},
+        "kessler_risk": {"type": "number"},
+        "kessler_active": {"type": "boolean"},
+        "kessler_threshold": {"type": "number"},
+        "satellites_active": {"type": "integer"},
+        "launch_blackout": {"type": "boolean"}
+      }
+    },
+    "sovereignty_flip": {
+      "required": ["body_id", "sol", "new_sovereign"],
+      "properties": {
+        "body_id": {"type": "string"},
+        "sol": {"type": "integer"},
+        "new_sovereign": {"type": "boolean"},
+        "flip_direction": {"type": "string"}
+      }
+    }
+  },
+  "constants": {
+    "NEURALINK_MULTIPLIER": 100000,
+    "HUMAN_BASELINE_BPS": 10,
+    "MDL_BETA": 0.09,
+    "KESSLER_THRESHOLD": 0.73,
+    "DEBRIS_COUNT_2025": 100000,
+    "CME_PROBABILITY_PER_DAY": 0.02,
+    "MOON_RELAY_BOOST": 0.40,
+    "SOVEREIGNTY_THRESHOLD_NEURALINK": 5,
+    "SOVEREIGNTY_THRESHOLD_BASELINE": 25
+  }
+}
