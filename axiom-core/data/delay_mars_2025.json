@@ -1,0 +1,9 @@
+{
+  "source": "Mars light delay (physics)",
+  "values": {
+    "opposition_min_s": 180,
+    "conjunction_max_s": 1320,
+    "average_s": 750,
+    "uncertainty_pct": 0
+  }
+}
