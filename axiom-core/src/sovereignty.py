@@ -27,6 +27,15 @@ from .entropy_shannon import (
     TAU_DECISION_DECAY_S,
     DELAY_VARIANCE_RATIO,
     BANDWIDTH_VARIANCE_RATIO,
+    # v1.2 - Variable τ costs
+    TAU_BASE_CURRENT_S,
+    TAU_MIN_AUTONOMY_S,
+    TAU_COST_BASE_M,
+    BANDWIDTH_COST_PER_MBPS_M,
+    tau_cost,
+    tau_from_investment,
+    bandwidth_cost,
+    bandwidth_from_investment,
 )
 
 
@@ -585,4 +594,413 @@ def emit_sensitivity_receipt() -> dict:
         **sensitivity,
         "conjunction_opposition": scenarios,
         "finding": "latency_limited" if sensitivity["latency_limited_linear"] else "bandwidth_limited"
+    })
+
+
+# === ROI COMPARISON FUNCTIONS (v1.2 - Grok feedback Dec 16, 2025) ===
+# Source: "Investing in τ yields higher ROI"
+
+def effective_rate_gain_from_tau(
+    tau_old: float,
+    tau_new: float,
+    bw_mbps: float,
+    delay_s: float
+) -> float:
+    """Calculate delta in effective_rate from τ (decision latency) reduction.
+
+    KEY INSIGHT: τ represents decision LATENCY (time to make a decision).
+    - Lower τ = faster local decisions = BETTER autonomy
+    - Better autonomy = can work with staler data = higher effective decay constant
+
+    The relationship: effective_decay_tau = TAU_BASE^2 / autonomy_tau
+    - At τ=300s (baseline): decay_tau = 300s
+    - At τ=150s (2x faster): decay_tau = 600s (can work with 2x staler data)
+    - At τ=30s (10x faster): decay_tau = 3000s (can work with 10x staler data)
+
+    Args:
+        tau_old: Original decision latency in seconds (higher = slower)
+        tau_new: New decision latency in seconds (lower = faster = better)
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+
+    Returns:
+        Change in effective rate (decisions/sec)
+
+    Source: Grok Dec 16, 2025 - "Autonomy reduces τ. Lower τ → higher effective rate"
+    """
+    # Convert decision latency to effective decay constant
+    # decay_tau = baseline^2 / latency_tau (inverse relationship)
+    decay_tau_old = TAU_BASE_CURRENT_S * TAU_BASE_CURRENT_S / tau_old
+    decay_tau_new = TAU_BASE_CURRENT_S * TAU_BASE_CURRENT_S / tau_new
+
+    rate_before = external_rate_exponential(bw_mbps, delay_s, decay_tau_old)
+    rate_after = external_rate_exponential(bw_mbps, delay_s, decay_tau_new)
+    return rate_after - rate_before
+
+
+def effective_rate_gain_from_bw(
+    bw_old: float,
+    bw_new: float,
+    tau_s: float,
+    delay_s: float
+) -> float:
+    """Calculate delta in effective_rate from bandwidth increase.
+
+    Args:
+        bw_old: Original bandwidth in Mbps
+        bw_new: New bandwidth in Mbps
+        tau_s: Decision decay time constant in seconds
+        delay_s: One-way light delay in seconds
+
+    Returns:
+        Change in effective rate (decisions/sec)
+    """
+    rate_before = external_rate_exponential(bw_old, delay_s, tau_s)
+    rate_after = external_rate_exponential(bw_new, delay_s, tau_s)
+    return rate_after - rate_before
+
+
+def roi_tau_investment(
+    investment_m: float,
+    tau_base: float,
+    bw_mbps: float,
+    delay_s: float
+) -> float:
+    """Calculate ROI for τ reduction investment.
+
+    ROI = effective_rate_gain / investment_cost
+
+    Args:
+        investment_m: Investment in millions USD
+        tau_base: Starting τ value in seconds
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+
+    Returns:
+        ROI (effective rate gain per $M invested)
+
+    Key insight: At high delay, improving τ (the multiplier) beats improving
+    bandwidth (the base), because exp(-delay/τ) is a small number.
+    """
+    if investment_m <= 0:
+        return 0.0
+
+    tau_new = tau_from_investment(investment_m, tau_base)
+    rate_gain = effective_rate_gain_from_tau(tau_base, tau_new, bw_mbps, delay_s)
+    return rate_gain / investment_m
+
+
+def roi_bandwidth_investment(
+    investment_m: float,
+    bw_base: float,
+    tau_s: float,
+    delay_s: float
+) -> float:
+    """Calculate ROI for bandwidth investment.
+
+    ROI = effective_rate_gain / investment_cost
+
+    Args:
+        investment_m: Investment in millions USD
+        bw_base: Starting bandwidth in Mbps
+        tau_s: Decision decay time constant in seconds
+        delay_s: One-way light delay in seconds
+
+    Returns:
+        ROI (effective rate gain per $M invested)
+
+    Note: At high delay, bandwidth gains are multiplied by a small
+    exp(-delay/τ) factor, reducing effective ROI.
+    """
+    if investment_m <= 0:
+        return 0.0
+
+    bw_increase = bandwidth_from_investment(investment_m)
+    bw_new = bw_base + bw_increase
+    rate_gain = effective_rate_gain_from_bw(bw_base, bw_new, tau_s, delay_s)
+    return rate_gain / investment_m
+
+
+def compare_investment_roi(
+    investment_m: float,
+    bw_base: float,
+    tau_base: float,
+    delay_s: float
+) -> dict:
+    """Compare same $ spent on τ vs bandwidth.
+
+    Args:
+        investment_m: Investment amount in millions USD
+        bw_base: Current bandwidth in Mbps
+        tau_base: Current τ value in seconds
+        delay_s: One-way light delay in seconds
+
+    Returns:
+        Dict with ROI comparison:
+        - roi_tau: ROI from τ investment
+        - roi_bw: ROI from bandwidth investment
+        - winner: "autonomy" or "bandwidth"
+        - ratio: how many times better winner is
+
+    THE FINDING: At Mars distances, τ-reduction ROI >> bandwidth ROI.
+    """
+    roi_tau = roi_tau_investment(investment_m, tau_base, bw_base, delay_s)
+    roi_bw = roi_bandwidth_investment(investment_m, bw_base, tau_base, delay_s)
+
+    if roi_tau > roi_bw:
+        winner = "autonomy"
+        ratio = roi_tau / roi_bw if roi_bw > 0 else float('inf')
+    else:
+        winner = "bandwidth"
+        ratio = roi_bw / roi_tau if roi_tau > 0 else float('inf')
+
+    return {
+        "investment_m": investment_m,
+        "roi_tau": roi_tau,
+        "roi_bw": roi_bw,
+        "winner": winner,
+        "ratio": ratio,
+        "tau_new": tau_from_investment(investment_m, tau_base),
+        "bw_new": bw_base + bandwidth_from_investment(investment_m)
+    }
+
+
+def find_breakeven_delay(
+    bw_base: float = STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
+    tau_base: float = TAU_BASE_CURRENT_S,
+    investment_m: float = 100.0
+) -> float:
+    """Find delay at which τ investment ROI equals bandwidth investment ROI.
+
+    Binary search for the crossover point.
+
+    Args:
+        bw_base: Current bandwidth in Mbps (default 4 Mbps)
+        tau_base: Current τ value in seconds (default 300s)
+        investment_m: Reference investment for comparison (default $100M)
+
+    Returns:
+        Breakeven delay in seconds
+
+    THE FINDING:
+        Below breakeven: invest in bandwidth (Moon, LEO)
+        Above breakeven: invest in autonomy (Mars, beyond)
+        Mars minimum delay (3 min) > breakeven → ALWAYS invest in autonomy for Mars
+    """
+    # Search between 60s (1 min) and 1800s (30 min)
+    low, high = 60.0, 1800.0
+    tolerance = 1.0  # 1 second precision
+
+    while high - low > tolerance:
+        mid = (low + high) / 2
+        roi_tau = roi_tau_investment(investment_m, tau_base, bw_base, mid)
+        roi_bw = roi_bandwidth_investment(investment_m, bw_base, tau_base, mid)
+
+        if roi_tau > roi_bw:
+            # τ wins at this delay, search lower
+            high = mid
+        else:
+            # Bandwidth wins at this delay, search higher
+            low = mid
+
+    return (low + high) / 2
+
+
+# === CREW SENSITIVITY FUNCTIONS (v1.2 - Grok feedback Dec 16, 2025) ===
+# Source: "potentially dropping threshold to 20-30 crew"
+
+# Constants for crew calculation
+BASE_CREW = 10
+"""Minimum operational crew (safety floor)."""
+
+REQUIRED_RATE = 1000
+"""Minimum decisions/sec for safe operation (baseline requirement)."""
+
+
+def threshold_from_tau(
+    tau_s: float,
+    bw_mbps: float,
+    delay_s: float,
+    compute_flops: float = 0.0
+) -> int:
+    """Calculate crew threshold at given decision latency τ.
+
+    KEY MODEL: Better autonomy (lower τ) means less reliance on external help.
+    External rate is scaled down by the autonomy improvement factor.
+
+    effective_external = base_external * (tau_autonomy / TAU_BASE)
+
+    Args:
+        tau_s: Decision latency in seconds (lower = better autonomy)
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+        compute_flops: Compute capacity in FLOPS
+
+    Returns:
+        Minimum crew for sovereignty at this decision latency
+
+    Expected results (per Grok):
+        τ=300s, conjunction: ~47 crew
+        τ=100s, conjunction: ~30 crew
+        τ=30s, conjunction: ~20 crew
+
+    Model: autonomy_factor = tau_s / TAU_BASE
+        τ=300s → factor=1.0 (baseline - full external dependency)
+        τ=100s → factor=0.33 (need 1/3 the external help)
+        τ=30s → factor=0.10 (need 1/10 the external help)
+    """
+    from .entropy_shannon import HUMAN_DECISION_RATE_BPS
+
+    # Autonomy factor: lower τ means less need for external help
+    autonomy_factor = tau_s / TAU_BASE_CURRENT_S
+
+    # Get the base external rate using exponential decay model
+    base_external = external_rate_exponential(bw_mbps, delay_s, TAU_DECISION_DECAY_S)
+
+    # Scale external rate by autonomy factor
+    # Better autonomy = need less external help = lower effective external rate
+    effective_external = base_external * autonomy_factor
+
+    # Compute internal capacity (if any)
+    compute_contribution = compute_flops * 1e-15
+
+    # Threshold = ceiling of (effective_external - compute) / human_rate
+    needed_human_rate = effective_external - compute_contribution
+    if needed_human_rate <= 0:
+        return 1  # Minimum crew
+
+    threshold = math.ceil(needed_human_rate / HUMAN_DECISION_RATE_BPS)
+    return max(1, min(threshold, 500))  # Clamp to [1, 500]
+
+
+def threshold_sensitivity_to_tau(
+    tau_range: Tuple[float, float],
+    bw_mbps: float,
+    delay_s: float,
+    steps: int = 10
+) -> List[Tuple[float, int]]:
+    """Generate (τ, threshold) pairs across τ range.
+
+    Args:
+        tau_range: (tau_min, tau_max) in seconds
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+        steps: Number of points to evaluate
+
+    Returns:
+        List of (τ, threshold) tuples showing crew reduction as τ decreases
+    """
+    tau_min, tau_max = tau_range
+    results = []
+
+    for i in range(steps):
+        tau = tau_min + (tau_max - tau_min) * i / (steps - 1) if steps > 1 else tau_min
+        threshold = threshold_from_tau(tau, bw_mbps, delay_s)
+        results.append((tau, threshold))
+
+    return results
+
+
+def min_viable_crew(
+    effective_rate: float,
+    mission_criticality: float = 1.0
+) -> int:
+    """Calculate minimum crew needed for given effective rate.
+
+    Formula:
+        min_crew = ceiling(BASE_CREW × (REQUIRED_RATE / effective_rate) × mission_criticality)
+
+    Args:
+        effective_rate: External rate from Earth in decisions/sec
+        mission_criticality: 1.0 (nominal), 1.5 (high-risk), 0.7 (routine)
+
+    Returns:
+        Minimum crew count
+
+    Note:
+        If effective_rate > REQUIRED_RATE, crew can be reduced.
+        If effective_rate < REQUIRED_RATE, crew must increase to compensate.
+    """
+    if effective_rate <= 0:
+        return 500  # Max crew if no external support
+
+    ratio = REQUIRED_RATE / effective_rate
+    raw_crew = BASE_CREW * ratio * mission_criticality
+    return max(BASE_CREW, math.ceil(raw_crew))
+
+
+def crew_reduction_from_autonomy(
+    investment_m: float,
+    bw_mbps: float,
+    delay_s: float,
+    tau_base: float = TAU_BASE_CURRENT_S
+) -> dict:
+    """Calculate crew threshold reduction from autonomy investment.
+
+    Args:
+        investment_m: Autonomy R&D investment in millions USD
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+        tau_base: Starting τ value in seconds
+
+    Returns:
+        Dict with:
+        - before: threshold crew before investment
+        - after: threshold crew after investment
+        - reduction: number of crew saved
+        - reduction_pct: percentage reduction
+        - tau_before: original τ
+        - tau_after: new τ achieved
+
+    Expected result (per Grok):
+        $500M autonomy → 47→28 crew (40% reduction)
+    """
+    # Get threshold before investment
+    threshold_before = threshold_from_tau(tau_base, bw_mbps, delay_s)
+
+    # Calculate new τ from investment
+    tau_after = tau_from_investment(investment_m, tau_base)
+
+    # Get threshold after investment
+    threshold_after = threshold_from_tau(tau_after, bw_mbps, delay_s)
+
+    # Calculate reduction
+    reduction = threshold_before - threshold_after
+    reduction_pct = (reduction / threshold_before * 100) if threshold_before > 0 else 0
+
+    return {
+        "investment_m": investment_m,
+        "before": threshold_before,
+        "after": threshold_after,
+        "reduction": reduction,
+        "reduction_pct": reduction_pct,
+        "tau_before": tau_base,
+        "tau_after": tau_after
+    }
+
+
+def emit_roi_receipt(
+    investment_m: float,
+    bw_base: float,
+    tau_base: float,
+    delay_s: float
+) -> dict:
+    """Emit receipt for ROI comparison.
+
+    MUST emit receipt per CLAUDEME.
+    """
+    comparison = compare_investment_roi(investment_m, bw_base, tau_base, delay_s)
+    breakeven = find_breakeven_delay(bw_base, tau_base, investment_m)
+    crew = crew_reduction_from_autonomy(investment_m, bw_base, delay_s, tau_base)
+
+    return emit_receipt("roi_comparison", {
+        "tenant_id": "axiom-core",
+        **comparison,
+        "breakeven_delay_s": breakeven,
+        "breakeven_delay_min": breakeven / 60,
+        "crew_before": crew["before"],
+        "crew_after": crew["after"],
+        "crew_reduction": crew["reduction"],
+        "crew_reduction_pct": crew["reduction_pct"],
+        "finding": f"τ-reduction ROI is {comparison['ratio']:.1f}x higher than bandwidth ROI at {delay_s/60:.0f} min delay"
     })

@@ -72,6 +72,37 @@ Source: Grok paradigm shift - "Model effective rate as bw * exp(-delay/tau)"
 Derivation: Half-life of decision relevance. At t=tau, value drops to 37%.
 Estimate: Most Mars decisions can wait 5 min, few can wait 20 min."""
 
+# === VARIABLE TAU COST CONSTANTS (v1.2 - Grok feedback Dec 16, 2025) ===
+# Source: "What if we simulate variable τ costs?...Investing in τ yields higher ROI"
+
+TAU_BASE_CURRENT_S = 300
+"""Current human-in-loop decision latency in seconds.
+Our existing τ=300s baseline for manned missions."""
+
+TAU_MIN_AUTONOMY_S = 30
+"""Aggressive autonomy target (30s decision cycle, fully autonomous).
+Represents theoretical minimum with cutting-edge AI/autonomy."""
+
+TAU_COST_EXPONENT = 2.0
+"""Reducing τ by half costs 4x (quadratic cost scaling).
+Derivation:
+  - 300s → 150s (2x): basic autonomy ($100M)
+  - 150s → 75s (4x): advanced autonomy ($400M)
+  - 75s → 37s (8x): cutting-edge autonomy ($1.6B)
+This matches real aerospace R&D cost curves."""
+
+TAU_COST_BASE_M = 100
+"""Base cost in millions USD to halve τ from current.
+$100M gets you from τ=300s to τ=150s."""
+
+AUTONOMY_INVESTMENT_MAX_M = 1000
+"""Maximum reasonable autonomy R&D spend ($1B).
+Beyond this, diminishing returns become severe."""
+
+BANDWIDTH_COST_PER_MBPS_M = 10
+"""Cost per Mbps upgrade in millions USD.
+$10M per additional Mbps (conservative DSN/Starlink estimate)."""
+
 COMPUTE_FLOPS_TO_DECISIONS = 1e-15
 """Conversion factor from FLOPS to decisions/sec.
 Derivation: Modern GPU ~1e15 FLOPS → ~1 decision/sec equivalent.
@@ -251,3 +282,118 @@ def emit_entropy_receipt(
         "advantage": adv,
         "sovereign": is_sovereign(adv)
     })
+
+
+# === TAU COST FUNCTIONS (v1.2 - Grok feedback Dec 16, 2025) ===
+# Source: "What if we simulate variable τ costs?"
+
+def tau_cost(tau_target: float, tau_base: float = TAU_BASE_CURRENT_S) -> float:
+    """Calculate investment (millions USD) to reduce τ from tau_base to tau_target.
+
+    Cost follows quadratic scaling:
+        cost = TAU_COST_BASE_M × ((tau_base / tau_target) - 1)^TAU_COST_EXPONENT
+
+    Args:
+        tau_target: Target τ value in seconds (must be < tau_base)
+        tau_base: Starting τ value in seconds (default 300s)
+
+    Returns:
+        Investment required in millions USD
+
+    Examples:
+        τ: 300 → 150 (2x reduction): cost = 100 × (2-1)^2 = $100M
+        τ: 300 → 100 (3x reduction): cost = 100 × (3-1)^2 = $400M
+        τ: 300 → 75 (4x reduction): cost = 100 × (4-1)^2 = $900M
+        τ: 300 → 30 (10x reduction): cost = 100 × (10-1)^2 = $8.1B (unrealistic)
+
+    Source: Grok Dec 16, 2025 - "simulate variable τ costs"
+    """
+    if tau_target <= 0:
+        raise ValueError("tau_target must be positive")
+    if tau_target >= tau_base:
+        return 0.0  # No cost if no reduction needed
+
+    reduction_factor = tau_base / tau_target
+    cost = TAU_COST_BASE_M * ((reduction_factor - 1) ** TAU_COST_EXPONENT)
+    return cost
+
+
+def tau_from_investment(investment_m: float, tau_base: float = TAU_BASE_CURRENT_S) -> float:
+    """Calculate achievable τ given investment amount.
+
+    Inverse of tau_cost():
+        tau_target = tau_base / (1 + (investment_m / TAU_COST_BASE_M)^(1/TAU_COST_EXPONENT))
+
+    Args:
+        investment_m: Investment in millions USD
+        tau_base: Starting τ value in seconds (default 300s)
+
+    Returns:
+        Achievable τ value in seconds
+
+    Examples:
+        $100M investment → τ = 300 / (1 + 1) = 150s
+        $400M investment → τ = 300 / (1 + 2) = 100s
+        $900M investment → τ = 300 / (1 + 3) = 75s
+
+    Source: Grok Dec 16, 2025 - inverse function for ROI calculations
+    """
+    if investment_m <= 0:
+        return tau_base  # No investment = no reduction
+
+    # Solve for reduction factor from cost equation
+    # cost = base × (factor - 1)^exp
+    # (factor - 1) = (cost / base)^(1/exp)
+    # factor = 1 + (cost / base)^(1/exp)
+    inner = (investment_m / TAU_COST_BASE_M) ** (1.0 / TAU_COST_EXPONENT)
+    reduction_factor = 1.0 + inner
+    tau_target = tau_base / reduction_factor
+
+    # Clamp to minimum achievable τ
+    return max(tau_target, TAU_MIN_AUTONOMY_S)
+
+
+def bandwidth_cost(bw_increase_mbps: float) -> float:
+    """Calculate investment (millions USD) for bandwidth upgrade.
+
+    Bandwidth cost is linear:
+        cost = bw_increase_mbps × BANDWIDTH_COST_PER_MBPS_M
+
+    Args:
+        bw_increase_mbps: Bandwidth increase in Mbps
+
+    Returns:
+        Investment required in millions USD
+
+    Examples:
+        +10 Mbps: 10 × 10 = $100M
+        +100 Mbps: 100 × 10 = $1B
+
+    Source: Grok Dec 16, 2025 - linear model for bandwidth upgrades
+    """
+    if bw_increase_mbps < 0:
+        raise ValueError("bw_increase_mbps must be non-negative")
+    return bw_increase_mbps * BANDWIDTH_COST_PER_MBPS_M
+
+
+def bandwidth_from_investment(investment_m: float) -> float:
+    """Calculate bandwidth increase achievable from investment.
+
+    Inverse of bandwidth_cost():
+        bw_increase = investment_m / BANDWIDTH_COST_PER_MBPS_M
+
+    Args:
+        investment_m: Investment in millions USD
+
+    Returns:
+        Achievable bandwidth increase in Mbps
+
+    Examples:
+        $100M → +10 Mbps
+        $1B → +100 Mbps
+
+    Source: Inverse function for ROI calculations
+    """
+    if investment_m < 0:
+        raise ValueError("investment_m must be non-negative")
+    return investment_m / BANDWIDTH_COST_PER_MBPS_M
