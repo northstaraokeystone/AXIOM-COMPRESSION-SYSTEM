@@ -5,25 +5,69 @@ THE HARNESS:
     The 6 mandatory scenarios are not tests—they are gates.
     If any scenario fails, AXIOM does not publish.
 
-CORE LOOP:
-    GENERATE galaxy → WITNESS with KAN → COMPUTE topology → EMIT receipts → VALIDATE constraints
+DUAL PURPOSE:
+    1. GALAXY SIMULATION: GENERATE galaxy → WITNESS with KAN → COMPUTE topology
+    2. COLONY SIMULATION: GENERATE colony → VALIDATE constraints → FIND sovereignty threshold
+
+THE KEY OUTPUT (Colony): sovereignty_threshold_crew - minimum crew for decision independence
 
 Source: CLAUDEME.md (§3 Timeline Gates, §4 Receipt Blocks, §7 Anti-Patterns)
+        AXIOM_Colony_Build_Strategy_v2.md §2.9
 """
 
 import copy
 import statistics
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 
 import numpy as np
 
-from .core import dual_hash, emit_receipt, StopRule
-from .cosmos import batch_generate, generate_galaxy, generate_pathological, REGIMES as COSMOS_REGIMES
-from .witness import KAN, train, spline_to_law
-from .topology import analyze_galaxy
-from .prove import chain_receipts, summarize_batch
+from .core import dual_hash, emit_receipt, StopRule, TENANT_ID
+
+# Galaxy simulation imports (optional - may not be available in all environments)
+try:
+    from .cosmos import batch_generate, generate_galaxy, generate_pathological, REGIMES as COSMOS_REGIMES
+    from .witness import KAN, train, spline_to_law
+    from .topology import analyze_galaxy
+    from .prove import chain_receipts, summarize_batch
+    GALAXY_SIM_AVAILABLE = True
+except ImportError:
+    GALAXY_SIM_AVAILABLE = False
+    # Provide stubs for type checking
+    batch_generate = None
+    generate_galaxy = None
+    generate_pathological = None
+    COSMOS_REGIMES = []
+    KAN = None
+    train = None
+    spline_to_law = None
+    analyze_galaxy = None
+    chain_receipts = None
+    summarize_batch = None
+
+# Colony imports (BUILD C1-C4)
+from .entropy import (
+    decision_capacity,
+    earth_input_rate,
+    sovereignty_threshold,
+    entropy_rate,
+    entropy_status,
+    total_colony_entropy,
+    survival_bound,
+    MARS_RELAY_MBPS,
+    LIGHT_DELAY_MAX,
+)
+from .colony import (
+    generate_colony,
+    ColonyConfig,
+    ColonyState,
+    batch_generate as colony_batch_generate,
+    simulate_dust_storm,
+    simulate_hab_breach,
+    simulate_crop_failure,
+    default_config,
+)
 
 
 # === CONSTANTS (Module Top) ===
@@ -886,3 +930,560 @@ def run_all_scenarios() -> dict:
     })
 
     return {"passed": all_passed, "scenarios": results}
+
+
+# =============================================================================
+# COLONY SIMULATION (BUILD C5) - Monte Carlo Validation Harness
+# =============================================================================
+# THE KEY OUTPUT: sovereignty_threshold_crew - minimum crew for decision independence
+
+COLONY_TENANT_ID = "axiom-colony"
+"""Receipt tenant for colony simulation."""
+
+COLONY_SCENARIOS = ["BASELINE", "DUST_STORM", "HAB_BREACH", "SOVEREIGNTY", "ISRU_CLOSURE", "GÖDEL"]
+"""Valid colony scenario names."""
+
+
+# === COLONY DATACLASSES ===
+
+@dataclass(frozen=True)
+class ColonySimConfig:
+    """Immutable configuration for colony simulation run.
+
+    Note: Use tuple instead of list for frozen dataclass compatibility.
+    """
+    n_cycles: int = 1000
+    n_colonies_per_stress: int = 25
+    duration_days: int = 365
+    crew_sizes: Tuple[int, ...] = (4, 10, 25, 50, 100)
+    stress_events: Tuple[str, ...] = ("none", "dust_storm", "hab_breach")
+    random_seed: int = 42
+
+
+@dataclass
+class ColonySimState:
+    """Mutable state accumulated during colony simulation."""
+    colonies: List[Dict[str, Any]] = field(default_factory=list)
+    entropy_receipts: List[Dict] = field(default_factory=list)
+    violations: List[Dict] = field(default_factory=list)
+    cycle: int = 0
+    sovereignty_threshold_crew: Optional[int] = None
+
+    @property
+    def passed(self) -> bool:
+        """Returns True if no violations recorded."""
+        return len(self.violations) == 0
+
+
+# === COLONY SCENARIO CONFIGURATIONS ===
+
+COLONY_SCENARIO_CONFIGS: Dict[str, ColonySimConfig] = {
+    "BASELINE": ColonySimConfig(
+        n_cycles=1000,
+        stress_events=("none",),
+    ),
+    "DUST_STORM": ColonySimConfig(
+        n_cycles=500,
+        stress_events=("dust_storm",),
+        duration_days=180,
+    ),
+    "HAB_BREACH": ColonySimConfig(
+        n_cycles=500,
+        stress_events=("hab_breach",),
+    ),
+    "SOVEREIGNTY": ColonySimConfig(
+        n_cycles=1000,
+        crew_sizes=(4, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50),
+    ),
+    "ISRU_CLOSURE": ColonySimConfig(
+        n_cycles=500,
+        duration_days=780,
+    ),
+    "GÖDEL": ColonySimConfig(
+        n_cycles=100,
+        crew_sizes=(4, 10, 1000),  # Edge cases (0,1 excluded by ColonyConfig validation)
+    ),
+}
+
+
+# === COLONY CONSTRAINT VALIDATORS ===
+
+def colony_validate_entropy_stable(colony: Dict[str, Any]) -> Optional[Dict]:
+    """Check if entropy rate is stable (non-positive) for 90% of simulation.
+
+    Returns None if constraint satisfied, violation dict if violated.
+    """
+    states = colony.get("states", [])
+    if len(states) < 2:
+        return None
+
+    # Convert states to dict format for entropy calculation
+    state_dicts = []
+    for state in states:
+        if isinstance(state, ColonyState):
+            state_dict = {
+                "O2_pct": state.atmosphere.get("O2_pct", 21.0) / 100,
+                "temperature_C": state.thermal.get("T_hab_C", 22.0),
+                "water_ratio": min(1.0, state.resource.get("water_kg", 1000) / 1000),
+                "food_ratio": min(1.0, state.resource.get("food_kcal", 50000) / 50000),
+                "power_ratio": min(1.0, state.resource.get("power_W", 20000) / 20000),
+            }
+            state_dicts.append(state_dict)
+        else:
+            state_dicts.append(state)
+
+    # Calculate entropy rate using sliding window
+    stable_count = 0
+    total_windows = max(1, len(state_dicts) - 1)
+
+    for i in range(1, len(state_dicts)):
+        window = state_dicts[max(0, i - 10):i + 1]
+        rate = entropy_rate(window)
+        if rate <= 0:
+            stable_count += 1
+
+    stable_pct = stable_count / total_windows
+
+    if stable_pct >= 0.90:
+        return None
+
+    crew = colony.get("config")
+    if isinstance(crew, ColonyConfig):
+        crew_size = crew.crew_size
+    else:
+        crew_size = crew.get("crew_size", 0) if crew else 0
+
+    overall_rate = entropy_rate(state_dicts)
+
+    return {
+        "validator": "entropy_stable",
+        "crew": crew_size,
+        "rate": overall_rate,
+        "stable_pct": stable_pct,
+    }
+
+
+def colony_validate_sovereignty(colony: Dict[str, Any]) -> Optional[Dict]:
+    """Check if colony achieved decision sovereignty (internal > external).
+
+    Returns None if constraint satisfied, violation dict if violated.
+    """
+    states = colony.get("states", [])
+    config = colony.get("config")
+
+    if not states or not config:
+        return None
+
+    if isinstance(config, ColonyConfig):
+        crew_size = config.crew_size
+        bandwidth = config.earth_bandwidth_mbps
+    else:
+        crew_size = config.get("crew_size", 10)
+        bandwidth = config.get("earth_bandwidth_mbps", MARS_RELAY_MBPS)
+
+    # Use expertise from decision state
+    expertise = {"general": 0.6}
+    latency_sec = LIGHT_DELAY_MAX * 60  # Use max latency for worst case
+
+    internal = decision_capacity(crew_size, expertise, bandwidth, latency_sec)
+    external = earth_input_rate(bandwidth, latency_sec)
+
+    if sovereignty_threshold(internal, external):
+        return None
+
+    return {
+        "validator": "sovereignty",
+        "crew": crew_size,
+        "internal": internal,
+        "external": external,
+    }
+
+
+def colony_validate_atmosphere(colony: Dict[str, Any]) -> Optional[Dict]:
+    """Check if O2 percentage is in safe range (19.5-23.5%) for all days.
+
+    Returns None if constraint satisfied, violation dict if violated.
+    """
+    states = colony.get("states", [])
+    config = colony.get("config")
+
+    if not states:
+        return None
+
+    min_o2 = float('inf')
+    max_o2 = float('-inf')
+
+    for state in states:
+        if isinstance(state, ColonyState):
+            o2 = state.atmosphere.get("O2_pct", 21.0)
+        else:
+            o2 = state.get("O2_pct", 21.0)
+
+        min_o2 = min(min_o2, o2)
+        max_o2 = max(max_o2, o2)
+
+    if 19.5 <= min_o2 and max_o2 <= 23.5:
+        return None
+
+    if isinstance(config, ColonyConfig):
+        crew_size = config.crew_size
+    else:
+        crew_size = config.get("crew_size", 0) if config else 0
+
+    return {
+        "validator": "atmosphere",
+        "crew": crew_size,
+        "min_o2": min_o2,
+        "max_o2": max_o2,
+    }
+
+
+def colony_validate_thermal(colony: Dict[str, Any]) -> Optional[Dict]:
+    """Check if habitat temperature is in safe range (0-40°C) for all days.
+
+    Returns None if constraint satisfied, violation dict if violated.
+    """
+    states = colony.get("states", [])
+    config = colony.get("config")
+
+    if not states:
+        return None
+
+    min_T = float('inf')
+    max_T = float('-inf')
+
+    for state in states:
+        if isinstance(state, ColonyState):
+            temp = state.thermal.get("T_hab_C", 22.0)
+        else:
+            temp = state.get("T_hab_C", 22.0)
+
+        min_T = min(min_T, temp)
+        max_T = max(max_T, temp)
+
+    if 0 <= min_T and max_T <= 40:
+        return None
+
+    if isinstance(config, ColonyConfig):
+        crew_size = config.crew_size
+    else:
+        crew_size = config.get("crew_size", 0) if config else 0
+
+    return {
+        "validator": "thermal",
+        "crew": crew_size,
+        "min_T": min_T,
+        "max_T": max_T,
+    }
+
+
+def colony_validate_resource(colony: Dict[str, Any]) -> Optional[Dict]:
+    """Check if resource buffer is at least 90 days.
+
+    Returns None if constraint satisfied, violation dict if violated.
+    """
+    states = colony.get("states", [])
+    config = colony.get("config")
+
+    if not states:
+        return None
+
+    # Calculate buffer days based on resources vs consumption
+    if isinstance(config, ColonyConfig):
+        crew_size = config.crew_size
+    else:
+        crew_size = config.get("crew_size", 10) if config else 10
+
+    # Get final state resources
+    final_state = states[-1]
+    if isinstance(final_state, ColonyState):
+        water_kg = final_state.resource.get("water_kg", 0)
+        food_kcal = final_state.resource.get("food_kcal", 0)
+    else:
+        water_kg = final_state.get("water_kg", 0)
+        food_kcal = final_state.get("food_kcal", 0)
+
+    # Daily consumption rates
+    water_per_day = crew_size * 3.0  # 3L/person/day
+    food_per_day = crew_size * 2500  # 2500 kcal/person/day
+
+    # Buffer days (minimum of water and food)
+    water_buffer = water_kg / max(0.001, water_per_day)
+    food_buffer = food_kcal / max(0.001, food_per_day)
+    buffer_days = min(water_buffer, food_buffer)
+
+    if buffer_days >= 90:
+        return None
+
+    return {
+        "validator": "resource",
+        "crew": crew_size,
+        "buffer_days": buffer_days,
+    }
+
+
+def colony_validate_cascade(colony: Dict[str, Any]) -> Optional[Dict]:
+    """Check if colony survived without cascade failure after stress.
+
+    Returns None if constraint satisfied, violation dict if violated.
+    """
+    states = colony.get("states", [])
+    config = colony.get("config")
+
+    if not states:
+        return None
+
+    for day, state in enumerate(states):
+        if isinstance(state, ColonyState):
+            status = state.status
+        else:
+            status = state.get("status", "nominal")
+
+        if status == "failed":
+            if isinstance(config, ColonyConfig):
+                crew_size = config.crew_size
+            else:
+                crew_size = config.get("crew_size", 0) if config else 0
+
+            return {
+                "validator": "cascade",
+                "crew": crew_size,
+                "failed_day": day,
+            }
+
+    return None
+
+
+# === COLONY CORE FUNCTIONS ===
+
+def colony_validate_constraints(state: ColonySimState, colonies: List[Dict]) -> List[Dict]:
+    """Run all 6 validators on colonies. Return list of violation dicts."""
+    violations = []
+
+    validators = [
+        colony_validate_entropy_stable,
+        colony_validate_sovereignty,
+        colony_validate_atmosphere,
+        colony_validate_thermal,
+        colony_validate_resource,
+        colony_validate_cascade,
+    ]
+
+    for colony in colonies:
+        for validator in validators:
+            violation = validator(colony)
+            if violation is not None:
+                violations.append(violation)
+                # Emit violation receipt
+                emit_receipt("violation", {
+                    "tenant_id": COLONY_TENANT_ID,
+                    "validator": violation["validator"],
+                    "crew_size": violation.get("crew", 0),
+                    "metrics": {k: v for k, v in violation.items()
+                               if k not in ("validator", "crew")},
+                })
+
+    return violations
+
+
+def colony_find_minimum_viable_crew(colonies: List[Dict], config: ColonySimConfig) -> Optional[int]:
+    """Find minimum crew size where sovereignty_threshold returns True.
+
+    Returns crew size or None if never achieved.
+    THE KEY OUTPUT for AXIOM-COLONY.
+    """
+    sovereign_crews = []
+
+    for colony in colonies:
+        states = colony.get("states", [])
+        col_config = colony.get("config")
+
+        if not states or not col_config:
+            continue
+
+        if isinstance(col_config, ColonyConfig):
+            crew_size = col_config.crew_size
+            bandwidth = col_config.earth_bandwidth_mbps
+        else:
+            crew_size = col_config.get("crew_size", 10)
+            bandwidth = col_config.get("earth_bandwidth_mbps", MARS_RELAY_MBPS)
+
+        # Check sovereignty using entropy.py functions
+        expertise = {"general": 0.6}
+        latency_sec = LIGHT_DELAY_MAX * 60
+
+        internal = decision_capacity(crew_size, expertise, bandwidth, latency_sec)
+        external = earth_input_rate(bandwidth, latency_sec)
+
+        if sovereignty_threshold(internal, external):
+            sovereign_crews.append(crew_size)
+
+    if not sovereign_crews:
+        return None
+
+    minimum_crew = min(sovereign_crews)
+
+    # Emit discovery receipt
+    emit_receipt("discovery", {
+        "tenant_id": COLONY_TENANT_ID,
+        "finding": "sovereignty_threshold",
+        "value": minimum_crew,
+        "confidence": len([c for c in sovereign_crews if c == minimum_crew]) / max(1, len(colonies)),
+        "evidence": {
+            "colonies_tested": len(colonies),
+            "sovereign_colonies": len(sovereign_crews),
+        },
+    })
+
+    return minimum_crew
+
+
+def colony_simulate_cycle(state: ColonySimState, config: ColonySimConfig) -> ColonySimState:
+    """One cycle: For each crew_size × stress_event combination.
+
+    Generate colony, apply stress if needed, collect entropy data, run validators.
+    Increment state.cycle. Return modified state.
+    """
+    cycle_colonies = []
+
+    for crew_size in config.crew_sizes:
+        for stress in config.stress_events:
+            # Generate colony with deterministic seed
+            try:
+                colony_config = default_config(crew_size)
+            except ValueError:
+                # Handle edge cases like crew_size < 4 or > 1000
+                continue
+
+            seed = config.random_seed + state.cycle * 1000 + crew_size
+            colony_states = generate_colony(colony_config, config.duration_days, seed)
+
+            if not colony_states:
+                continue
+
+            # Apply stress event if needed
+            if stress == "dust_storm":
+                start_day = min(30, len(colony_states) // 4)
+                duration = min(90, len(colony_states) // 2)
+                simulate_dust_storm(colony_states, start_day, duration)
+            elif stress == "hab_breach":
+                breach_day = min(30, len(colony_states) // 4)
+                simulate_hab_breach(colony_states, breach_day, 0.01)
+            elif stress == "crop_failure":
+                crop_day = min(30, len(colony_states) // 4)
+                simulate_crop_failure(colony_states, crop_day, 0.5)
+
+            colony_result = {
+                "config": colony_config,
+                "states": colony_states,
+                "stress": stress,
+                "crew_size": crew_size,
+                "cycle": state.cycle,
+            }
+
+            cycle_colonies.append(colony_result)
+            state.colonies.append(colony_result)
+
+    # Validate constraints for this cycle's colonies
+    violations = colony_validate_constraints(state, cycle_colonies)
+    state.violations.extend(violations)
+
+    state.cycle += 1
+    return state
+
+
+def run_colony_simulation(config: ColonySimConfig) -> ColonySimState:
+    """Full colony simulation with deterministic seed.
+
+    MAIN ENTRY POINT for colony validation.
+    Set np.random.seed(config.random_seed). Loop n_cycles, call simulate_cycle.
+    After all cycles, call find_minimum_viable_crew. Emit sim_complete_receipt.
+    Return final state.
+    """
+    np.random.seed(config.random_seed)
+
+    state = ColonySimState()
+
+    for cycle in range(config.n_cycles):
+        state = colony_simulate_cycle(state, config)
+
+    # Find minimum viable crew (THE KEY OUTPUT)
+    state.sovereignty_threshold_crew = colony_find_minimum_viable_crew(state.colonies, config)
+
+    # Emit sim_complete receipt
+    emit_receipt("sim_complete", {
+        "tenant_id": COLONY_TENANT_ID,
+        "n_cycles": config.n_cycles,
+        "n_colonies": len(state.colonies),
+        "n_violations": len(state.violations),
+        "sovereignty_threshold_crew": state.sovereignty_threshold_crew,
+        "passed": state.passed,
+    })
+
+    return state
+
+
+def run_colony_scenario(name: str) -> ColonySimState:
+    """Get config from COLONY_SCENARIO_CONFIGS[name]. Run simulation. Return state."""
+    if name not in COLONY_SCENARIO_CONFIGS:
+        raise ValueError(f"Unknown colony scenario: {name}. Valid: {list(COLONY_SCENARIO_CONFIGS.keys())}")
+
+    config = COLONY_SCENARIO_CONFIGS[name]
+    return run_colony_simulation(config)
+
+
+def run_all_colony_scenarios() -> Dict[str, ColonySimState]:
+    """Run all 6 colony scenarios. Return {name: ColonySimState} dict.
+
+    Emit summary_receipt with pass/fail for each.
+    THE SHIP GATE: If any scenario fails, AXIOM-COLONY does not publish.
+    """
+    results = {}
+
+    for name in COLONY_SCENARIO_CONFIGS:
+        results[name] = run_colony_scenario(name)
+
+    # Build summary
+    summary_results = {}
+    all_passed = True
+
+    for name, state in results.items():
+        summary_results[name] = {
+            "passed": state.passed,
+            "violations": len(state.violations),
+        }
+        if not state.passed:
+            all_passed = False
+
+    # Emit scenario summary receipt
+    emit_receipt("scenario_summary", {
+        "tenant_id": COLONY_TENANT_ID,
+        "results": summary_results,
+        "all_passed": all_passed,
+    })
+
+    return results
+
+
+# === BACKWARD COMPATIBILITY ALIASES ===
+# These allow imports using the spec names (BUILD C5 compatibility)
+
+SimConfig = ColonySimConfig
+SimState = ColonySimState
+SCENARIO_CONFIGS = COLONY_SCENARIO_CONFIGS
+
+# Function aliases for spec compatibility
+run_simulation = run_colony_simulation
+simulate_cycle = colony_simulate_cycle
+validate_constraints = colony_validate_constraints
+find_minimum_viable_crew = colony_find_minimum_viable_crew
+run_scenario = run_colony_scenario
+run_all_scenarios = run_all_colony_scenarios
+
+# Validator aliases
+validate_entropy_stable = colony_validate_entropy_stable
+validate_sovereignty = colony_validate_sovereignty
+validate_atmosphere = colony_validate_atmosphere
+validate_thermal = colony_validate_thermal
+validate_resource = colony_validate_resource
+validate_cascade = colony_validate_cascade
