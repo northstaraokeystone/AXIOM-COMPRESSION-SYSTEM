@@ -1,9 +1,29 @@
 """AXIOM Compression System - Modular imports."""
 
 # Core functions (always available)
-from .core import dual_hash, emit_receipt, StopRule
+from .core import (
+    dual_hash,
+    emit_receipt,
+    merkle,
+    StopRule,
+    stoprule_hash_mismatch,
+    stoprule_invalid_receipt,
+    TENANT_ID,
+    RECEIPT_SCHEMA,
+    HAS_BLAKE3,
+)
 
-__all__ = ["dual_hash", "emit_receipt", "StopRule"]
+__all__ = [
+    "dual_hash",
+    "emit_receipt",
+    "merkle",
+    "StopRule",
+    "stoprule_hash_mismatch",
+    "stoprule_invalid_receipt",
+    "TENANT_ID",
+    "RECEIPT_SCHEMA",
+    "HAS_BLAKE3",
+]
 
 # Optional: KAN module (requires torch)
 try:
