@@ -9,8 +9,8 @@ from typing import NoReturn
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-witness"
-"""Default tenant for all AXIOM receipts. Overrides CLAUDEME default."""
+TENANT_ID = "axiom-colony"
+"""Default tenant for all AXIOM receipts. Per CLAUDEME §8."""
 
 # Runtime detection of blake3 availability
 try:
@@ -20,12 +20,16 @@ except ImportError:
     HAS_BLAKE3 = False
 
 RECEIPT_SCHEMA = {
-    "receipt_type": "str",
-    "ts": "ISO8601+Z",
-    "tenant_id": "str",
-    "payload_hash": "sha256:blake3"
+    "type": "object",
+    "required": ["receipt_type", "ts", "tenant_id", "payload_hash"],
+    "properties": {
+        "receipt_type": {"type": "string"},
+        "ts": {"type": "string", "format": "date-time"},
+        "tenant_id": {"type": "string"},
+        "payload_hash": {"type": "string", "pattern": "^[a-f0-9]{64}:[a-f0-9]{64}$"}
+    }
 }
-"""Self-documenting schema export for autodoc."""
+"""JSON Schema for receipt autodocumentation. Per CLAUDEME §8."""
 
 
 # === CORE FUNCTIONS ===
