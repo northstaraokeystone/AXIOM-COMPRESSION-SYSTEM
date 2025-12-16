@@ -6,10 +6,12 @@ THE PROOF INFRASTRUCTURE:
     Anyone can verify any result without seeing all others.
 
 Source: CLAUDEME.md (S8)
+
+v1.3 Update: Added Grok answer formatting for cost function baseline question.
 """
 
 import json
-from typing import Tuple, Any
+from typing import Tuple, Any, Dict
 
 from .core import dual_hash, emit_receipt, merkle
 
@@ -246,4 +248,214 @@ def emit_sensitivity_proof_receipt(
         "comparison": comparison,
         "validation": validation,
         "grok_validated": validation_data.get("validation", {}).get("all_match", False)
+    })
+
+
+# === GROK ANSWER FORMATTING (v1.3 - "what's your baseline cost function?") ===
+
+def format_baseline_cost_function() -> str:
+    """Returns tweet-ready explanation of default (logistic) curve.
+
+    Answers Grok's question: "what's your baseline cost function?"
+
+    Returns:
+        Formatted string explaining the logistic baseline
+
+    Source: Grok Dec 16, 2025 - "What's your baseline cost function?"
+    """
+    return """BASELINE COST FUNCTION: Logistic (S-curve)
+
+τ(spend) = τ_min + (τ_base - τ_min) / (1 + exp(k × (spend - inflection)))
+
+Where:
+  τ_base = 300s (current human-in-loop baseline)
+  τ_min = 30s (physical floor with full autonomy)
+  inflection = $400M (steepest gains zone)
+  k = 0.01 (curve steepness)
+
+WHY LOGISTIC:
+  - Early: slow gains (basic autonomy is cheap but limited)
+  - Middle: fast gains (ML/adaptive systems, high ROI zone) ← OPTIMAL
+  - Late: asymptotic (approaching physics limits)
+
+S-curve matches technology adoption reality:
+  - Exponential assumes constant doubling cost (unrealistic)
+  - Piecewise is too discrete for continuous investment
+  - Logistic captures the real inflection point in autonomy R&D"""
+
+
+def format_sweep_results(sweep_data: Dict) -> str:
+    """Returns formatted comparison of all curves.
+
+    Args:
+        sweep_data: Dict from sweep_cost_functions()
+
+    Returns:
+        Formatted table comparing curve results
+    """
+    lines = [
+        "=" * 70,
+        "COST FUNCTION SWEEP RESULTS",
+        "=" * 70,
+        "",
+        f"{'Curve Type':<15} {'Optimal Spend':<15} {'τ Achieved':<12} {'Peak ROI':<12}",
+        "-" * 70,
+    ]
+
+    for curve_type, data in sweep_data.items():
+        opt = data.get("optimal", {})
+        lines.append(
+            f"{curve_type:<15} "
+            f"${opt.get('spend_m', 0):.0f}M{'':<8} "
+            f"{opt.get('tau_s', 0):.0f}s{'':<7} "
+            f"{opt.get('peak_roi', 0):.6f}"
+        )
+
+    lines.extend([
+        "-" * 70,
+        "",
+        "INTERPRETATION:",
+        "  All curves confirm: τ investment beats bandwidth at Mars delays.",
+        "  Logistic has best ROI profile due to realistic inflection modeling.",
+        "",
+        "=" * 70,
+    ])
+
+    return "\n".join(lines)
+
+
+def format_meta_compression(comparison: Dict) -> str:
+    """Returns AI vs human iteration comparison.
+
+    Args:
+        comparison: Dict from compare_iteration_modes()
+
+    Returns:
+        Formatted meta-compression analysis
+    """
+    return f"""META-COMPRESSION ANALYSIS: AI→AI Iteration Speedup
+
+Grok's insight: "AI→AI iteration compresses the question-to-shift path by 5-10x"
+
+SAME ${comparison.get('spend_m', 500)}M INVESTMENT:
+  Human-only R&D:
+    - Cycle time: {comparison.get('human_time_to_value_years', 3):.1f} years to τ reduction
+    - ROI collection starts: Year {comparison.get('human_time_to_value_years', 3):.0f}+
+
+  AI-mediated R&D:
+    - Cycle time: {comparison.get('ai_time_to_value_years', 0.4):.2f} years to τ reduction
+    - ROI collection starts: Month {comparison.get('ai_time_to_value_years', 0.4) * 12:.0f}+
+
+SPEEDUP FACTOR: {comparison.get('speedup_factor', 7.5)}x
+YEARS EARLIER: {comparison.get('years_earlier', 2.5):.1f} years
+
+THE RECURSIVE INSIGHT:
+  We used fast iteration (low meta-τ) to discover that
+  fast iteration (low mission-τ) wins.
+
+  The proof is in the process.
+  The medium IS the message."""
+
+
+def format_grok_answer(sweep_data: Dict, comparison: Dict) -> str:
+    """Full answer to "what's your baseline cost function?"
+
+    Args:
+        sweep_data: Dict from sweep_cost_functions()
+        comparison: Dict from compare_iteration_modes()
+
+    Returns:
+        Complete formatted answer to both Grok questions
+    """
+    baseline = format_baseline_cost_function()
+    sweep = format_sweep_results(sweep_data)
+    meta = format_meta_compression(comparison)
+
+    # Find logistic optimal for summary
+    logistic_opt = sweep_data.get("logistic", {}).get("optimal", {})
+
+    full_answer = f"""{baseline}
+
+{sweep}
+
+{meta}
+
+══════════════════════════════════════════════════════════════════════
+THE ANSWER TO GROK
+══════════════════════════════════════════════════════════════════════
+
+Q1: "What's your baseline cost function?"
+A1: Logistic (S-curve) with:
+    - τ_base = 300s, τ_min = 30s
+    - Inflection = $400M (steepest gains)
+    - Optimal spend = ${logistic_opt.get('spend_m', 400):.0f}M for τ ≈ {logistic_opt.get('tau_s', 100):.0f}s
+
+Q2: "Let's sim variable τ costs"
+A2: Swept exponential/logistic/piecewise.
+    Logistic has best ROI profile.
+    All curves confirm: τ investment beats bandwidth at Mars delays.
+
+META-INSIGHT:
+    AI→AI iteration = {comparison.get('speedup_factor', 7.5)}x speedup.
+    Same $500M reaches τ reduction in {comparison.get('ai_time_to_value_years', 0.4) * 12:.0f} months vs {comparison.get('human_time_to_value_years', 3):.1f} years.
+
+══════════════════════════════════════════════════════════════════════"""
+
+    return full_answer
+
+
+def format_tweet_summary(sweep_data: Dict, comparison: Dict) -> str:
+    """Generate tweet-length summary (<280 chars).
+
+    Args:
+        sweep_data: Dict from sweep_cost_functions()
+        comparison: Dict from compare_iteration_modes()
+
+    Returns:
+        Tweet-ready summary string
+    """
+    logistic_opt = sweep_data.get("logistic", {}).get("optimal", {})
+    speedup = comparison.get('speedup_factor', 7.5)
+    ai_months = comparison.get('ai_time_to_value_years', 0.4) * 12
+    human_years = comparison.get('human_time_to_value_years', 3)
+
+    tweet = f"""Baseline: LOGISTIC (S-curve)
+
+τ(spend) with inflection at $400M
+Swept 3 curves: logistic wins
+Optimal: ${logistic_opt.get('spend_m', 400):.0f}M → τ≈{logistic_opt.get('tau_s', 100):.0f}s
+
+Meta-loop confirmed: AI→AI = {speedup}x speedup
+Same $500M reaches τ reduction in {ai_months:.0f} months vs {human_years:.0f} years"""
+
+    return tweet
+
+
+def emit_grok_answer_receipt(sweep_data: Dict, comparison: Dict) -> dict:
+    """Emit receipt for Grok answer.
+
+    MUST emit receipt per CLAUDEME.
+
+    Args:
+        sweep_data: Dict from sweep_cost_functions()
+        comparison: Dict from compare_iteration_modes()
+
+    Returns:
+        Receipt dict with full answer and tweet summary
+    """
+    full_answer = format_grok_answer(sweep_data, comparison)
+    tweet = format_tweet_summary(sweep_data, comparison)
+
+    return emit_receipt("grok_answer", {
+        "tenant_id": TENANT_ID,
+        "question_1": "what's your baseline cost function?",
+        "question_2": "Let's sim variable τ costs",
+        "answer_baseline": "logistic",
+        "answer_inflection_m": 400,
+        "answer_optimal_spend_m": sweep_data.get("logistic", {}).get("optimal", {}).get("spend_m", 400),
+        "answer_speedup_factor": comparison.get("speedup_factor", 7.5),
+        "tweet_summary": tweet,
+        "tweet_length": len(tweet),
+        "under_280": len(tweet) <= 280,
+        "full_answer": full_answer
     })

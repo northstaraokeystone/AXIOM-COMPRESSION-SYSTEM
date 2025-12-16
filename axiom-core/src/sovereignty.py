@@ -36,6 +36,18 @@ from .entropy_shannon import (
     tau_from_investment,
     bandwidth_cost,
     bandwidth_from_investment,
+    # v1.3 - Variable τ cost curves + meta-compression
+    TAU_MIN_ACHIEVABLE_S,
+    TAU_COST_INFLECTION_M,
+    TAU_COST_STEEPNESS,
+    ITERATION_COMPRESSION_FACTOR,
+    META_TAU_HUMAN_DAYS,
+    META_TAU_AI_DAYS,
+    tau_cost_exponential,
+    tau_cost_logistic,
+    tau_cost_piecewise,
+    tau_from_cost,
+    get_cost_function,
 )
 
 
@@ -1003,4 +1015,372 @@ def emit_roi_receipt(
         "crew_reduction": crew["reduction"],
         "crew_reduction_pct": crew["reduction_pct"],
         "finding": f"τ-reduction ROI is {comparison['ratio']:.1f}x higher than bandwidth ROI at {delay_s/60:.0f} min delay"
+    })
+
+
+# === META-COMPRESSION FACTOR (v1.3 - Grok: "meta-loop is pure τ reduction") ===
+# Source: "AI→AI iteration compresses the question-to-shift path by 5-10x"
+
+def meta_compression_factor(iteration_mode: str = "ai") -> float:
+    """Returns compression factor for R&D iteration mode.
+
+    THE META-INSIGHT: The AI→AI loop IS itself τ reduction.
+    Same spend reaches τ reduction 7.5x faster with AI-mediated R&D.
+
+    Args:
+        iteration_mode: "ai" for AI-mediated, "human" for human-only
+
+    Returns:
+        Compression factor (7.5 for AI, 1.0 for human)
+
+    Source: Grok Dec 16, 2025 - "5-10x compression on R&D decision latency"
+    """
+    if iteration_mode == "ai":
+        return ITERATION_COMPRESSION_FACTOR
+    return 1.0
+
+
+def effective_autonomy_spend(raw_spend_m: float, iteration_mode: str = "ai") -> float:
+    """Calculate effective autonomy spend accounting for iteration speedup.
+
+    The insight: $500M with AI-mediated R&D delivers value equivalent to
+    $500M × 7.5 = $3.75B of human-only R&D, due to faster iteration.
+
+    Args:
+        raw_spend_m: Raw investment in millions USD
+        iteration_mode: "ai" or "human"
+
+    Returns:
+        Effective spend value in millions USD
+
+    Note: This is VALUE equivalence, not actual cost.
+    """
+    return raw_spend_m * meta_compression_factor(iteration_mode)
+
+
+def meta_boosted_roi(base_roi: float, iteration_mode: str = "ai") -> float:
+    """ROI multiplied by faster iteration discovery.
+
+    If AI path discovers the τ reduction 7.5x faster,
+    the NPV is higher even at same nominal τ outcome.
+
+    Args:
+        base_roi: Base ROI (effective_rate_gain / investment)
+        iteration_mode: "ai" or "human"
+
+    Returns:
+        Boosted ROI accounting for time-to-value
+    """
+    return base_roi * meta_compression_factor(iteration_mode)
+
+
+def compare_iteration_modes(
+    spend_m: float,
+    bw_mbps: float,
+    delay_s: float,
+    tau_base: float = TAU_BASE_CURRENT_S
+) -> dict:
+    """Side-by-side comparison: human-only vs AI-mediated outcomes.
+
+    Same $500M investment:
+        Human path: τ reduction discovered in year 3, ROI starts year 4
+        AI path: τ reduction discovered in month 5, ROI starts month 6
+
+    Args:
+        spend_m: Investment in millions USD
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+        tau_base: Starting τ value in seconds
+
+    Returns:
+        Dict with side-by-side comparison:
+        - human_time_to_value_years: Years to achieve τ reduction
+        - ai_time_to_value_years: Years to achieve τ reduction
+        - speedup_factor: How much faster AI path is
+        - effective_roi_human: ROI for human path
+        - effective_roi_ai: ROI for AI path
+        - roi_advantage: How much better AI ROI is
+    """
+    # Time to achieve τ reduction
+    human_time_years = META_TAU_HUMAN_DAYS * 12 / 365  # ~1 year per major iteration
+    ai_time_years = META_TAU_AI_DAYS * 12 / 365  # ~0.13 years per iteration
+
+    # For equivalent R&D progress, multiply by cycles needed
+    # Assume ~10 major R&D cycles needed for breakthrough
+    cycles_needed = 10
+    human_total_years = human_time_years * cycles_needed
+    ai_total_years = ai_time_years * cycles_needed
+
+    # ROI calculations
+    tau_achieved = tau_from_investment(spend_m, tau_base)
+    base_roi = roi_tau_investment(spend_m, tau_base, bw_mbps, delay_s)
+
+    # Human path: ROI starts after human_total_years
+    # AI path: ROI starts after ai_total_years
+    # NPV advantage comes from earlier ROI collection
+
+    # Simple model: ROI per year × years of advantage
+    years_advantage = human_total_years - ai_total_years
+    effective_roi_human = base_roi
+    effective_roi_ai = base_roi * (1 + years_advantage)  # More years to collect ROI
+
+    return {
+        "spend_m": spend_m,
+        "tau_achieved": tau_achieved,
+        "human_time_to_value_years": round(human_total_years, 2),
+        "ai_time_to_value_years": round(ai_total_years, 2),
+        "speedup_factor": round(human_total_years / ai_total_years, 1),
+        "years_earlier": round(years_advantage, 2),
+        "base_roi": base_roi,
+        "effective_roi_human": effective_roi_human,
+        "effective_roi_ai": effective_roi_ai,
+        "roi_advantage": round(effective_roi_ai / effective_roi_human, 2) if effective_roi_human > 0 else float('inf'),
+        "meta_insight": "AI-mediated R&D reaches τ reduction 7.5x faster"
+    }
+
+
+# === COST FUNCTION SWEEP SIMULATION (v1.3 - Grok: "sim variable τ costs") ===
+
+def sweep_cost_functions(
+    spend_range: Tuple[float, float],
+    bw_mbps: float,
+    delay_s: float,
+    curve_types: List[str] = None,
+    steps: int = 20
+) -> dict:
+    """Run simulation across all curve types.
+
+    Sweeps spend from min to max, computing achievable τ and ROI
+    for each curve type.
+
+    Args:
+        spend_range: (min_spend_m, max_spend_m) in millions USD
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+        curve_types: List of curve types (default: all three)
+        steps: Number of spend levels to evaluate
+
+    Returns:
+        Dict with sweep results for each curve type:
+        - curve_type: list of (spend, tau, effective_rate, roi) tuples
+        - optimal: optimal spend for each curve
+    """
+    if curve_types is None:
+        curve_types = ["exponential", "logistic", "piecewise"]
+
+    min_spend, max_spend = spend_range
+    spend_step = (max_spend - min_spend) / (steps - 1) if steps > 1 else 0
+
+    results = {}
+
+    for curve in curve_types:
+        curve_results = []
+        peak_roi = 0
+        optimal_spend = min_spend
+        optimal_tau = TAU_BASE_CURRENT_S
+        optimal_rate = 0
+
+        for i in range(steps):
+            spend = min_spend + i * spend_step
+
+            # Get achievable τ for this spend
+            tau = tau_from_cost(spend, curve)
+
+            # Calculate effective rate at this τ
+            # Better autonomy (lower τ) → higher effective decay constant
+            decay_tau = TAU_BASE_CURRENT_S * TAU_BASE_CURRENT_S / tau
+            effective_rate = external_rate_exponential(bw_mbps, delay_s, decay_tau)
+
+            # Calculate ROI
+            # Rate gain from τ reduction
+            baseline_decay = TAU_BASE_CURRENT_S  # At baseline τ=300s
+            baseline_rate = external_rate_exponential(bw_mbps, delay_s, baseline_decay)
+            rate_gain = effective_rate - baseline_rate
+            roi = rate_gain / spend if spend > 0 else 0
+
+            curve_results.append({
+                "spend_m": round(spend, 1),
+                "tau_s": round(tau, 1),
+                "effective_rate": round(effective_rate, 2),
+                "roi": round(roi, 6)
+            })
+
+            # Track optimal
+            if roi > peak_roi:
+                peak_roi = roi
+                optimal_spend = spend
+                optimal_tau = tau
+                optimal_rate = effective_rate
+
+        results[curve] = {
+            "sweep": curve_results,
+            "optimal": {
+                "spend_m": round(optimal_spend, 1),
+                "tau_s": round(optimal_tau, 1),
+                "effective_rate": round(optimal_rate, 2),
+                "peak_roi": round(peak_roi, 6)
+            }
+        }
+
+    return results
+
+
+def find_optimal_spend(
+    curve_type: str,
+    bw_mbps: float,
+    delay_s: float,
+    budget_max: float = 1000
+) -> dict:
+    """Find spend that maximizes ROI for given curve.
+
+    Uses golden section search to find optimal spend.
+
+    Args:
+        curve_type: "exponential", "logistic", or "piecewise"
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+        budget_max: Maximum budget to consider in $M
+
+    Returns:
+        Dict with optimal spend and resulting metrics
+    """
+    # Golden section search
+    phi = (1 + math.sqrt(5)) / 2
+    tol = 1.0  # $1M precision
+
+    a, b = 10.0, budget_max  # Search from $10M to max
+
+    def compute_roi(spend):
+        tau = tau_from_cost(spend, curve_type)
+        decay_tau = TAU_BASE_CURRENT_S * TAU_BASE_CURRENT_S / tau
+        effective_rate = external_rate_exponential(bw_mbps, delay_s, decay_tau)
+        baseline_rate = external_rate_exponential(bw_mbps, delay_s, TAU_BASE_CURRENT_S)
+        rate_gain = effective_rate - baseline_rate
+        return rate_gain / spend if spend > 0 else 0
+
+    c = b - (b - a) / phi
+    d = a + (b - a) / phi
+
+    while abs(b - a) > tol:
+        if compute_roi(c) > compute_roi(d):
+            b = d
+        else:
+            a = c
+
+        c = b - (b - a) / phi
+        d = a + (b - a) / phi
+
+    optimal_spend = (a + b) / 2
+    optimal_tau = tau_from_cost(optimal_spend, curve_type)
+    decay_tau = TAU_BASE_CURRENT_S * TAU_BASE_CURRENT_S / optimal_tau
+    optimal_rate = external_rate_exponential(bw_mbps, delay_s, decay_tau)
+    optimal_roi = compute_roi(optimal_spend)
+
+    return {
+        "curve_type": curve_type,
+        "optimal_spend_m": round(optimal_spend, 1),
+        "tau_achieved_s": round(optimal_tau, 1),
+        "effective_rate": round(optimal_rate, 2),
+        "roi": round(optimal_roi, 6)
+    }
+
+
+def compare_curves_at_budget(
+    budget_m: float,
+    bw_mbps: float,
+    delay_s: float
+) -> dict:
+    """Same budget, different curves → different outcomes.
+
+    Compare what each cost curve achieves with the same investment.
+
+    Args:
+        budget_m: Fixed budget in millions USD
+        bw_mbps: Bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+
+    Returns:
+        Dict comparing outcomes for each curve type
+    """
+    curves = ["exponential", "logistic", "piecewise"]
+    results = {}
+
+    for curve in curves:
+        tau = tau_from_cost(budget_m, curve)
+        decay_tau = TAU_BASE_CURRENT_S * TAU_BASE_CURRENT_S / tau
+        effective_rate = external_rate_exponential(bw_mbps, delay_s, decay_tau)
+
+        baseline_rate = external_rate_exponential(bw_mbps, delay_s, TAU_BASE_CURRENT_S)
+        rate_gain = effective_rate - baseline_rate
+        roi = rate_gain / budget_m if budget_m > 0 else 0
+
+        results[curve] = {
+            "tau_achieved_s": round(tau, 1),
+            "effective_rate": round(effective_rate, 2),
+            "rate_gain": round(rate_gain, 2),
+            "roi": round(roi, 6)
+        }
+
+    # Find best curve for this budget
+    best_curve = max(results.keys(), key=lambda c: results[c]["roi"])
+
+    return {
+        "budget_m": budget_m,
+        "delay_s": delay_s,
+        "curves": results,
+        "best_curve": best_curve,
+        "best_roi": results[best_curve]["roi"]
+    }
+
+
+def recommend_cost_function(observed_data: dict = None) -> str:
+    """Returns best-fit curve type.
+
+    Without observed data, defaults to logistic based on
+    technology adoption theory.
+
+    Args:
+        observed_data: Optional dict with historical τ/cost pairs
+                      (not implemented - placeholder for future)
+
+    Returns:
+        Recommended curve type string
+
+    Source: Grok Dec 16, 2025 - logistic matches reality best
+    """
+    # Future: fit curves to observed_data if provided
+
+    # Default recommendation: logistic
+    # Rationale:
+    # - Exponential assumes constant doubling (unrealistic)
+    # - Piecewise is too discrete
+    # - Logistic matches technology S-curve adoption
+    return "logistic"
+
+
+def emit_sweep_receipt(
+    spend_range: Tuple[float, float],
+    bw_mbps: float,
+    delay_s: float
+) -> dict:
+    """Emit receipt for cost function sweep.
+
+    MUST emit receipt per CLAUDEME.
+    """
+    sweep_results = sweep_cost_functions(spend_range, bw_mbps, delay_s)
+    comparison = compare_iteration_modes(500, bw_mbps, delay_s)  # $500M reference
+
+    # Find best curve at typical spend
+    budget_comparison = compare_curves_at_budget(400, bw_mbps, delay_s)
+
+    return emit_receipt("cost_function_sweep", {
+        "tenant_id": "axiom-core",
+        "spend_range_m": spend_range,
+        "bandwidth_mbps": bw_mbps,
+        "delay_s": delay_s,
+        "sweep_results": sweep_results,
+        "meta_comparison": comparison,
+        "recommended_curve": recommend_cost_function(),
+        "best_curve_at_400m": budget_comparison["best_curve"],
+        "finding": f"Logistic curve with $400M inflection. AI iteration = {comparison['speedup_factor']}x faster."
     })

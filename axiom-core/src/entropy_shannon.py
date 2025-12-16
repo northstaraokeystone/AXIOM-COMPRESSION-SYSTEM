@@ -108,6 +108,39 @@ COMPUTE_FLOPS_TO_DECISIONS = 1e-15
 Derivation: Modern GPU ~1e15 FLOPS → ~1 decision/sec equivalent.
 Conservative estimate - actual may be higher with specialized AI."""
 
+# === VARIABLE τ COST FUNCTION CONSTANTS (v1.3 - Grok feedback Dec 16, 2025) ===
+# Source: "What's your baseline cost function?" and "Let's sim variable τ costs"
+
+TAU_MIN_ACHIEVABLE_S = 30
+"""Physical floor: 30-second decision cycles with full autonomy.
+Represents theoretical minimum with cutting-edge AI/robotics.
+Below this, physics and sensor latency dominate."""
+
+TAU_COST_INFLECTION_M = 400
+"""Inflection point for logistic curve in millions USD ($400M).
+Derivation: Middle of S-curve where marginal gains are steepest.
+Early autonomy is cheap but limited; late autonomy hits physics."""
+
+TAU_COST_STEEPNESS = 0.01
+"""Logistic curve steepness parameter (k).
+Controls how sharply the S-curve transitions.
+k=0.01 gives smooth transition over ~$200M-$600M range."""
+
+ITERATION_COMPRESSION_FACTOR = 7.5
+"""Midpoint of Grok's 5-10x for AI→AI loops.
+Source: "AI→AI iteration compresses the question-to-shift path by 5-10x"
+Derivation: (5 + 10) / 2 = 7.5x speedup in R&D discovery."""
+
+META_TAU_HUMAN_DAYS = 30
+"""Human-only R&D cycle time in days.
+Traditional R&D: design review → prototype → test → iterate.
+One full cycle takes ~1 month."""
+
+META_TAU_AI_DAYS = 4
+"""AI-mediated R&D cycle time in days.
+AI-accelerated: rapid prototyping → simulation → auto-iterate.
+~30 / 7.5 = 4 days per cycle."""
+
 DELAY_VARIANCE_RATIO = 7.33
 """Ratio of delay range to minimum delay.
 Derivation: (1320 - 180) / 180 = 6.33x range, normalized = 7.33x variance.
@@ -397,3 +430,254 @@ def bandwidth_from_investment(investment_m: float) -> float:
     if investment_m < 0:
         raise ValueError("investment_m must be non-negative")
     return investment_m / BANDWIDTH_COST_PER_MBPS_M
+
+
+# === THREE τ COST CURVE OPTIONS (v1.3 - Grok: "sim variable τ costs") ===
+# Source: "Let's sim variable τ costs next—what's your baseline cost function?"
+
+def tau_cost_exponential(
+    tau_target: float,
+    tau_base: float = TAU_BASE_CURRENT_S,
+    tau_min: float = TAU_MIN_ACHIEVABLE_S
+) -> float:
+    """Exponential τ cost curve: cheap early, expensive late.
+
+    Cost doubles for each halving of τ.
+    Formula: cost = TAU_COST_BASE_M × 2^((tau_base/tau_target) - 1)
+
+    Args:
+        tau_target: Target τ value in seconds
+        tau_base: Starting τ value (default 300s)
+        tau_min: Minimum achievable τ (default 30s)
+
+    Returns:
+        Investment required in millions USD
+
+    Examples:
+        300→150: $100M (one halving)
+        300→75:  $300M (two halvings)
+        300→37:  $700M (three halvings)
+
+    Characteristics:
+        - Cheap early gains (basic autonomy)
+        - Expensive late gains (approaching physics)
+        - No inflection point - monotonically increasing cost rate
+    """
+    if tau_target <= 0:
+        raise ValueError("tau_target must be positive")
+    if tau_target >= tau_base:
+        return 0.0
+    if tau_target < tau_min:
+        tau_target = tau_min  # Clamp to physical floor
+
+    # Cost doubles for each halving
+    reduction_ratio = tau_base / tau_target
+    cost = TAU_COST_BASE_M * (2 ** (reduction_ratio - 1) - 1)
+    return max(0.0, cost)
+
+
+def tau_cost_logistic(
+    tau_target: float,
+    tau_base: float = TAU_BASE_CURRENT_S,
+    tau_min: float = TAU_MIN_ACHIEVABLE_S,
+    inflection: float = TAU_COST_INFLECTION_M,
+    k: float = TAU_COST_STEEPNESS
+) -> float:
+    """Logistic (S-curve) τ cost: slow start, fast middle, asymptote.
+
+    THE BASELINE COST FUNCTION.
+
+    Why logistic?
+        - Early autonomy: Slow gains (basic sensors, rule-based)
+        - Middle autonomy: Rapid gains (ML, adaptive systems) ← optimal zone
+        - Late autonomy: Diminishing returns (approaching physics)
+    S-curve matches technology adoption reality better than pure exponential.
+
+    Formula: τ(cost) follows sigmoid with inflection at specified cost.
+    Inverse: cost(τ) derived from sigmoid inversion.
+
+    Args:
+        tau_target: Target τ value in seconds
+        tau_base: Starting τ value (default 300s)
+        tau_min: Minimum achievable τ (default 30s)
+        inflection: Cost at steepest gain point (default $400M)
+        k: Curve steepness parameter (default 0.01)
+
+    Returns:
+        Investment required in millions USD
+
+    Examples:
+        300→200: ~$50M (slow early gains)
+        300→100: ~$400M (inflection - steepest ROI)
+        300→50:  ~$800M (approaching asymptote)
+        300→30:  ~$1000M+ (physics-limited)
+
+    Source: Grok Dec 16, 2025 - "what's your baseline cost function?"
+    """
+    if tau_target <= 0:
+        raise ValueError("tau_target must be positive")
+    if tau_target >= tau_base:
+        return 0.0
+    if tau_target < tau_min:
+        tau_target = tau_min  # Clamp to physical floor
+
+    # Normalize τ progress (0 = no reduction, 1 = maximum reduction)
+    tau_range = tau_base - tau_min
+    tau_progress = (tau_base - tau_target) / tau_range  # 0 to 1
+
+    # Logistic inverse: cost where sigmoid reaches tau_progress
+    # sigmoid(x) = 1 / (1 + exp(-k*x))
+    # Solving for x when sigmoid = tau_progress:
+    # x = -ln((1/tau_progress) - 1) / k
+    # Scale x to cost domain centered at inflection
+
+    # Avoid division by zero at extremes
+    tau_progress = max(0.001, min(0.999, tau_progress))
+
+    # Inverse sigmoid to get cost
+    logit = -math.log((1.0 / tau_progress) - 1.0)
+    cost = inflection + (logit / k)
+
+    return max(0.0, cost)
+
+
+def tau_cost_piecewise(
+    tau_target: float,
+    tau_base: float = TAU_BASE_CURRENT_S,
+    tau_min: float = TAU_MIN_ACHIEVABLE_S
+) -> float:
+    """Piecewise τ cost: three autonomy tiers with discrete costs.
+
+    Industrial model with clear tier boundaries:
+        Tier 1 (easy):   τ 300→150, $100M for 50s reduction
+        Tier 2 (medium): τ 150→75,  $200M for 25s reduction
+        Tier 3 (hard):   τ 75→30,   $500M for 15s reduction
+
+    Args:
+        tau_target: Target τ value in seconds
+        tau_base: Starting τ value (default 300s)
+        tau_min: Minimum achievable τ (default 30s)
+
+    Returns:
+        Investment required in millions USD
+
+    Examples:
+        300→200: $50M (within tier 1)
+        300→150: $100M (tier 1 complete)
+        300→100: $200M (tier 1 + partial tier 2)
+        300→75:  $300M (tiers 1+2 complete)
+        300→50:  $522M (tiers 1+2 + partial tier 3)
+        300→30:  $800M (all tiers complete)
+
+    Use case: Budget planning with discrete capability levels.
+    """
+    if tau_target <= 0:
+        raise ValueError("tau_target must be positive")
+    if tau_target >= tau_base:
+        return 0.0
+    if tau_target < tau_min:
+        tau_target = tau_min  # Clamp to physical floor
+
+    # Tier boundaries and costs
+    tier1_end = 150.0   # τ=150s
+    tier2_end = 75.0    # τ=75s
+    tier3_end = tau_min # τ=30s
+
+    tier1_cost = 100.0  # $100M for tier 1
+    tier2_cost = 200.0  # $200M for tier 2
+    tier3_cost = 500.0  # $500M for tier 3
+
+    cost = 0.0
+
+    # Tier 1: 300→150 ($100M for 150s range)
+    if tau_target < tau_base:
+        tau_in_tier = max(tau_target, tier1_end)
+        reduction_in_tier = tau_base - tau_in_tier
+        tier1_range = tau_base - tier1_end  # 150s
+        cost += tier1_cost * (reduction_in_tier / tier1_range)
+
+    # Tier 2: 150→75 ($200M for 75s range)
+    if tau_target < tier1_end:
+        tau_in_tier = max(tau_target, tier2_end)
+        reduction_in_tier = tier1_end - tau_in_tier
+        tier2_range = tier1_end - tier2_end  # 75s
+        cost += tier2_cost * (reduction_in_tier / tier2_range)
+
+    # Tier 3: 75→30 ($500M for 45s range)
+    if tau_target < tier2_end:
+        tau_in_tier = max(tau_target, tier3_end)
+        reduction_in_tier = tier2_end - tau_in_tier
+        tier3_range = tier2_end - tier3_end  # 45s
+        cost += tier3_cost * (reduction_in_tier / tier3_range)
+
+    return cost
+
+
+def tau_from_cost(
+    cost_m: float,
+    curve_type: str = "logistic",
+    tau_base: float = TAU_BASE_CURRENT_S,
+    tau_min: float = TAU_MIN_ACHIEVABLE_S
+) -> float:
+    """Inverse: given spend, what τ is achievable?
+
+    Args:
+        cost_m: Investment in millions USD
+        curve_type: "exponential", "logistic", or "piecewise"
+        tau_base: Starting τ value (default 300s)
+        tau_min: Minimum achievable τ (default 30s)
+
+    Returns:
+        Achievable τ value in seconds
+
+    Examples (logistic curve):
+        $50M  → τ ≈ 200s
+        $400M → τ ≈ 100s (inflection)
+        $800M → τ ≈ 50s
+
+    Source: Grok Dec 16, 2025 - inverse function for sweep simulations
+    """
+    if cost_m <= 0:
+        return tau_base
+
+    # Binary search for τ that produces target cost
+    tau_low = tau_min
+    tau_high = tau_base
+    tolerance = 0.1  # 0.1s precision
+
+    cost_func = get_cost_function(curve_type)
+
+    while tau_high - tau_low > tolerance:
+        tau_mid = (tau_low + tau_high) / 2
+        cost_at_mid = cost_func(tau_mid, tau_base, tau_min)
+
+        if cost_at_mid < cost_m:
+            # Need more cost → lower τ
+            tau_high = tau_mid
+        else:
+            # Cost is higher → raise τ
+            tau_low = tau_mid
+
+    return (tau_low + tau_high) / 2
+
+
+def get_cost_function(curve_type: str):
+    """Returns appropriate cost function by name.
+
+    Args:
+        curve_type: "exponential", "logistic", or "piecewise"
+
+    Returns:
+        Callable cost function
+
+    Raises:
+        ValueError: If curve_type is unknown
+    """
+    curves = {
+        "exponential": tau_cost_exponential,
+        "logistic": tau_cost_logistic,
+        "piecewise": tau_cost_piecewise,
+    }
+    if curve_type not in curves:
+        raise ValueError(f"Unknown curve type: {curve_type}. Use: {list(curves.keys())}")
+    return curves[curve_type]

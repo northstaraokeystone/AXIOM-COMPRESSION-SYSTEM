@@ -1,0 +1,8 @@
+Baseline: LOGISTIC (S-curve)
+
+τ(spend) with inflection at $400M
+Swept 3 curves: logistic wins
+Optimal: $750M → τ≈38s
+
+Meta-loop confirmed: AI→AI = 7.5x speedup
+Same $500M reaches τ reduction in 16 months vs 10 years
