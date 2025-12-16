@@ -57,6 +57,26 @@ def test_dual_hash_str_bytes_equiv():
     assert dual_hash("x") == dual_hash(b"x"), "String and bytes should produce same hash"
 
 
+def test_dual_hash_handles_str():
+    """String input works without error.
+
+    SLO: Type handling
+    """
+    result = dual_hash("test string input")
+    assert ":" in result
+    assert len(result.split(":")[0]) == 64
+
+
+def test_dual_hash_handles_bytes():
+    """Bytes input works without error.
+
+    SLO: Type handling
+    """
+    result = dual_hash(b"test bytes input")
+    assert ":" in result
+    assert len(result.split(":")[0]) == 64
+
+
 def test_dual_hash_different_inputs():
     """Different inputs produce different outputs."""
     hash1 = dual_hash(b"input1")
@@ -147,6 +167,28 @@ def test_emit_receipt_ts_format():
     assert "T" in ts, "Timestamp should be ISO8601 format"
 
 
+def test_emit_receipt_payload_hash_format():
+    """payload_hash matches dual_hash format (sha256:blake3).
+
+    SLO: Hash format compliance
+    """
+    old_stdout = sys.stdout
+    sys.stdout = StringIO()
+
+    result = emit_receipt("test", {"key": "value"})
+
+    sys.stdout = old_stdout
+
+    payload_hash = result["payload_hash"]
+    parts = payload_hash.split(":")
+    assert len(parts) == 2, "payload_hash should have two parts separated by ':'"
+    assert len(parts[0]) == 64, "First hash should be 64 hex chars"
+    assert len(parts[1]) == 64, "Second hash should be 64 hex chars"
+    # Verify both are valid hex
+    int(parts[0], 16)
+    int(parts[1], 16)
+
+
 # === merkle tests ===
 
 def test_merkle_empty():
@@ -207,6 +249,19 @@ def test_merkle_odd_count():
     assert len(parts) == 2
 
 
+def test_merkle_even():
+    """merkle handles even item count correctly.
+
+    SLO: Even count handling
+    """
+    items = [{"i": i} for i in range(4)]  # 4 items = even
+    result = merkle(items)
+    parts = result.split(":")
+    assert len(parts) == 2
+    assert len(parts[0]) == 64, "First hash should be 64 hex chars"
+    assert len(parts[1]) == 64, "Second hash should be 64 hex chars"
+
+
 # === StopRule tests ===
 
 def test_stoprule_is_exception():
@@ -219,6 +274,15 @@ def test_stoprule_message():
     msg = "Test error message"
     exc = StopRule(msg)
     assert str(exc) == msg
+
+
+def test_stoprule_can_raise():
+    """Can raise and catch StopRule.
+
+    SLO: Exception usability
+    """
+    with pytest.raises(StopRule):
+        raise StopRule("test exception")
 
 
 # === stoprule functions tests ===
@@ -305,15 +369,25 @@ def test_stoprule_invalid_receipt_raises():
 # === Constants tests ===
 
 def test_tenant_id_constant():
-    """TENANT_ID should be 'axiom-witness'."""
-    assert TENANT_ID == "axiom-witness"
+    """TENANT_ID should be 'axiom-colony'."""
+    assert TENANT_ID == "axiom-colony"
 
 
 def test_receipt_schema_has_required_keys():
-    """RECEIPT_SCHEMA should have required keys."""
-    required_keys = ["receipt_type", "ts", "tenant_id", "payload_hash"]
-    for key in required_keys:
-        assert key in RECEIPT_SCHEMA, f"RECEIPT_SCHEMA missing key: {key}"
+    """RECEIPT_SCHEMA should be proper JSON Schema with required keys."""
+    # Check JSON Schema structure
+    assert RECEIPT_SCHEMA["type"] == "object"
+    assert "required" in RECEIPT_SCHEMA
+    assert "properties" in RECEIPT_SCHEMA
+
+    # Check required fields
+    required_fields = ["receipt_type", "ts", "tenant_id", "payload_hash"]
+    for field in required_fields:
+        assert field in RECEIPT_SCHEMA["required"], f"RECEIPT_SCHEMA missing required: {field}"
+        assert field in RECEIPT_SCHEMA["properties"], f"RECEIPT_SCHEMA missing property: {field}"
+
+    # Check payload_hash pattern exists
+    assert "pattern" in RECEIPT_SCHEMA["properties"]["payload_hash"]
 
 
 def test_has_blake3_is_bool():
