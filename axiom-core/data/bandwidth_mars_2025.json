@@ -1,0 +1,9 @@
+{
+  "source": "Starlink Mars relay projections 2025 (Musk/Shotwell)",
+  "values": {
+    "minimum_mbps": 2.0,
+    "maximum_mbps": 10.0,
+    "expected_mbps": 4.0,
+    "uncertainty_pct": 50
+  }
+}
