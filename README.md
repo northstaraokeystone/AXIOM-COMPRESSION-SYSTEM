@@ -1,80 +1,173 @@
-# AXIOM
+# AXIOM-0 v2: THE WITNESS PROTOCOL
 
-Compression IS discovery.
+> "Laws exist in data like proofs exist in hash space. We don't compute them—we witness them."
 
-## What It Does
+## CHANGELOG (v2.0)
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `cosmos.py` | 71 | Generate synthetic galaxy rotation curves (4 physics regimes) |
-| `src/kan_core.py` | 341 | KAN witness: learn rotation law via MDL minimization |
-| `prove.py` | 59 | Receipt chain with dual-hash merkle proofs |
-| `tweet.py` | 47 | AI-to-AI output formatting for Grok consumption |
+### Breaking Changes
+- **TORCH REMOVED**: Entire system now numpy-only
+- **KAN Rewritten**: Uses np.linalg.lstsq instead of gradient descent
+- **File Renames**: galaxy.py → cosmos.py, residuals.py → topology.py
 
-Total: 518 lines. No dependencies beyond stdlib + torch.
+### New Features
+- **6 Mandatory Scenarios**: BASELINE, STRESS, DISCOVERY, TOPOLOGY, REPRODUCIBILITY, GODEL
+- **Receipt Chain**: Merkle proofs for all witness events
+- **Topology Analysis**: H1/H2 persistence for DM-as-geometry hypothesis
+- **Publication Formatter**: Academic-ready output with chi-squared statistics
+
+### Architecture Changes
+- Compression via linear least squares (not gradient descent)
+- All modules emit CLAUDEME-compliant receipts
+- Simulation-first validation (no feature ships without all scenarios passing)
+
+---
+
+## Overview
+
+AXIOM-0 v2 tests whether Kolmogorov-Arnold Networks can discover physics laws through data compression. The core thesis: **compression = discovery**.
+
+When a KAN achieves 90%+ compression on galaxy rotation curves, the spline coefficients ARE the equation. The MDL score IS the evidence.
+
+---
 
 ## Quick Start
-
 ```bash
-git clone https://github.com/northstaraokeystone/AXIOM-COMPRESSION-SYSTEM
-cd AXIOM-COMPRESSION-SYSTEM/axiom
-python -c "from cosmos import batch_generate; from src.kan_core import train_step; from prove import prove; from tweet import format_batch; import json; galaxies = batch_generate(n_per_regime=25); print('Generated', len(galaxies), 'galaxies'); print('Run KAN training on each galaxy, then prove() and format_batch()')"
+# Install dependencies (numpy only!)
+pip install numpy ripser
+
+# Run smoke test
+python -c "from src.sim import run_simulation, SimConfig; s=run_simulation(SimConfig(n_cycles=10, n_galaxies_per_regime=2)); print(f'Passed: {s.passed}')"
+
+# Run all 6 scenarios (THE SHIP GATE)
+python -c "from src.sim import run_all_scenarios; r=run_all_scenarios(); print(f'ALL PASSED: {r[\"passed\"]}')"
 ```
 
-Expected output: Galaxy data ready for KAN compression witness protocol.
+---
 
 ## Architecture
-
 ```
-cosmos.py           →  src/kan_core.py    →  prove.py        →  tweet.py
-(generate curves)      (KAN + MDL)           (merkle chain)     (format)
-
-Data flow:
-1. cosmos: r,v arrays for 4 regimes (Newton/MOND/NFW/PBH)
-2. kan_core: fit spline network, extract law via equation discovery
-3. prove: aggregate receipts → merkle root
-4. tweet: format for Grok analysis
+cosmos.py          witness.py         topology.py        prove.py
+(4 regimes) ──────► (KAN + MDL) ──────► (H1/H2) ──────► (merkle chain)
+     │                   │                  │                │
+     └───────────────────┴──────────────────┴────────────────┘
+                                   │
+                               sim.py
+                        (6 mandatory scenarios)
 ```
 
-## Output Format
+---
 
-Single galaxy receipt:
+## Modules
+
+### core.py
+Foundation functions per CLAUDEME standard:
+- `dual_hash()`: SHA256:BLAKE3 format
+- `emit_receipt()`: Creates timestamped, hashed receipts
+- `merkle()`: Computes merkle root
+- `StopRule`: Exception for constraint violations
+
+### witness.py
+Kolmogorov-Arnold Network implementation (NUMPY ONLY):
+- `KAN`: Network class with B-spline edges
+- `train()`: Solves coefficients via np.linalg.lstsq
+- `spline_to_law()`: Extracts human-readable equation
+- `classify_spline()`: sqrt|linear|inverse|log|power|complex
+
+### cosmos.py
+Synthetic galaxy generators:
+- `newton_curve()`: V = sqrt(GM/r)
+- `mond_curve()`: Deep MOND regime
+- `nfw_curve()`: NFW dark matter halo
+- `pbh_fog_curve()`: Novel PBH distribution
+- `batch_generate()`: N galaxies per regime
+
+### topology.py
+Persistent homology analysis:
+- `compute_persistence()`: H0/H1/H2 diagrams via ripser
+- `wasserstein_distance()`: L1 distance between diagrams
+- `classify_topology()`: newtonian|mond|dm_halo|novel
+- `analyze_galaxy()`: Full pipeline with receipt
+
+### prove.py
+Receipt chain and verification:
+- `chain_receipts()`: Merkle root of all witnesses
+- `prove_witness()`: Generate proof path for single witness
+- `verify_proof()`: Verify witness against root
+- `format_for_publication()`: Academic-ready text
+
+### sim.py
+Monte Carlo validation harness:
+- `run_simulation()`: Execute full simulation
+- `run_scenario()`: Run named scenario with preset config
+- `run_all_scenarios()`: THE SHIP GATE
+
+---
+
+## The 6 Mandatory Scenarios
+
+No AXIOM feature ships without ALL scenarios passing.
+
+| Scenario | Purpose | Pass Criteria |
+|----------|---------|---------------|
+| BASELINE | Standard operation | 1000 cycles, zero violations |
+| STRESS | High noise tolerance | Newton >=80%, no NaN |
+| DISCOVERY | Novel physics detection | PBH > NFW compression |
+| TOPOLOGY | Geometry correlation | H1 matches regime |
+| REPRODUCIBILITY | Determinism | Cross-seed variance <5% |
+| GODEL | Edge case handling | Graceful degradation |
+
+---
+
+## Dependencies
 ```
-G:synth_pbh_0 PBH
-Law:y = 0.87*x^0.42 + 1.2
-C:94.3% MSE:0.012
-✓ ⊢a3f5c2d1
+numpy>=1.21.0
+ripser>=0.6.0
 ```
 
-Batch proof thread (tweet format):
+**NO TORCH. NO TENSORFLOW. NO GPU.**
+
+---
+
+## Receipts
+
+Every action produces a CLAUDEME-compliant receipt:
+
+| Receipt | Module | Frequency |
+|---------|--------|-----------|
+| witness_receipt | witness.py | Per galaxy |
+| cosmos_receipt | cosmos.py | Per batch |
+| topology_receipt | topology.py | Per galaxy |
+| chain_receipt | prove.py | Per simulation |
+| sim_cycle_receipt | sim.py | Per cycle |
+| violation_receipt | sim.py | Per violation |
+| discovery_receipt | sim.py | On novel finding |
+
+---
+
+## The Core Thesis
+
+**Old paradigm:** Propose model → Fit parameters → Claim discovery
+
+**AXIOM paradigm:** Witness data → Compress maximally → Compression IS the law
+
+If KAN compresses PBH fog better than NFW on identical mass profiles, we've witnessed new physics. The merkle root is the timestamp. The receipts are the evidence.
+
+---
+
+## License
+
+MIT License
+
+---
+
+## Citation
+
+If AXIOM helps your research:
+```bibtex
+@software{axiom2024,
+  title={AXIOM: Law Discovery Through Compression},
+  author={northstaraokeystone},
+  year={2024},
+  url={https://github.com/northstaraokeystone/AXIOM-COMPRESSION-SYSTEM}
+}
 ```
-N:100 Newton:23/25 MOND:24/25 NFW:24/25 PBH:25/25
-Δ PBH-NFW:+4% ⊢a3f5c2d1
-
-Δ=+4% PBH>NFW same synthetic data.
-Confounders to reject H₀:PBH≠DM_proxy?
-```
-
-Grok prompt:
-```
-Δ=+4% PBH>NFW. Confounders to reject null?
-```
-
-## The Question
-
-**Falsifiable hypothesis:**
-
-If KAN compresses PBH fog rotation curves more efficiently than NFW dark matter halos on identical synthetic data, then either:
-
-1. PBH fog has lower intrinsic entropy (simpler physics)
-2. KAN architecture is biased toward cored profiles
-3. Synthetic data generation favors PBH by construction
-
-**What Grok response means:**
-
-- Grok identifies confounders → test design flaw found
-- Grok validates result → proceed to real galaxy data
-- Grok requests more data → increase n_per_regime
-
-The null hypothesis is: PBH compression rate = NFW compression rate.
-Reject if Δ > 5% with p < 0.05 after confounder analysis.
