@@ -64,6 +64,30 @@ Source: Orbital average over synodic period."""
 # All thermodynamic references - irrelevant to comms
 
 
+# === EXPONENTIAL DECAY CONSTANTS (v1.1 - Grok feedback Dec 16, 2025) ===
+
+TAU_DECISION_DECAY_S = 300
+"""Time constant for decision value decay in seconds (5 minutes).
+Source: Grok paradigm shift - "Model effective rate as bw * exp(-delay/tau)"
+Derivation: Half-life of decision relevance. At t=tau, value drops to 37%.
+Estimate: Most Mars decisions can wait 5 min, few can wait 20 min."""
+
+COMPUTE_FLOPS_TO_DECISIONS = 1e-15
+"""Conversion factor from FLOPS to decisions/sec.
+Derivation: Modern GPU ~1e15 FLOPS → ~1 decision/sec equivalent.
+Conservative estimate - actual may be higher with specialized AI."""
+
+DELAY_VARIANCE_RATIO = 7.33
+"""Ratio of delay range to minimum delay.
+Derivation: (1320 - 180) / 180 = 6.33x range, normalized = 7.33x variance.
+Source: Grok - "3-22 min delay varies more than bandwidth" """
+
+BANDWIDTH_VARIANCE_RATIO = 4.0
+"""Ratio of bandwidth range to minimum bandwidth.
+Derivation: (10 - 2) / 2 = 4x range.
+Source: Grok - "2-10 Mbps" range implies 4x variance."""
+
+
 # === CORE FUNCTIONS ===
 
 def internal_rate(crew: int, compute_flops: float = 0.0) -> float:
@@ -124,6 +148,55 @@ def external_rate(bandwidth_mbps: float, delay_s: float) -> float:
 
     # Decisions per second limited by round-trip and bits per decision
     return bandwidth_bps / (round_trip_s * BITS_PER_DECISION)
+
+
+def external_rate_exponential(
+    bandwidth_mbps: float,
+    delay_s: float,
+    tau_s: float = TAU_DECISION_DECAY_S
+) -> float:
+    """Calculate external decision rate with exponential decay model.
+
+    External rate = (bandwidth_bps / BITS_PER_DECISION) * exp(-delay_s / tau_s)
+
+    The exponential decay models how decision VALUE degrades with staleness.
+    Information from Earth becomes less relevant as delay increases.
+
+    Args:
+        bandwidth_mbps: Communication bandwidth in Mbps
+        delay_s: One-way light delay in seconds
+        tau_s: Decay time constant (default TAU_DECISION_DECAY_S = 300s)
+
+    Returns:
+        External decision rate in decisions/sec with decay factor
+
+    Source: Grok Dec 16, 2025 - "Paradigm shift: Model effective rate as
+    bw * exp(-delay/tau) for decay"
+
+    Example:
+        At 8 min delay (480s), 4 Mbps, tau=300s:
+        raw_rate = 4e6 / 9 = 444,444 decisions/sec channel capacity
+        decay = exp(-480/300) = 0.202
+        effective = 444,444 * 0.202 = 89,778 decisions/sec
+
+    Comparison to linear model:
+        Linear: 4e6 / (2 * 480 * 9) = 463 decisions/sec
+        Exponential captures VALUE decay, not just bandwidth/latency ratio.
+    """
+    if delay_s <= 0:
+        raise ValueError("Light delay must be positive")
+    if tau_s <= 0:
+        raise ValueError("Tau (decay constant) must be positive")
+
+    bandwidth_bps = bandwidth_mbps * 1e6
+
+    # Raw channel capacity (decisions/sec if no delay)
+    raw_capacity = bandwidth_bps / BITS_PER_DECISION
+
+    # Exponential decay factor based on delay
+    decay_factor = math.exp(-delay_s / tau_s)
+
+    return raw_capacity * decay_factor
 
 
 def sovereignty_advantage(internal: float, external: float) -> float:

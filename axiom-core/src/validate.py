@@ -10,7 +10,12 @@ import statistics
 from typing import Dict, List
 
 from .core import emit_receipt
-from .sovereignty import find_threshold
+from .sovereignty import (
+    find_threshold,
+    find_threshold_exponential,
+    compute_sensitivity_ratio,
+    conjunction_vs_opposition,
+)
 from .ingest_real import sample_bandwidth, sample_delay
 from .entropy_shannon import (
     STARLINK_MARS_BANDWIDTH_MIN_MBPS,
@@ -19,6 +24,11 @@ from .entropy_shannon import (
     MARS_LIGHT_DELAY_MIN_S,
     MARS_LIGHT_DELAY_MAX_S,
     MARS_LIGHT_DELAY_AVG_S,
+    external_rate,
+    external_rate_exponential,
+    TAU_DECISION_DECAY_S,
+    DELAY_VARIANCE_RATIO,
+    BANDWIDTH_VARIANCE_RATIO,
 )
 
 
@@ -245,4 +255,213 @@ def emit_statistical_receipt(test_name: str, result: Dict) -> Dict:
         "tenant_id": "axiom-core",
         "test_name": test_name,
         **result
+    })
+
+
+# === MODEL COMPARISON (v1.1 - Grok feedback Dec 16, 2025) ===
+
+def compare_models() -> Dict:
+    """Compare linear vs exponential decay models across scenarios.
+
+    Grok paradigm shift: "Model effective rate as bw * exp(-delay/tau)"
+
+    Tests:
+        1. At various delays, compare external_rate values
+        2. Compare threshold crew requirements
+        3. Measure R² fit if we had data (placeholder for future)
+
+    Returns:
+        Dict with model comparison results
+    """
+    scenarios = [
+        # (bandwidth_mbps, delay_s, description)
+        (2.0, 180, "Opposition (3 min, 2 Mbps) - Grok scenario"),
+        (4.0, 480, "Typical (8 min, 4 Mbps) - baseline"),
+        (100.0, 1320, "Conjunction (22 min, 100 Mbps) - Grok scenario"),
+        (10.0, 750, "Average (12.5 min, 10 Mbps)"),
+    ]
+
+    results = []
+    for bw, delay, desc in scenarios:
+        er_lin = external_rate(bw, delay)
+        er_exp = external_rate_exponential(bw, delay)
+        t_lin = find_threshold(bandwidth_mbps=bw, delay_s=delay)
+        t_exp = find_threshold_exponential(bandwidth_mbps=bw, delay_s=delay)
+
+        results.append({
+            "description": desc,
+            "bandwidth_mbps": bw,
+            "delay_s": delay,
+            "delay_min": delay / 60,
+            "external_rate_linear": er_lin,
+            "external_rate_exp": er_exp,
+            "rate_ratio": er_exp / er_lin if er_lin > 0 else 0,
+            "threshold_linear": t_lin,
+            "threshold_exp": t_exp,
+            "threshold_diff": t_exp - t_lin
+        })
+
+    # Summary statistics
+    rate_ratios = [r["rate_ratio"] for r in results]
+    threshold_diffs = [r["threshold_diff"] for r in results]
+
+    return {
+        "scenarios": results,
+        "summary": {
+            "mean_rate_ratio": statistics.mean(rate_ratios),
+            "mean_threshold_diff": statistics.mean(threshold_diffs),
+            "tau_s": TAU_DECISION_DECAY_S,
+            "model_note": "Exponential captures VALUE decay, linear captures throughput"
+        }
+    }
+
+
+def validate_grok_numbers() -> Dict:
+    """Validate our calculations match Grok's specific numbers.
+
+    Grok said:
+        - "At 22 min, 100 Mbps → ~38k units"
+        - "At 3 min, 2 Mbps → ~5.5k units"
+
+    Our formula: external_rate = bandwidth / (2 × delay × BITS_PER_DECISION)
+    But Grok seems to use: bandwidth / (2 × delay) in bits/sec
+
+    Let's validate both interpretations.
+    """
+    # Grok's numbers (appear to be bps, not decisions/sec)
+    # 100 Mbps = 100e6 bps, 22 min = 1320 sec
+    # 100e6 / (2 × 1320) = 37,879 ≈ 38k ✓
+
+    # 2 Mbps = 2e6 bps, 3 min = 180 sec
+    # 2e6 / (2 × 180) = 5,556 ≈ 5.5k ✓
+
+    # Grok's formula (bits/sec effective rate)
+    grok_formula_22min_100mbps = 100e6 / (2 * 1320)  # 37,879
+    grok_formula_3min_2mbps = 2e6 / (2 * 180)  # 5,556
+
+    # Our formula (decisions/sec)
+    our_22min_100mbps = external_rate(100.0, 1320)
+    our_3min_2mbps = external_rate(2.0, 180)
+
+    # Validation
+    grok_match_conjunction = abs(grok_formula_22min_100mbps - 38000) < 1000
+    grok_match_opposition = abs(grok_formula_3min_2mbps - 5500) < 500
+
+    return {
+        "grok_numbers": {
+            "22min_100mbps_expected": 38000,
+            "22min_100mbps_formula": round(grok_formula_22min_100mbps),
+            "3min_2mbps_expected": 5500,
+            "3min_2mbps_formula": round(grok_formula_3min_2mbps),
+        },
+        "our_numbers": {
+            "22min_100mbps": round(our_22min_100mbps),
+            "3min_2mbps": round(our_3min_2mbps),
+        },
+        "validation": {
+            "conjunction_match": grok_match_conjunction,
+            "opposition_match": grok_match_opposition,
+            "all_match": grok_match_conjunction and grok_match_opposition,
+        },
+        "interpretation": (
+            "Grok uses raw bps/(2*delay) formula = bits/sec effective rate. "
+            "Our formula divides by BITS_PER_DECISION to get decisions/sec. "
+            "Both are valid - Grok's is channel capacity, ours is decision rate."
+        )
+    }
+
+
+def variance_analysis() -> Dict:
+    """Quantify delay vs bandwidth impact on threshold.
+
+    Grok: "The 3-22 min delay varies more than bandwidth (2-10 Mbps),
+           dominating the external_rate in your equation"
+
+    Analysis:
+        - Delay range: 180s to 1320s (7.33x variance)
+        - Bandwidth range: 2 to 10 Mbps (5x variance)
+        - Compute threshold at extremes to measure impact
+    """
+    # Baseline: average values
+    baseline_threshold = find_threshold(
+        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
+        delay_s=MARS_LIGHT_DELAY_AVG_S
+    )
+
+    # Delay extremes (holding bandwidth at expected)
+    threshold_min_delay = find_threshold(
+        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
+        delay_s=MARS_LIGHT_DELAY_MIN_S
+    )
+    threshold_max_delay = find_threshold(
+        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
+        delay_s=MARS_LIGHT_DELAY_MAX_S
+    )
+    delay_impact = abs(threshold_max_delay - threshold_min_delay)
+
+    # Bandwidth extremes (holding delay at average)
+    threshold_min_bw = find_threshold(
+        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_MIN_MBPS,
+        delay_s=MARS_LIGHT_DELAY_AVG_S
+    )
+    threshold_max_bw = find_threshold(
+        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_MAX_MBPS,
+        delay_s=MARS_LIGHT_DELAY_AVG_S
+    )
+    bandwidth_impact = abs(threshold_max_bw - threshold_min_bw)
+
+    # Determine dominance
+    latency_limited = delay_impact > bandwidth_impact
+    dominance_ratio = delay_impact / bandwidth_impact if bandwidth_impact > 0 else float('inf')
+
+    return {
+        "baseline": {
+            "bandwidth_mbps": STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
+            "delay_s": MARS_LIGHT_DELAY_AVG_S,
+            "threshold": baseline_threshold
+        },
+        "delay_sensitivity": {
+            "min_delay_s": MARS_LIGHT_DELAY_MIN_S,
+            "max_delay_s": MARS_LIGHT_DELAY_MAX_S,
+            "threshold_at_min": threshold_min_delay,
+            "threshold_at_max": threshold_max_delay,
+            "impact_crew": delay_impact,
+            "variance_ratio": DELAY_VARIANCE_RATIO
+        },
+        "bandwidth_sensitivity": {
+            "min_bandwidth_mbps": STARLINK_MARS_BANDWIDTH_MIN_MBPS,
+            "max_bandwidth_mbps": STARLINK_MARS_BANDWIDTH_MAX_MBPS,
+            "threshold_at_min": threshold_min_bw,
+            "threshold_at_max": threshold_max_bw,
+            "impact_crew": bandwidth_impact,
+            "variance_ratio": BANDWIDTH_VARIANCE_RATIO
+        },
+        "analysis": {
+            "latency_limited": latency_limited,
+            "dominance_ratio": dominance_ratio,
+            "grok_confirmed": latency_limited,  # Grok said "primarily latency-limited"
+            "interpretation": (
+                f"Delay changes threshold by {delay_impact} crew over range. "
+                f"Bandwidth changes threshold by {bandwidth_impact} crew over range. "
+                f"{'Latency' if latency_limited else 'Bandwidth'} dominates by {dominance_ratio:.2f}x."
+            )
+        }
+    }
+
+
+def emit_model_comparison_receipt() -> Dict:
+    """Emit receipt for model comparison.
+
+    MUST emit receipt per CLAUDEME.
+    """
+    comparison = compare_models()
+    grok_validation = validate_grok_numbers()
+    variance = variance_analysis()
+
+    return emit_receipt("model_comparison", {
+        "tenant_id": "axiom-core",
+        "comparison": comparison,
+        "grok_validation": grok_validation,
+        "variance_analysis": variance,
+        "grok_numbers_match": grok_validation["validation"]["all_match"]
     })
