@@ -5,58 +5,56 @@ Commands: hybrid_boost_info
 
 from src.fractal_layers import (
     get_fractal_hybrid_spec,
-    get_fractal_layers_info,
     FRACTAL_SCALES,
     FRACTAL_UPLIFT,
     FRACTAL_DIM_MIN,
     FRACTAL_DIM_MAX,
 )
 from src.quantum_rl_hybrid import (
-    get_quantum_rl_hybrid_info,
     QUANTUM_RETENTION_BOOST,
     ENTANGLED_PENALTY_FACTOR,
 )
 
-from cli.base import print_header, print_section, print_receipt_note
+from cli.base import print_header, print_receipt_note
 
 
 def cmd_hybrid_boost_info():
     """Show hybrid boost configuration (quantum + fractal)."""
     print_header("HYBRID BOOST CONFIGURATION")
 
-    print(f"\nQuantum Contribution:")
+    print("\nQuantum Contribution:")
     print(f"  Retention boost: +{QUANTUM_RETENTION_BOOST}")
     print(f"  Entanglement factor: {ENTANGLED_PENALTY_FACTOR}")
-    print(f"  Mechanism: Reduced instability penalty (-1.0 → -0.92)")
+    print("  Mechanism: Reduced instability penalty (-1.0 → -0.92)")
 
-    print(f"\nFractal Contribution:")
+    print("\nFractal Contribution:")
     print(f"  Alpha uplift: +{FRACTAL_UPLIFT}")
     print(f"  Scales: {FRACTAL_SCALES}")
     print(f"  Dimension range: [{FRACTAL_DIM_MIN}, {FRACTAL_DIM_MAX}]")
-    print(f"  Mechanism: Multi-scale entropy contribution")
+    print("  Mechanism: Multi-scale entropy contribution")
 
-    print(f"\nCombined Hybrid:")
+    print("\nCombined Hybrid:")
     total = QUANTUM_RETENTION_BOOST + FRACTAL_UPLIFT
     print(f"  Total boost: +{total}")
     print(f"  Expected eff_alpha: 2.99 + {total} = {2.99 + total:.2f}")
-    print(f"  Instability: 0.00 (sustained)")
+    print("  Instability: 0.00 (sustained)")
 
     # Load spec if available
     try:
         spec = get_fractal_hybrid_spec()
-        print(f"\nSpec Validation:")
+        print("\nSpec Validation:")
         print(f"  fractal_uplift_target: {spec['fractal_uplift_target']}")
         print(f"  quantum_contribution: {spec['quantum_contribution']}")
         print(f"  hybrid_total: {spec['hybrid_total']}")
         print(f"  ceiling_break_target: {spec['ceiling_break_target']}")
     except FileNotFoundError:
-        print(f"\nWARNING: fractal_hybrid_spec.json not found")
+        print("\nWARNING: fractal_hybrid_spec.json not found")
 
-    print(f"\nSequencing:")
-    print(f"  1. 50-run pilot → narrow LR")
-    print(f"  2. 10-run quantum sim → validate entanglement")
-    print(f"  3. Fractal analysis → multi-scale entropy")
-    print(f"  4. 500-run tuned sweep → hybrid ceiling breach")
+    print("\nSequencing:")
+    print("  1. 50-run pilot → narrow LR")
+    print("  2. 10-run quantum sim → validate entanglement")
+    print("  3. Fractal analysis → multi-scale entropy")
+    print("  4. 500-run tuned sweep → hybrid ceiling breach")
 
     print_receipt_note("fractal_hybrid_spec_load")
     print("=" * 60)
