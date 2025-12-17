@@ -2,5 +2,73 @@
   "hash_strategy": {
     "algorithm": ["SHA256", "BLAKE3"]
   },
-  "receipt_types": ["training", "interpretation", "discovery", "checkpoint", "init"]
+  "receipt_types": [
+    "training",
+    "interpretation",
+    "discovery",
+    "checkpoint",
+    "init",
+    "sovereignty_calculation",
+    "sensitivity_analysis",
+    "roi_comparison",
+    "cost_function_sweep",
+    "compounding_simulation",
+    "compounding_validation",
+    "sovereignty_projection",
+    "build_rate",
+    "stage_gate",
+    "calibration",
+    "timeline",
+    "tier_risk",
+    "leading_indicator",
+    "sovereignty_v2",
+    "tau_velocity",
+    "anomaly"
+  ],
+  "v2_receipt_schemas": {
+    "build_rate": {
+      "required": ["autonomy_level", "propulsion_level", "build_rate", "alpha", "constant"],
+      "optional": ["annual_multiplier", "cycle"]
+    },
+    "stage_gate": {
+      "required": ["alpha_measured", "alpha_confidence", "trigger_met", "current_autonomy_fraction"],
+      "optional": ["escalation_applied", "months_elapsed", "window_months", "recommendation"]
+    },
+    "calibration": {
+      "required": ["alpha_estimate", "confidence_interval_low", "confidence_interval_high", "confidence_level"],
+      "optional": ["fsd_proxy", "optimus_proxy", "starship_proxy", "dominant_signal", "data_quality_score"]
+    },
+    "timeline": {
+      "required": ["autonomy_fraction", "annual_multiplier", "years_to_threshold_low", "years_to_threshold_high"],
+      "optional": ["threshold_year_low", "threshold_year_high", "delay_vs_optimal", "threshold_person_equivalent"]
+    },
+    "tier_risk": {
+      "required": ["tier", "probability_low", "probability_high", "impact_class"],
+      "optional": ["failure_modes", "mitigation_available", "autonomy_fraction"]
+    },
+    "leading_indicator": {
+      "required": ["indicator_type", "current_value", "target_value", "gap"],
+      "optional": ["trend", "confidence"]
+    },
+    "sovereignty_v2": {
+      "required": ["person_equivalent", "threshold_person_equivalent", "meets_threshold"],
+      "optional": ["tau_s", "expertise_coverage", "decision_capacity_bps", "gap_to_threshold"]
+    },
+    "tau_velocity": {
+      "required": ["velocity_raw", "velocity_pct", "trend", "meets_target"],
+      "optional": ["tau_start", "tau_end", "observations", "target_velocity_pct"]
+    }
+  },
+  "constants": {
+    "THRESHOLD_PERSON_EQUIVALENT": 1000000,
+    "STAGE_GATE_INITIAL": 0.30,
+    "STAGE_GATE_TRIGGER_ALPHA": 1.9,
+    "STAGE_GATE_ESCALATION": 0.10,
+    "STAGE_GATE_WINDOW_MONTHS": 12,
+    "ALPHA_BASELINE": 1.8,
+    "TIER_1_PROB_RANGE": [0.60, 0.80],
+    "TIER_2_PROB_RANGE": [0.30, 0.50],
+    "TIER_3_PROB_RANGE": [0.05, 0.15]
+  },
+  "version": "2.0"
 }

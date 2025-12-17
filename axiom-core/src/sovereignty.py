@@ -1384,3 +1384,179 @@ def emit_sweep_receipt(
         "best_curve_at_400m": budget_comparison["best_curve"],
         "finding": f"Logistic curve with $400M inflection. AI iteration = {comparison['speedup_factor']}x faster."
     })
+
+
+# === PERSON-EQUIVALENT CAPABILITY (v2.0 - Grok Integration) ===
+# Source: Grok - "threshold = self-sustaining city, ~10^6 person-equivalent"
+
+THRESHOLD_PERSON_EQUIVALENT = 1_000_000
+"""Sovereignty threshold in person-equivalent capability.
+Source: Grok - '~10^6 person-equivalent'"""
+
+DECISION_CAPACITY_PER_PERSON = 10.0
+"""Decision capacity in bits/sec per human equivalent.
+Matches HUMAN_DECISION_RATE_BPS from entropy_shannon."""
+
+EXPERTISE_COVERAGE_BASE = 0.5
+"""Base expertise coverage for minimal autonomous operation."""
+
+
+def capability_to_person_equivalent(
+    decision_capacity_bps: float,
+    tau: float,
+    expertise_coverage: float
+) -> float:
+    """Convert autonomy state to person-equivalent capability units.
+
+    Person-equivalent measures autonomous decision capacity in terms
+    of how many humans worth of decision-making capability exists.
+
+    Args:
+        decision_capacity_bps: Decision capacity in bits/sec
+        tau: Decision latency in seconds (lower = better)
+        expertise_coverage: Domain expertise coverage (0-1)
+
+    Returns:
+        Person-equivalent capability units
+
+    Formula:
+        person_eq = (decision_capacity / base_rate) * (tau_ref / tau) * expertise
+
+    Example:
+        At 10000 bps, tau=30s, expertise=0.8:
+        person_eq = (10000/10) * (300/30) * 0.8 = 1000 * 10 * 0.8 = 8000
+    """
+    if tau <= 0:
+        raise ValueError(f"tau must be positive, got {tau}")
+    if expertise_coverage < 0 or expertise_coverage > 1:
+        raise ValueError(f"expertise_coverage must be in [0, 1], got {expertise_coverage}")
+
+    # Base capacity normalized to human decision rate
+    capacity_factor = decision_capacity_bps / DECISION_CAPACITY_PER_PERSON
+
+    # Tau factor: lower tau = more effective capacity
+    # Reference tau = 300s (baseline), tau=30s gives 10x multiplier
+    tau_factor = TAU_BASE_CURRENT_S / tau
+
+    # Expertise factor directly multiplies
+    expertise_factor = expertise_coverage
+
+    person_equivalent = capacity_factor * tau_factor * expertise_factor
+
+    return person_equivalent
+
+
+def check_sovereignty_threshold(
+    person_equivalent: float,
+    threshold: int = THRESHOLD_PERSON_EQUIVALENT
+) -> bool:
+    """Check if person-equivalent capability meets sovereignty threshold.
+
+    Sovereignty is achieved when autonomous capability reaches
+    10^6 person-equivalents (~1M humans worth of decision capacity).
+
+    Args:
+        person_equivalent: Current person-equivalent capability
+        threshold: Target threshold (default 1M)
+
+    Returns:
+        True if person_equivalent >= threshold
+    """
+    return person_equivalent >= threshold
+
+
+def project_sovereignty_capability(
+    current_capacity_bps: float,
+    current_tau: float,
+    current_expertise: float,
+    investment_m: float,
+    iteration_mode: str = "ai"
+) -> dict:
+    """Project person-equivalent capability after investment.
+
+    Combines investment effects on tau reduction with current state
+    to project future capability.
+
+    Args:
+        current_capacity_bps: Current decision capacity
+        current_tau: Current decision latency
+        current_expertise: Current expertise coverage
+        investment_m: Autonomy investment in millions USD
+        iteration_mode: "ai" or "human" (affects R&D speed)
+
+    Returns:
+        Dict with current and projected capability
+    """
+    # Current person-equivalent
+    current_pe = capability_to_person_equivalent(
+        current_capacity_bps, current_tau, current_expertise
+    )
+
+    # Project tau after investment
+    projected_tau = tau_from_investment(investment_m, current_tau)
+
+    # Assume expertise improves slightly with investment
+    expertise_gain = min(0.1, investment_m / 5000.0)  # Max +10% at $500M
+    projected_expertise = min(1.0, current_expertise + expertise_gain)
+
+    # Assume capacity improves with tau (faster decisions = higher throughput)
+    capacity_multiplier = current_tau / projected_tau
+    projected_capacity = current_capacity_bps * min(capacity_multiplier, 5.0)  # Cap at 5x
+
+    # Projected person-equivalent
+    projected_pe = capability_to_person_equivalent(
+        projected_capacity, projected_tau, projected_expertise
+    )
+
+    # Meta-compression factor for AI-mediated R&D
+    if iteration_mode == "ai":
+        speed_factor = ITERATION_COMPRESSION_FACTOR
+    else:
+        speed_factor = 1.0
+
+    return {
+        "current_person_equivalent": current_pe,
+        "projected_person_equivalent": projected_pe,
+        "improvement_factor": projected_pe / current_pe if current_pe > 0 else float('inf'),
+        "current_tau_s": current_tau,
+        "projected_tau_s": projected_tau,
+        "current_expertise": current_expertise,
+        "projected_expertise": projected_expertise,
+        "investment_m": investment_m,
+        "iteration_mode": iteration_mode,
+        "iteration_speedup": speed_factor,
+        "meets_threshold": check_sovereignty_threshold(projected_pe),
+        "threshold": THRESHOLD_PERSON_EQUIVALENT,
+        "gap_to_threshold": THRESHOLD_PERSON_EQUIVALENT - projected_pe,
+    }
+
+
+def emit_sovereignty_v2_receipt(
+    person_equivalent: float,
+    tau: float,
+    expertise: float,
+    decision_capacity_bps: float
+) -> dict:
+    """Emit receipt for v2 sovereignty calculation.
+
+    Extends v1 receipt with person-equivalent fields.
+
+    Args:
+        person_equivalent: Calculated person-equivalent capability
+        tau: Decision latency used
+        expertise: Expertise coverage used
+        decision_capacity_bps: Decision capacity used
+
+    Returns:
+        Receipt dict
+    """
+    return emit_receipt("sovereignty_v2", {
+        "tenant_id": "axiom-autonomy",
+        "person_equivalent": person_equivalent,
+        "threshold_person_equivalent": THRESHOLD_PERSON_EQUIVALENT,
+        "meets_threshold": check_sovereignty_threshold(person_equivalent),
+        "tau_s": tau,
+        "expertise_coverage": expertise,
+        "decision_capacity_bps": decision_capacity_bps,
+        "gap_to_threshold": THRESHOLD_PERSON_EQUIVALENT - person_equivalent,
+    })
