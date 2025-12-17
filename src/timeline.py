@@ -139,6 +139,9 @@ class TimelineProjection:
         effective_alpha: Alpha after latency penalty
         cycles_to_milestone_early: Cycles to reach 10³ person-eq
         cycles_to_milestone_city: Cycles to reach 10⁶ person-eq
+        receipt_integrity: Receipt coverage (0-1) for mitigation
+        effective_alpha_mitigated: Alpha after receipt mitigation
+        delay_vs_unmitigated: Cycles saved by receipts
     """
     allocation_fraction: float
     annual_multiplier: float
@@ -153,6 +156,9 @@ class TimelineProjection:
     effective_alpha: float = ALPHA_DEFAULT
     cycles_to_milestone_early: Optional[int] = None
     cycles_to_milestone_city: Optional[int] = None
+    receipt_integrity: float = 0.0
+    effective_alpha_mitigated: Optional[float] = None
+    delay_vs_unmitigated: Optional[int] = None
 
 
 def allocation_to_multiplier(autonomy_fraction: float, alpha: float = ALPHA_DEFAULT) -> float:
@@ -270,12 +276,13 @@ def project_timeline(
     c_base: float = C_BASE_DEFAULT,
     p_factor: float = P_FACTOR_DEFAULT,
     tau_seconds: Optional[float] = None,
+    receipt_integrity: float = 0.0,
     config: TimelineConfig = None
 ) -> TimelineProjection:
     """Project years to 10^6 person-equivalent threshold.
 
     Main projection function. Computes full timeline for given allocation.
-    Supports Mars latency penalty and configurable c/P baselines.
+    Supports Mars latency penalty, receipt mitigation, and configurable c/P baselines.
 
     Args:
         autonomy_fraction: Fraction allocated to autonomy (0-1)
@@ -283,6 +290,7 @@ def project_timeline(
         c_base: Initial person-eq capacity (default 50.0)
         p_factor: Propulsion growth per synod (default 1.8)
         tau_seconds: Latency in seconds (None for Earth, 1200 for Mars max)
+        receipt_integrity: Receipt coverage (0-1). If >0, applies receipt mitigation.
         config: TimelineConfig (uses defaults if None)
 
     Returns:
@@ -291,10 +299,10 @@ def project_timeline(
     if config is None:
         config = TimelineConfig()
 
-    # Apply latency penalty if tau_seconds provided
+    # Apply latency penalty if tau_seconds provided, with optional receipt mitigation
     eff_alpha = alpha
     if tau_seconds is not None and tau_seconds > 0:
-        eff_alpha = compute_effective_alpha(alpha, tau_seconds)
+        eff_alpha = compute_effective_alpha(alpha, tau_seconds, receipt_integrity)
 
     # Get multiplier for this allocation with effective alpha
     multiplier = allocation_to_multiplier(autonomy_fraction, eff_alpha)
@@ -311,6 +319,18 @@ def project_timeline(
         c_base, p_factor, eff_alpha, config
     )
 
+    # Compute unmitigated comparison if receipt_integrity > 0
+    effective_alpha_mitigated = None
+    delay_vs_unmitigated = None
+    if receipt_integrity > 0.0 and tau_seconds is not None and tau_seconds > 0:
+        # Calculate unmitigated alpha for comparison
+        unmitigated_alpha = compute_effective_alpha(alpha, tau_seconds, 0.0)
+        unmitigated_cycles_early, _ = _compute_milestone_cycles(
+            c_base, p_factor, unmitigated_alpha, config
+        )
+        effective_alpha_mitigated = eff_alpha
+        delay_vs_unmitigated = unmitigated_cycles_early - cycles_early
+
     # Create projection
     projection = TimelineProjection(
         allocation_fraction=autonomy_fraction,
@@ -325,7 +345,10 @@ def project_timeline(
         tau_seconds=tau_seconds,
         effective_alpha=eff_alpha,
         cycles_to_milestone_early=cycles_early,
-        cycles_to_milestone_city=cycles_city
+        cycles_to_milestone_city=cycles_city,
+        receipt_integrity=receipt_integrity,
+        effective_alpha_mitigated=effective_alpha_mitigated,
+        delay_vs_unmitigated=delay_vs_unmitigated
     )
 
     # Compute delay vs optimal
@@ -342,7 +365,10 @@ def project_timeline(
         tau_seconds=tau_seconds,
         effective_alpha=eff_alpha,
         cycles_to_milestone_early=cycles_early,
-        cycles_to_milestone_city=cycles_city
+        cycles_to_milestone_city=cycles_city,
+        receipt_integrity=receipt_integrity,
+        effective_alpha_mitigated=effective_alpha_mitigated,
+        delay_vs_unmitigated=delay_vs_unmitigated
     )
 
     # Emit receipt
@@ -353,13 +379,16 @@ def project_timeline(
         "c_base": c_base,
         "p_factor": p_factor,
         "tau_seconds": tau_seconds,
+        "receipt_integrity": receipt_integrity,
         "effective_alpha": eff_alpha,
+        "effective_alpha_mitigated": effective_alpha_mitigated,
         "annual_multiplier": multiplier,
         "years_to_threshold_low": years_low,
         "years_to_threshold_high": years_high,
         "threshold_year_low": projection.threshold_year_low,
         "threshold_year_high": projection.threshold_year_high,
         "delay_vs_optimal": projection.delay_vs_optimal,
+        "delay_vs_unmitigated": delay_vs_unmitigated,
         "threshold_person_equivalent": config.threshold_person_equivalent,
         "cycles_to_milestone_early": cycles_early,
         "cycles_to_milestone_city": cycles_city,
@@ -440,7 +469,7 @@ def generate_timeline_table(
 
     projections = []
     for frac in fractions:
-        proj = project_timeline(frac, alpha, config.c_base, config.p_factor, None, config)
+        proj = project_timeline(frac, alpha, config.c_base, config.p_factor, None, 0.0, config)
         projections.append(proj)
 
     return projections
@@ -573,7 +602,7 @@ def project_sovereignty_date(
     if config is None:
         config = TimelineConfig()
 
-    proj = project_timeline(autonomy_fraction, ALPHA_DEFAULT, config.c_base, config.p_factor, None, config)
+    proj = project_timeline(autonomy_fraction, ALPHA_DEFAULT, config.c_base, config.p_factor, None, 0.0, config)
 
     return {
         "allocation": autonomy_fraction,
@@ -594,17 +623,22 @@ def sovereignty_timeline(
     p_factor: float = P_FACTOR_DEFAULT,
     alpha: float = ALPHA_DEFAULT,
     tau_seconds: Optional[float] = None,
+    receipt_integrity: float = 0.0,
     strategy: "StrategyConfig" = None
 ) -> Dict[str, Any]:
     """Compute full sovereignty timeline with milestones.
 
     Main sovereignty timeline simulation function. Computes person-eq trajectory
-    with FSD-like compounding and optional Mars latency penalty.
+    with FSD-like compounding, optional Mars latency penalty, and receipt mitigation.
+
+    THE PARADIGM SHIFT:
+        Without receipts: effective_α = base_α × tau_penalty = 1.69 × 0.35 = 0.59
+        With 90% receipts: effective_α = base_α × (1 - penalty × (1 - integrity)) = 1.58
 
     Model: B = c × A^α × P where:
     - c: initial capacity (normalized)
     - A: autonomy fraction (starts at 0.4, compounds each cycle)
-    - α: compounding exponent (1.69, degraded by latency)
+    - α: compounding exponent (1.69, degraded by latency, mitigated by receipts)
     - P: propulsion multiplier (p_factor^cycle)
 
     For FSD-like exponential growth:
@@ -616,6 +650,7 @@ def sovereignty_timeline(
         p_factor: Propulsion growth factor per synod (default 1.8)
         alpha: Base compounding exponent (default 1.69)
         tau_seconds: Latency in seconds (0 or None for Earth, 1200 for Mars max)
+        receipt_integrity: Receipt coverage (0-1). If >0, applies receipt mitigation.
         strategy: Optional StrategyConfig for τ reduction strategies
 
     Returns:
@@ -623,8 +658,10 @@ def sovereignty_timeline(
             - cycles_to_10k_person_eq: Cycles to reach 10³ milestone
             - cycles_to_1M_person_eq: Cycles to reach 10⁶ milestone
             - person_eq_trajectory: List of person-eq values per cycle
-            - effective_alpha: Alpha after latency penalty
+            - effective_alpha: Alpha after latency penalty and receipt mitigation
             - delay_vs_earth: Cycles lost to latency (vs tau=0)
+            - receipt_integrity: Receipt coverage used
+            - delay_vs_unmitigated: Cycles saved by receipts (if receipt_integrity > 0)
             - strategy_applied: Strategy name (if strategy provided)
             - c_factor_applied: c factor from strategy (if provided)
             - p_cost_applied: P cost from strategy (if provided)
@@ -658,10 +695,10 @@ def sovereignty_timeline(
         # Effective alpha from strategy (includes floor for onboard AI)
         eff_alpha = strategy_effective_alpha(alpha, strategy, effective_tau)
     else:
-        # Compute effective alpha with latency penalty (legacy behavior)
+        # Compute effective alpha with latency penalty and receipt mitigation (legacy behavior)
         eff_alpha = alpha
         if tau_seconds is not None and tau_seconds > 0:
-            eff_alpha = compute_effective_alpha(alpha, tau_seconds)
+            eff_alpha = compute_effective_alpha(alpha, tau_seconds, receipt_integrity)
 
     # Adjust P factor for relay cost
     adjusted_p_factor = p_factor * (1.0 - p_cost)
@@ -721,8 +758,14 @@ def sovereignty_timeline(
     # Compute delay vs Earth (tau=0)
     delay_vs_earth = 0
     if tau_seconds is not None and tau_seconds > 0:
-        earth_result = sovereignty_timeline(c_base, p_factor, alpha, 0)
+        earth_result = sovereignty_timeline(c_base, p_factor, alpha, 0, 0.0)
         delay_vs_earth = cycles_to_10k - earth_result['cycles_to_10k_person_eq']
+
+    # Compute delay vs unmitigated (receipt_integrity=0)
+    delay_vs_unmitigated = None
+    if receipt_integrity > 0.0 and tau_seconds is not None and tau_seconds > 0:
+        unmitigated_result = sovereignty_timeline(c_base, p_factor, alpha, tau_seconds, 0.0)
+        delay_vs_unmitigated = unmitigated_result['cycles_to_10k_person_eq'] - cycles_to_10k
 
     result = {
         "cycles_to_10k_person_eq": cycles_to_10k,
@@ -730,6 +773,8 @@ def sovereignty_timeline(
         "person_eq_trajectory": trajectory[:min(len(trajectory), 50)],  # Limit to 50 for receipt
         "effective_alpha": eff_alpha,
         "delay_vs_earth": delay_vs_earth,
+        "receipt_integrity": receipt_integrity,
+        "delay_vs_unmitigated": delay_vs_unmitigated,
     }
 
     # Add strategy fields if strategy was applied
@@ -747,11 +792,13 @@ def sovereignty_timeline(
         "p_factor": p_factor,
         "alpha": alpha,
         "tau_seconds": tau_seconds if tau_seconds else 0,
+        "receipt_integrity": receipt_integrity,
         "effective_alpha": eff_alpha,
         "cycles_to_10k_person_eq": cycles_to_10k,
         "cycles_to_1M_person_eq": cycles_to_1M,
         "person_eq_trajectory": trajectory[:min(len(trajectory), 20)],  # Shorter for receipt
         "delay_vs_earth": delay_vs_earth,
+        "delay_vs_unmitigated": delay_vs_unmitigated,
     }
 
     # Add strategy fields to receipt

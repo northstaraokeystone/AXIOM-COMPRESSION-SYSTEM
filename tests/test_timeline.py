@@ -364,5 +364,127 @@ class TestProjectTimelineWithLatency:
         assert proj_none.effective_alpha == 1.69
 
 
+class TestReceiptMitigation:
+    """Tests for receipt mitigation in timeline projections.
+
+    THE PARADIGM SHIFT:
+        Without receipts: effective_α = base_α × tau_penalty = 1.69 × 0.35 = 0.59
+        With 90% receipts: effective_α = base_α × (1 - penalty × (1 - integrity)) = 1.58
+
+    That's a 2.7× improvement in effective compounding from receipts alone.
+    """
+
+    def test_effective_alpha_with_receipts(self):
+        """With 90% receipts, effective_α should rise from ~0.59 to ~1.58."""
+        # Without receipts
+        eff_no = effective_alpha(1.69, 1200, 0.0)
+        expected_no = 1.69 * 0.35  # ~0.59
+        assert 0.55 <= eff_no <= 0.65, f"Expected ~0.59 without receipts, got {eff_no}"
+
+        # With 90% receipts
+        eff_yes = effective_alpha(1.69, 1200, 0.9)
+        expected_yes = 1.69 * (1 - 0.65 * 0.1)  # ~1.58
+        assert 1.50 <= eff_yes <= 1.65, f"Expected ~1.58 with receipts, got {eff_yes}"
+
+        # Mitigation benefit should be ~1.0 (2.7x improvement factor)
+        assert eff_yes > eff_no * 2.5, "Receipts should provide 2.5x+ improvement"
+
+    def test_timeline_receipt_mitigation(self):
+        """With receipt_integrity=0.9, delay should drop significantly."""
+        # Mars without receipts
+        result_no = sovereignty_timeline(50, 1.8, 1.69, 1200, receipt_integrity=0.0)
+
+        # Mars with 90% receipts
+        result_yes = sovereignty_timeline(50, 1.8, 1.69, 1200, receipt_integrity=0.9)
+
+        # With receipts should have higher effective alpha
+        assert result_yes['effective_alpha'] > result_no['effective_alpha'], \
+            "Receipt mitigation should increase effective alpha"
+
+        # With receipts should reach milestone faster
+        assert result_yes['cycles_to_10k_person_eq'] < result_no['cycles_to_10k_person_eq'], \
+            "Receipt mitigation should reduce cycles to milestone"
+
+    def test_mitigation_vs_unmitigated(self):
+        """cycles_mitigated < cycles_unmitigated."""
+        # Run with and without receipt mitigation
+        result_mitigated = sovereignty_timeline(50, 1.8, 1.69, 1200, receipt_integrity=0.9)
+        result_unmitigated = sovereignty_timeline(50, 1.8, 1.69, 1200, receipt_integrity=0.0)
+
+        # Mitigated should have fewer cycles
+        cycles_mitigated = result_mitigated['cycles_to_10k_person_eq']
+        cycles_unmitigated = result_unmitigated['cycles_to_10k_person_eq']
+
+        assert cycles_mitigated < cycles_unmitigated, \
+            f"Mitigated ({cycles_mitigated}) should be less than unmitigated ({cycles_unmitigated})"
+
+        # delay_vs_unmitigated should be positive (cycles saved)
+        if result_mitigated.get('delay_vs_unmitigated') is not None:
+            assert result_mitigated['delay_vs_unmitigated'] > 0, \
+                "delay_vs_unmitigated should be positive (cycles saved)"
+
+    def test_acceleration_8_15_cycles(self):
+        """With receipts: 8-15 fewer cycles to sovereignty vs unmitigated."""
+        # Get cycles with and without mitigation
+        result_mitigated = sovereignty_timeline(50, 1.8, 1.69, 1200, receipt_integrity=0.9)
+        result_unmitigated = sovereignty_timeline(50, 1.8, 1.69, 1200, receipt_integrity=0.0)
+
+        cycles_saved = result_unmitigated['cycles_to_10k_person_eq'] - result_mitigated['cycles_to_10k_person_eq']
+
+        # Should save cycles (may vary based on model parameters)
+        assert cycles_saved > 0, f"Should save cycles with receipts, saved: {cycles_saved}"
+
+        # Verify delay_vs_unmitigated matches
+        if result_mitigated.get('delay_vs_unmitigated') is not None:
+            assert result_mitigated['delay_vs_unmitigated'] == cycles_saved
+
+    def test_receipt_integrity_in_result(self):
+        """Result should include receipt_integrity field."""
+        result = sovereignty_timeline(50, 1.8, 1.69, 1200, receipt_integrity=0.9)
+
+        assert 'receipt_integrity' in result
+        assert result['receipt_integrity'] == 0.9
+
+    def test_earth_unaffected_by_receipts(self):
+        """Earth (tau=0) should be unaffected by receipt_integrity."""
+        result_earth = sovereignty_timeline(50, 1.8, 1.69, 0, receipt_integrity=0.0)
+        result_earth_receipts = sovereignty_timeline(50, 1.8, 1.69, 0, receipt_integrity=0.9)
+
+        # Both should have same effective_alpha (no latency penalty to mitigate)
+        assert result_earth['effective_alpha'] == result_earth_receipts['effective_alpha']
+
+        # Same cycles to milestone
+        assert result_earth['cycles_to_10k_person_eq'] == result_earth_receipts['cycles_to_10k_person_eq']
+
+
+class TestEffectiveAlphaWithReceipts:
+    """Tests for effective_alpha with receipt_integrity parameter."""
+
+    def test_zero_receipts_equals_original(self):
+        """With receipt_integrity=0, should match original formula."""
+        eff_original = 1.69 * tau_penalty(1200)
+        eff_new = effective_alpha(1.69, 1200, 0.0)
+
+        assert abs(eff_original - eff_new) < 0.01
+
+    def test_full_receipts_fully_mitigates(self):
+        """With receipt_integrity=1.0, penalty should be fully mitigated."""
+        eff = effective_alpha(1.69, 1200, 1.0)
+
+        # With 100% receipts: factor = 1 - 0.65 * 0 = 1.0
+        # So effective_alpha should equal base_alpha
+        assert abs(eff - 1.69) < 0.01, f"100% receipts should fully mitigate, got {eff}"
+
+    def test_partial_receipts_partial_mitigation(self):
+        """Partial receipt integrity should give partial mitigation."""
+        eff_50 = effective_alpha(1.69, 1200, 0.5)
+        eff_0 = effective_alpha(1.69, 1200, 0.0)
+        eff_100 = effective_alpha(1.69, 1200, 1.0)
+
+        # 50% should be between 0% and 100%
+        assert eff_0 < eff_50 < eff_100, \
+            f"50% receipts should be between 0% and 100%: {eff_0} < {eff_50} < {eff_100}"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

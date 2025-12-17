@@ -167,32 +167,77 @@ def load_mars_params(path: str = None) -> Dict[str, Any]:
 def effective_alpha(
     alpha: float,
     tau_seconds: float,
+    receipt_integrity: float = 0.0,
     relay_factor: float = 1.0,
     onboard_alpha_floor: float = 0.0
 ) -> float:
-    """Calculate effective alpha after latency penalty.
+    """Calculate effective alpha after latency penalty with receipt mitigation.
 
-    Represents α degradation under latency constraints, with optional floor.
+    THE PARADIGM SHIFT:
+        Without receipts: effective_α = base_α × tau_penalty = 1.69 × 0.35 = 0.59
+        With 90% receipts: effective_α = base_α × (1 - penalty × (1 - integrity)) = 1.58
+
+    That's a 2.7× improvement in effective compounding from receipts alone.
+
+    Formula:
+        effective_α_mars = base_α × (1 - penalty × (1 - receipt_integrity))
+
+    Where:
+        - penalty = 1 - tau_penalty(tau) = latency drop (0.65 at τ=1200s)
+        - receipt_integrity = fraction of decisions with receipts (0-1)
 
     Args:
         alpha: Base compounding exponent (e.g., 1.69)
         tau_seconds: Latency in seconds
+        receipt_integrity: Receipt coverage (0-1). If >0, applies receipt mitigation.
         relay_factor: Multiplier for relay reduction (0.5 for swarm)
         onboard_alpha_floor: Floor for effective α (1.2 for onboard AI)
 
     Returns:
-        Effective alpha = max(alpha × tau_penalty(tau), floor)
+        Effective alpha after latency penalty and receipt mitigation, or floor if higher
 
     Example:
         >>> effective_alpha(1.69, 0)
         1.69
-        >>> effective_alpha(1.69, 1200)  # Mars max
+        >>> effective_alpha(1.69, 1200, 0.0)  # Mars max, no receipts
         0.5915  # ~0.59
+        >>> effective_alpha(1.69, 1200, 0.9)  # Mars max, 90% receipts
+        1.58  # ~1.58
         >>> effective_alpha(1.69, 1200, onboard_alpha_floor=1.2)  # with onboard AI
         1.2  # floor applied
+
+    Receipt: effective_alpha_receipt (when receipt_integrity > 0)
     """
-    penalty = tau_penalty(tau_seconds, relay_factor)
-    eff_alpha = alpha * penalty
+    # Apply relay factor to get raw penalty
+    raw_penalty = tau_penalty(tau_seconds, relay_factor)
+    latency_drop = 1.0 - raw_penalty  # How much we lose to latency
+
+    if receipt_integrity > 0.0:
+        # Receipt mitigation formula:
+        # effective_α = base_α × (1 - penalty × (1 - receipt_integrity))
+        # Where penalty = latency_drop (the loss, not the retained)
+        mitigation_factor = 1.0 - latency_drop * (1.0 - receipt_integrity)
+        eff_alpha = alpha * mitigation_factor
+
+        # Calculate unmitigated for comparison
+        unmitigated = alpha * raw_penalty
+        mitigation_benefit = eff_alpha - unmitigated
+
+        # Emit effective_alpha_receipt
+        emit_receipt("effective_alpha", {
+            "tenant_id": "axiom-autonomy",
+            "base_alpha": alpha,
+            "tau_seconds": tau_seconds,
+            "relay_factor": relay_factor,
+            "tau_penalty": raw_penalty,
+            "receipt_integrity": receipt_integrity,
+            "effective_alpha": eff_alpha,
+            "mitigation_benefit": mitigation_benefit,
+            "unmitigated_alpha": unmitigated,
+        })
+    else:
+        # No receipt mitigation - original formula
+        eff_alpha = alpha * raw_penalty
 
     # Apply onboard AI floor if specified
     if onboard_alpha_floor > 0:
