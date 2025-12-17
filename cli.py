@@ -8,10 +8,13 @@ Usage:
     python cli.py bootstrap     # Run bootstrap analysis
     python cli.py curve         # Generate sovereignty curve
     python cli.py full          # Run full integration test
+    python cli.py --simulate_timeline --c_base 50 --p_factor 1.8 --tau 0     # Earth timeline
+    python cli.py --simulate_timeline --c_base 50 --p_factor 1.8 --tau 1200  # Mars timeline
 """
 
 import sys
 import os
+import argparse
 
 # Add src to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,6 +27,8 @@ from src.entropy_shannon import (
     STARLINK_MARS_BANDWIDTH_MIN_MBPS,
     STARLINK_MARS_BANDWIDTH_MAX_MBPS,
 )
+from src.timeline import sovereignty_timeline, C_BASE_DEFAULT, P_FACTOR_DEFAULT, ALPHA_DEFAULT
+from src.latency import tau_penalty, effective_alpha
 
 
 def cmd_baseline():
@@ -153,12 +158,85 @@ def cmd_full():
     print("=" * 60)
 
 
+def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
+    """Run sovereignty timeline simulation with Mars latency penalty.
+
+    Args:
+        c_base: Initial person-eq capacity
+        p_factor: Propulsion growth factor per synod
+        tau: Latency in seconds (0=Earth, 1200=Mars max)
+    """
+    print("=" * 60)
+    print("SOVEREIGNTY TIMELINE SIMULATION")
+    print("=" * 60)
+
+    print(f"\nConfiguration:")
+    print(f"  c_base (initial capacity): {c_base} person-eq")
+    print(f"  p_factor (propulsion growth): {p_factor}x per synod")
+    print(f"  tau (latency): {tau}s ({tau/60:.1f} min)")
+    print(f"  alpha (base): {ALPHA_DEFAULT}")
+
+    # Compute effective alpha
+    eff_alpha = effective_alpha(ALPHA_DEFAULT, tau) if tau > 0 else ALPHA_DEFAULT
+    print(f"  effective_alpha: {eff_alpha:.3f}")
+
+    if tau > 0:
+        penalty = tau_penalty(tau)
+        print(f"  latency_penalty: {penalty:.2f} ({(1-penalty)*100:.0f}% drop)")
+
+    # Run simulation
+    result = sovereignty_timeline(c_base, p_factor, ALPHA_DEFAULT, tau)
+
+    print(f"\nRESULTS:")
+    print(f"  Cycles to 10³ person-eq: {result['cycles_to_10k_person_eq']}")
+    print(f"  Cycles to 10⁶ person-eq: {result['cycles_to_1M_person_eq']}")
+
+    if tau > 0:
+        print(f"  Delay vs Earth: +{result['delay_vs_earth']} cycles")
+
+    # Show trajectory summary
+    traj = result['person_eq_trajectory']
+    print(f"\nTrajectory (first 10 cycles):")
+    for i, val in enumerate(traj[:10]):
+        marker = ""
+        if val >= 1000 and (i == 0 or traj[i-1] < 1000):
+            marker = " <- 10³ milestone"
+        if val >= 1000000 and (i == 0 or traj[i-1] < 1000000):
+            marker = " <- 10⁶ milestone"
+        print(f"    Cycle {i}: {val:.0f} person-eq{marker}")
+
+    print("=" * 60)
+
+    # The receipt is emitted by sovereignty_timeline, search for it
+    print("\n[sovereignty_projection receipt emitted above]")
+
+
 def main():
-    if len(sys.argv) < 2:
+    # Check for flag-based invocation
+    parser = argparse.ArgumentParser(description="AXIOM-CORE CLI - The Sovereignty Calculator")
+    parser.add_argument('command', nargs='?', help='Command: baseline, bootstrap, curve, full')
+    parser.add_argument('--c_base', type=float, default=C_BASE_DEFAULT,
+                        help=f'Initial person-eq capacity (default: {C_BASE_DEFAULT})')
+    parser.add_argument('--p_factor', type=float, default=P_FACTOR_DEFAULT,
+                        help=f'Propulsion growth factor (default: {P_FACTOR_DEFAULT})')
+    parser.add_argument('--tau', type=float, default=0,
+                        help='Latency in seconds (0=Earth, 1200=Mars max)')
+    parser.add_argument('--simulate_timeline', action='store_true',
+                        help='Run sovereignty timeline simulation')
+
+    args = parser.parse_args()
+
+    # Handle timeline simulation
+    if args.simulate_timeline:
+        cmd_simulate_timeline(args.c_base, args.p_factor, args.tau)
+        return
+
+    # Handle positional command
+    if args.command is None:
         print(__doc__)
         return
 
-    cmd = sys.argv[1].lower()
+    cmd = args.command.lower()
 
     if cmd == "baseline":
         cmd_baseline()

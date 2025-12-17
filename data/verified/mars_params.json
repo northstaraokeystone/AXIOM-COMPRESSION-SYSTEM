@@ -1,0 +1,8 @@
+{
+  "tau_mars_max_seconds": 1200,
+  "tau_mars_min_seconds": 180,
+  "latency_penalty_at_max": 0.35,
+  "person_eq_milestone_early": 1000,
+  "person_eq_milestone_city": 1000000,
+  "payload_hash": "699b26cf2d10b36699a2f3949cf662c98fb2e0803ade611ee44645c97cc10fca:699b26cf2d10b36699a2f3949cf662c98fb2e0803ade611ee44645c97cc10fca"
+}

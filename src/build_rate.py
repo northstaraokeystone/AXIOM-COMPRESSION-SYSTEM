@@ -25,14 +25,15 @@ from typing import Optional
 import math
 
 from .core import emit_receipt
+from .latency import tau_penalty, effective_alpha as compute_effective_alpha
 
 
 # === CONSTANTS (from Grok timeline table) ===
 
-ALPHA_BASELINE = 1.8
+ALPHA_BASELINE = 1.69
 """Compounding exponent for autonomy scaling.
-Re-validated by Grok as foundation for all projections.
-Source: Grok - 'calibrated to alpha=1.8 baseline'"""
+Re-validated by Grok: α=1.69 fits the 20x MPI leap nicely.
+Source: Grok - 'α=1.69 fits the 20x MPI leap nicely'"""
 
 BUILD_RATE_CONSTANT = 1.0
 """Initial conditions factor. Normalized to 1.0 for ratio comparisons."""
@@ -90,7 +91,8 @@ def compute_build_rate(
     autonomy: float,
     propulsion: float,
     alpha: float = ALPHA_BASELINE,
-    constant: float = BUILD_RATE_CONSTANT
+    constant: float = BUILD_RATE_CONSTANT,
+    tau_seconds: Optional[float] = None
 ) -> float:
     """Compute multiplicative build rate B = c x A^alpha x P.
 
@@ -98,20 +100,28 @@ def compute_build_rate(
     Under-investing in autonomy doesn't just shift timeline - it
     MULTIPLIES the entire build rate by a smaller factor.
 
+    If tau_seconds is provided, applies latency penalty to alpha:
+    effective_alpha = alpha × tau_penalty(tau_seconds)
+
     Args:
         autonomy: Autonomy level (0-1, normalized)
         propulsion: Propulsion level (normalized capability metric)
-        alpha: Compounding exponent (default 1.8)
+        alpha: Compounding exponent (default 1.69)
         constant: Initial conditions factor (default 1.0)
+        tau_seconds: Latency in seconds (None for Earth, 1200 for Mars max)
 
     Returns:
-        Build rate B = c x A^alpha x P
+        Build rate B = c x A^effective_alpha x P
 
     Example:
-        At alpha=1.8:
-        - A=0.40, P=1.0 -> B = 1.0 x 0.40^1.8 x 1.0 = 0.217
-        - A=0.25, P=1.0 -> B = 1.0 x 0.25^1.8 x 1.0 = 0.098
-        - Ratio: 0.217/0.098 = 2.2x (matches Grok's 2.5-3.0x range)
+        At alpha=1.69 (Earth, tau=0):
+        - A=0.40, P=1.0 -> B = 1.0 x 0.40^1.69 x 1.0 = 0.244
+        - A=0.25, P=1.0 -> B = 1.0 x 0.25^1.69 x 1.0 = 0.117
+
+        At alpha=1.69, tau=1200s (Mars max):
+        - effective_alpha = 1.69 × 0.35 = 0.59
+        - A=0.40, P=1.0 -> B = 1.0 x 0.40^0.59 x 1.0 = 0.594
+        - Compounding severely degraded by latency
     """
     if autonomy < 0 or autonomy > 1:
         raise ValueError(f"autonomy must be in [0, 1], got {autonomy}")
@@ -122,8 +132,13 @@ def compute_build_rate(
     if autonomy == 0:
         return 0.0  # Existential stall
 
-    # B = c x A^alpha x P
-    build_rate = constant * (autonomy ** alpha) * propulsion
+    # Apply latency penalty to alpha if tau_seconds provided
+    eff_alpha = alpha
+    if tau_seconds is not None and tau_seconds > 0:
+        eff_alpha = compute_effective_alpha(alpha, tau_seconds)
+
+    # B = c x A^effective_alpha x P
+    build_rate = constant * (autonomy ** eff_alpha) * propulsion
 
     # Emit receipt
     emit_receipt("build_rate", {
@@ -131,9 +146,11 @@ def compute_build_rate(
         "autonomy_level": autonomy,
         "propulsion_level": propulsion,
         "alpha": alpha,
+        "tau_seconds": tau_seconds,
+        "effective_alpha": eff_alpha,
         "constant": constant,
         "build_rate": build_rate,
-        "computation": f"B = {constant} x {autonomy}^{alpha} x {propulsion} = {build_rate:.6f}"
+        "computation": f"B = {constant} x {autonomy}^{eff_alpha:.2f} x {propulsion} = {build_rate:.6f}"
     })
 
     return build_rate

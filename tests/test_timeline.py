@@ -5,6 +5,10 @@ Validates Grok's timeline table:
     25% -> 18-22 years
     15% -> 25-35 years
     0%  -> 40-60+ years (existential)
+
+Also validates Mars latency penalty:
+    tau=1200s -> 65% drop -> penalty_multiplier ≈ 0.35
+    effective_alpha(1.69, 1200) ≈ 0.59
 """
 
 import pytest
@@ -21,6 +25,7 @@ from src.timeline import (
     compare_to_optimal,
     format_timeline_table,
     project_sovereignty_date,
+    sovereignty_timeline,
     TimelineConfig,
     TimelineProjection,
     THRESHOLD_PERSON_EQUIVALENT,
@@ -28,7 +33,11 @@ from src.timeline import (
     YEARS_25PCT,
     YEARS_15PCT,
     YEARS_0PCT,
+    C_BASE_DEFAULT,
+    P_FACTOR_DEFAULT,
+    ALPHA_DEFAULT,
 )
+from src.latency import tau_penalty, effective_alpha
 
 
 class TestAllocationToMultiplier:
@@ -221,6 +230,138 @@ class TestConstants:
         assert YEARS_40PCT[1] < YEARS_25PCT[0]
         assert YEARS_25PCT[1] < YEARS_15PCT[0]
         assert YEARS_15PCT[1] < YEARS_0PCT[0]
+
+
+class TestLatencyPenalty:
+    """Tests for Mars latency penalty functions."""
+
+    def test_tau_penalty_at_max(self):
+        """tau_penalty(1200) should return ~0.35 (±0.05)."""
+        penalty = tau_penalty(1200)
+        assert 0.30 <= penalty <= 0.40, f"Expected 0.35 ± 0.05, got {penalty}"
+
+    def test_tau_penalty_at_zero(self):
+        """tau_penalty(0) should return ~1.0."""
+        penalty = tau_penalty(0)
+        assert penalty == 1.0, f"Expected 1.0, got {penalty}"
+
+    def test_tau_penalty_at_negative(self):
+        """tau_penalty(-1) should return 1.0 (no penalty)."""
+        penalty = tau_penalty(-1)
+        assert penalty == 1.0, f"Expected 1.0 for negative tau, got {penalty}"
+
+    def test_tau_penalty_linear_interpolation(self):
+        """tau_penalty should interpolate linearly."""
+        # At midpoint (600s), should be ~0.675
+        penalty_mid = tau_penalty(600)
+        expected_mid = 1.0 - (1.0 - 0.35) * (600 / 1200)  # 0.675
+        assert abs(penalty_mid - expected_mid) < 0.01, f"Expected ~{expected_mid}, got {penalty_mid}"
+
+
+class TestEffectiveAlpha:
+    """Tests for effective_alpha function."""
+
+    def test_effective_alpha_mars(self):
+        """effective_alpha(1.69, 1200) should return ~0.59."""
+        eff = effective_alpha(1.69, 1200)
+        expected = 1.69 * 0.35  # ~0.5915
+        assert 0.5 <= eff <= 0.7, f"Expected ~{expected}, got {eff}"
+
+    def test_effective_alpha_earth(self):
+        """effective_alpha(1.69, 0) should return 1.69."""
+        eff = effective_alpha(1.69, 0)
+        assert eff == 1.69, f"Expected 1.69, got {eff}"
+
+
+class TestTimelineWithLatency:
+    """Tests for timeline projections with latency penalty."""
+
+    def test_timeline_with_latency_has_delay(self):
+        """With tau=1200, delay_vs_earth should be > 0."""
+        result = sovereignty_timeline(50, 1.8, 1.69, 1200)
+        assert result['delay_vs_earth'] > 0, "Mars should have delay vs Earth"
+
+    def test_milestone_early_reachable_earth(self):
+        """With c=50, p=1.8, α=1.69, τ=0: 10³ in ≤3 cycles."""
+        result = sovereignty_timeline(50, 1.8, 1.69, 0)
+        assert result['cycles_to_10k_person_eq'] <= 3, \
+            f"Expected ≤3 cycles for Earth, got {result['cycles_to_10k_person_eq']}"
+
+    def test_milestone_early_delayed_mars(self):
+        """With c=50, p=1.8, α=1.69, τ=1200: Mars takes more cycles than Earth."""
+        result_earth = sovereignty_timeline(50, 1.8, 1.69, 0)
+        result_mars = sovereignty_timeline(50, 1.8, 1.69, 1200)
+        assert result_mars['cycles_to_10k_person_eq'] > result_earth['cycles_to_10k_person_eq'], \
+            "Mars should take more cycles than Earth"
+
+    def test_mars_penalty_multiplicative(self):
+        """Verify penalty compounds each cycle (lower effective alpha)."""
+        result_earth = sovereignty_timeline(50, 1.8, 1.69, 0)
+        result_mars = sovereignty_timeline(50, 1.8, 1.69, 1200)
+
+        # Mars should have lower effective alpha
+        assert result_mars['effective_alpha'] < result_earth['effective_alpha'], \
+            "Mars effective_alpha should be lower due to penalty"
+
+        # Mars trajectory should grow slower
+        traj_earth = result_earth['person_eq_trajectory']
+        traj_mars = result_mars['person_eq_trajectory']
+
+        # After a few cycles, Earth should be ahead
+        if len(traj_earth) > 5 and len(traj_mars) > 5:
+            assert traj_earth[5] > traj_mars[5], \
+                f"Earth should be ahead at cycle 5: Earth={traj_earth[5]}, Mars={traj_mars[5]}"
+
+
+class TestSovereigntyTimeline:
+    """Tests for sovereignty_timeline function."""
+
+    def test_sovereignty_timeline_returns_required_fields(self):
+        """sovereignty_timeline should return all required fields."""
+        result = sovereignty_timeline(50, 1.8, 1.69, 0)
+        required_fields = [
+            'cycles_to_10k_person_eq',
+            'cycles_to_1M_person_eq',
+            'person_eq_trajectory',
+            'effective_alpha',
+            'delay_vs_earth'
+        ]
+        for field in required_fields:
+            assert field in result, f"Missing required field: {field}"
+
+    def test_sovereignty_timeline_trajectory_grows(self):
+        """Trajectory should be monotonically increasing."""
+        result = sovereignty_timeline(50, 1.8, 1.69, 0)
+        traj = result['person_eq_trajectory']
+        for i in range(1, len(traj)):
+            assert traj[i] >= traj[i-1], f"Trajectory should grow: {traj[i-1]} -> {traj[i]}"
+
+    def test_sovereignty_timeline_custom_params(self):
+        """Should accept custom c_base and p_factor."""
+        result_default = sovereignty_timeline(50, 1.8, 1.69, 0)
+        result_higher_c = sovereignty_timeline(100, 1.8, 1.69, 0)
+
+        # Higher c_base should reach milestones faster
+        assert result_higher_c['cycles_to_10k_person_eq'] <= result_default['cycles_to_10k_person_eq'], \
+            "Higher c_base should reach milestone faster or equal"
+
+
+class TestProjectTimelineWithLatency:
+    """Tests for project_timeline with tau_seconds parameter."""
+
+    def test_project_timeline_with_tau(self):
+        """project_timeline should accept tau_seconds."""
+        proj = project_timeline(0.40, tau_seconds=1200)
+        assert proj.tau_seconds == 1200
+        assert proj.effective_alpha < 1.69  # Should be degraded
+
+    def test_project_timeline_earth_baseline(self):
+        """project_timeline with tau=0 or None should have full alpha."""
+        proj = project_timeline(0.40, tau_seconds=0)
+        assert proj.effective_alpha == 1.69
+
+        proj_none = project_timeline(0.40, tau_seconds=None)
+        assert proj_none.effective_alpha == 1.69
 
 
 if __name__ == "__main__":
