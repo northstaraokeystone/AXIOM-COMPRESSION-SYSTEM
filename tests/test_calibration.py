@@ -25,7 +25,20 @@ from src.calibration import (
     ALPHA_BASELINE,
     MIN_DATA_POINTS,
     CONFIDENCE_THRESHOLD,
+    # Empirical FSD functions and constants
+    load_fsd_empirical,
+    fit_alpha_empirical,
+    compute_gain_factor,
+    compute_safety_ratio,
+    MPI_V13,
+    MPI_V14,
+    GAIN_FACTOR_EMPIRICAL,
+    SAFETY_AP_MPCM,
+    SAFETY_HUMAN_MPCM,
+    ALPHA_EMPIRICAL_LOW,
+    ALPHA_EMPIRICAL_HIGH,
 )
+from src.core import StopRule
 
 
 class TestFsdToAlphaProxy:
@@ -232,6 +245,127 @@ class TestConstants:
         """Thresholds should be reasonable."""
         assert MIN_DATA_POINTS == 6
         assert CONFIDENCE_THRESHOLD == 0.70
+
+
+class TestComputeGainFactor:
+    """Tests for compute_gain_factor function."""
+
+    def test_gain_factor_v13_v14(self):
+        """Gain factor from v13 to v14 should be ~20.86."""
+        gain = compute_gain_factor(MPI_V13, MPI_V14)
+        assert abs(gain - 20.86) < 0.01, f"Expected ~20.86, got {gain}"
+
+    def test_gain_factor_basic(self):
+        """Basic gain factor computation."""
+        assert compute_gain_factor(100, 200) == 2.0
+        assert compute_gain_factor(50, 150) == 3.0
+
+    def test_gain_factor_zero_before_raises(self):
+        """Zero mpi_before should raise ValueError."""
+        with pytest.raises(ValueError):
+            compute_gain_factor(0, 100)
+
+
+class TestComputeSafetyRatio:
+    """Tests for compute_safety_ratio function."""
+
+    def test_safety_ratio_computed(self):
+        """Safety ratio should be ~9.09."""
+        ratio = compute_safety_ratio(SAFETY_AP_MPCM, SAFETY_HUMAN_MPCM)
+        assert abs(ratio - 9.09) < 0.01, f"Expected ~9.09, got {ratio}"
+
+    def test_safety_ratio_zero_human_raises(self):
+        """Zero human_mpcm should raise ValueError."""
+        with pytest.raises(ValueError):
+            compute_safety_ratio(100, 0)
+
+
+class TestLoadFsdEmpirical:
+    """Tests for load_fsd_empirical function."""
+
+    def test_load_fsd_empirical_hash_valid(self, capsys):
+        """Payload hash should match computed hash."""
+        data = load_fsd_empirical()
+        assert 'payload_hash' in data
+        # If we get here without StopRule, hash was valid
+
+    def test_load_fsd_empirical_emits_receipt(self, capsys):
+        """Should emit fsd_empirical_ingest receipt."""
+        load_fsd_empirical()
+        captured = capsys.readouterr()
+        assert 'fsd_empirical_ingest' in captured.out
+
+    def test_load_fsd_empirical_data_structure(self):
+        """Should return correct data structure."""
+        data = load_fsd_empirical()
+        assert data['versions'] == ['v12', 'v12.3', 'v13', 'v14']
+        assert data['mpi_values'][2] == 441
+        assert data['mpi_values'][3] == 9200
+        assert data['safety_ap_mpcm'] == 6360000
+        assert data['safety_human_mpcm'] == 700000
+
+
+class TestFitAlphaEmpirical:
+    """Tests for fit_alpha_empirical function."""
+
+    def test_fit_alpha_empirical_in_range(self, capsys):
+        """Alpha estimate should be in validated range [1.5, 2.1]."""
+        data = load_fsd_empirical()
+        result = fit_alpha_empirical(data)
+        assert ALPHA_EMPIRICAL_LOW <= result['alpha_estimate'] <= ALPHA_EMPIRICAL_HIGH, \
+            f"Alpha {result['alpha_estimate']} not in range [{ALPHA_EMPIRICAL_LOW}, {ALPHA_EMPIRICAL_HIGH}]"
+
+    def test_fit_alpha_empirical_gain_factor(self, capsys):
+        """Gain factor should be ~20.86."""
+        data = load_fsd_empirical()
+        result = fit_alpha_empirical(data)
+        assert abs(result['gain_factor'] - 20.86) < 0.01, \
+            f"Expected gain_factor ~20.86, got {result['gain_factor']}"
+
+    def test_fit_alpha_empirical_emits_receipt(self, capsys):
+        """Should emit alpha_calibration receipt with method=empirical."""
+        data = load_fsd_empirical()
+        fit_alpha_empirical(data)
+        captured = capsys.readouterr()
+        assert 'alpha_calibration' in captured.out
+        assert '"method": "empirical"' in captured.out
+
+    def test_fit_alpha_empirical_method_field(self, capsys):
+        """Result should have method='empirical'."""
+        data = load_fsd_empirical()
+        result = fit_alpha_empirical(data)
+        assert result['method'] == 'empirical'
+
+    def test_fit_alpha_empirical_range_bounds(self, capsys):
+        """Result should include range bounds."""
+        data = load_fsd_empirical()
+        result = fit_alpha_empirical(data)
+        assert result['range_low'] == ALPHA_EMPIRICAL_LOW
+        assert result['range_high'] == ALPHA_EMPIRICAL_HIGH
+
+
+class TestEmpiricalConstants:
+    """Tests for empirical FSD constants."""
+
+    def test_mpi_constants(self):
+        """MPI constants should match spec."""
+        assert MPI_V13 == 441
+        assert MPI_V14 == 9200
+
+    def test_gain_factor_constant(self):
+        """Gain factor constant should be computed correctly."""
+        computed = MPI_V14 / MPI_V13
+        assert abs(GAIN_FACTOR_EMPIRICAL - computed) < 0.01
+
+    def test_safety_constants(self):
+        """Safety constants should match spec."""
+        assert SAFETY_AP_MPCM == 6_360_000
+        assert SAFETY_HUMAN_MPCM == 700_000
+
+    def test_alpha_empirical_range(self):
+        """Alpha empirical range should be [1.5, 2.1]."""
+        assert ALPHA_EMPIRICAL_LOW == 1.5
+        assert ALPHA_EMPIRICAL_HIGH == 2.1
 
 
 if __name__ == "__main__":
