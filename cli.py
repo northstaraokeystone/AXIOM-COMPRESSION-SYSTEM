@@ -151,6 +151,18 @@ from src.adaptive import (
     get_adaptive_info,
     ADAPTIVE_DEPTH_BASE
 )
+from src.adaptive_depth import (
+    load_depth_spec,
+    compute_depth as compute_adaptive_n_depth,
+    get_depth_scaling_info,
+)
+from src.rl_tune import (
+    run_sweep,
+    compare_sweep_efficiency,
+    get_efficient_sweep_info,
+    RL_SWEEP_INITIAL_LIMIT,
+    RETENTION_QUICK_WIN_TARGET,
+)
 from src.alpha_compute import (
     alpha_calc,
     compound_retention,
@@ -1672,6 +1684,190 @@ def cmd_tune_sweep(simulate: bool):
     print("=" * 60)
 
 
+# === ADAPTIVE DEPTH CLI COMMANDS (Dec 2025) ===
+
+
+def cmd_adaptive_depth_run(rl_sweep_runs: int, tree_size: int, simulate: bool):
+    """Run with adaptive depth enabled.
+
+    Args:
+        rl_sweep_runs: Number of informed RL runs
+        tree_size: Merkle tree size for depth calculation
+        simulate: Whether to output simulation receipt
+    """
+    print("=" * 60)
+    print(f"ADAPTIVE DEPTH RUN ({rl_sweep_runs} runs)")
+    print("=" * 60)
+
+    # Load and display spec
+    spec = load_depth_spec()
+    print(f"\nSpec loaded:")
+    print(f"  base_layers: {spec['base_layers']}")
+    print(f"  scale_factor: {spec['scale_factor']}")
+    print(f"  baseline_n: {spec['baseline_n']}")
+    print(f"  max_layers: {spec['max_layers']}")
+    print(f"  sweep_limit: {spec['sweep_limit']}")
+
+    # Compute depth for given tree size
+    depth = compute_adaptive_n_depth(tree_size, 0.5)
+    print(f"\nComputed depth for n={tree_size:.2e}:")
+    print(f"  layers: {depth}")
+
+    print(f"\nRunning {rl_sweep_runs}-run informed sweep...")
+
+    result = run_sweep(
+        runs=rl_sweep_runs,
+        tree_size=tree_size,
+        adaptive_depth=True,
+        early_stopping=True,
+        seed=42
+    )
+
+    print(f"\nRESULTS:")
+    print(f"  Runs completed: {result['runs_completed']}/{result['runs_limit']}")
+    print(f"  Best retention: {result['best_retention']:.5f}")
+    print(f"  Best alpha: {result['best_alpha']:.5f}")
+    print(f"  Depth used: {result['depth_used']}")
+    print(f"  Target achieved: {'PASS' if result['target_achieved'] else 'PENDING'}")
+    print(f"  Early stopped: {result['early_stopped']}")
+
+    if result['convergence_run']:
+        print(f"  Convergence run: {result['convergence_run']}")
+
+    print(f"\nSLO VALIDATION:")
+    ret_ok = result['best_retention'] >= RETENTION_QUICK_WIN_TARGET
+    print(f"  Retention >= {RETENTION_QUICK_WIN_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})")
+
+    if simulate:
+        print("\n[efficient_rl_sweep receipt emitted above]")
+
+    print("=" * 60)
+
+
+def cmd_depth_scaling_test():
+    """Run depth scaling efficiency comparison."""
+    print("=" * 60)
+    print("DEPTH SCALING EFFICIENCY TEST")
+    print("=" * 60)
+
+    print("\nComparing 500 informed vs 300 blind runs...")
+
+    result = compare_sweep_efficiency(
+        informed_runs=500,
+        blind_runs=300,
+        tree_size=int(1e8),
+        seed=42
+    )
+
+    print(f"\nRESULTS:")
+    print(f"  Informed (500 runs): {result['informed_retention']:.5f}")
+    print(f"  Blind (300 runs): {result['blind_retention']:.5f}")
+    print(f"  Efficiency gain: {result['efficiency_gain']:.5f}")
+    print(f"  Informed better: {'YES' if result['informed_better'] else 'NO'}")
+
+    print(f"\nCONCLUSION: {result['conclusion']}")
+
+    print("\n[sweep_efficiency_comparison receipt emitted above]")
+    print("=" * 60)
+
+
+def cmd_compute_depth_single(tree_size: int):
+    """Show computed depth for given tree size.
+
+    Args:
+        tree_size: Tree size to compute depth for
+    """
+    print("=" * 60)
+    print(f"COMPUTE DEPTH (n={tree_size:.2e})")
+    print("=" * 60)
+
+    # Load spec
+    spec = load_depth_spec()
+    print(f"\nSpec:")
+    print(f"  base_layers: {spec['base_layers']}")
+    print(f"  scale_factor: {spec['scale_factor']}")
+    print(f"  baseline_n: {spec['baseline_n']}")
+    print(f"  max_layers: {spec['max_layers']}")
+
+    # Compute depth
+    depth = compute_adaptive_n_depth(tree_size, 0.5)
+
+    print(f"\nFormula: layers = base + scale * log(n / baseline)")
+    print(f"  base_layers: {spec['base_layers']}")
+    print(f"  scale_factor * log({tree_size} / {spec['baseline_n']})")
+
+    import math
+    if tree_size > 0:
+        raw = spec['base_layers'] + spec['scale_factor'] * math.log(tree_size / spec['baseline_n'])
+        print(f"  Raw value: {raw:.4f}")
+
+    print(f"\nRESULT: {depth} layers")
+
+    # Show expected examples
+    info = get_depth_scaling_info()
+    print(f"\nExpected depths table:")
+    for key, val in info['example_depths'].items():
+        print(f"  {key}: {val} layers")
+
+    print("\n[adaptive_depth receipt emitted above]")
+    print("=" * 60)
+
+
+def cmd_depth_scaling_info():
+    """Output adaptive depth module configuration."""
+    print("=" * 60)
+    print("ADAPTIVE DEPTH SCALING CONFIGURATION")
+    print("=" * 60)
+
+    info = get_depth_scaling_info()
+
+    print(f"\nScaling Parameters:")
+    print(f"  base_layers: {info['base_layers']}")
+    print(f"  scale_factor: {info['scale_factor']}")
+    print(f"  baseline_n: {info['baseline_n']}")
+    print(f"  max_layers: {info['max_layers']}")
+    print(f"  min_layers: {info['min_layers']}")
+
+    print(f"\nSweep Configuration:")
+    print(f"  sweep_limit: {info['sweep_limit']}")
+    print(f"  quick_target: {info['quick_target']}")
+
+    print(f"\nFormula: {info['formula']}")
+
+    print(f"\nExample Depths:")
+    for key, val in info['example_depths'].items():
+        print(f"  {key}: {val} layers")
+
+    print(f"\nDescription: {info['description']}")
+
+    print("\n[depth_scaling_info receipt emitted above]")
+    print("=" * 60)
+
+
+def cmd_efficient_sweep_info():
+    """Output efficient sweep configuration."""
+    print("=" * 60)
+    print("EFFICIENT SWEEP CONFIGURATION")
+    print("=" * 60)
+
+    info = get_efficient_sweep_info()
+
+    print(f"\nConfiguration:")
+    print(f"  sweep_limit: {info['sweep_limit']}")
+    print(f"  quick_win_target: {info['quick_win_target']}")
+    print(f"  convergence_check_interval: {info['convergence_check_interval']}")
+    print(f"  early_stopping_threshold: {info['early_stopping_threshold']}")
+
+    print(f"\nExpected Behavior:")
+    print(f"  Expected convergence: {info['expected_convergence']}")
+    print(f"  vs blind: {info['vs_blind']}")
+
+    print(f"\nDescription: {info['description']}")
+
+    print("\n[efficient_sweep_info receipt emitted above]")
+    print("=" * 60)
+
+
 def main():
     # Check for flag-based invocation
     parser = argparse.ArgumentParser(description="AXIOM-CORE CLI - The Sovereignty Calculator")
@@ -1783,6 +1979,22 @@ def main():
     parser.add_argument('--rl_status', action='store_true',
                         help='Output RL integration status')
 
+    # Adaptive depth flags (Dec 2025 - NEW)
+    parser.add_argument('--adaptive_depth_run', action='store_true',
+                        help='Run with adaptive depth enabled')
+    parser.add_argument('--rl_sweep', type=int, default=500,
+                        help='Number of informed RL runs (default: 500)')
+    parser.add_argument('--depth_scaling_test', action='store_true',
+                        help='Run depth scaling efficiency comparison')
+    parser.add_argument('--compute_depth', action='store_true',
+                        help='Show computed depth for given tree size')
+    parser.add_argument('--tree_size', type=int, default=int(1e6),
+                        help='Tree size for depth calculation (default: 1e6)')
+    parser.add_argument('--depth_scaling_info', action='store_true',
+                        help='Output adaptive depth scaling configuration')
+    parser.add_argument('--efficient_sweep_info', action='store_true',
+                        help='Output efficient sweep configuration')
+
     args = parser.parse_args()
 
     # Combine reroute flags
@@ -1817,6 +2029,27 @@ def main():
 
     if args.tune_sweep:
         cmd_tune_sweep(args.simulate)
+        return
+
+    # Handle adaptive depth flags (Dec 2025 - NEW)
+    if args.depth_scaling_info:
+        cmd_depth_scaling_info()
+        return
+
+    if args.efficient_sweep_info:
+        cmd_efficient_sweep_info()
+        return
+
+    if args.compute_depth:
+        cmd_compute_depth_single(args.tree_size)
+        return
+
+    if args.depth_scaling_test:
+        cmd_depth_scaling_test()
+        return
+
+    if args.adaptive_depth_run:
+        cmd_adaptive_depth_run(args.rl_sweep, args.tree_size, args.simulate)
         return
 
     # Handle ablation testing flags (Dec 2025 - NEW)

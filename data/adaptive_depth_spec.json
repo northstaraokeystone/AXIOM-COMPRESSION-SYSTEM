@@ -1,0 +1,37 @@
+{
+    "version": "v1.0",
+    "base_layers": 4,
+    "scale_factor": 0.5,
+    "baseline_n": 1000000,
+    "max_layers": 12,
+    "min_layers": 4,
+    "sweep_limit": 500,
+    "quick_target": 1.05,
+    "physics_justification": {
+        "base_layers": "Minimal viable GNN depth for pattern detection",
+        "scale_factor": "Entropy density scaling (0.5-0.8 tunable range)",
+        "baseline_n": "Typical early Merkle tree size (10^6 entries)",
+        "max_layers": "Compute safety cap - diminishing returns beyond 12",
+        "sweep_limit": "Informed vs blind efficiency threshold",
+        "quick_target": "First retention milestone - validates adaptive approach"
+    },
+    "scaling_formula": {
+        "formula": "layers = base_layers + round(scale_factor * log(n / baseline_n))",
+        "base": "natural logarithm (ln)",
+        "clamped": "min_layers <= layers <= max_layers"
+    },
+    "trigger_conditions": {
+        "cycle_boundary": "Recompute at each compression cycle",
+        "entropy_threshold": 0.1,
+        "tree_growth_pct": 0.25
+    },
+    "expected_depths": {
+        "n_1e4": 4,
+        "n_1e6": 4,
+        "n_1e8": 5,
+        "n_1e9": 6,
+        "n_1e12": 8,
+        "n_1e15": 12
+    },
+    "description": "Immutable adaptive depth scaling parameters. Tree size correlates with buffered decisions - deeper GNN captures longer-range predictions. Kill static layers - go dynamic."
+}

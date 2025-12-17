@@ -90,6 +90,13 @@ __all__ = [
     "ENTRIES_PER_SOL",
     "ABLATION_MODES",
     "RETENTION_FACTOR_GNN_RANGE",
+    # Adaptive depth integration (Dec 2025)
+    "query_adaptive_depth",
+    "set_adaptive_depth_enabled",
+    "check_gnn_rebuild_needed",
+    "rebuild_gnn_layers",
+    "get_current_gnn_layers",
+    "reset_gnn_layer_state",
 ]
 
 # Import split modules
@@ -106,6 +113,14 @@ from .gnn_overflow import (
     extreme_blackout_sweep,
     validate_gnn_nonlinear_slos,
 )
+
+# === ADAPTIVE DEPTH INTEGRATION (Dec 2025) ===
+# Kill static layers - query adaptive_depth at runtime
+# Source: Grok - "Let the tree tell you how deep to look"
+
+# Current GNN layer state (tracks for rebuild detection)
+_current_gnn_layers = None
+_adaptive_depth_enabled = False
 
 
 def load_gnn_cache_spec(path: str = None) -> Dict[str, Any]:
@@ -725,3 +740,176 @@ def get_gnn_cache_dynamic_info() -> Dict[str, Any]:
     })
 
     return info
+
+
+# === ADAPTIVE DEPTH LAYER QUERY (Dec 2025) ===
+# Runtime layer query from adaptive_depth module
+# Kill static GNN_LAYERS constant - query dynamically
+
+
+def query_adaptive_depth(tree_size_n: int, entropy_h: float = 0.5) -> int:
+    """Query adaptive depth module for optimal GNN layer count.
+
+    This is the integration point between gnn_cache and adaptive_depth.
+    Replaces fixed GNN_LAYERS constant with dynamic query.
+
+    Args:
+        tree_size_n: Number of entries in Merkle tree
+        entropy_h: Average entropy level (0-1 range)
+
+    Returns:
+        Optimal GNN layer count from adaptive_depth module
+
+    Receipt: Delegates to adaptive_depth.compute_depth
+    """
+    global _adaptive_depth_enabled
+
+    if not _adaptive_depth_enabled:
+        # Return default if adaptive depth not enabled
+        return _dynamic_config.get("gnn_layers") or 6  # Default fallback
+
+    try:
+        from .adaptive_depth import compute_depth
+        return compute_depth(tree_size_n, entropy_h)
+    except ImportError:
+        # Fallback if module not available
+        return 6
+
+
+def set_adaptive_depth_enabled(enabled: bool) -> None:
+    """Enable or disable adaptive depth integration.
+
+    Args:
+        enabled: Whether adaptive depth should be active
+    """
+    global _adaptive_depth_enabled
+    _adaptive_depth_enabled = enabled
+    _dynamic_config["adaptive_depth_enabled"] = enabled
+
+
+def check_gnn_rebuild_needed(
+    tree_size_n: int,
+    entropy_h: float = 0.5
+) -> Dict[str, Any]:
+    """Check if GNN needs rebuild due to depth change.
+
+    Call at cycle boundary or entropy threshold to determine
+    if GNN layers need adjustment.
+
+    Args:
+        tree_size_n: Current tree size
+        entropy_h: Current entropy level
+
+    Returns:
+        Dict with rebuild_needed, old_layers, new_layers, reason
+
+    Receipt: gnn_rebuild_receipt if rebuild needed
+    """
+    global _current_gnn_layers
+
+    new_layers = query_adaptive_depth(tree_size_n, entropy_h)
+
+    result = {
+        "rebuild_needed": False,
+        "old_layers": _current_gnn_layers,
+        "new_layers": new_layers,
+        "tree_size_n": tree_size_n,
+        "entropy_h": entropy_h,
+        "reason": None
+    }
+
+    if _current_gnn_layers is None:
+        # First query - initialize
+        _current_gnn_layers = new_layers
+        result["reason"] = "initial"
+        result["rebuild_needed"] = False
+        return result
+
+    if new_layers != _current_gnn_layers:
+        result["rebuild_needed"] = True
+        result["reason"] = f"depth_change_{_current_gnn_layers}_to_{new_layers}"
+
+        # Emit rebuild receipt
+        emit_receipt("gnn_rebuild", {
+            "receipt_type": "gnn_rebuild",
+            "tenant_id": "axiom-gnn-cache",
+            "old_layers": _current_gnn_layers,
+            "new_layers": new_layers,
+            "tree_size_n": tree_size_n,
+            "entropy_h": entropy_h,
+            "trigger": "adaptive_depth_change",
+            "payload_hash": dual_hash(json.dumps({
+                "old": _current_gnn_layers,
+                "new": new_layers,
+                "n": tree_size_n
+            }, sort_keys=True))
+        })
+
+        # Update current
+        _current_gnn_layers = new_layers
+
+    return result
+
+
+def rebuild_gnn_layers(new_depth: int) -> Dict[str, Any]:
+    """Rebuild GNN with new layer depth.
+
+    This function is called when adaptive depth indicates a change.
+    In production, this would reinitialize the GNN model.
+
+    Args:
+        new_depth: New layer count for GNN
+
+    Returns:
+        Dict with rebuild status and timing info
+
+    Receipt: gnn_rebuild_complete
+    """
+    global _current_gnn_layers
+
+    old_depth = _current_gnn_layers or 6
+
+    # In production: reinitialize GNN model with new_depth layers
+    # For now, just update state and emit receipt
+    _current_gnn_layers = new_depth
+    _dynamic_config["gnn_layers"] = new_depth
+
+    result = {
+        "old_depth": old_depth,
+        "new_depth": new_depth,
+        "rebuild_status": "complete",
+        "layers_delta": new_depth - old_depth
+    }
+
+    emit_receipt("gnn_rebuild_complete", {
+        "receipt_type": "gnn_rebuild_complete",
+        "tenant_id": "axiom-gnn-cache",
+        **result,
+        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
+    })
+
+    return result
+
+
+def get_current_gnn_layers() -> int:
+    """Get current GNN layer count.
+
+    Returns:
+        Current layer count (from dynamic config or default)
+    """
+    global _current_gnn_layers
+
+    if _current_gnn_layers is not None:
+        return _current_gnn_layers
+
+    if _dynamic_config.get("gnn_layers") is not None:
+        return _dynamic_config["gnn_layers"]
+
+    return 6  # Default fallback
+
+
+def reset_gnn_layer_state() -> None:
+    """Reset GNN layer state for testing."""
+    global _current_gnn_layers, _adaptive_depth_enabled
+    _current_gnn_layers = None
+    _adaptive_depth_enabled = False
