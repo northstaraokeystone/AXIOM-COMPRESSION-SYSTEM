@@ -38,8 +38,6 @@ from .core import emit_receipt, dual_hash, StopRule
 from .fractal_layers import (
     scale_adjusted_correlation,
     get_scale_factor,
-    get_expected_alpha_at_scale,
-    FRACTAL_BASE_CORRELATION
 )
 
 
