@@ -1,0 +1,9 @@
+{
+  "node_baseline": 5,
+  "quorum_min": 3,
+  "partition_test_range": [0.0, 0.40],
+  "greens_current": 81,
+  "ledger_alpha_boost": 0.12,
+  "rerouting_potential": 0.07,
+  "description": "Immutable resilience anchors for partition testing. Dec 2025 distributed anchoring."
+}
