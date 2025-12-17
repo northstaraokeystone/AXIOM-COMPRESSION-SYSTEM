@@ -1,0 +1,26 @@
+{
+  "path": "agi",
+  "version": "0.1.0",
+  "status": "stub",
+  "description": "Post-AGI ethics modeling via fractal policies - Audit trail IS alignment",
+  "config": {
+    "policy_depth": 3,
+    "ethics_dimensions": ["autonomy", "beneficence", "non_maleficence", "justice"],
+    "fractal_scaling": true,
+    "audit_requirement": "receipts_native",
+    "alignment_metric": "compression_as_alignment"
+  },
+  "dependencies": ["fractal_layers"],
+  "receipts": ["agi_status", "agi_policy", "agi_ethics", "agi_alignment"],
+  "evolution": {
+    "current_stage": "stub",
+    "stages": ["stub", "policy", "evaluate", "autonomous_audit"],
+    "next_milestone": "fractal_policy depth=3 implementation"
+  },
+  "key_insight": "If system cannot prove what it did, it did not do it - Audit trail IS alignment",
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM scalable paths architecture - AGI ethics modeling"
+}

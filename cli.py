@@ -138,6 +138,16 @@ from cli import (
     cmd_fractal_recursion,
     cmd_fractal_recursion_sweep,
     cmd_benchmark_info,
+    # Paths
+    cmd_path_status,
+    cmd_path_list,
+    cmd_path_run,
+    cmd_mars_status,
+    cmd_multiplanet_status,
+    cmd_agi_status,
+    cmd_d4_push,
+    cmd_d4_info,
+    cmd_registry_info,
 )
 
 
@@ -291,6 +301,28 @@ def main():
     parser.add_argument('--recursion_depth', type=int, default=3,
                         help='Fractal recursion depth (1-5, default: 3)')
 
+    # Path exploration flags
+    parser.add_argument('--d4_push', action='store_true',
+                        help='Run D4 recursion for alpha>=3.2')
+    parser.add_argument('--d4_info', action='store_true',
+                        help='Show D4 configuration')
+    parser.add_argument('--path', type=str, default=None,
+                        help='Select exploration path (mars/multiplanet/agi)')
+    parser.add_argument('--path_status', action='store_true',
+                        help='Show all path statuses')
+    parser.add_argument('--path_list', action='store_true',
+                        help='List registered paths')
+    parser.add_argument('--path_cmd', type=str, default=None,
+                        help='Run command on selected path')
+    parser.add_argument('--mars_status', action='store_true',
+                        help='Shortcut: --path mars --path_cmd status')
+    parser.add_argument('--multiplanet_status', action='store_true',
+                        help='Shortcut: --path multiplanet --path_cmd status')
+    parser.add_argument('--agi_status', action='store_true',
+                        help='Shortcut: --path agi --path_cmd status')
+    parser.add_argument('--registry_info', action='store_true',
+                        help='Show path registry info')
+
     args = parser.parse_args()
     reroute_enabled = args.reroute or args.reroute_enabled
 
@@ -345,6 +377,26 @@ def main():
         return cmd_fractal_recursion_sweep(args.tree_size, args.base_alpha, args.simulate)
     if args.fractal_recursion:
         return cmd_fractal_recursion(args.tree_size, args.base_alpha, args.recursion_depth, args.simulate)
+
+    # Path exploration commands
+    if args.d4_info:
+        return cmd_d4_info()
+    if args.registry_info:
+        return cmd_registry_info()
+    if args.d4_push:
+        return cmd_d4_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.path_status:
+        return cmd_path_status(args.path)
+    if args.path_list:
+        return cmd_path_list()
+    if args.mars_status:
+        return cmd_mars_status()
+    if args.multiplanet_status:
+        return cmd_multiplanet_status()
+    if args.agi_status:
+        return cmd_agi_status()
+    if args.path is not None and args.path_cmd is not None:
+        return cmd_path_run(args.path, args.path_cmd)
 
     # Scale commands
     if args.scalability_gate_test:

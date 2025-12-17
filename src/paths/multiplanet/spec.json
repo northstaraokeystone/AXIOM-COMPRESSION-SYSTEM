@@ -1,0 +1,44 @@
+{
+  "path": "multiplanet",
+  "version": "0.1.0",
+  "status": "stub",
+  "description": "Multi-body expansion sequence: Asteroid -> Mars -> Europa -> Titan",
+  "config": {
+    "sequence": ["asteroid", "mars", "europa", "titan"],
+    "telemetry_compression_target": 0.95,
+    "relay_latency_bounds": {
+      "asteroid": [3, 20],
+      "mars": [3, 22],
+      "europa": [33, 53],
+      "titan": [70, 90]
+    },
+    "autonomy_requirement": {
+      "asteroid": 0.7,
+      "mars": 0.85,
+      "europa": 0.95,
+      "titan": 0.99
+    },
+    "bandwidth_budget_mbps": {
+      "asteroid": 500,
+      "mars": 100,
+      "europa": 20,
+      "titan": 5
+    }
+  },
+  "dependencies": ["mars"],
+  "receipts": ["mp_status", "mp_sequence", "mp_body", "mp_telemetry"],
+  "evolution": {
+    "current_stage": "stub",
+    "stages": ["stub", "sequence", "body_sim", "integrated"],
+    "next_milestone": "body_sim(asteroid) implementation"
+  },
+  "constraints": {
+    "mars_required_before": ["europa", "titan"],
+    "each_body_builds_on_previous": true
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM scalable paths architecture - Multi-planet expansion"
+}

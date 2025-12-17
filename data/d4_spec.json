@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "description": "D4 recursion configuration for alpha ceiling breach beyond 3.1",
+  "d4_config": {
+    "recursion_depth": 4,
+    "alpha_floor": 3.18,
+    "alpha_target": 3.20,
+    "alpha_ceiling": 3.22,
+    "instability_max": 0.00,
+    "tree_min": 1000000000000
+  },
+  "uplift_by_depth": {
+    "1": 0.05,
+    "2": 0.09,
+    "3": 0.122,
+    "4": 0.148,
+    "5": 0.168
+  },
+  "depth_contributions": {
+    "1": {
+      "contribution": 0.05,
+      "decay_factor": 1.0,
+      "cumulative": 0.05
+    },
+    "2": {
+      "contribution": 0.04,
+      "decay_factor": 0.8,
+      "cumulative": 0.09
+    },
+    "3": {
+      "contribution": 0.032,
+      "decay_factor": 0.64,
+      "cumulative": 0.122
+    },
+    "4": {
+      "contribution": 0.0256,
+      "decay_factor": 0.512,
+      "cumulative": 0.148
+    },
+    "5": {
+      "contribution": 0.02048,
+      "decay_factor": 0.4096,
+      "cumulative": 0.168
+    }
+  },
+  "expected_alpha": {
+    "depth_1": 3.04,
+    "depth_2": 3.08,
+    "depth_3": 3.12,
+    "depth_4": 3.148,
+    "depth_5": 3.168
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min_d4": 3.18,
+    "scale_decay_threshold": 0.02,
+    "receipt_required": "d4_fractal_receipt"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM D4 recursion - fractal ceiling breach beyond 3.1"
+}

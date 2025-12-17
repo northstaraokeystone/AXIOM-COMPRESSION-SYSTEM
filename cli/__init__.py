@@ -125,6 +125,20 @@ from cli.benchmark import (
     cmd_benchmark_info,
 )
 
+# Path commands (exploration paths)
+from cli.paths import (
+    cmd_path_status,
+    cmd_path_list,
+    cmd_path_run,
+    cmd_path_commands,
+    cmd_mars_status,
+    cmd_multiplanet_status,
+    cmd_agi_status,
+    cmd_d4_push,
+    cmd_d4_info,
+    cmd_registry_info,
+)
+
 __all__ = [
     # Core
     'cmd_baseline',
@@ -205,4 +219,15 @@ __all__ = [
     'cmd_fractal_recursion',
     'cmd_fractal_recursion_sweep',
     'cmd_benchmark_info',
+    # Paths
+    'cmd_path_status',
+    'cmd_path_list',
+    'cmd_path_run',
+    'cmd_path_commands',
+    'cmd_mars_status',
+    'cmd_multiplanet_status',
+    'cmd_agi_status',
+    'cmd_d4_push',
+    'cmd_d4_info',
+    'cmd_registry_info',
 ]

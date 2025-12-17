@@ -1,0 +1,27 @@
+{
+  "path": "mars",
+  "version": "0.1.0",
+  "status": "stub",
+  "description": "Mars habitat autonomous optimization via RL and fractal compression",
+  "config": {
+    "dome_resources": ["water", "o2", "power", "food"],
+    "isru_closure_target": 0.85,
+    "isru_uplift_target": 0.15,
+    "crew_range": [4, 1000],
+    "decision_rate_target_bps": 1000,
+    "sovereignty_threshold": true,
+    "blackout_tolerance_days": 60
+  },
+  "dependencies": ["fractal_layers", "quantum_rl_hybrid"],
+  "receipts": ["mars_status", "mars_dome", "mars_isru", "mars_sovereignty"],
+  "evolution": {
+    "current_stage": "stub",
+    "stages": ["stub", "simulate", "optimize", "autonomous"],
+    "next_milestone": "simulate_dome basic implementation"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM scalable paths architecture - Mars autonomous habitat"
+}
