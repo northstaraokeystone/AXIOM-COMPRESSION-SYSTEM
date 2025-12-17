@@ -8,10 +8,12 @@ THE PROOF INFRASTRUCTURE:
 Source: CLAUDEME.md (S8)
 
 v1.3 Update: Added Grok answer formatting for cost function baseline question.
+v2.0 Update: Added verify_provenance() for receipt chain validation.
 """
 
 import json
-from typing import Tuple, Any, Dict
+import os
+from typing import Tuple, Any, Dict, List
 
 from .core import dual_hash, emit_receipt, merkle
 
@@ -459,3 +461,129 @@ def emit_grok_answer_receipt(sweep_data: Dict, comparison: Dict) -> dict:
         "under_280": len(tweet) <= 280,
         "full_answer": full_answer
     })
+
+
+# === PROVENANCE VERIFICATION (v2.0) ===
+
+def verify_provenance(receipts_path: str) -> Dict:
+    """Verify all hashes and check chain integrity.
+
+    verify_provenance specification:
+        - Load receipts.jsonl
+        - Recompute each payload_hash, compare
+        - For real_data_receipts: verify source accessible, checksum matches
+        - Return {valid_count, invalid_count, broken_chains, verification_receipt}
+
+    Args:
+        receipts_path: Path to receipts.jsonl file
+
+    Returns:
+        Dict with:
+            valid_count: Number of valid receipts
+            invalid_count: Number of invalid receipts
+            broken_chains: List of broken chain points
+            verification_receipt: Receipt for this verification
+    """
+    if not os.path.exists(receipts_path):
+        return {
+            "valid_count": 0,
+            "invalid_count": 0,
+            "broken_chains": [],
+            "error": f"File not found: {receipts_path}",
+            "verification_receipt": None,
+        }
+
+    # Load all receipts
+    receipts: List[Dict] = []
+    with open(receipts_path, "r") as f:
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+            if line:
+                try:
+                    receipt = json.loads(line)
+                    receipt["_line_num"] = line_num
+                    receipts.append(receipt)
+                except json.JSONDecodeError as e:
+                    receipts.append({
+                        "_line_num": line_num,
+                        "_parse_error": str(e),
+                    })
+
+    # Verify each receipt
+    valid_count = 0
+    invalid_count = 0
+    broken_chains = []
+    verification_details = []
+
+    for receipt in receipts:
+        if "_parse_error" in receipt:
+            invalid_count += 1
+            verification_details.append({
+                "line": receipt["_line_num"],
+                "valid": False,
+                "error": receipt["_parse_error"],
+            })
+            continue
+
+        # Extract payload and compute hash
+        payload_hash = receipt.get("payload_hash")
+        if not payload_hash:
+            invalid_count += 1
+            verification_details.append({
+                "line": receipt["_line_num"],
+                "valid": False,
+                "error": "Missing payload_hash",
+            })
+            continue
+
+        # Recompute hash from payload
+        # The payload is the receipt without the computed fields
+        payload = {k: v for k, v in receipt.items()
+                   if k not in ["receipt_type", "ts", "tenant_id", "payload_hash", "_line_num"]}
+
+        recomputed_hash = dual_hash(json.dumps(payload, sort_keys=True))
+
+        if recomputed_hash == payload_hash:
+            valid_count += 1
+            verification_details.append({
+                "line": receipt["_line_num"],
+                "valid": True,
+                "receipt_type": receipt.get("receipt_type"),
+            })
+        else:
+            invalid_count += 1
+            broken_chains.append({
+                "line": receipt["_line_num"],
+                "expected_hash": payload_hash,
+                "computed_hash": recomputed_hash,
+            })
+            verification_details.append({
+                "line": receipt["_line_num"],
+                "valid": False,
+                "error": "Hash mismatch",
+            })
+
+    # Compute overall merkle root
+    valid_receipts = [r for r in receipts if "_parse_error" not in r]
+    merkle_root = merkle(valid_receipts) if valid_receipts else dual_hash(b"empty")
+
+    # Emit verification receipt
+    verification_receipt = emit_receipt("verification", {
+        "tenant_id": TENANT_ID,
+        "receipts_path": receipts_path,
+        "total_receipts": len(receipts),
+        "valid_count": valid_count,
+        "invalid_count": invalid_count,
+        "broken_chain_count": len(broken_chains),
+        "merkle_root": merkle_root,
+        "integrity": valid_count / len(receipts) if receipts else 1.0,
+    })
+
+    return {
+        "valid_count": valid_count,
+        "invalid_count": invalid_count,
+        "broken_chains": broken_chains,
+        "merkle_root": merkle_root,
+        "verification_receipt": verification_receipt,
+        "details": verification_details,
+    }

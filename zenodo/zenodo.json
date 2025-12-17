@@ -1,0 +1,38 @@
+{
+  "title": "AXIOM: Compression-Discovered Physics Laws via Kolmogorov-Arnold Networks",
+  "upload_type": "software",
+  "description": "AXIOM witnesses physics laws through data compression. When a KAN achieves high compression on rotation curves, the spline coefficients ARE the equation. Includes receipts-native provenance for all claims.",
+  "creators": [
+    {
+      "name": "Northstar AOKeystone",
+      "affiliation": "Independent Researcher"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "symbolic regression",
+    "Kolmogorov-Arnold networks",
+    "dark matter",
+    "galaxy rotation curves",
+    "information theory",
+    "receipts-native"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/northstaraokeystone/axiom",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ],
+  "references": [
+    "arXiv:2509.10089 (KAN-SR symbolic regression)",
+    "NASA/TM-2010-216130 (Stuster isolation study)",
+    "SPARC database (Lelli et al. 2016)"
+  ],
+  "version": "1.0.0",
+  "access_right": "open",
+  "communities": [
+    {"identifier": "zenodo"}
+  ],
+  "notes": "All claims backed by hashed receipts in receipts.jsonl. Merkle root included."
+}
