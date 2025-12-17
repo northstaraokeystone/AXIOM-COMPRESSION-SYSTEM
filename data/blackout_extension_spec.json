@@ -1,0 +1,13 @@
+{
+  "blackout_base_days": 43,
+  "blackout_sweep_max_days": 90,
+  "retention_base_factor": 1.4,
+  "min_eff_alpha_validated": 2.656,
+  "rerouting_alpha_boost_locked": 0.07,
+  "degradation_model": "linear",
+  "retention_at_60d": 1.38,
+  "retention_at_75d": 1.32,
+  "retention_at_90d": 1.25,
+  "test_runs_benchmark": 38,
+  "description": "Immutable physics anchors for extended blackout stress testing and retention curve parameters. Dec 2025 validated."
+}

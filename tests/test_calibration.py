@@ -363,9 +363,9 @@ class TestEmpiricalConstants:
         assert SAFETY_HUMAN_MPCM == 700_000
 
     def test_alpha_empirical_range(self):
-        """Alpha empirical range should be [1.5, 2.1]."""
-        assert ALPHA_EMPIRICAL_LOW == 1.5
-        assert ALPHA_EMPIRICAL_HIGH == 2.1
+        """Alpha empirical range should be [1.6, 1.8]."""
+        assert ALPHA_EMPIRICAL_LOW == 1.6
+        assert ALPHA_EMPIRICAL_HIGH == 1.8
 
 
 if __name__ == "__main__":

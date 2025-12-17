@@ -409,8 +409,8 @@ class TestConstants:
         assert BLACKOUT_EXTENDED_DAYS == 60
 
     def test_min_eff_alpha_floor(self):
-        """MIN_EFF_ALPHA_FLOOR = 2.63."""
-        assert MIN_EFF_ALPHA_FLOOR == 2.63
+        """MIN_EFF_ALPHA_FLOOR = 2.656 (validated, was 2.63)."""
+        assert MIN_EFF_ALPHA_FLOOR == 2.656
 
     def test_retention_factor(self):
         """REROUTE_RETENTION_FACTOR = 1.4."""

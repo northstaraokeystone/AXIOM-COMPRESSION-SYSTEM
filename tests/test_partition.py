@@ -269,7 +269,10 @@ class TestReceiptsEmitted:
             )
 
         output = f.getvalue()
-        receipt = json.loads(output.strip())
+        # With reroute_enabled=True (default), multiple receipts may be emitted.
+        # Parse the last line which should be the partition_stress receipt.
+        lines = [l for l in output.strip().split('\n') if l]
+        receipt = json.loads(lines[-1])
 
         # Validate receipt structure
         assert receipt["receipt_type"] == "partition_stress"
