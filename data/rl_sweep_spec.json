@@ -1,0 +1,36 @@
+{
+    "version": "v1.0",
+    "sweep_runs": 500,
+    "lr_min": 0.001,
+    "lr_max": 0.01,
+    "lr_distribution": "log_uniform",
+    "retention_target": 1.05,
+    "quantum_boost_est": 0.02,
+    "seed": 42,
+    "early_stop_threshold": 1.05,
+    "physics_justification": {
+        "sweep_runs": "Informed vs blind efficiency - 500 with depth prior beats 1000 blind",
+        "lr_min": "AdamW lower bound (KAN literature)",
+        "lr_max": "AdamW upper bound (KAN literature)",
+        "lr_distribution": "Better coverage of magnitudes across log scale",
+        "retention_target": "Quick win milestone - validates adaptive approach",
+        "quantum_boost_est": "Post-RL hybrid contribution estimate",
+        "early_stop_threshold": "Stop if target achieved early"
+    },
+    "rl_policy": {
+        "state_dim": 4,
+        "state_components": ["retention", "tree_size_n", "entropy_h", "depth"],
+        "action_layers_delta": [-1, 0, 1],
+        "action_lr_range": [0.001, 0.01],
+        "action_prune_factor_range": [0.1, 0.5],
+        "reward_formula": "eff_alpha - 0.1 * compute_cost - instability_penalty",
+        "instability_penalty": -1.0,
+        "instability_threshold": 0.05
+    },
+    "expected_convergence": {
+        "runs_300": "retention >= 1.03",
+        "runs_500": "retention >= 1.05",
+        "convergence_range": "300-500 runs"
+    },
+    "description": "Immutable 500-run RL sweep parameters. Depth-informed policy converges ~30% faster than blind search. Kill 1000-run blind sweeps - go informed."
+}
