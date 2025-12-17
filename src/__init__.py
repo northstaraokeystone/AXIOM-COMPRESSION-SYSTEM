@@ -6,6 +6,12 @@ sovereignty = internal_rate > external_rate
 threshold = 47 +/- 8 crew
 
 That's publishable.
+
+v2: Helper layer + Support infrastructure + Optimization agent
+- optimize.py: Thompson sampling selection pressure
+- helper.py: HARVEST → HYPOTHESIZE → GATE → ACTUATE
+- support.py: L0-L4 receipt level infrastructure
+- sim.py: Integrated simulation framework
 """
 
 from .core import dual_hash, emit_receipt, merkle, StopRule
@@ -46,6 +52,43 @@ from .plot_curve import (
     plot_sovereignty_curve,
     format_finding,
 )
+from .optimize import (
+    OptimizationConfig,
+    OptimizationState,
+    selection_pressure,
+    update_fitness,
+    sample_thompson,
+    measure_improvement,
+)
+from .helper import (
+    HelperConfig,
+    HelperBlueprint,
+    harvest,
+    hypothesize,
+    gate,
+    actuate,
+    measure_effectiveness,
+    retire,
+)
+from .support import (
+    SupportLevel,
+    SupportCoverage,
+    classify_receipt,
+    measure_coverage,
+    check_completeness,
+    detect_gaps,
+    l4_feedback,
+)
+from .sim import (
+    SimConfig,
+    SimState,
+    Scenario,
+    initialize_sim,
+    simulate_cycle,
+    inject_gap,
+    run_scenario,
+    validate_constraints,
+)
 
 __all__ = [
     # Core
@@ -67,4 +110,16 @@ __all__ = [
     "compute_p_value", "generate_falsifiable_prediction",
     # Plotting
     "generate_curve_data", "find_knee", "plot_sovereignty_curve", "format_finding",
+    # Optimization (Thompson sampling)
+    "OptimizationConfig", "OptimizationState",
+    "selection_pressure", "update_fitness", "sample_thompson", "measure_improvement",
+    # Helper (HARVEST → HYPOTHESIZE → GATE → ACTUATE)
+    "HelperConfig", "HelperBlueprint",
+    "harvest", "hypothesize", "gate", "actuate", "measure_effectiveness", "retire",
+    # Support (L0-L4 levels)
+    "SupportLevel", "SupportCoverage",
+    "classify_receipt", "measure_coverage", "check_completeness", "detect_gaps", "l4_feedback",
+    # Simulation
+    "SimConfig", "SimState", "Scenario",
+    "initialize_sim", "simulate_cycle", "inject_gap", "run_scenario", "validate_constraints",
 ]
