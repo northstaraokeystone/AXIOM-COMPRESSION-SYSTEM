@@ -1,0 +1,33 @@
+{
+  "spec_version": "1.0.0",
+  "description": "Immutable 10^12 hybrid benchmark configuration for edge validation",
+  "tree_target": 1000000000000,
+  "alpha_floor": 3.05,
+  "alpha_target": 3.07,
+  "scale_decay_max": 0.02,
+  "quantum_contrib": 0.03,
+  "fractal_contrib": 0.05,
+  "hybrid_total": 0.08,
+  "fractal_recursion": {
+    "enabled": true,
+    "max_depth": 5,
+    "default_depth": 3,
+    "decay_per_depth": 0.8,
+    "description": "Recursive fractal layers compound boost at each depth"
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min": 3.05,
+    "scale_decay_threshold": 0.02
+  },
+  "expected_results": {
+    "eff_alpha_range": [3.065, 3.075],
+    "instability": 0.00,
+    "scale_decay": "negligible (<0.02)"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "Grok - 10^12 benchmark gate validation, Dec 2025"
+}

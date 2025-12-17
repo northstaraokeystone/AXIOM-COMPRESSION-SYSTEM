@@ -116,6 +116,15 @@ from cli.info import (
     cmd_hybrid_boost_info,
 )
 
+# Benchmark commands
+from cli.benchmark import (
+    cmd_hybrid_10e12,
+    cmd_release_gate,
+    cmd_fractal_recursion,
+    cmd_fractal_recursion_sweep,
+    cmd_benchmark_info,
+)
+
 __all__ = [
     # Core
     'cmd_baseline',
@@ -190,4 +199,10 @@ __all__ = [
     'cmd_full_500_sweep',
     # Info
     'cmd_hybrid_boost_info',
+    # Benchmark
+    'cmd_hybrid_10e12',
+    'cmd_release_gate',
+    'cmd_fractal_recursion',
+    'cmd_fractal_recursion_sweep',
+    'cmd_benchmark_info',
 ]

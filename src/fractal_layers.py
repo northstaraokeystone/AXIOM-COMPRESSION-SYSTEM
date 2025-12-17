@@ -502,3 +502,220 @@ def get_fractal_hybrid_spec() -> Dict[str, Any]:
     })
 
     return spec
+
+
+# === RECURSIVE FRACTAL CONSTANTS ===
+
+FRACTAL_RECURSION_MAX_DEPTH = 5
+"""Maximum recursion depth (diminishing returns beyond 5)."""
+
+FRACTAL_RECURSION_DEFAULT_DEPTH = 3
+"""Default recursion depth for ceiling breach."""
+
+FRACTAL_RECURSION_DECAY = 0.8
+"""Decay factor per depth level (each deeper level contributes 80% of previous)."""
+
+
+# === RECURSIVE FRACTAL FUNCTIONS ===
+
+
+def recursive_fractal(
+    tree_size: int,
+    base_alpha: float,
+    depth: int = FRACTAL_RECURSION_DEFAULT_DEPTH
+) -> Dict[str, Any]:
+    """Apply fractal boost recursively for ceiling breach.
+
+    Recursive fractal layers compound boost at each depth level.
+    Each depth adds: FRACTAL_UPLIFT * (DECAY^depth)
+
+    Depth 1: +0.05
+    Depth 2: +0.05 + 0.04 = +0.09
+    Depth 3: +0.05 + 0.04 + 0.032 = +0.122
+
+    This is the path to alpha > 3.1 sustained.
+
+    Args:
+        tree_size: Number of nodes in the tree
+        base_alpha: Base alpha before recursion
+        depth: Recursion depth (1-5, default: 3)
+
+    Returns:
+        Dict with:
+            - final_alpha: Alpha after recursive fractal
+            - depth_contributions: List of contribution at each depth
+            - total_uplift: Sum of all depth contributions
+            - ceiling_breached: True if final_alpha > 3.0
+            - target_3_1_reached: True if final_alpha > 3.1
+
+    Receipt: fractal_recursion_receipt
+    """
+    # Clamp depth to valid range
+    depth = max(1, min(depth, FRACTAL_RECURSION_MAX_DEPTH))
+
+    # Compute contribution at each depth
+    depth_contributions = []
+    total_uplift = 0.0
+
+    for d in range(depth):
+        # Each depth contributes: base_uplift * decay^d
+        contribution = FRACTAL_UPLIFT * (FRACTAL_RECURSION_DECAY ** d)
+        depth_contributions.append({
+            "depth": d + 1,
+            "contribution": round(contribution, 4),
+            "decay_factor": round(FRACTAL_RECURSION_DECAY ** d, 4)
+        })
+        total_uplift += contribution
+
+    # Apply scale adjustment for large trees
+    scale_factor = get_scale_factor(tree_size)
+
+    # Scale-adjusted uplift (minimal decay at scale)
+    adjusted_uplift = total_uplift * (scale_factor ** 0.5)  # sqrt for gentler decay
+
+    # Compute final alpha
+    final_alpha = base_alpha + adjusted_uplift
+
+    # Check targets
+    ceiling_breached = final_alpha > 3.0
+    target_3_1_reached = final_alpha > 3.1
+
+    result = {
+        "tree_size": tree_size,
+        "base_alpha": base_alpha,
+        "depth": depth,
+        "depth_contributions": depth_contributions,
+        "total_uplift": round(total_uplift, 4),
+        "scale_factor": round(scale_factor, 6),
+        "adjusted_uplift": round(adjusted_uplift, 4),
+        "final_alpha": round(final_alpha, 4),
+        "ceiling_breached": ceiling_breached,
+        "target_3_1_reached": target_3_1_reached,
+        "recursion_config": {
+            "max_depth": FRACTAL_RECURSION_MAX_DEPTH,
+            "decay_per_depth": FRACTAL_RECURSION_DECAY,
+            "base_uplift": FRACTAL_UPLIFT
+        }
+    }
+
+    emit_receipt("fractal_recursion", {
+        "receipt_type": "fractal_recursion",
+        "tenant_id": TENANT_ID,
+        "ts": datetime.utcnow().isoformat() + "Z",
+        "tree_size": tree_size,
+        "depth": depth,
+        "total_uplift": round(total_uplift, 4),
+        "final_alpha": round(final_alpha, 4),
+        "ceiling_breached": ceiling_breached,
+        "target_3_1_reached": target_3_1_reached,
+        "payload_hash": dual_hash(json.dumps({
+            "tree_size": tree_size,
+            "depth": depth,
+            "final_alpha": round(final_alpha, 4),
+            "target_3_1_reached": target_3_1_reached
+        }, sort_keys=True))
+    })
+
+    return result
+
+
+def recursive_fractal_sweep(
+    tree_size: int,
+    base_alpha: float,
+    max_depth: int = FRACTAL_RECURSION_MAX_DEPTH
+) -> Dict[str, Any]:
+    """Sweep through all recursion depths to find optimal.
+
+    Args:
+        tree_size: Number of nodes in the tree
+        base_alpha: Base alpha before recursion
+        max_depth: Maximum depth to sweep (default: 5)
+
+    Returns:
+        Dict with:
+            - sweep_results: Results at each depth
+            - optimal_depth: Depth with best alpha
+            - optimal_alpha: Best alpha achieved
+
+    Receipt: fractal_recursion_sweep
+    """
+    sweep_results = []
+    optimal_depth = 1
+    optimal_alpha = 0.0
+
+    for d in range(1, max_depth + 1):
+        result = recursive_fractal(tree_size, base_alpha, depth=d)
+        sweep_results.append({
+            "depth": d,
+            "final_alpha": result["final_alpha"],
+            "uplift": result["total_uplift"],
+            "target_3_1": result["target_3_1_reached"]
+        })
+
+        if result["final_alpha"] > optimal_alpha:
+            optimal_alpha = result["final_alpha"]
+            optimal_depth = d
+
+    result = {
+        "tree_size": tree_size,
+        "base_alpha": base_alpha,
+        "sweep_results": sweep_results,
+        "optimal_depth": optimal_depth,
+        "optimal_alpha": round(optimal_alpha, 4),
+        "target_3_1_achievable": optimal_alpha > 3.1
+    }
+
+    emit_receipt("fractal_recursion_sweep", {
+        "receipt_type": "fractal_recursion_sweep",
+        "tenant_id": TENANT_ID,
+        "ts": datetime.utcnow().isoformat() + "Z",
+        "tree_size": tree_size,
+        "optimal_depth": optimal_depth,
+        "optimal_alpha": round(optimal_alpha, 4),
+        "target_3_1_achievable": optimal_alpha > 3.1,
+        "payload_hash": dual_hash(json.dumps({
+            "tree_size": tree_size,
+            "optimal_depth": optimal_depth,
+            "optimal_alpha": round(optimal_alpha, 4)
+        }, sort_keys=True))
+    })
+
+    return result
+
+
+def get_recursive_fractal_info() -> Dict[str, Any]:
+    """Get recursive fractal module information.
+
+    Returns:
+        Dict with configuration and expected behavior
+
+    Receipt: recursive_fractal_info
+    """
+    # Calculate expected uplifts at each depth
+    expected_uplifts = {}
+    cumulative = 0.0
+    for d in range(1, FRACTAL_RECURSION_MAX_DEPTH + 1):
+        cumulative += FRACTAL_UPLIFT * (FRACTAL_RECURSION_DECAY ** (d - 1))
+        expected_uplifts[f"depth_{d}"] = round(cumulative, 4)
+
+    info = {
+        "max_depth": FRACTAL_RECURSION_MAX_DEPTH,
+        "default_depth": FRACTAL_RECURSION_DEFAULT_DEPTH,
+        "decay_per_depth": FRACTAL_RECURSION_DECAY,
+        "base_uplift": FRACTAL_UPLIFT,
+        "expected_uplifts": expected_uplifts,
+        "formula": "uplift_at_depth = FRACTAL_UPLIFT * (0.8^(d-1))",
+        "cumulative_formula": "total_uplift = sum(FRACTAL_UPLIFT * 0.8^i for i in 0..depth-1)",
+        "target": "alpha > 3.1 sustained via recursive compounding",
+        "description": "Recursive fractal layers compound boost for ceiling breach beyond 3.1"
+    }
+
+    emit_receipt("recursive_fractal_info", {
+        "receipt_type": "recursive_fractal_info",
+        "tenant_id": TENANT_ID,
+        "ts": datetime.utcnow().isoformat() + "Z",
+        **{k: v for k, v in info.items() if k not in ["expected_uplifts"]},
+        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
+    })
+
+    return info
