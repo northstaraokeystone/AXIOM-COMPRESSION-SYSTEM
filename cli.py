@@ -132,6 +132,12 @@ from cli import (
     cmd_full_500_sweep,
     # Info
     cmd_hybrid_boost_info,
+    # Benchmark (10^12 scale)
+    cmd_hybrid_10e12,
+    cmd_release_gate,
+    cmd_fractal_recursion,
+    cmd_fractal_recursion_sweep,
+    cmd_benchmark_info,
 )
 
 
@@ -271,6 +277,20 @@ def main():
     parser.add_argument('--hybrid_boost_info', action='store_true',
                         help='Show hybrid boost configuration')
 
+    # Benchmark (10^12 scale) flags
+    parser.add_argument('--hybrid_10e12', action='store_true',
+                        help='Run 10^12 hybrid benchmark')
+    parser.add_argument('--release_gate', action='store_true',
+                        help='Check release gate 3.1 status')
+    parser.add_argument('--fractal_recursion', action='store_true',
+                        help='Run fractal recursion ceiling breach')
+    parser.add_argument('--fractal_recursion_sweep', action='store_true',
+                        help='Sweep through all recursion depths')
+    parser.add_argument('--benchmark_info', action='store_true',
+                        help='Show benchmark configuration')
+    parser.add_argument('--recursion_depth', type=int, default=3,
+                        help='Fractal recursion depth (1-5, default: 3)')
+
     args = parser.parse_args()
     reroute_enabled = args.reroute or args.reroute_enabled
 
@@ -313,6 +333,18 @@ def main():
         return cmd_formula_check()
     if args.retention_curve:
         return cmd_retention_curve()
+
+    # Benchmark (10^12 scale) commands
+    if args.benchmark_info:
+        return cmd_benchmark_info()
+    if args.hybrid_10e12:
+        return cmd_hybrid_10e12(args.tree_size, args.base_alpha, args.simulate)
+    if args.release_gate:
+        return cmd_release_gate(args.simulate)
+    if args.fractal_recursion_sweep:
+        return cmd_fractal_recursion_sweep(args.tree_size, args.base_alpha, args.simulate)
+    if args.fractal_recursion:
+        return cmd_fractal_recursion(args.tree_size, args.base_alpha, args.recursion_depth, args.simulate)
 
     # Scale commands
     if args.scalability_gate_test:
