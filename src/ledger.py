@@ -15,12 +15,11 @@ Source: Grok - "eff_α to 2.68 (+0.12)", "quorum intact for 5-node eg."
 
 from typing import Dict, Any, Optional
 
-from .core import emit_receipt, StopRule
+from .core import emit_receipt
 from .partition import (
     quorum_check,
     NODE_BASELINE,
     QUORUM_THRESHOLD,
-    BASE_ALPHA,
     partition_sim
 )
 

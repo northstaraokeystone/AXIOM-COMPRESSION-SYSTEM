@@ -547,7 +547,6 @@ def plot_roi_comparison(
     try:
         import matplotlib.pyplot as plt
         import matplotlib
-        import numpy as np
         matplotlib.use('Agg')
     except ImportError:
         _roi_text_fallback(investment_range, bw_base, tau_base, delays, output_path)
@@ -706,7 +705,7 @@ def plot_crew_vs_tau(
 
     # Combine legends
     lines = line1 + line2
-    labels = [l.get_label() for l in lines]
+    labels = [line.get_label() for line in lines]
     ax1.legend(lines, labels, loc='upper right')
 
     # Add key points
@@ -752,7 +751,7 @@ def _crew_text_fallback(
     tau_min, tau_max = tau_range
 
     lines = [
-        f"CREW THRESHOLD vs DECISION LATENCY τ",
+        "CREW THRESHOLD vs DECISION LATENCY τ",
         f"Delay: {delay_s/60:.0f} min, Bandwidth: {bw_mbps} Mbps",
         "=" * 50,
         "",
@@ -797,7 +796,7 @@ def plot_investment_decision(
         find_breakeven_delay,
         crew_reduction_from_autonomy
     )
-    from .entropy_shannon import tau_from_investment, bandwidth_from_investment
+    pass  # Imports removed - unused
 
     try:
         import matplotlib.pyplot as plt

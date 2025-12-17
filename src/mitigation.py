@@ -29,31 +29,19 @@ from dataclasses import dataclass
 from .core import emit_receipt, StopRule
 from .partition import (
     partition_sim,
-    quorum_check,
     NODE_BASELINE,
     QUORUM_THRESHOLD,
     BASE_ALPHA,
-    ALPHA_DROP_FACTOR,
     PARTITION_MAX_TEST_PCT
 )
-from .ledger import (
-    LEDGER_ALPHA_BOOST_VALIDATED,
-    apply_quorum_factor
-)
 from .gnn_cache import (
-    gnn_boost_factor,
-    apply_gnn_nonlinear_boost as gnn_nonlinear_boost,
     nonlinear_retention as gnn_nonlinear_retention,
     nonlinear_retention_with_pruning,
     get_retention_factor_gnn_isolated,
-    ASYMPTOTE_ALPHA,
     ENTROPY_ASYMPTOTE_E,
     PRUNING_TARGET_ALPHA,
-    MIN_EFF_ALPHA_VALIDATED as GNN_MIN_EFF_ALPHA_VALIDATED,
     CACHE_DEPTH_BASELINE,
     NONLINEAR_RETENTION_FLOOR,
-    OVERFLOW_THRESHOLD_DAYS_PRUNED,
-    BLACKOUT_PRUNING_TARGET_DAYS,
     RETENTION_FACTOR_GNN_RANGE
 )
 from .alpha_compute import (
@@ -414,7 +402,6 @@ def apply_pruning_boost(
     boosted_mitigation = min(1.0, base_mitigation * uplift_factor)
 
     # Compute enhanced alpha
-    base_alpha = ENTROPY_ASYMPTOTE_E
     if blackout_days > 0:
         try:
             retention_result = nonlinear_retention_with_pruning(
@@ -563,7 +550,9 @@ def compute_mitigation_score(
 
     # Compute effective alpha with all factors
     try:
-        partition_result = partition_sim(NODE_BASELINE, loss_pct, base_alpha, emit=False, reroute_enabled=reroute_enabled)
+        partition_result = partition_sim(
+            NODE_BASELINE, loss_pct, base_alpha, emit=False, reroute_enabled=reroute_enabled
+        )
         eff_alpha = partition_result["eff_alpha"]
 
         # Apply quorum factor

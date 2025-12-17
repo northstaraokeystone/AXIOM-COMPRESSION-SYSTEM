@@ -25,7 +25,7 @@ from typing import Optional
 import math
 
 from .core import emit_receipt
-from .latency import tau_penalty, effective_alpha as compute_effective_alpha
+from .latency import effective_alpha as compute_effective_alpha
 
 
 # === CONSTANTS (from Grok timeline table) ===

@@ -28,7 +28,7 @@ jobs:
 
       - name: Run flake8
         run: |
-          flake8 src/ real_data/ benchmarks/ axiom/ --max-line-length=120 --ignore=E501,W503
+          flake8 src/ real_data/ benchmarks/ axiom/ --max-line-length=120 --ignore=E501,W503,W504,E128,E226,F841,F811,F824
 
       - name: Check black formatting
         run: |

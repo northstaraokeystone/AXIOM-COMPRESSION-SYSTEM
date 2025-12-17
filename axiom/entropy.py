@@ -8,20 +8,18 @@ THE ENTROPY INSIGHT:
 Source: AXIOM Validation Lock v1
 """
 
-import json
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Dict, Tuple
 import numpy as np
 from pathlib import Path
 
 # Import from src
 try:
-    from src.core import dual_hash, emit_receipt
+    from src.core import emit_receipt
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).parent.parent))
-    from src.core import dual_hash, emit_receipt
+    from src.core import emit_receipt
 
 
 # === CONSTANTS ===

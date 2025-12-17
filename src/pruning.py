@@ -24,7 +24,7 @@ import json
 import math
 import os
 import random
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from .core import emit_receipt, dual_hash, StopRule
 # Import all constants for use AND for backward-compatible re-export
@@ -282,7 +282,9 @@ def entropy_prune(
             "tenant_id": "axiom-pruning",
             "receipt_type": "entropy_pruning",
             **{k: v for k, v in result.items() if k != "pruned_tree"},
-            "payload_hash": dual_hash(json.dumps({k: v for k, v in result.items() if k != "pruned_tree"}, sort_keys=True))
+            "payload_hash": dual_hash(
+                json.dumps({k: v for k, v in result.items() if k != "pruned_tree"}, sort_keys=True)
+            )
         })
         return result
 
@@ -326,7 +328,7 @@ def entropy_prune(
     pruned_root = dual_hash(json.dumps(final_tree, sort_keys=True))
 
     # Verify integrity
-    proof_paths = [l for l in final_tree.get("leaves", []) if l.get("is_proof_path") or l.get("audit_path")]
+    proof_paths = [leaf for leaf in final_tree.get("leaves", []) if leaf.get("is_proof_path") or leaf.get("audit_path")]
     if not proof_paths:
         proof_paths = final_tree.get("leaves", [])[:MIN_PROOF_PATHS_RETAINED]
 

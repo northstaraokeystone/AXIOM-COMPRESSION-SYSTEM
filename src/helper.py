@@ -14,11 +14,10 @@ Source Pattern: ProofPack v3 §3 LOOP module - HARVEST → HYPOTHESIZE → GATE 
 """
 
 import uuid
-import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from .core import emit_receipt
 

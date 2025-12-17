@@ -16,7 +16,7 @@ Source: Grok - "What's your current best calibration of alpha?"
 """
 
 from dataclasses import dataclass
-from typing import Tuple, List, Optional, Dict, Any
+from typing import Tuple, List, Dict, Any
 import math
 import json
 import os

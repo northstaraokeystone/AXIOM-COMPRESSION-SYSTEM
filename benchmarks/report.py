@@ -5,19 +5,17 @@ Generate comprehensive comparison reports for AXIOM validation.
 Source: AXIOM Validation Lock v1
 """
 
-import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
-import numpy as np
+from typing import Dict
 
 # Import from src
 try:
-    from src.core import dual_hash, emit_receipt
+    from src.core import emit_receipt
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).parent.parent))
-    from src.core import dual_hash, emit_receipt
+    from src.core import emit_receipt
 
 
 # === CONSTANTS ===
@@ -97,8 +95,8 @@ def format_comparison_table(results: Dict) -> str:
     r_squared_pass = mean_r_squared >= SUCCESS_CRITERIA["r_squared_min"]
 
     lines.extend([
-        f"| Criterion | Target | Actual | Status |",
-        f"|-----------|--------|--------|--------|",
+        "| Criterion | Target | Actual | Status |",
+        "|-----------|--------|--------|--------|",
         f"| Compression | ≥{SUCCESS_CRITERIA['compression_min']:.0%} | {mean_compression:.2%} | {'✓ PASS' if compression_pass else '✗ FAIL'} |",
         f"| R² | ≥{SUCCESS_CRITERIA['r_squared_min']} | {mean_r_squared:.4f} | {'✓ PASS' if r_squared_pass else '✗ FAIL'} |",
     ])
@@ -219,7 +217,7 @@ def generate_benchmark_report(
     # Scenarios check (if available)
     if scenario_results:
         n_passed = sum(1 for r in scenario_results.values() if r.get("passed", False))
-        checks.append((f"10 scenarios", n_passed >= 10))
+        checks.append(("10 scenarios", n_passed >= 10))
 
     all_pass = all(c[1] for c in checks)
 

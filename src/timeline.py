@@ -36,7 +36,7 @@ from .build_rate import (
     MULTIPLIER_15PCT,
     MULTIPLIER_0PCT,
 )
-from .latency import tau_penalty, effective_alpha as compute_effective_alpha
+from .latency import effective_alpha as compute_effective_alpha
 
 if TYPE_CHECKING:
     from .strategies import StrategyConfig

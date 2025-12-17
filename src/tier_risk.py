@@ -388,7 +388,7 @@ def format_risk_assessment(profiles: List[TierRiskProfile]) -> str:
     for profile in profiles:
         lines.append(f"TIER {profile.tier.value} ({profile.impact_class.upper()} IMPACT)")
         lines.append(f"  Probability: {profile.probability_low:.0%} - {profile.probability_high:.0%}")
-        lines.append(f"  Failure Modes:")
+        lines.append("  Failure Modes:")
         for mode in profile.failure_modes[:3]:  # Top 3
             lines.append(f"    - {mode}")
         lines.append(f"  Mitigation Available: {profile.mitigation_available}")

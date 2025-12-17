@@ -23,31 +23,18 @@ from .entropy_shannon import (
     sovereignty_advantage,
     is_sovereign,
     STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
-    MARS_LIGHT_DELAY_AVG_S,
     TAU_DECISION_DECAY_S,
     DELAY_VARIANCE_RATIO,
     BANDWIDTH_VARIANCE_RATIO,
     # v1.2 - Variable τ costs
     TAU_BASE_CURRENT_S,
-    TAU_MIN_AUTONOMY_S,
-    TAU_COST_BASE_M,
-    BANDWIDTH_COST_PER_MBPS_M,
-    tau_cost,
     tau_from_investment,
-    bandwidth_cost,
     bandwidth_from_investment,
     # v1.3 - Variable τ cost curves + meta-compression
-    TAU_MIN_ACHIEVABLE_S,
-    TAU_COST_INFLECTION_M,
-    TAU_COST_STEEPNESS,
     ITERATION_COMPRESSION_FACTOR,
     META_TAU_HUMAN_DAYS,
     META_TAU_AI_DAYS,
-    tau_cost_exponential,
-    tau_cost_logistic,
-    tau_cost_piecewise,
     tau_from_cost,
-    get_cost_function,
 )
 
 
@@ -1014,7 +1001,10 @@ def emit_roi_receipt(
         "crew_after": crew["after"],
         "crew_reduction": crew["reduction"],
         "crew_reduction_pct": crew["reduction_pct"],
-        "finding": f"τ-reduction ROI is {comparison['ratio']:.1f}x higher than bandwidth ROI at {delay_s/60:.0f} min delay"
+        "finding": (
+            f"τ-reduction ROI is {comparison['ratio']:.1f}x higher than bandwidth ROI "
+            f"at {delay_s/60:.0f} min delay"
+        )
     })
 
 

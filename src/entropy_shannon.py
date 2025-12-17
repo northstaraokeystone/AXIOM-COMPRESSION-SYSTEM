@@ -581,7 +581,7 @@ def tau_cost_piecewise(
     # Tier boundaries and costs
     tier1_end = 150.0   # τ=150s
     tier2_end = 75.0    # τ=75s
-    tier3_end = tau_min # τ=30s
+    tier3_end = tau_min  # τ=30s
 
     tier1_cost = 100.0  # $100M for tier 1
     tier2_cost = 200.0  # $200M for tier 2

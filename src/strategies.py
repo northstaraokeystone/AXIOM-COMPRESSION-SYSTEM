@@ -18,12 +18,11 @@ Source: Grok - "Relay swarms: Midpoint satellites halve τ to 10min"
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Optional
 
 from .core import emit_receipt
 from .relay import (
     RelayConfig,
-    compute_relay_tau,
     compute_relay_p_cost,
     RELAY_TAU_FACTOR,
     RELAY_SWARM_OPTIMAL,

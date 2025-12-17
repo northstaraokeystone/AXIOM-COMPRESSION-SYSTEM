@@ -11,7 +11,7 @@ v1.3 Update: Added Grok answer formatting for cost function baseline question.
 """
 
 import json
-from typing import Tuple, Any, Dict
+from typing import Tuple, Dict
 
 from .core import dual_hash, emit_receipt, merkle
 
@@ -208,7 +208,7 @@ def format_grok_validation(validation_data: dict) -> str:
         Formatted validation report
     """
     grok = validation_data.get("grok_numbers", {})
-    ours = validation_data.get("our_numbers", {})
+    _ours = validation_data.get("our_numbers", {})  # Kept for future use
     valid = validation_data.get("validation", {})
 
     return (
@@ -397,7 +397,8 @@ A2: Swept exponential/logistic/piecewise.
 
 META-INSIGHT:
     AI→AI iteration = {comparison.get('speedup_factor', 7.5)}x speedup.
-    Same $500M reaches τ reduction in {comparison.get('ai_time_to_value_years', 0.4) * 12:.0f} months vs {comparison.get('human_time_to_value_years', 3):.1f} years.
+    Same $500M reaches τ reduction in {comparison.get('ai_time_to_value_years', 0.4) * 12:.0f} months \
+vs {comparison.get('human_time_to_value_years', 3):.1f} years.
 
 ══════════════════════════════════════════════════════════════════════"""
 

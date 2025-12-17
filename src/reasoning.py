@@ -34,26 +34,15 @@ import math
 from .core import emit_receipt, StopRule, dual_hash
 from .partition import (
     partition_sim,
-    stress_sweep,
-    validate_partition_bounds,
     NODE_BASELINE,
-    QUORUM_THRESHOLD,
     PARTITION_MAX_TEST_PCT,
     BASE_ALPHA,
-    ALPHA_DROP_FACTOR
-)
-from .ledger import (
-    LEDGER_ALPHA_BOOST_VALIDATED,
-    BASE_ALPHA_PRE_BOOST,
-    get_effective_alpha_with_partition
 )
 from .reroute import (
     blackout_sim,
     blackout_stress_sweep,
     apply_reroute_boost,
-    adaptive_reroute,
     REROUTE_ALPHA_BOOST,
-    REROUTING_ALPHA_BOOST_LOCKED,
     BLACKOUT_BASE_DAYS,
     BLACKOUT_EXTENDED_DAYS,
     MIN_EFF_ALPHA_FLOOR,
@@ -61,13 +50,10 @@ from .reroute import (
 )
 from .blackout import (
     retention_curve,
-    alpha_at_duration,
-    extended_blackout_sweep as blackout_extended_sweep,
     generate_retention_curve_data,
     find_retention_floor,
     BLACKOUT_SWEEP_MAX_DAYS,
     RETENTION_BASE_FACTOR,
-    DEGRADATION_RATE,
     CURVE_TYPE,
     ASYMPTOTE_ALPHA
 )
@@ -86,23 +72,17 @@ from .gnn_cache import (
     ENTROPY_ASYMPTOTE_E,
     PRUNING_TARGET_ALPHA,
     RETENTION_FACTOR_GNN_RANGE,
-    ABLATION_MODES as GNN_ABLATION_MODES
 )
 from .alpha_compute import (
     alpha_calc,
     compound_retention,
     isolate_layer_contribution,
     ceiling_gap,
-    validate_formula,
-    get_ablation_expected,
-    compute_alpha_from_layers,
     SHANNON_FLOOR_ALPHA,
     ALPHA_CEILING_TARGET,
-    RETENTION_FACTOR_MAX,
     ABLATION_MODES
 )
 from .pruning import (
-    entropy_prune,
     generate_sample_merkle_tree,
     get_retention_factor_prune_isolated,
     RETENTION_FACTOR_PRUNE_RANGE
@@ -1507,8 +1487,8 @@ def sovereignty_timeline_dynamic(
 
     Assertion: retention_factor >= 1.05 when rl_enabled after 100 episodes
     """
-    from .rl_tune import rl_auto_tune, RLTuner, RETENTION_MILESTONE_1
-    from .adaptive import compute_adaptive_depth, get_dynamic_config
+    from .rl_tune import rl_auto_tune, RETENTION_MILESTONE_1
+    from .adaptive import get_dynamic_config
 
     if alpha is None:
         alpha = ENTROPY_ASYMPTOTE_E
@@ -1753,7 +1733,7 @@ def validate_no_static_configs() -> Dict[str, bool]:
 
     # Check RL tune
     try:
-        from .rl_tune import RLTuner, get_rl_tune_info
+        from .rl_tune import get_rl_tune_info
         info = get_rl_tune_info()
         validations["rl_tune_available"] = "retention_milestone_1" in info
     except Exception:

@@ -11,7 +11,6 @@ THE REAL-DATA INSIGHT:
 Source: AXIOM Validation Lock v1
 """
 
-import hashlib
 import json
 import os
 from datetime import datetime
@@ -29,6 +28,12 @@ except ImportError:
 
 
 # === CONSTANTS ===
+
+SPARC_RANDOM_SEED = 42
+"""Convention for reproducibility; same seed -> same galaxy selection."""
+
+SPARC_TOTAL_GALAXIES = 175
+"""Total galaxies in SPARC database (Lelli et al. 2016)."""
 
 SPARC_BASE_URL = "http://astroweb.cwru.edu/SPARC/"
 SPARC_DATA_URL = f"{SPARC_BASE_URL}SPARC_Lelli2016c.mrt"
@@ -340,29 +345,49 @@ def get_galaxy(galaxy_id: str, cache_dir: str = DEFAULT_CACHE_DIR) -> Optional[D
 
 def load_sparc(
     n_galaxies: int = 30,
-    cache_dir: str = DEFAULT_CACHE_DIR
+    cache_dir: str = DEFAULT_CACHE_DIR,
+    seed: int = SPARC_RANDOM_SEED
 ) -> List[Dict]:
     """Download SPARC galaxies if not cached, emit real_data_receipt.
+
+    v2 FIX: Set numpy.random.seed(seed) before random selection
+    from 175 galaxies. Emit real_data_receipt with seed field.
+
+    DETERMINISM GUARANTEE: Same seed + same n_galaxies = identical galaxy list
 
     Args:
         n_galaxies: Number of galaxies to load (max 175)
         cache_dir: Directory for cached data
+        seed: Random seed for reproducible selection (default 42)
 
     Returns:
         List of galaxy dicts matching cosmos.py format
+
+    Raises:
+        ValueError: If n_galaxies > SPARC_TOTAL_GALAXIES
 
     SLOs:
         - Download timeout: 60s per galaxy
         - Cache hit: skip download, emit receipt with cached_at timestamp
         - Minimum galaxies: 30 (fail if SPARC unavailable)
+        - Reproducibility: load_sparc(30, seed=42) == load_sparc(30, seed=42) always
 
     Receipt: real_data_receipt
         - dataset_id: "SPARC"
         - source_url: URL of downloaded file
         - download_hash: dual_hash of file contents
         - n_records: number of galaxies loaded
+        - random_seed: seed used for selection (v2 FIX)
         - provenance_chain: [file_hash, timestamp, source_verification]
     """
+    if n_galaxies > SPARC_TOTAL_GALAXIES:
+        raise ValueError(
+            f"Cannot load {n_galaxies} galaxies; only {SPARC_TOTAL_GALAXIES} in SPARC"
+        )
+
+    # Set seed for reproducible selection
+    np.random.seed(seed)
+
     # Ensure cache directory exists
     cache_path = Path(cache_dir)
     cache_path.mkdir(parents=True, exist_ok=True)
@@ -375,7 +400,8 @@ def load_sparc(
     embedded_ids = list(EMBEDDED_SPARC_DATA.keys())
     other_ids = [g for g in available if g not in embedded_ids]
 
-    # Select galaxies: embedded first, then others
+    # Select galaxies: embedded first, then others (with seeded random selection)
+    np.random.shuffle(other_ids)  # Shuffle with seed for reproducibility
     selected_ids = embedded_ids[:n_to_load]
     if len(selected_ids) < n_to_load:
         selected_ids.extend(other_ids[:n_to_load - len(selected_ids)])
@@ -411,7 +437,7 @@ def load_sparc(
         "embedded_sparc_2016" if cached_count == 0 else f"cache:{cached_count}",
     ]
 
-    # Emit real_data_receipt
+    # Emit real_data_receipt with v2 seed field
     emit_receipt("real_data", {
         "tenant_id": TENANT_ID,
         "dataset_id": "SPARC",
@@ -422,6 +448,7 @@ def load_sparc(
         "n_cached": cached_count,
         "n_embedded": len(galaxies) - cached_count,
         "n_errors": len(load_errors),
+        "random_seed": seed,  # v2 FIX: Include seed in receipt
         "provenance_chain": provenance_chain,
         "galaxies_loaded": [g["id"] for g in galaxies],
         "galaxies_failed": load_errors,
@@ -486,3 +513,24 @@ def compute_rotation_curve_stats(galaxy: Dict) -> Dict:
         "mean_uncertainty_kms": float(np.mean(v_unc)),
         "relative_uncertainty": float(np.mean(v_unc / v)),
     }
+
+
+def validate_reproducibility(n_galaxies: int = 30, seed: int = SPARC_RANDOM_SEED) -> bool:
+    """Validate that same seed produces identical galaxy selection.
+
+    Args:
+        n_galaxies: Number of galaxies to load
+        seed: Random seed to test
+
+    Returns:
+        True if reproducibility holds
+    """
+    # First load
+    g1 = load_sparc(n_galaxies=n_galaxies, seed=seed)
+    ids1 = [x["id"] for x in g1]
+
+    # Second load (should be identical)
+    g2 = load_sparc(n_galaxies=n_galaxies, seed=seed)
+    ids2 = [x["id"] for x in g2]
+
+    return ids1 == ids2

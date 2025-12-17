@@ -15,8 +15,7 @@ Source: Grok - "Stage-gate the pivot"
 """
 
 from dataclasses import dataclass
-from typing import Tuple, Optional
-from datetime import datetime
+from typing import Tuple
 
 from .core import emit_receipt
 

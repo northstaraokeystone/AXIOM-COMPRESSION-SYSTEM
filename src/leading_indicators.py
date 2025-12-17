@@ -22,7 +22,7 @@ Source: Grok - "Leading indicators to monitor"
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import List
 
 from .core import emit_receipt
 from .calibration import CalibrationOutput, ALPHA_BASELINE

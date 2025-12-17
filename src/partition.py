@@ -233,7 +233,7 @@ def partition_sim(
 
         if quorum_stressed or loss_pct > 0:
             # Import here to avoid circular dependency
-            from .reroute import adaptive_reroute, REROUTE_ALPHA_BOOST
+            from .reroute import adaptive_reroute
 
             # Attempt reroute recovery
             graph_state = {
@@ -357,8 +357,14 @@ def stress_sweep(
         "avg_alpha_drop": round(avg_alpha_drop, 4),
         "quorum_failures": quorum_failures,
         "base_alpha": base_alpha,
-        "min_eff_alpha": round(min(r["eff_alpha"] for r in results if r["quorum_status"]), 4) if success_count > 0 else 0.0,
-        "max_eff_alpha_drop": round(max(r["eff_alpha_drop"] for r in results if r["quorum_status"]), 4) if success_count > 0 else 0.0,
+        "min_eff_alpha": (
+            round(min(r["eff_alpha"] for r in results if r["quorum_status"]), 4)
+            if success_count > 0 else 0.0
+        ),
+        "max_eff_alpha_drop": (
+            round(max(r["eff_alpha_drop"] for r in results if r["quorum_status"]), 4)
+            if success_count > 0 else 0.0
+        ),
         "reroute_enabled": reroute_enabled,
         "reroute_applications": reroute_count
     })

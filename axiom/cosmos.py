@@ -10,7 +10,7 @@ Source: AXIOM Validation Lock v1
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 import numpy as np
 from pathlib import Path
 

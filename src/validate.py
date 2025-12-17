@@ -5,7 +5,6 @@ Purpose: Null hypothesis, bootstrap, p-values. Real science.
 Source: Critical Review Dec 16, 2025 - "No falsifiable predictions"
 """
 
-import math
 import statistics
 from typing import Dict, List
 
@@ -13,8 +12,6 @@ from .core import emit_receipt
 from .sovereignty import (
     find_threshold,
     find_threshold_exponential,
-    compute_sensitivity_ratio,
-    conjunction_vs_opposition,
 )
 from .ingest_real import sample_bandwidth, sample_delay
 from .entropy_shannon import (

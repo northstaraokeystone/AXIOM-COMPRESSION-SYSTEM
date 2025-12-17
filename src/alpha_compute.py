@@ -29,10 +29,9 @@ Source: Grok - "α and H measure different things... retention_factor >1 from GN
 """
 
 import json
-import math
 import os
 from functools import reduce
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List
 
 from .core import emit_receipt, dual_hash, StopRule
 

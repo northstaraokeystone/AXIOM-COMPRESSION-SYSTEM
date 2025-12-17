@@ -15,21 +15,15 @@ import json
 import math
 from typing import Dict, Any
 
-from .core import emit_receipt, dual_hash, StopRule
+from .core import emit_receipt, dual_hash
 from .constants import (
     ENTROPY_ASYMPTOTE_E,
     ASYMPTOTE_ALPHA,
     PRUNING_TARGET_ALPHA,
     MIN_EFF_ALPHA_VALIDATED,
     CACHE_DEPTH_BASELINE,
-    CACHE_BREAK_DAYS,
     BLACKOUT_BASE_DAYS,
-    NONLINEAR_RETENTION_FLOOR,
-    RETENTION_BASE_FACTOR,
-    CURVE_TYPE,
-    DECAY_LAMBDA,
     SATURATION_KAPPA,
-    OVERFLOW_CAPACITY_PCT,
     RETENTION_FACTOR_GNN_RANGE,
 )
 

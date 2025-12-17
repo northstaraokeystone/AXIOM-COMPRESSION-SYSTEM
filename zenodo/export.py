@@ -17,14 +17,13 @@ Archive Contents:
 Source: AXIOM Validation Lock v1
 """
 
-import hashlib
 import json
 import os
 import shutil
 import tarfile
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 import sys
 
 # Add parent directory to path for imports
@@ -420,7 +419,7 @@ def main():
 
     if args.validate:
         results = validate_archive(archive_path)
-        print(f"\nValidation:")
+        print("\nValidation:")
         print(f"  Valid tarball: {results['valid_tarball']}")
         print(f"  Has src/: {results['has_src']}")
         print(f"  Has receipts: {results['has_receipts']}")

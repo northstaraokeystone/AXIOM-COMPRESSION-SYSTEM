@@ -14,7 +14,7 @@ Source: QED v12 + ProofPack v3
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, List
 from enum import Enum
 
 from .core import emit_receipt
@@ -25,7 +25,6 @@ from .optimize import (
     update_fitness,
     measure_improvement,
     initialize_state as init_optimize_state,
-    integrate_roi,
 )
 from .helper import (
     HelperConfig,
@@ -52,7 +51,6 @@ from .support import (
 from .strategies import (
     Strategy,
     StrategyConfig,
-    StrategyResult,
     apply_strategy,
     compare_strategies,
     get_all_strategy_configs,
@@ -69,9 +67,7 @@ from .provenance_mars import (
     emit_mars_receipt,
     batch_pending,
     check_disparity,
-    compute_integrity,
     initialize_provenance_state,
-    SYNC_WINDOW_HOURS,
 )
 
 

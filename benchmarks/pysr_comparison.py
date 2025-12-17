@@ -12,18 +12,17 @@ Source: AXIOM Validation Lock v1
 
 import json
 import time
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 import numpy as np
 
 # Import from src
 try:
-    from src.core import dual_hash, emit_receipt
+    from src.core import emit_receipt
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).parent.parent))
-    from src.core import dual_hash, emit_receipt
+    from src.core import emit_receipt
 
 
 # === CONSTANTS ===
@@ -469,14 +468,14 @@ def main():
     print(f"Loading {args.n} galaxies from {args.dataset}...")
     galaxies = load_sparc(n_galaxies=args.n)
 
-    print(f"Running benchmark comparison...")
+    print("Running benchmark comparison...")
     results = batch_compare(galaxies)
 
     # Print table
     print("\n" + generate_table(results["individual_results"]))
 
     # Print summary
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  AXIOM mean compression: {results['summary']['axiom']['mean_compression']:.2%}")
     print(f"  AXIOM mean R²: {results['summary']['axiom']['mean_r_squared']:.4f}")
     print(f"  AXIOM wins (MSE): {results['summary']['axiom_wins_mse']}/{len(galaxies)}")

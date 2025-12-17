@@ -23,7 +23,7 @@ import random
 from dataclasses import dataclass
 from typing import List, Dict, Any, Tuple, Optional
 
-from .core import emit_receipt, dual_hash, StopRule, merkle
+from .core import emit_receipt, dual_hash, StopRule
 
 
 # === CONSTANTS (LOCKED - validated by prior gate 2025-12-16) ===

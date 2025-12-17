@@ -23,7 +23,7 @@ Source: Grok Dec 16, 2025
 
 import math
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Optional
 
 from .core import emit_receipt
 from .entropy_shannon import (
@@ -678,7 +678,11 @@ def emit_compounding_receipt(result: CompoundingResult) -> dict:
         "total_invest_m": result.total_invest_m,
         "effective_invest_m": result.effective_invest_m,
         "investment_efficiency": result.investment_efficiency,
-        "finding": f"Sovereignty reached in cycle {result.sovereignty_cycle}" if result.sovereignty_achieved else f"Final tau={result.final_tau:.1f}s after {result.total_cycles} cycles"
+        "finding": (
+            f"Sovereignty reached in cycle {result.sovereignty_cycle}"
+            if result.sovereignty_achieved
+            else f"Final tau={result.final_tau:.1f}s after {result.total_cycles} cycles"
+        )
     })
 
 
@@ -722,8 +726,14 @@ def emit_sovereignty_projection_receipt(timeline: List[dict]) -> dict:
         "sovereignty_tau_s": sov_mission["tau_s"] if sov_mission else None,
         "final_tau_s": timeline[-1]["tau_s"] if timeline else None,
         "timeline": timeline,
-        "directive": "pivot to pure paradigm-shifting physics in Elon-sphere (Starlink/Starship/Mars delay constraints)",
-        "finding": f"Mars sovereignty projected by {sov_mission['year']}" if sov_mission else "Sovereignty not achieved in projection window"
+        "directive": (
+            "pivot to pure paradigm-shifting physics in Elon-sphere "
+            "(Starlink/Starship/Mars delay constraints)"
+        ),
+        "finding": (
+            f"Mars sovereignty projected by {sov_mission['year']}"
+            if sov_mission else "Sovereignty not achieved in projection window"
+        )
     })
 
 

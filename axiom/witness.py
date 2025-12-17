@@ -9,7 +9,7 @@ Source: AXIOM Validation Lock v1
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List
 import numpy as np
 from pathlib import Path
 
@@ -274,9 +274,10 @@ def crossover_detection(
 
     # Find peaks in second derivative
     for i in range(1, len(d2v_normalized) - 1):
-        if (d2v_normalized[i] > threshold and
-            d2v_normalized[i] > d2v_normalized[i-1] and
-            d2v_normalized[i] > d2v_normalized[i+1]):
+        is_peak = (d2v_normalized[i] > threshold
+                   and d2v_normalized[i] > d2v_normalized[i - 1]
+                   and d2v_normalized[i] > d2v_normalized[i + 1])
+        if is_peak:
 
             # Determine regime transition
             if dv[i] > 0:
@@ -321,12 +322,8 @@ def extract_symbolic(kan: KAN, simplify: bool = True) -> Dict:
 
     symbolic = kan.get_symbolic()
 
-    # Try to match known physical forms
-    known_forms = {
-        "newtonian": "sqrt(const/r)",
-        "flat": "const",
-        "rising_flat": "v_max*(1-exp(-r/r_s))",
-    }
+    # Known physical forms (for reference/future matching)
+    # "newtonian": "sqrt(const/r)", "flat": "const", "rising_flat": "v_max*(1-exp(-r/r_s))"
 
     matched_form = None
     match_confidence = 0.0

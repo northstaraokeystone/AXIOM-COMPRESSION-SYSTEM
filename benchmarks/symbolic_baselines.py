@@ -9,7 +9,6 @@ These are historical baselines. pySR is the primary comparison.
 Source: AXIOM Validation Lock v1
 """
 
-import json
 import time
 from pathlib import Path
 from typing import Dict, List
