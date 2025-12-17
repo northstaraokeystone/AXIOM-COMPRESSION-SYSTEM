@@ -5,6 +5,7 @@ Extends sovereignty timeline projections with:
 2. Resilience-adjusted projections
 3. Worst-case α drop calculations
 4. Blackout sweeps and reroute projection (Dec 2025)
+5. Extended blackout sweep (43-90d) with retention curve modeling
 
 THE PHYSICS:
     eff_alpha(partition=0.4, nodes=5) >= 2.63 (per Grok validation)
@@ -14,6 +15,11 @@ REROUTE INTEGRATION (Dec 2025):
     eff_alpha(reroute=True) >= 2.70 (+0.07 boost)
     blackout_survival(days=60, reroute=True) == True
     Blackout resilience metrics in projection receipt
+
+EXTENDED BLACKOUT (Dec 2025):
+    eff_alpha(blackout=60) >= 2.69 (assert)
+    eff_alpha(blackout=90) >= 2.65 (assert)
+    Retention curve: 1.4 @ 43d → 1.25 @ 90d (linear, no cliff)
 
 Source: Grok - "Variable partitions (e.g., 40%)", "eff_α to 2.68", "+0.07 to 2.7+"
 """
@@ -43,9 +49,21 @@ from .reroute import (
     apply_reroute_boost,
     adaptive_reroute,
     REROUTE_ALPHA_BOOST,
+    REROUTING_ALPHA_BOOST_LOCKED,
     BLACKOUT_BASE_DAYS,
     BLACKOUT_EXTENDED_DAYS,
-    MIN_EFF_ALPHA_FLOOR
+    MIN_EFF_ALPHA_FLOOR,
+    MIN_EFF_ALPHA_VALIDATED
+)
+from .blackout import (
+    retention_curve,
+    alpha_at_duration,
+    extended_blackout_sweep as blackout_extended_sweep,
+    generate_retention_curve_data,
+    find_retention_floor,
+    BLACKOUT_SWEEP_MAX_DAYS,
+    RETENTION_BASE_FACTOR,
+    DEGRADATION_RATE
 )
 
 
@@ -622,3 +640,144 @@ def sovereignty_timeline(
     })
 
     return result
+
+
+def extended_blackout_sweep(
+    day_range: Tuple[int, int] = (BLACKOUT_BASE_DAYS, BLACKOUT_SWEEP_MAX_DAYS),
+    iterations: int = 1000,
+    seed: Optional[int] = None
+) -> Dict[str, Any]:
+    """Run extended blackout sweep across day range with retention curve modeling.
+
+    Runs blackout_extended_sweep from blackout.py and returns comprehensive results
+    including retention curve data.
+
+    Assertions:
+        - assert eff_alpha(blackout=60) >= 2.69
+        - assert eff_alpha(blackout=90) >= 2.65
+
+    Args:
+        day_range: Tuple of (min_days, max_days) (default: 43-90)
+        iterations: Number of iterations (default: 1000)
+        seed: Random seed for reproducibility
+
+    Returns:
+        Dict with sweep results and retention curve receipt
+
+    Receipt: extended_blackout_sweep
+    """
+    # Run extended sweep from blackout module
+    sweep_results = blackout_extended_sweep(day_range, iterations, seed)
+
+    # Validate assertions
+    alpha_60 = alpha_at_duration(60)
+    alpha_90 = alpha_at_duration(90)
+
+    assert alpha_60 >= 2.69, f"eff_alpha(blackout=60) = {alpha_60} < 2.69"
+    assert alpha_90 >= 2.65, f"eff_alpha(blackout=90) = {alpha_90} < 2.65"
+
+    # Generate retention curve data
+    curve_data = generate_retention_curve_data(day_range)
+
+    # Find floor
+    floor_data = find_retention_floor(sweep_results)
+
+    # Compute stats
+    all_survived = all(r["survival_status"] for r in sweep_results)
+    survival_rate = len([r for r in sweep_results if r["survival_status"]]) / max(1, len(sweep_results))
+    avg_alpha = sum(r["eff_alpha"] for r in sweep_results) / max(1, len(sweep_results))
+    min_alpha = min(r["eff_alpha"] for r in sweep_results) if sweep_results else 0.0
+
+    result = {
+        "day_range": list(day_range),
+        "iterations": iterations,
+        "all_survived": all_survived,
+        "survival_rate": round(survival_rate, 4),
+        "avg_alpha": round(avg_alpha, 4),
+        "min_alpha": round(min_alpha, 4),
+        "alpha_at_60d": alpha_60,
+        "alpha_at_90d": alpha_90,
+        "retention_floor": floor_data,
+        "curve_points_count": len(curve_data),
+        "assertions_passed": {
+            "alpha_60_ge_2.69": alpha_60 >= 2.69,
+            "alpha_90_ge_2.65": alpha_90 >= 2.65
+        }
+    }
+
+    emit_receipt("extended_blackout_sweep", {
+        "tenant_id": "axiom-reasoning",
+        **result
+    })
+
+    return result
+
+
+def project_with_degradation(
+    base_projection: Dict[str, Any],
+    retention_curve_data: List[Dict[str, float]],
+    target_blackout_days: int = 60
+) -> Dict[str, Any]:
+    """Adjust sovereignty timeline projection by duration-dependent α degradation.
+
+    Takes a base projection and applies retention curve degradation at specified
+    blackout duration.
+
+    Args:
+        base_projection: Base sovereignty projection dict with:
+            - cycles_to_10k_person_eq
+            - cycles_to_1M_person_eq
+            - effective_alpha
+        retention_curve_data: Output from generate_retention_curve_data
+        target_blackout_days: Blackout duration to project (default: 60)
+
+    Returns:
+        Dict with adjusted projection including degradation metrics
+
+    Receipt: degradation_projection
+    """
+    # Extract base values
+    base_cycles_10k = base_projection.get("cycles_to_10k_person_eq", 4)
+    base_cycles_1M = base_projection.get("cycles_to_1M_person_eq", 15)
+    base_alpha = base_projection.get("effective_alpha", MIN_EFF_ALPHA_VALIDATED)
+
+    # Get retention curve point at target duration
+    curve_point = retention_curve(target_blackout_days)
+    degraded_alpha = curve_point["eff_alpha"]
+    retention_factor = curve_point["retention_factor"]
+    degradation_pct = curve_point["degradation_pct"]
+
+    # Calculate adjusted cycles
+    # Lower α means more cycles needed
+    alpha_ratio = base_alpha / max(0.1, degraded_alpha)
+
+    adjusted_cycles_10k = math.ceil(base_cycles_10k * alpha_ratio)
+    adjusted_cycles_1M = math.ceil(base_cycles_1M * alpha_ratio)
+
+    # Delta calculation
+    cycles_delay_10k = adjusted_cycles_10k - base_cycles_10k
+    cycles_delay_1M = adjusted_cycles_1M - base_cycles_1M
+
+    projection = {
+        "base_cycles_10k": base_cycles_10k,
+        "base_cycles_1M": base_cycles_1M,
+        "base_alpha": base_alpha,
+        "target_blackout_days": target_blackout_days,
+        "degraded_alpha": degraded_alpha,
+        "retention_factor": retention_factor,
+        "degradation_pct": degradation_pct,
+        "alpha_ratio": round(alpha_ratio, 4),
+        "adjusted_cycles_10k": adjusted_cycles_10k,
+        "adjusted_cycles_1M": adjusted_cycles_1M,
+        "cycles_delay_10k": cycles_delay_10k,
+        "cycles_delay_1M": cycles_delay_1M,
+        "degradation_model": "linear",
+        "validated": degraded_alpha >= MIN_EFF_ALPHA_VALIDATED
+    }
+
+    emit_receipt("degradation_projection", {
+        "tenant_id": "axiom-reasoning",
+        **projection
+    })
+
+    return projection

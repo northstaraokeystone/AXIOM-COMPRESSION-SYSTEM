@@ -7,13 +7,14 @@ THE PHYSICS (Dec 2025 adaptive rerouting):
     - Graph: Nodes = relay sats + surface habitats; Edges = optical links
     - Quorum-aware: Reroute preserves Merkle chain continuity
 
-CONSTANTS:
-    REROUTE_ALPHA_BOOST = 0.07 (validated boost pushing eff_alpha to 2.70+)
+CONSTANTS (LOCKED - validated by prior gate 2025-12-16):
+    REROUTING_ALPHA_BOOST_LOCKED = 0.07 (validated, immutable)
+    MIN_EFF_ALPHA_VALIDATED = 2.656 (refined floor from prior gate)
     BLACKOUT_BASE_DAYS = 43 (Mars solar conjunction maximum)
     BLACKOUT_EXTENDED_DAYS = 60 (with reroute: 43d * 1.4 retention)
-    MIN_EFF_ALPHA_FLOOR = 2.63 (validated worst-case from partition stress)
 
 Source: Grok - "Prioritize adaptive rerouting: +0.07 to 2.7+"
+Gate: PASSED 2025-12-16 (eff_α=2.70, min_α=2.656, 43d survival, quorum preserved)
 """
 
 import json
@@ -25,10 +26,16 @@ from typing import List, Dict, Any, Tuple, Optional
 from .core import emit_receipt, dual_hash, StopRule, merkle
 
 
-# === CONSTANTS (Dec 2025 adaptive rerouting) ===
+# === CONSTANTS (LOCKED - validated by prior gate 2025-12-16) ===
 
-REROUTE_ALPHA_BOOST = 0.07
-"""physics: Validated reroute boost. 2.63 + 0.07 = 2.70"""
+REROUTING_ALPHA_BOOST_LOCKED = 0.07
+"""physics: LOCKED. Validated reroute boost. 2.656 + 0.07 = 2.726 → floor 2.70"""
+
+# Immutability assertion at module load
+assert REROUTING_ALPHA_BOOST_LOCKED == 0.07, "REROUTING_ALPHA_BOOST_LOCKED must remain 0.07"
+
+# Backward compatibility alias (to be deprecated)
+REROUTE_ALPHA_BOOST = REROUTING_ALPHA_BOOST_LOCKED
 
 BLACKOUT_BASE_DAYS = 43
 """physics: Mars solar conjunction maximum duration in days."""
@@ -39,8 +46,14 @@ BLACKOUT_EXTENDED_DAYS = 60
 REROUTE_RETENTION_FACTOR = 1.4
 """physics: ~40% duration extension with adaptive rerouting."""
 
-MIN_EFF_ALPHA_FLOOR = 2.63
-"""physics: Validated worst-case from 1000-run partition stress test."""
+MIN_EFF_ALPHA_VALIDATED = 2.656
+"""physics: LOCKED. Refined validated floor from prior gate (was 2.63)."""
+
+# Backward compatibility alias (to be deprecated)
+MIN_EFF_ALPHA_FLOOR = MIN_EFF_ALPHA_VALIDATED
+
+GATE_PASS_TIMESTAMP = "2025-12-16"
+"""Audit trail: Gate pass date for locked constants."""
 
 CGR_BASELINE = "nasa_dtn_v3"
 """Contact Graph Routing standard baseline."""

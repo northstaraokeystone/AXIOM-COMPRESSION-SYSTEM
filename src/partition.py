@@ -9,24 +9,30 @@ QUORUM THRESHOLD:
     Byzantine fault tolerant at 2/3 of baseline.
     5 nodes → quorum threshold of 3 → survives 2 simultaneous failures.
 
-DYNAMIC RECOVERY (Dec 2025 adaptive rerouting):
-    When quorum stressed but not failed, attempt adaptive reroute recovery.
-    Reroute boost applied multiplicatively: +0.07 to eff_α.
-    Extended blackout survival: 43d → 60d+ with reroute.
+DYNAMIC RECOVERY (Dec 2025 adaptive rerouting - DEFAULT):
+    All partition stress now flows through adaptive reroute.
+    Static partition logic has been KILLED per Grok directive.
+    Reroute boost: +0.07 to eff_α (locked, validated).
+    Extended blackout survival: 43d → 90d with retention curve.
 
 CONSTANTS (from Grok validation):
     NODE_BASELINE = 5 (3 uncrewed habs + 2 rovers)
     QUORUM_THRESHOLD = 3 (survives 2-node failure)
     PARTITION_MAX_TEST_PCT = 0.40 (stress test upper bound)
     ALPHA_DROP_FACTOR = 0.125 (calibrated: 0.4 * 0.125 ≈ 0.05 drop)
-    REROUTING_POTENTIAL_BOOST = 0.07 (next gate: path to 2.7+ α)
+    REROUTING_ALPHA_BOOST_LOCKED = 0.07 (validated, immutable)
 
-Source: Grok - "quorum intact for 5-node eg.", "2/3 (Byzantine fault tolerant)"
+KILLED (per Grok directive "Kill: static partition (now dynamic)"):
+    - Static partition simulation without reroute
+    - Non-dynamic recovery paths
+
+Source: Grok - "quorum intact for 5-node eg.", "Kill: static partition (now dynamic)"
 """
 
 import json
 import os
 import random
+import warnings
 from dataclasses import dataclass
 from typing import List, Dict, Any, Tuple, Optional
 
@@ -50,8 +56,11 @@ ALPHA_DROP_FACTOR = 0.125
 GREENS_CURRENT = 81
 """Fleet cadence marker (81 tests passing, Dec 2025)."""
 
-REROUTING_POTENTIAL_BOOST = 0.07
-"""Next gate stub: path to 2.7+ α if adaptive rerouting added."""
+REROUTING_ALPHA_BOOST_LOCKED = 0.07
+"""LOCKED: Validated reroute boost (was REROUTING_POTENTIAL_BOOST, now locked)."""
+
+# Backward compatibility alias (deprecated)
+REROUTING_POTENTIAL_BOOST = REROUTING_ALPHA_BOOST_LOCKED
 
 BASE_ALPHA = 2.68
 """Baseline effective alpha with distributed anchoring (+0.12 boost from 2.56)."""
@@ -158,19 +167,23 @@ def partition_sim(
     loss_pct: float = 0.0,
     base_alpha: float = BASE_ALPHA,
     emit: bool = True,
-    reroute_enabled: bool = False
+    reroute_enabled: bool = True
 ) -> Dict[str, Any]:
     """Simulate node partition and compute impact on effective alpha.
 
     Pure function. Computes nodes surviving, quorum status, and α drop.
-    When reroute_enabled, attempts dynamic recovery for stressed quorums.
+    Dynamic recovery via adaptive reroute is NOW DEFAULT (static logic killed).
+
+    WARNING: Calling with reroute_enabled=False is DEPRECATED.
+    Static partition simulation has been killed per Grok directive.
 
     Args:
         nodes_total: Total nodes in baseline (default: 5)
         loss_pct: Fraction of nodes lost (0-1, max 0.40 for tests)
         base_alpha: Baseline effective alpha (default: 2.68)
         emit: Whether to emit receipt (default: True)
-        reroute_enabled: Enable adaptive rerouting recovery (default: False)
+        reroute_enabled: Enable adaptive rerouting recovery (default: True)
+            DEPRECATED: Setting to False will emit deprecation warning
 
     Returns:
         Dict with:
@@ -187,6 +200,16 @@ def partition_sim(
 
     Receipt: partition_stress_receipt
     """
+    # DEPRECATION: Static partition logic killed per Grok directive
+    if not reroute_enabled:
+        warnings.warn(
+            "partition_sim with reroute_enabled=False is DEPRECATED. "
+            "Static partition logic has been killed. All partition stress "
+            "now flows through adaptive reroute. This warning will become "
+            "an error in a future version.",
+            DeprecationWarning,
+            stacklevel=2
+        )
     # Calculate nodes surviving (floor of remaining)
     nodes_lost = int(nodes_total * loss_pct)
     nodes_surviving = nodes_total - nodes_lost
@@ -265,12 +288,12 @@ def stress_sweep(
     n_iterations: int = 1000,
     base_alpha: float = BASE_ALPHA,
     seed: Optional[int] = None,
-    reroute_enabled: bool = False
+    reroute_enabled: bool = True
 ) -> List[Dict[str, Any]]:
     """Run stress sweep with random loss in range.
 
     Runs n_iterations with random partition loss percentage within range.
-    Collects all partition_stress_receipts.
+    Dynamic recovery via adaptive reroute is NOW DEFAULT.
 
     Args:
         nodes_total: Total nodes in baseline (default: 5)
@@ -278,7 +301,7 @@ def stress_sweep(
         n_iterations: Number of iterations (default: 1000)
         base_alpha: Baseline effective alpha (default: 2.68)
         seed: Random seed for reproducibility (optional)
-        reroute_enabled: Enable adaptive rerouting recovery (default: False)
+        reroute_enabled: Enable adaptive rerouting recovery (default: True)
 
     Returns:
         List of partition simulation results

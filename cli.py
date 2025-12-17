@@ -18,8 +18,14 @@ Usage:
     # Adaptive rerouting and blackout testing (Dec 2025)
     python cli.py --reroute --simulate                     # Single reroute test
     python cli.py --blackout 43 --reroute --simulate       # Blackout with reroute
-    python cli.py --blackout_sweep --reroute               # Full blackout sweep (1000 iterations)
+    python cli.py --blackout_sweep --reroute               # Full blackout sweep (43-60d, 1000 iterations)
     python cli.py --algo_info                              # Output reroute algorithm spec
+
+    # Extended blackout sweep and retention curve (Dec 2025)
+    python cli.py --extended_sweep 43 90 --simulate        # Extended sweep (43-90d)
+    python cli.py --retention_curve                        # Output retention curve as JSON
+    python cli.py --blackout_sweep 60 --simulate           # Single-point extended blackout test
+    python cli.py --gnn_stub                               # Echo GNN sensitivity stub config
 """
 
 import sys
@@ -58,10 +64,22 @@ from src.reroute import (
     get_reroute_algo_info,
     load_reroute_spec,
     REROUTE_ALPHA_BOOST,
+    REROUTING_ALPHA_BOOST_LOCKED,
     BLACKOUT_BASE_DAYS,
     BLACKOUT_EXTENDED_DAYS,
-    MIN_EFF_ALPHA_FLOOR
+    MIN_EFF_ALPHA_FLOOR,
+    MIN_EFF_ALPHA_VALIDATED
 )
+from src.blackout import (
+    retention_curve,
+    alpha_at_duration,
+    extended_blackout_sweep as blackout_extended_sweep,
+    generate_retention_curve_data,
+    gnn_sensitivity_stub,
+    BLACKOUT_SWEEP_MAX_DAYS,
+    RETENTION_BASE_FACTOR
+)
+from src.reasoning import extended_blackout_sweep, project_with_degradation
 
 
 def cmd_baseline():
@@ -537,6 +555,128 @@ def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
     print("\n[sovereignty_projection receipt emitted above]")
 
 
+def cmd_extended_sweep(start_days: int, end_days: int, simulate: bool):
+    """Run extended blackout sweep from start to end days.
+
+    Args:
+        start_days: Start of sweep range (e.g., 43)
+        end_days: End of sweep range (e.g., 90)
+        simulate: Whether to output receipts
+    """
+    import json as json_lib
+
+    print("=" * 60)
+    print(f"EXTENDED BLACKOUT SWEEP ({start_days}-{end_days}d)")
+    print("=" * 60)
+
+    print(f"\nConfiguration:")
+    print(f"  Sweep range: {start_days}-{end_days} days")
+    print(f"  Iterations: 1000")
+    print(f"  Validated floor: {MIN_EFF_ALPHA_VALIDATED}")
+    print(f"  Reroute boost (locked): +{REROUTING_ALPHA_BOOST_LOCKED}")
+
+    print("\nRunning extended sweep...")
+
+    result = extended_blackout_sweep(
+        day_range=(start_days, end_days),
+        iterations=1000,
+        seed=42
+    )
+
+    print(f"\nRESULTS:")
+    print(f"  All survived: {result['all_survived']}")
+    print(f"  Survival rate: {result['survival_rate'] * 100:.1f}%")
+    print(f"  Avg α: {result['avg_alpha']}")
+    print(f"  Min α: {result['min_alpha']}")
+    print(f"  α at 60d: {result['alpha_at_60d']}")
+    print(f"  α at 90d: {result['alpha_at_90d']}")
+
+    print(f"\nRETENTION FLOOR:")
+    floor = result['retention_floor']
+    print(f"  Min retention: {floor['min_retention']}")
+    print(f"  Days at min: {floor['days_at_min']}")
+    print(f"  α at min: {floor['alpha_at_min']}")
+
+    print(f"\nASSERTION VALIDATION:")
+    assertions = result['assertions_passed']
+    print(f"  α(60d) >= 2.69: {'PASS' if assertions['alpha_60_ge_2.69'] else 'FAIL'}")
+    print(f"  α(90d) >= 2.65: {'PASS' if assertions['alpha_90_ge_2.65'] else 'FAIL'}")
+
+    if simulate:
+        print("\n[extended_blackout_sweep receipt emitted above]")
+
+    print("=" * 60)
+
+
+def cmd_retention_curve():
+    """Output retention curve data as JSON."""
+    import json as json_lib
+
+    print("=" * 60)
+    print("RETENTION CURVE DATA")
+    print("=" * 60)
+
+    print(f"\nConfiguration:")
+    print(f"  Range: {BLACKOUT_BASE_DAYS}-{BLACKOUT_SWEEP_MAX_DAYS} days")
+    print(f"  Base retention: {RETENTION_BASE_FACTOR}")
+    print(f"  Degradation model: linear")
+
+    curve_data = generate_retention_curve_data((BLACKOUT_BASE_DAYS, BLACKOUT_SWEEP_MAX_DAYS))
+
+    print(f"\nCurve points: {len(curve_data)}")
+    print("\nSample points:")
+    print(f"  43d: retention={curve_data[0]['retention']}, α={curve_data[0]['alpha']}")
+
+    # Find 60d, 75d, 90d indices
+    idx_60 = 60 - BLACKOUT_BASE_DAYS
+    idx_75 = 75 - BLACKOUT_BASE_DAYS
+    idx_90 = 90 - BLACKOUT_BASE_DAYS
+
+    if idx_60 < len(curve_data):
+        print(f"  60d: retention={curve_data[idx_60]['retention']}, α={curve_data[idx_60]['alpha']}")
+    if idx_75 < len(curve_data):
+        print(f"  75d: retention={curve_data[idx_75]['retention']}, α={curve_data[idx_75]['alpha']}")
+    if idx_90 < len(curve_data):
+        print(f"  90d: retention={curve_data[idx_90]['retention']}, α={curve_data[idx_90]['alpha']}")
+
+    print("\n--- JSON OUTPUT ---")
+    print(json_lib.dumps(curve_data, indent=2))
+
+    print("\n[retention_curve receipt emitted above]")
+    print("=" * 60)
+
+
+def cmd_gnn_stub():
+    """Output GNN sensitivity stub config."""
+    import json as json_lib
+
+    print("=" * 60)
+    print("GNN SENSITIVITY STUB (Next Gate Placeholder)")
+    print("=" * 60)
+
+    param_config = {
+        "model_sizes": ["1K", "10K", "100K"],
+        "complexity_levels": ["low", "medium", "high"],
+        "target_metric": "alpha_uplift_per_watt",
+        "hardware_constraint": "mars_surface_edge_compute",
+        "gate": "next"
+    }
+
+    result = gnn_sensitivity_stub(param_config)
+
+    print(f"\nStatus: {result['status']}")
+    print(f"Not implemented: {result['not_implemented']}")
+    print(f"Next gate: {result['next_gate']}")
+
+    print(f"\nParameter config:")
+    print(json_lib.dumps(param_config, indent=2))
+
+    print(f"\nDescription: {result['description']}")
+
+    print("\n[gnn_sensitivity_stub receipt emitted above]")
+    print("=" * 60)
+
+
 def main():
     # Check for flag-based invocation
     parser = argparse.ArgumentParser(description="AXIOM-CORE CLI - The Sovereignty Calculator")
@@ -572,6 +712,15 @@ def main():
     parser.add_argument('--algo_info', action='store_true',
                         help='Output reroute algorithm specification')
 
+    # Extended blackout sweep and retention curve flags (Dec 2025)
+    parser.add_argument('--extended_sweep', nargs=2, type=int, default=None,
+                        metavar=('START', 'END'),
+                        help='Run extended blackout sweep from START to END days (e.g., --extended_sweep 43 90)')
+    parser.add_argument('--retention_curve', action='store_true',
+                        help='Output retention curve data as JSON')
+    parser.add_argument('--gnn_stub', action='store_true',
+                        help='Echo GNN sensitivity stub config (placeholder for next gate)')
+
     args = parser.parse_args()
 
     # Combine reroute flags
@@ -580,6 +729,21 @@ def main():
     # Handle algorithm info
     if args.algo_info:
         cmd_algo_info()
+        return
+
+    # Handle GNN stub
+    if args.gnn_stub:
+        cmd_gnn_stub()
+        return
+
+    # Handle retention curve output
+    if args.retention_curve:
+        cmd_retention_curve()
+        return
+
+    # Handle extended sweep
+    if args.extended_sweep is not None:
+        cmd_extended_sweep(args.extended_sweep[0], args.extended_sweep[1], args.simulate)
         return
 
     # Handle blackout sweep

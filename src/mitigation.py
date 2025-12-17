@@ -7,11 +7,17 @@ THE PHYSICS:
     - PARTITION_MITIGATION_FACTOR = 0.05 (max expected α drop)
     - Quorum health weight: 1.0 if intact, degraded otherwise
     - Combined mitigation includes τ-penalty + partition + quorum + reroute
+    - Duration-dependent degradation for extended blackouts (43-90d)
 
 REROUTE INTEGRATION (Dec 2025 adaptive rerouting):
-    - REROUTE_ALPHA_BOOST = 0.07 (validated boost pushing eff_alpha to 2.70+)
+    - REROUTING_ALPHA_BOOST_LOCKED = 0.07 (validated, immutable)
     - Reroute boost applied multiplicatively in mitigation stack
     - Blackout factor scales mitigation by duration (graceful degradation beyond 43d)
+
+EXTENDED BLACKOUT DEGRADATION (Dec 2025):
+    - DEGRADATION_RATE = 0.0032/day (calibrated: 1.4 @ 43d → 1.25 @ 90d)
+    - Duration degradation applied to mitigation stack when blackout_days > 43
+    - Linear model, no cliff behavior
 
 Source: Grok - "Variable partitions (e.g., 40%)", "quorum intact", "+0.07 to 2.7+"
 """
@@ -52,14 +58,26 @@ QUORUM_HEALTH_DEGRADED_PER_NODE = 0.05
 TAU_MITIGATION_FACTOR = 0.889
 """Receipt-based τ-penalty mitigation factor (from receipt_params.json)."""
 
-REROUTE_ALPHA_BOOST = 0.07
-"""physics: Validated reroute boost. 2.63 + 0.07 = 2.70"""
+REROUTING_ALPHA_BOOST_LOCKED = 0.07
+"""physics: LOCKED. Validated reroute boost. 2.656 + 0.07 = 2.726"""
+
+# Backward compatibility alias
+REROUTE_ALPHA_BOOST = REROUTING_ALPHA_BOOST_LOCKED
 
 BLACKOUT_BASE_DAYS = 43
 """physics: Mars solar conjunction maximum duration in days."""
 
 BLACKOUT_EXTENDED_DAYS = 60
 """physics: Extended blackout tolerance with reroute (43d * 1.4 retention)."""
+
+BLACKOUT_SWEEP_MAX_DAYS = 90
+"""physics: Extreme stress bound (2× conjunction duration)."""
+
+DEGRADATION_RATE = 0.0032
+"""physics: Per-day degradation rate beyond 43d (calibrated: 1.4 @ 43d → 1.25 @ 90d)."""
+
+RETENTION_BASE_FACTOR = 1.4
+"""physics: Baseline retention factor at 43d blackout."""
 
 
 @dataclass
@@ -262,6 +280,63 @@ def compute_blackout_factor(
     })
 
     return round(max(0.0, factor), 4)
+
+
+def apply_duration_degradation(
+    base_mitigation: float,
+    blackout_days: int
+) -> Dict[str, Any]:
+    """Apply duration-dependent degradation to mitigation stack.
+
+    Scales mitigation by retention factor when blackout_days > 43.
+    Uses linear degradation model with DEGRADATION_RATE = 0.0032/day.
+
+    Formula: degraded_mitigation = base_mitigation * retention_factor
+    Where: retention_factor = RETENTION_BASE * (1 - (days - 43) * DEGRADATION_RATE)
+
+    Args:
+        base_mitigation: Base mitigation value (0-1)
+        blackout_days: Current blackout duration in days
+
+    Returns:
+        Dict with degraded_mitigation, retention_factor, degradation_pct
+
+    Receipt: duration_degradation
+    """
+    if blackout_days <= BLACKOUT_BASE_DAYS:
+        retention_factor = RETENTION_BASE_FACTOR
+        degradation_pct = 0.0
+    else:
+        # Linear degradation beyond base
+        excess_days = blackout_days - BLACKOUT_BASE_DAYS
+        degradation = excess_days * DEGRADATION_RATE
+
+        # Retention formula: retention = RETENTION_BASE * (1 - degradation / RETENTION_BASE)
+        retention_factor = RETENTION_BASE_FACTOR - degradation
+        retention_factor = max(1.0, round(retention_factor, 4))  # Floor at 1.0
+
+        # Degradation percentage
+        degradation_pct = round((1.0 - retention_factor / RETENTION_BASE_FACTOR) * 100, 2)
+
+    # Scale mitigation by retention factor (normalized to base)
+    retention_scale = retention_factor / RETENTION_BASE_FACTOR
+    degraded_mitigation = base_mitigation * retention_scale
+
+    result = {
+        "base_mitigation": round(base_mitigation, 4),
+        "blackout_days": blackout_days,
+        "retention_factor": retention_factor,
+        "retention_scale": round(retention_scale, 4),
+        "degradation_pct": degradation_pct,
+        "degraded_mitigation": round(degraded_mitigation, 4)
+    }
+
+    emit_receipt("duration_degradation", {
+        "tenant_id": "axiom-mitigation",
+        **result
+    })
+
+    return result
 
 
 def apply_reroute_mitigation(
