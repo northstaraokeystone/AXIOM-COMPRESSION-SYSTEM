@@ -26,7 +26,7 @@ Source: Grok - "Sim sovereignty timelines with FSD-like compounding—input your
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, TYPE_CHECKING
 import math
 
 from .core import emit_receipt
@@ -37,6 +37,9 @@ from .build_rate import (
     MULTIPLIER_0PCT,
 )
 from .latency import tau_penalty, effective_alpha as compute_effective_alpha
+
+if TYPE_CHECKING:
+    from .strategies import StrategyConfig
 
 
 # === ALPHA CONSTANT (updated from calibration) ===
@@ -590,7 +593,8 @@ def sovereignty_timeline(
     c_base: float = C_BASE_DEFAULT,
     p_factor: float = P_FACTOR_DEFAULT,
     alpha: float = ALPHA_DEFAULT,
-    tau_seconds: Optional[float] = None
+    tau_seconds: Optional[float] = None,
+    strategy: "StrategyConfig" = None
 ) -> Dict[str, Any]:
     """Compute full sovereignty timeline with milestones.
 
@@ -612,6 +616,7 @@ def sovereignty_timeline(
         p_factor: Propulsion growth factor per synod (default 1.8)
         alpha: Base compounding exponent (default 1.69)
         tau_seconds: Latency in seconds (0 or None for Earth, 1200 for Mars max)
+        strategy: Optional StrategyConfig for τ reduction strategies
 
     Returns:
         Dict with:
@@ -620,13 +625,46 @@ def sovereignty_timeline(
             - person_eq_trajectory: List of person-eq values per cycle
             - effective_alpha: Alpha after latency penalty
             - delay_vs_earth: Cycles lost to latency (vs tau=0)
+            - strategy_applied: Strategy name (if strategy provided)
+            - c_factor_applied: c factor from strategy (if provided)
+            - p_cost_applied: P cost from strategy (if provided)
+            - roi_score: ROI score (if strategy provided)
 
     Receipt: sovereignty_projection
     """
-    # Compute effective alpha with latency penalty
-    eff_alpha = alpha
-    if tau_seconds is not None and tau_seconds > 0:
-        eff_alpha = compute_effective_alpha(alpha, tau_seconds)
+    # Strategy-specific values
+    strategy_name = None
+    c_factor = 1.0
+    p_cost = 0.0
+    roi_score = 0.0
+    effective_tau = tau_seconds if tau_seconds else 0
+
+    # Apply strategy if provided
+    if strategy is not None:
+        from .strategies import (
+            compute_effective_tau as strategy_effective_tau,
+            compute_effective_alpha as strategy_effective_alpha,
+            compute_c_factor,
+            compute_p_cost,
+        )
+
+        # Compute strategy effects
+        base_tau = tau_seconds if tau_seconds else 0
+        effective_tau = strategy_effective_tau(base_tau, strategy)
+        c_factor = compute_c_factor(strategy)
+        p_cost = compute_p_cost(strategy)
+        strategy_name = strategy.strategy.value
+
+        # Effective alpha from strategy (includes floor for onboard AI)
+        eff_alpha = strategy_effective_alpha(alpha, strategy, effective_tau)
+    else:
+        # Compute effective alpha with latency penalty (legacy behavior)
+        eff_alpha = alpha
+        if tau_seconds is not None and tau_seconds > 0:
+            eff_alpha = compute_effective_alpha(alpha, tau_seconds)
+
+    # Adjust P factor for relay cost
+    adjusted_p_factor = p_factor * (1.0 - p_cost)
 
     # Simulate growth trajectory using multiplicative FSD-like compounding
     # At 40% allocation with α=1.69: multiplier ≈ 2.75x per cycle
@@ -655,8 +693,11 @@ def sovereignty_timeline(
         alpha_ratio = eff_alpha / 1.69  # Normalized to optimal alpha
         base_multiplier = 1.0 + (2.75 - 1.0) * alpha_ratio
 
+        # Apply c_factor as growth rate modifier
+        base_multiplier = 1.0 + (base_multiplier - 1.0) * c_factor
+
         # Apply propulsion growth (diminishing per cycle to prevent runaway)
-        propulsion_factor = 1.0 + (p_factor - 1.0) * (0.9 ** (cycle - 1))
+        propulsion_factor = 1.0 + (adjusted_p_factor - 1.0) * (0.9 ** (cycle - 1))
 
         # Combined cycle multiplier
         cycle_multiplier = base_multiplier * propulsion_factor
@@ -691,8 +732,16 @@ def sovereignty_timeline(
         "delay_vs_earth": delay_vs_earth,
     }
 
+    # Add strategy fields if strategy was applied
+    if strategy is not None:
+        result["strategy_applied"] = strategy_name
+        result["effective_tau"] = effective_tau
+        result["c_factor_applied"] = c_factor
+        result["p_cost_applied"] = p_cost
+        result["roi_score"] = roi_score
+
     # Emit sovereignty projection receipt
-    emit_receipt("sovereignty_projection", {
+    receipt_data = {
         "tenant_id": "axiom-autonomy",
         "c_base": c_base,
         "p_factor": p_factor,
@@ -703,6 +752,16 @@ def sovereignty_timeline(
         "cycles_to_1M_person_eq": cycles_to_1M,
         "person_eq_trajectory": trajectory[:min(len(trajectory), 20)],  # Shorter for receipt
         "delay_vs_earth": delay_vs_earth,
-    })
+    }
+
+    # Add strategy fields to receipt
+    if strategy is not None:
+        receipt_data["strategy_applied"] = strategy_name
+        receipt_data["effective_tau"] = effective_tau
+        receipt_data["c_factor_applied"] = c_factor
+        receipt_data["p_cost_applied"] = p_cost
+        receipt_data["roi_score"] = roi_score
+
+    emit_receipt("sovereignty_projection", receipt_data)
 
     return result

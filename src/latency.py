@@ -36,7 +36,7 @@ MARS_PARAMS_PATH = "data/verified/mars_params.json"
 """Path to Mars latency physics parameters file."""
 
 
-def tau_penalty(tau_seconds: float) -> float:
+def tau_penalty(tau_seconds: float, relay_factor: float = 1.0) -> float:
     """Calculate latency penalty multiplier for given tau.
 
     Linear interpolation between:
@@ -45,6 +45,7 @@ def tau_penalty(tau_seconds: float) -> float:
 
     Args:
         tau_seconds: Latency in seconds
+        relay_factor: Multiplier for relay reduction (0.5 for swarm, 1.0 default)
 
     Returns:
         Penalty multiplier (0-1). At τ=1200s returns ~0.35 (65% drop).
@@ -56,22 +57,27 @@ def tau_penalty(tau_seconds: float) -> float:
         0.35
         >>> tau_penalty(600)  # midpoint
         0.675
+        >>> tau_penalty(1200, relay_factor=0.5)  # with relay swarm
+        0.675  # effective tau = 600s
     """
-    if tau_seconds <= 0:
+    # Apply relay factor to get effective tau
+    effective_tau = tau_seconds * relay_factor
+
+    if effective_tau <= 0:
         return 1.0
 
-    if tau_seconds >= TAU_MARS_MAX:
+    if effective_tau >= TAU_MARS_MAX:
         penalty = LATENCY_PENALTY_MAX
     else:
         # Linear interpolation: 1.0 at τ=0, LATENCY_PENALTY_MAX at τ=TAU_MARS_MAX
         # penalty = 1.0 - (1.0 - LATENCY_PENALTY_MAX) * (tau / TAU_MARS_MAX)
-        fraction = tau_seconds / TAU_MARS_MAX
+        fraction = effective_tau / TAU_MARS_MAX
         penalty = 1.0 - (1.0 - LATENCY_PENALTY_MAX) * fraction
 
     # Determine regime
-    if tau_seconds < 1.0:
+    if effective_tau < 1.0:
         regime = "earth"
-    elif tau_seconds <= TAU_MARS_MIN:
+    elif effective_tau <= TAU_MARS_MIN:
         regime = "mars_min"
     else:
         regime = "mars_max"
@@ -80,6 +86,8 @@ def tau_penalty(tau_seconds: float) -> float:
     emit_receipt("latency_penalty", {
         "tenant_id": "axiom-autonomy",
         "tau_seconds": tau_seconds,
+        "relay_factor": relay_factor,
+        "effective_tau": effective_tau,
         "penalty_multiplier": penalty,
         "effective_autonomy_retained": penalty,
         "regime": regime,
@@ -156,24 +164,38 @@ def load_mars_params(path: str = None) -> Dict[str, Any]:
     return data
 
 
-def effective_alpha(alpha: float, tau_seconds: float) -> float:
+def effective_alpha(
+    alpha: float,
+    tau_seconds: float,
+    relay_factor: float = 1.0,
+    onboard_alpha_floor: float = 0.0
+) -> float:
     """Calculate effective alpha after latency penalty.
 
-    Represents α degradation under latency constraints.
+    Represents α degradation under latency constraints, with optional floor.
 
     Args:
         alpha: Base compounding exponent (e.g., 1.69)
         tau_seconds: Latency in seconds
+        relay_factor: Multiplier for relay reduction (0.5 for swarm)
+        onboard_alpha_floor: Floor for effective α (1.2 for onboard AI)
 
     Returns:
-        Effective alpha = alpha × tau_penalty(tau)
+        Effective alpha = max(alpha × tau_penalty(tau), floor)
 
     Example:
         >>> effective_alpha(1.69, 0)
         1.69
         >>> effective_alpha(1.69, 1200)  # Mars max
         0.5915  # ~0.59
+        >>> effective_alpha(1.69, 1200, onboard_alpha_floor=1.2)  # with onboard AI
+        1.2  # floor applied
     """
-    penalty = tau_penalty(tau_seconds)
+    penalty = tau_penalty(tau_seconds, relay_factor)
     eff_alpha = alpha * penalty
+
+    # Apply onboard AI floor if specified
+    if onboard_alpha_floor > 0:
+        eff_alpha = max(eff_alpha, onboard_alpha_floor)
+
     return eff_alpha

@@ -14,7 +14,7 @@ Source: QED v12 + ProofPack v3
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
 from enum import Enum
 
 from .core import emit_receipt
@@ -25,6 +25,7 @@ from .optimize import (
     update_fitness,
     measure_improvement,
     initialize_state as init_optimize_state,
+    integrate_roi,
 )
 from .helper import (
     HelperConfig,
@@ -48,6 +49,20 @@ from .support import (
     l4_feedback,
     initialize_coverage,
 )
+from .strategies import (
+    Strategy,
+    StrategyConfig,
+    StrategyResult,
+    apply_strategy,
+    compare_strategies,
+    get_all_strategy_configs,
+)
+from .roi import (
+    ROIConfig,
+    compute_roi,
+    roi_gate,
+    rank_by_roi,
+)
 
 
 # === CONSTANTS ===
@@ -65,6 +80,9 @@ class Scenario(Enum):
     SCENARIO_SUPPORT = "support"
     SCENARIO_OPTIMIZATION = "optimization"
     SCENARIO_FULL = "full"
+    SCENARIO_RELAY_COMPARISON = "relay_comparison"
+    SCENARIO_STRATEGY_RANKING = "strategy_ranking"
+    SCENARIO_ROI_GATE = "roi_gate"
 
 
 # === DATACLASSES ===
@@ -80,6 +98,8 @@ class SimConfig:
         optimization_config: Config for optimizer
         helper_config: Config for helper layer
         patterns: Initial pattern list for optimization
+        strategies_enabled: List of Strategy enums to enable (default all)
+        roi_config: ROIConfig for ROI computations
     """
     max_cycles: int = 1000
     harvest_frequency: int = 30
@@ -87,6 +107,8 @@ class SimConfig:
     optimization_config: OptimizationConfig = field(default_factory=OptimizationConfig)
     helper_config: HelperConfig = field(default_factory=HelperConfig)
     patterns: List[str] = field(default_factory=lambda: ["pattern_a", "pattern_b", "pattern_c"])
+    strategies_enabled: List[Strategy] = field(default_factory=lambda: list(Strategy))
+    roi_config: ROIConfig = field(default_factory=ROIConfig)
 
 
 @dataclass
@@ -326,6 +348,111 @@ def run_scenario(
                 state.receipts.append(emit_receipt("autonomy_state", {"tenant_id": TENANT_ID, "state": "active"}))
 
             state = simulate_cycle(state, config)
+
+    elif scenario == Scenario.SCENARIO_RELAY_COMPARISON:
+        # SCENARIO_RELAY_COMPARISON: Compare relay swarm sizes (3, 6, 9)
+        # Expected: 6 satellites optimal for ROI
+        from .relay import RELAY_SWARM_OPTIMAL
+
+        baseline = {"tau": 1200, "alpha": 1.69}
+        swarm_sizes = [3, 6, 9]
+        results = []
+
+        for size in swarm_sizes:
+            strategy_config = StrategyConfig(
+                strategy=Strategy.RELAY_SWARM,
+                relay_swarm_size=size
+            )
+            result = apply_strategy(1200, 1.69, strategy_config)
+            results.append(result)
+
+            emit_receipt("relay_comparison", {
+                "tenant_id": TENANT_ID,
+                "swarm_size": size,
+                "effective_tau": result.effective_tau,
+                "cycles_to_10k": result.cycles_to_10k,
+                "p_cost": result.p_cost,
+            })
+
+        # Store results for validation
+        state.receipts.append(emit_receipt("relay_comparison_summary", {
+            "tenant_id": TENANT_ID,
+            "swarm_sizes_tested": swarm_sizes,
+            "optimal_size": RELAY_SWARM_OPTIMAL,
+            "results": [
+                {"size": s, "cycles": r.cycles_to_10k, "p_cost": r.p_cost}
+                for s, r in zip(swarm_sizes, results)
+            ],
+        }))
+
+    elif scenario == Scenario.SCENARIO_STRATEGY_RANKING:
+        # SCENARIO_STRATEGY_RANKING: Compare all 4 strategies
+        # Expected: COMBINED has best cycles, RELAY best ROI
+        baseline = {"tau": 1200, "alpha": 1.69}
+
+        # Get all strategy configs
+        configs = get_all_strategy_configs()
+        results = compare_strategies(configs, baseline)
+
+        # Compute ROI for each
+        baseline_result = results[0]  # BASELINE is first after sorting? No, sorted by cycles
+        # Find actual baseline
+        for r in results:
+            if r.strategy == Strategy.BASELINE:
+                baseline_result = r
+                break
+
+        ranked = rank_by_roi(results, baseline_result, config.roi_config)
+
+        emit_receipt("strategy_ranking_summary", {
+            "tenant_id": TENANT_ID,
+            "strategies_compared": len(results),
+            "best_cycles": results[0].strategy.value if results else None,
+            "best_roi": ranked[0][0].strategy.value if ranked else None,
+            "ranking_by_cycles": [r.strategy.value for r in results],
+            "ranking_by_roi": [r[0].strategy.value for r in ranked],
+        })
+
+    elif scenario == Scenario.SCENARIO_ROI_GATE:
+        # SCENARIO_ROI_GATE: Test ROI gate decisions
+        # Expected: Correct deploy/shadow/kill
+        baseline = {"tau": 1200, "alpha": 1.69}
+
+        # Get all strategies and compute ROI
+        configs = get_all_strategy_configs()
+        results = compare_strategies(configs, baseline)
+
+        # Find baseline result
+        baseline_result = None
+        for r in results:
+            if r.strategy == Strategy.BASELINE:
+                baseline_result = r
+                break
+
+        if baseline_result is None:
+            baseline_result = results[-1]  # Use worst as baseline
+
+        # Test gate decisions
+        gate_decisions = []
+        for result in results:
+            if result.strategy == Strategy.BASELINE:
+                continue
+            roi = compute_roi(result, baseline_result, config.roi_config)
+            decision = roi_gate(roi, config.roi_config)
+            gate_decisions.append({
+                "strategy": result.strategy.value,
+                "roi": roi,
+                "decision": decision,
+            })
+
+        emit_receipt("roi_gate_summary", {
+            "tenant_id": TENANT_ID,
+            "strategies_evaluated": len(gate_decisions),
+            "decisions": gate_decisions,
+            "deploy_count": sum(1 for d in gate_decisions if d["decision"] == "deploy"),
+            "shadow_count": sum(1 for d in gate_decisions if d["decision"] == "shadow"),
+            "kill_count": sum(1 for d in gate_decisions if d["decision"] == "kill"),
+        })
 
     else:  # SCENARIO_BASELINE
         for _ in range(100):

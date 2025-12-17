@@ -279,3 +279,51 @@ def get_exploration_exploitation_ratio(state: OptimizationState) -> Tuple[float,
 
     total = len(state.selection_history)
     return exploration_count / total, exploitation_count / total
+
+
+def integrate_roi(
+    pattern_fitness: Dict[str, Tuple[float, float]],
+    roi_scores: Dict[str, float]
+) -> Dict[str, Tuple[float, float]]:
+    """Weight pattern fitness by ROI scores.
+
+    High-ROI patterns get exploration bonus via increased variance.
+    This encourages the optimizer to explore high-ROI patterns more.
+
+    Args:
+        pattern_fitness: Dict mapping pattern_id to (mean, variance)
+        roi_scores: Dict mapping pattern_id to ROI score
+
+    Returns:
+        Modified fitness dict with ROI-weighted values
+
+    Receipt: roi_integration_receipt
+    """
+    if not roi_scores:
+        return pattern_fitness
+
+    weighted = {}
+
+    for pattern_id, (mean, variance) in pattern_fitness.items():
+        roi = roi_scores.get(pattern_id, 0.0)
+
+        # ROI bonus: increase mean for high-ROI patterns
+        # Scale: ROI of 1.0 adds 0.1 to mean
+        roi_bonus = min(0.3, roi * 0.1)  # Cap at 0.3 bonus
+        weighted_mean = min(0.99, mean + roi_bonus)
+
+        # Also increase variance for high-ROI to encourage exploration
+        # This makes the optimizer more likely to try high-ROI patterns
+        roi_variance_boost = 1.0 + (roi * 0.2)  # Up to +20% variance per ROI point
+        weighted_variance = min(0.25, variance * roi_variance_boost)
+
+        weighted[pattern_id] = (weighted_mean, weighted_variance)
+
+    emit_receipt("roi_integration", {
+        "tenant_id": TENANT_ID,
+        "patterns_weighted": len(weighted),
+        "avg_roi_bonus": sum(roi_scores.values()) / len(roi_scores) if roi_scores else 0,
+        "patterns_with_roi": len(roi_scores),
+    })
+
+    return weighted
