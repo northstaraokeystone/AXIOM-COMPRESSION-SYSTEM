@@ -2069,11 +2069,10 @@ def enforce_scalability_gate(sweep_results: Dict[str, Any]) -> bool:
             raise StopRule("Scalability gate failed")
     """
     from .multi_scale_sweep import (
-        check_degradation,
-        validate_scalability,
         scalability_gate,
         SCALABILITY_GATE_THRESHOLD as GATE_THRESHOLD
     )
+    from datetime import datetime
 
     # Run gate check
     gate_result = scalability_gate(sweep_results)

@@ -1,10 +1,25 @@
 {
-  "versions": ["v12", "v12.3", "v13", "v14"],
-  "mpi_values": [null, null, 441, 9200],
-  "cycle_months": [null, 4, 5, 6],
+  "versions": [
+    "v12",
+    "v12.3",
+    "v13",
+    "v14"
+  ],
+  "mpi_values": [
+    null,
+    null,
+    441,
+    9200
+  ],
+  "cycle_months": [
+    null,
+    4,
+    5,
+    6
+  ],
   "safety_ap_mpcm": 6360000,
   "safety_human_mpcm": 700000,
   "gain_factor_v13_v14": 20.86,
   "observation_date": "2025-Q3",
-  "payload_hash": "f5fbb45da4870fb1a938e88dba58eedd5f963d5edddc9beca2d33ea00806c7c3:f5fbb45da4870fb1a938e88dba58eedd5f963d5edddc9beca2d33ea00806c7c3"
+  "payload_hash": "f5fbb45da4870fb1a938e88dba58eedd5f963d5edddc9beca2d33ea00806c7c3:e724677090bea4117e01f76ab75b14181a7a16fffe4d62a54e800127fdedded0"
 }

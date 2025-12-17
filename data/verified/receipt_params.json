@@ -1,8 +1,8 @@
 {
-  "receipt_integrity_baseline": 0.90,
+  "receipt_integrity_baseline": 0.9,
   "receipt_efficacy_factor": 0.889,
   "disparity_halt_threshold": 0.005,
   "sync_window_hours": 4,
   "receipt_mitigation_acceleration_cycles": 12,
-  "payload_hash": "1ff44d3bb4acc0f6e4bd17abf5ebe7d371cacb51c91f0b628656478a1131b5cb:1ff44d3bb4acc0f6e4bd17abf5ebe7d371cacb51c91f0b628656478a1131b5cb"
+  "payload_hash": "1ff44d3bb4acc0f6e4bd17abf5ebe7d371cacb51c91f0b628656478a1131b5cb:bd3b37568d0dbce0fe95c65b00962966efa8bf655b05f4078031bbd06473da46"
 }
