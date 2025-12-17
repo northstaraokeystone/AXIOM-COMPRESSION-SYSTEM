@@ -47,7 +47,7 @@ def cmd_multiplanet_status(args: Optional[Dict[str, Any]] = None) -> Dict[str, A
     print(f"\nCurrent capabilities:")
     for cap in status.get("current_capabilities", []):
         print(f"  - {cap}")
-    print(f"\nPending capabilities:")
+    print("\nPending capabilities:")
     for cap in status.get("pending_capabilities", []):
         print(f"  - {cap}")
 
@@ -132,7 +132,7 @@ def cmd_multiplanet_simulate(args: Optional[Dict[str, Any]] = None) -> Dict[str,
     print(f"Body: {body}")
     print(f"Autonomy required: {result['autonomy_required']:.0%}")
     print(f"Prerequisites met: {'YES' if result['prerequisites_met'] else 'NO'}")
-    print(f"\n[STUB MODE - Full simulation pending]")
+    print("\n[STUB MODE - Full simulation pending]")
     print(f"Next stage: {result['next_stage']}")
 
     return result
@@ -187,7 +187,7 @@ def cmd_multiplanet_info(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any
     print(f"Status: {info['status']}")
     print(f"Description: {info['description']}")
     print(f"\nExpansion sequence: {' -> '.join(info['sequence'])}")
-    print(f"\nConfig:")
+    print("\nConfig:")
     print(json.dumps(info["config"], indent=2))
     print(f"\nDependencies: {info['dependencies']}")
     print(f"Receipts: {info['receipts']}")

@@ -15,7 +15,6 @@ Each body builds on capabilities proven at previous body.
 Source: AXIOM scalable paths architecture - Multi-planet expansion
 """
 
-import json
 from typing import Dict, Any, List, Optional
 
 from ..base import emit_path_receipt, load_path_spec, PathStopRule
