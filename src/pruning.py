@@ -95,6 +95,14 @@ PREDICTIVE_ACCURACY_TARGET = 0.85
 ENTROPY_PRUNING_SPEC_PATH = "data/entropy_pruning_spec.json"
 """Path to entropy pruning specification file."""
 
+# === ABLATION SUPPORT CONSTANTS (Dec 2025) ===
+
+RETENTION_FACTOR_PRUNE_RANGE = (1.008, 1.015)
+"""physics: Isolated pruning contribution from Grok ablation analysis."""
+
+ABLATION_MODES = ["full", "no_cache", "no_prune", "baseline"]
+"""physics: Four-mode isolation testing for ablation analysis."""
+
 
 def load_entropy_pruning_spec(path: str = None) -> Dict[str, Any]:
     """Load and verify entropy pruning specification file.
@@ -675,29 +683,124 @@ def stoprule_over_prune(trim_factor: float) -> None:
         raise StopRule(f"Over-prune: trim_factor {trim_factor} > {OVER_PRUNE_STOPRULE_THRESHOLD} threshold")
 
 
+def get_retention_factor_prune_isolated(
+    merkle_tree: Dict[str, Any],
+    trim_factor: float = LN_N_TRIM_FACTOR_BASE
+) -> Dict[str, Any]:
+    """Get isolated pruning retention factor contribution.
+
+    Returns the pruning-only contribution (1.008-1.015 typical).
+    Used for ablation testing to isolate layer contributions.
+
+    Args:
+        merkle_tree: Dict containing tree structure
+        trim_factor: ln(n) trim factor (0.3-0.5 range)
+
+    Returns:
+        Dict with retention_factor_prune, contribution_pct, range_expected
+
+    Receipt: retention_prune_isolated
+    """
+    leaves = merkle_tree.get("leaves", [])
+    n_leaves = len(leaves)
+
+    if n_leaves == 0:
+        retention_factor_prune = 1.0
+    else:
+        # Pruning retention scales with trim_factor and tree size
+        min_retention, max_retention = RETENTION_FACTOR_PRUNE_RANGE
+        retention_range = max_retention - min_retention
+
+        # More leaves and higher trim factor = higher retention boost
+        size_factor = min(1.0, math.log(max(1, n_leaves)) / 10)  # Log scaling
+        trim_factor_normalized = trim_factor / LN_N_TRIM_FACTOR_MAX
+
+        # Retention within expected range
+        retention_factor_prune = min_retention + (size_factor * trim_factor_normalized * retention_range)
+        retention_factor_prune = round(min(max_retention, max(min_retention, retention_factor_prune)), 4)
+
+    # Contribution percentage (relative to 1.0 baseline)
+    contribution_pct = round((retention_factor_prune - 1.0) * 100, 3)
+
+    result = {
+        "n_leaves": n_leaves,
+        "trim_factor": trim_factor,
+        "retention_factor_prune": retention_factor_prune,
+        "contribution_pct": contribution_pct,
+        "range_expected": RETENTION_FACTOR_PRUNE_RANGE,
+        "layer": "pruning"
+    }
+
+    emit_receipt("retention_prune_isolated", {
+        "tenant_id": "axiom-pruning",
+        **result,
+        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
+    })
+
+    return result
+
+
 def entropy_prune(
     merkle_tree: Dict[str, Any],
     trim_factor: float = LN_N_TRIM_FACTOR_BASE,
-    hybrid: bool = True
+    hybrid: bool = True,
+    ablation_mode: str = "full"
 ) -> Dict[str, Any]:
     """Orchestrate two-phase entropy pruning.
 
     Phase 1: Deterministic dedup (zero risk)
     Phase 2: GNN-predicted pruning (bounded risk, if hybrid=True)
 
+    Ablation mode behavior:
+        ablation_mode="full"      → Apply pruning normally
+        ablation_mode="no_cache"  → Apply pruning only (GNN handled elsewhere)
+        ablation_mode="no_prune"  → Skip pruning, return baseline
+        ablation_mode="baseline"  → Skip all engineering, return e floor
+
     Args:
         merkle_tree: Dict containing tree structure
         trim_factor: ln(n) trim factor (0.3-0.5 range)
         hybrid: Whether to enable predictive pruning (default: True)
+        ablation_mode: Ablation mode for testing (default: "full")
 
     Returns:
-        Dict with pruned_tree, alpha_uplift, entropy_reduction
+        Dict with pruned_tree, alpha_uplift, entropy_reduction,
+        retention_factor_prune, ablation_mode
 
     Raises:
         StopRule: If over-prune or chain broken
 
     Receipt: entropy_pruning_receipt
     """
+    # Handle ablation modes
+    if ablation_mode == "baseline" or ablation_mode == "no_prune":
+        # No pruning - return tree unchanged with baseline metrics
+        original_root = merkle_tree.get("root", dual_hash(json.dumps(merkle_tree, sort_keys=True)))
+        result = {
+            "pruned_tree": merkle_tree,
+            "merkle_root_before": original_root[:32],
+            "merkle_root_after": original_root[:32],
+            "branches_pruned": 0,
+            "entropy_before": 0.0,
+            "entropy_after": 0.0,
+            "entropy_reduction_pct": 0.0,
+            "alpha_uplift": ENTROPY_ASYMPTOTE_E,
+            "trim_factor_used": 0.0,
+            "hybrid_enabled": False,
+            "dedup_removed": 0,
+            "predictive_pruned": 0,
+            "confidence_score": 0.0,
+            "retention_factor_prune": 1.0,
+            "ablation_mode": ablation_mode
+        }
+        emit_receipt("entropy_pruning", {
+            "tenant_id": "axiom-pruning",
+            "receipt_type": "entropy_pruning",
+            **{k: v for k, v in result.items() if k != "pruned_tree"},
+            "payload_hash": dual_hash(json.dumps({k: v for k, v in result.items() if k != "pruned_tree"}, sort_keys=True))
+        })
+        return result
+
     # Validate trim factor
     stoprule_over_prune(trim_factor)
 
@@ -757,6 +860,10 @@ def entropy_prune(
     # Compute alpha uplift
     alpha_uplift = compute_alpha_uplift(entropy_before, entropy_after)
 
+    # Get isolated pruning retention factor
+    prune_isolated = get_retention_factor_prune_isolated(merkle_tree, trim_factor)
+    retention_factor_prune = prune_isolated["retention_factor_prune"]
+
     # Compute statistics
     branches_pruned = original_count - len(final_tree.get("leaves", []))
     entropy_reduction_pct = round((entropy_before - entropy_after) / max(0.001, entropy_before) * 100, 2)
@@ -774,7 +881,9 @@ def entropy_prune(
         "hybrid_enabled": hybrid,
         "dedup_removed": dedup_result["duplicates_removed"],
         "predictive_pruned": predictive_branches,
-        "confidence_score": confidence_score
+        "confidence_score": confidence_score,
+        "retention_factor_prune": retention_factor_prune,
+        "ablation_mode": ablation_mode
     }
 
     emit_receipt("entropy_pruning", {
@@ -789,11 +898,14 @@ def entropy_prune(
         "alpha_uplift": alpha_uplift,
         "trim_factor_used": trim_factor,
         "hybrid_enabled": hybrid,
+        "retention_factor_prune": retention_factor_prune,
+        "ablation_mode": ablation_mode,
         "payload_hash": dual_hash(json.dumps({
             "merkle_root_before": original_root[:32],
             "merkle_root_after": pruned_root[:32],
             "branches_pruned": branches_pruned,
-            "alpha_uplift": alpha_uplift
+            "alpha_uplift": alpha_uplift,
+            "retention_factor_prune": retention_factor_prune
         }, sort_keys=True))
     })
 

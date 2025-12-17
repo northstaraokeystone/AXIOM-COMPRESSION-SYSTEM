@@ -1,0 +1,59 @@
+{
+    "formula_version": "v1.0",
+    "formula": "alpha = (min_eff / baseline) * retention_factor",
+    "physics_clarification": {
+        "shannon_bound": "H <= e * ln(n) applies to entropy H, not alpha",
+        "alpha_definition": "Engineered resilience metric, not raw entropy",
+        "floor_source": "Without engineering, alpha = e (Shannon baseline)",
+        "ceiling_source": "With ML optimization, alpha approaches e * max_factor",
+        "key_insight": "e is the FLOOR (baseline), not ceiling. Ceiling is ~3.0 with ML optimization"
+    },
+    "constants": {
+        "shannon_floor_alpha": 2.71828,
+        "alpha_ceiling_target": 3.0,
+        "max_retention_factor": 1.10,
+        "retention_factor_gnn_typical": [1.008, 1.015],
+        "retention_factor_prune_typical": [1.008, 1.015]
+    },
+    "ablation_modes": ["full", "no_cache", "no_prune", "baseline"],
+    "ablation_expected_results": {
+        "baseline": {
+            "description": "No engineering - Shannon floor",
+            "alpha_range": [2.71, 2.72],
+            "retention": 1.0
+        },
+        "no_cache": {
+            "description": "Pruning only - no GNN caching",
+            "alpha_range": [2.76, 2.80],
+            "retention": [1.015, 1.03]
+        },
+        "no_prune": {
+            "description": "GNN only - no pruning",
+            "alpha_range": [2.72, 2.74],
+            "retention": [1.003, 1.01]
+        },
+        "full": {
+            "description": "Full stack - GNN + pruning",
+            "alpha_range": [2.80, 2.85],
+            "retention": [1.03, 1.05]
+        }
+    },
+    "stoprules": {
+        "invalid_retention": {
+            "condition": "retention_factor < 0.95 or retention_factor > 1.15",
+            "action": "halt",
+            "reason": "Unphysical retention factor indicates bug"
+        },
+        "alpha_below_floor": {
+            "condition": "alpha < 2.70",
+            "action": "investigate",
+            "reason": "Alpha should not drop below Shannon floor"
+        },
+        "alpha_above_ceiling": {
+            "condition": "alpha > 3.1",
+            "action": "investigate",
+            "reason": "Alpha exceeds theoretical ceiling"
+        }
+    },
+    "description": "Explicit alpha formula parameters and physics anchors. Documents the separation of alpha (resilience) from H (entropy). Source: Grok analysis - 'alpha and H measure different things'"
+}

@@ -45,6 +45,7 @@ from .gnn_cache import (
     apply_gnn_nonlinear_boost as gnn_nonlinear_boost,
     nonlinear_retention as gnn_nonlinear_retention,
     nonlinear_retention_with_pruning,
+    get_retention_factor_gnn_isolated,
     ASYMPTOTE_ALPHA,
     ENTROPY_ASYMPTOTE_E,
     PRUNING_TARGET_ALPHA,
@@ -52,7 +53,15 @@ from .gnn_cache import (
     CACHE_DEPTH_BASELINE,
     NONLINEAR_RETENTION_FLOOR,
     OVERFLOW_THRESHOLD_DAYS_PRUNED,
-    BLACKOUT_PRUNING_TARGET_DAYS
+    BLACKOUT_PRUNING_TARGET_DAYS,
+    RETENTION_FACTOR_GNN_RANGE
+)
+from .alpha_compute import (
+    alpha_calc,
+    compound_retention,
+    ceiling_gap,
+    SHANNON_FLOOR_ALPHA,
+    ALPHA_CEILING_TARGET
 )
 
 
@@ -697,3 +706,77 @@ def get_mitigation_summary(
     })
 
     return summary
+
+
+def get_mitigation_layer_contributions(
+    blackout_days: int = 150,
+    pruning_result: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """Get isolated layer contributions from mitigation stack.
+
+    Returns breakdown of GNN and pruning contributions with percentages,
+    using the explicit alpha formula.
+
+    Args:
+        blackout_days: Blackout duration for testing
+        pruning_result: Optional pruning result with retention_factor_prune
+
+    Returns:
+        Dict with gnn_contribution, prune_contribution, compound breakdown
+
+    Receipt: mitigation_layer_contributions
+    """
+    # Get GNN isolated contribution
+    gnn_isolated = get_retention_factor_gnn_isolated(blackout_days)
+    gnn_factor = gnn_isolated["retention_factor_gnn"]
+
+    # Get pruning contribution
+    if pruning_result is not None:
+        prune_factor = pruning_result.get("retention_factor_prune", 1.0)
+    else:
+        prune_factor = 1.0
+
+    # Compute compound retention
+    compound = compound_retention([gnn_factor, prune_factor])
+
+    # Compute alpha using explicit formula
+    alpha_result = alpha_calc(SHANNON_FLOOR_ALPHA, 1.0, compound, validate=False)
+    computed_alpha = alpha_result["computed_alpha"]
+
+    # Compute individual alphas
+    gnn_only_alpha = alpha_calc(SHANNON_FLOOR_ALPHA, 1.0, gnn_factor, validate=False)["computed_alpha"]
+    prune_only_alpha = alpha_calc(SHANNON_FLOOR_ALPHA, 1.0, prune_factor, validate=False)["computed_alpha"]
+
+    result = {
+        "blackout_days": blackout_days,
+        "gnn_layer": {
+            "retention_factor": gnn_factor,
+            "contribution_pct": gnn_isolated["contribution_pct"],
+            "alpha_with_gnn_only": gnn_only_alpha,
+            "range_expected": RETENTION_FACTOR_GNN_RANGE
+        },
+        "prune_layer": {
+            "retention_factor": prune_factor,
+            "contribution_pct": round((prune_factor - 1.0) * 100, 3),
+            "alpha_with_prune_only": prune_only_alpha
+        },
+        "compound": {
+            "compound_retention": compound,
+            "computed_alpha": computed_alpha,
+            "formula_used": alpha_result["formula_used"],
+            "total_uplift_from_floor": round(computed_alpha - SHANNON_FLOOR_ALPHA, 4)
+        },
+        "ceiling_analysis": ceiling_gap(computed_alpha),
+        "shannon_floor": SHANNON_FLOOR_ALPHA,
+        "ceiling_target": ALPHA_CEILING_TARGET
+    }
+
+    emit_receipt("mitigation_layer_contributions", {
+        "receipt_type": "mitigation_layer_contributions",
+        "tenant_id": "axiom-mitigation",
+        **{k: v for k, v in result.items() if k != "ceiling_analysis"},
+        "gap_to_ceiling_pct": result["ceiling_analysis"]["gap_pct"],
+        "payload_hash": None  # Computed at emit time
+    })
+
+    return result
