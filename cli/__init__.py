@@ -99,6 +99,23 @@ from cli.scale import (
     cmd_fractal_info,
 )
 
+# Fractal ceiling breach commands
+from cli.fractal import (
+    cmd_fractal_push,
+    cmd_alpha_boost,
+    cmd_fractal_info_hybrid,
+)
+
+# Full sweep commands
+from cli.sweep import (
+    cmd_full_500_sweep,
+)
+
+# Info commands
+from cli.info import (
+    cmd_hybrid_boost_info,
+)
+
 __all__ = [
     # Core
     'cmd_baseline',
@@ -165,4 +182,12 @@ __all__ = [
     'cmd_scalability_gate_test',
     'cmd_scale_info',
     'cmd_fractal_info',
+    # Fractal ceiling breach
+    'cmd_fractal_push',
+    'cmd_alpha_boost',
+    'cmd_fractal_info_hybrid',
+    # Full sweep
+    'cmd_full_500_sweep',
+    # Info
+    'cmd_hybrid_boost_info',
 ]

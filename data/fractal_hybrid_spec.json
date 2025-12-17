@@ -1,0 +1,30 @@
+{
+  "fractal_uplift_target": 0.05,
+  "ceiling_break_target": 3.05,
+  "scales": [1, 2, 4, 8, 16],
+  "fractal_dimension_min": 1.5,
+  "fractal_dimension_max": 2.0,
+  "quantum_contribution": 0.03,
+  "hybrid_total": 0.08,
+  "spec_version": "1.0.0",
+  "description": "Immutable fractal configuration for quantum-fractal hybrid ceiling breach",
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "expected_results": {
+    "eff_alpha_before": 2.99,
+    "eff_alpha_after": 3.07,
+    "instability": 0.00
+  },
+  "contributions": {
+    "quantum_entangled_penalty": {
+      "value": 0.03,
+      "description": "Effective retention boost from reduced instability variance"
+    },
+    "fractal_multi_scale": {
+      "value": 0.05,
+      "description": "Multi-scale fractal entropy contribution to alpha"
+    }
+  }
+}

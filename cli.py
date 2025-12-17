@@ -124,6 +124,14 @@ from cli import (
     cmd_scalability_gate_test,
     cmd_scale_info,
     cmd_fractal_info,
+    # Fractal ceiling breach
+    cmd_fractal_push,
+    cmd_alpha_boost,
+    cmd_fractal_info_hybrid,
+    # Full sweep
+    cmd_full_500_sweep,
+    # Info
+    cmd_hybrid_boost_info,
 )
 
 
@@ -245,6 +253,24 @@ def main():
     parser.add_argument('--fractal_info', action='store_true',
                         help='Show fractal layer configuration')
 
+    # Fractal ceiling breach flags
+    parser.add_argument('--alpha_boost', type=str, default=None, metavar='MODE',
+                        help='Alpha boost mode (off, quantum, fractal, hybrid)')
+    parser.add_argument('--fractal_push', action='store_true',
+                        help='Run fractal ceiling breach')
+    parser.add_argument('--fractal_info_hybrid', action='store_true',
+                        help='Show fractal hybrid configuration')
+    parser.add_argument('--base_alpha', type=float, default=2.99,
+                        help='Base alpha for fractal/hybrid (default: 2.99)')
+
+    # Full sweep flags
+    parser.add_argument('--full_500_sweep', action='store_true',
+                        help='Run full 500-sweep with quantum-fractal hybrid')
+
+    # Hybrid info flags
+    parser.add_argument('--hybrid_boost_info', action='store_true',
+                        help='Show hybrid boost configuration')
+
     args = parser.parse_args()
     reroute_enabled = args.reroute or args.reroute_enabled
 
@@ -293,6 +319,19 @@ def main():
         return cmd_scalability_gate_test()
     if args.multi_scale_sweep is not None:
         return cmd_multi_scale_sweep(args.multi_scale_sweep, args.simulate)
+
+    # Fractal ceiling breach commands
+    if args.fractal_info_hybrid:
+        return cmd_fractal_info_hybrid()
+    if args.hybrid_boost_info:
+        return cmd_hybrid_boost_info()
+    if args.fractal_push:
+        return cmd_fractal_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.alpha_boost is not None:
+        return cmd_alpha_boost(args.alpha_boost, args.tree_size, args.base_alpha, args.simulate)
+    if args.full_500_sweep:
+        lr_range = tuple(args.lr_range) if args.lr_range else (RL_LR_MIN, RL_LR_MAX)
+        return cmd_full_500_sweep(args.tree_size, lr_range, args.retention_target, args.simulate)
 
     # RL commands
     if args.rl_tune and args.blackout is not None:
