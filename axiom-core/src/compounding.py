@@ -725,3 +725,210 @@ def emit_sovereignty_projection_receipt(timeline: List[dict]) -> dict:
         "directive": "pivot to pure paradigm-shifting physics in Elon-sphere (Starlink/Starship/Mars delay constraints)",
         "finding": f"Mars sovereignty projected by {sov_mission['year']}" if sov_mission else "Sovereignty not achieved in projection window"
     })
+
+
+# === TAU VELOCITY TRACKING (v2.0 - Grok Integration) ===
+# Source: Grok - "tau (decision loop time) reduction velocity"
+
+def compute_tau_velocity(
+    tau_history: List[float],
+    cycle_history: List[int] = None
+) -> float:
+    """Compute tau velocity d(tau)/dt from historical measurements.
+
+    The second derivative matters: not just tau, but how fast tau improves.
+    Negative velocity = improving (tau decreasing over cycles).
+
+    Args:
+        tau_history: List of tau values over cycles
+        cycle_history: Optional list of cycle numbers (default: sequential)
+
+    Returns:
+        Tau velocity (tau units per cycle). Negative = improving.
+
+    Example:
+        tau_history = [300, 250, 200, 150]
+        -> velocity ~ -50 tau/cycle (improving rapidly)
+
+    Source: Grok - "tau reduction velocity"
+    """
+    if not tau_history or len(tau_history) < 2:
+        return 0.0
+
+    n = len(tau_history)
+
+    if cycle_history is None:
+        cycle_history = list(range(n))
+
+    # Linear regression for velocity
+    mean_c = sum(cycle_history) / n
+    mean_tau = sum(tau_history) / n
+
+    numerator = sum((cycle_history[i] - mean_c) * (tau_history[i] - mean_tau) for i in range(n))
+    denominator = sum((cycle_history[i] - mean_c) ** 2 for i in range(n))
+
+    if denominator == 0:
+        return 0.0
+
+    velocity = numerator / denominator
+
+    return velocity
+
+
+def compute_tau_velocity_pct(
+    tau_history: List[float],
+    cycle_history: List[int] = None
+) -> float:
+    """Compute tau velocity as percentage change per cycle.
+
+    Normalized version for comparison across different tau scales.
+
+    Args:
+        tau_history: List of tau values over cycles
+        cycle_history: Optional list of cycle numbers
+
+    Returns:
+        Tau velocity as percentage per cycle. Negative = improving.
+
+    Target: < -5% per cycle (improving by 5%+ each cycle)
+    """
+    raw_velocity = compute_tau_velocity(tau_history, cycle_history)
+
+    if not tau_history:
+        return 0.0
+
+    mean_tau = sum(tau_history) / len(tau_history)
+
+    if mean_tau <= 0:
+        return 0.0
+
+    return raw_velocity / mean_tau
+
+
+def tau_velocity_trend(velocity_pct: float) -> str:
+    """Classify tau velocity trend.
+
+    Args:
+        velocity_pct: Tau velocity as percentage
+
+    Returns:
+        Trend classification string
+    """
+    if velocity_pct < -0.10:
+        return "rapid_improvement"  # >10% improvement per cycle
+    elif velocity_pct < -0.05:
+        return "good_improvement"  # 5-10% improvement per cycle
+    elif velocity_pct < 0:
+        return "slow_improvement"  # <5% improvement per cycle
+    elif velocity_pct == 0:
+        return "stalled"
+    else:
+        return "regression"  # Getting worse
+
+
+@dataclass
+class TauVelocityResult:
+    """Result of tau velocity calculation.
+
+    Attributes:
+        velocity_raw: Raw velocity (tau units per cycle)
+        velocity_pct: Percentage velocity per cycle
+        trend: Trend classification
+        tau_history: Input tau history
+        meets_target: True if velocity_pct <= -0.05
+    """
+    velocity_raw: float
+    velocity_pct: float
+    trend: str
+    tau_history: List[float]
+    meets_target: bool
+
+
+def analyze_tau_velocity(tau_history: List[float]) -> TauVelocityResult:
+    """Full tau velocity analysis.
+
+    Args:
+        tau_history: List of tau values over cycles
+
+    Returns:
+        TauVelocityResult with all velocity metrics
+    """
+    velocity_raw = compute_tau_velocity(tau_history)
+    velocity_pct = compute_tau_velocity_pct(tau_history)
+    trend = tau_velocity_trend(velocity_pct)
+    meets_target = velocity_pct <= -0.05  # Target: 5%+ improvement per cycle
+
+    result = TauVelocityResult(
+        velocity_raw=velocity_raw,
+        velocity_pct=velocity_pct,
+        trend=trend,
+        tau_history=tau_history,
+        meets_target=meets_target
+    )
+
+    # Emit receipt
+    emit_receipt("tau_velocity", {
+        "tenant_id": "axiom-core",
+        "velocity_raw": velocity_raw,
+        "velocity_pct": velocity_pct,
+        "trend": trend,
+        "meets_target": meets_target,
+        "tau_start": tau_history[0] if tau_history else None,
+        "tau_end": tau_history[-1] if tau_history else None,
+        "observations": len(tau_history),
+    })
+
+    return result
+
+
+def project_tau_with_velocity(
+    current_tau: float,
+    velocity_pct: float,
+    cycles: int,
+    tau_min: float = TAU_MIN_ACHIEVABLE_S
+) -> List[float]:
+    """Project tau trajectory given current velocity.
+
+    Args:
+        current_tau: Current tau value
+        velocity_pct: Current percentage velocity per cycle
+        cycles: Number of cycles to project
+        tau_min: Minimum achievable tau (floor)
+
+    Returns:
+        List of projected tau values
+
+    Example:
+        current_tau=200, velocity_pct=-0.10, cycles=5
+        -> [200, 180, 162, 146, 131, 118]
+    """
+    projections = [current_tau]
+
+    for _ in range(cycles):
+        next_tau = projections[-1] * (1 + velocity_pct)
+        next_tau = max(tau_min, next_tau)
+        projections.append(next_tau)
+
+    return projections
+
+
+def emit_tau_velocity_receipt(result: TauVelocityResult) -> dict:
+    """Emit detailed tau velocity receipt per CLAUDEME.
+
+    Args:
+        result: TauVelocityResult to emit
+
+    Returns:
+        Receipt dict
+    """
+    return emit_receipt("tau_velocity", {
+        "tenant_id": "axiom-core",
+        "velocity_raw": result.velocity_raw,
+        "velocity_pct": result.velocity_pct,
+        "trend": result.trend,
+        "meets_target": result.meets_target,
+        "tau_start": result.tau_history[0] if result.tau_history else None,
+        "tau_end": result.tau_history[-1] if result.tau_history else None,
+        "observations": len(result.tau_history),
+        "target_velocity_pct": -0.05,
+    })
