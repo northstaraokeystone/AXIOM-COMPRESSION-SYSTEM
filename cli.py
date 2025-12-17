@@ -162,6 +162,20 @@ from src.rl_tune import (
     get_efficient_sweep_info,
     RL_SWEEP_INITIAL_LIMIT,
     RETENTION_QUICK_WIN_TARGET,
+    run_500_sweep,
+    load_sweep_spec,
+    get_500_sweep_info,
+    RL_SWEEP_RUNS,
+    RL_LR_MIN,
+    RL_LR_MAX,
+    RETENTION_TARGET,
+)
+from src.quantum_hybrid import (
+    quantum_entropy_boost,
+    is_implemented as quantum_is_implemented,
+    get_boost_estimate,
+    get_quantum_stub_info,
+    project_with_quantum,
 )
 from src.alpha_compute import (
     alpha_calc,
@@ -1868,6 +1882,143 @@ def cmd_efficient_sweep_info():
     print("=" * 60)
 
 
+# === 500-RUN RL SWEEP CLI COMMANDS (Dec 17 2025) ===
+
+
+def cmd_rl_500_sweep(tree_size: int, lr_range: tuple, retention_target: float, simulate: bool):
+    """Run 500-run RL sweep for 1.05 retention.
+
+    Args:
+        tree_size: Merkle tree size for depth calculation
+        lr_range: Optional LR range override (min, max)
+        retention_target: Override retention target
+        simulate: Whether to output simulation receipt
+    """
+    print("=" * 60)
+    print("500-RUN RL SWEEP FOR 1.05 RETENTION")
+    print("=" * 60)
+
+    # Load and display spec
+    try:
+        spec = load_sweep_spec()
+        print(f"\nSpec loaded:")
+        print(f"  sweep_runs: {spec['sweep_runs']}")
+        print(f"  lr_min: {spec['lr_min']}")
+        print(f"  lr_max: {spec['lr_max']}")
+        print(f"  retention_target: {spec['retention_target']}")
+        print(f"  seed: {spec['seed']}")
+    except FileNotFoundError:
+        print("\nSpec file not found, using defaults")
+
+    # Compute depth for given tree size
+    depth = compute_adaptive_n_depth(tree_size, 0.5)
+    print(f"\nComputed depth for n={tree_size:.2e}:")
+    print(f"  layers: {depth}")
+
+    print(f"\nRunning 500-run informed sweep...")
+
+    result = run_500_sweep(
+        runs=RL_SWEEP_RUNS,
+        tree_size=tree_size,
+        adaptive_depth=True,
+        early_stopping=True,
+        seed=42
+    )
+
+    print(f"\nRESULTS:")
+    print(f"  Final retention: {result['final_retention']}")
+    print(f"  Best retention: {result['best_retention']}")
+    print(f"  Target achieved: {'PASS' if result['target_achieved'] else 'PENDING'}")
+    print(f"  Convergence run: {result['convergence_run']}")
+    print(f"  Runs completed: {result['runs_completed']}/{result['runs_limit']}")
+    print(f"  Depth used: {result['depth_used']}")
+    print(f"  LR range: {result['lr_range']}")
+
+    if result['best_action']:
+        print(f"\nBest Action:")
+        print(f"  layers_delta: {result['best_action']['layers_delta']}")
+        print(f"  lr: {result['best_action']['lr']}")
+        print(f"  prune_factor: {result['best_action']['prune_factor']}")
+
+    print(f"\nSLO VALIDATION:")
+    ret_ok = result['best_retention'] >= RETENTION_TARGET
+    print(f"  Retention >= {RETENTION_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})")
+
+    if simulate:
+        print("\n[rl_500_sweep_receipt emitted above]")
+
+    print("=" * 60)
+
+
+def cmd_rl_500_sweep_info():
+    """Output 500-run sweep configuration."""
+    print("=" * 60)
+    print("500-RUN RL SWEEP CONFIGURATION")
+    print("=" * 60)
+
+    info = get_500_sweep_info()
+
+    print(f"\nConfiguration:")
+    print(f"  sweep_runs: {info['sweep_runs']}")
+    print(f"  lr_min: {info['lr_min']}")
+    print(f"  lr_max: {info['lr_max']}")
+    print(f"  retention_target: {info['retention_target']}")
+    print(f"  seed: {info['seed']}")
+    print(f"  divergence_threshold: {info['divergence_threshold']}")
+
+    print(f"\nState Components:")
+    for comp in info['state_components']:
+        print(f"  - {comp}")
+
+    print(f"\nAction Components:")
+    for comp in info['action_components']:
+        print(f"  - {comp}")
+
+    print(f"\nExpected Behavior:")
+    print(f"  Expected convergence: {info['expected_convergence']}")
+    print(f"  vs blind: {info['vs_blind']}")
+
+    print(f"\nDescription: {info['description']}")
+
+    print("\n[rl_500_sweep_info receipt emitted above]")
+    print("=" * 60)
+
+
+def cmd_quantum_estimate(current_retention: float = 1.05):
+    """Show quantum stub estimate.
+
+    Args:
+        current_retention: Current retention to estimate boost for
+    """
+    print("=" * 60)
+    print("QUANTUM ENTROPY BOOST ESTIMATE (STUB)")
+    print("=" * 60)
+
+    info = get_quantum_stub_info()
+
+    print(f"\nStub Status:")
+    print(f"  Implemented: {'YES' if quantum_is_implemented() else 'NO (stub only)'}")
+    print(f"  Boost estimate: {get_boost_estimate() * 100:.1f}%")
+
+    print(f"\nProjection for retention={current_retention}:")
+    projection = project_with_quantum(current_retention)
+    print(f"  Base retention: {projection['base_retention']}")
+    print(f"  Quantum boost: {projection['quantum_boost'] * 100:.1f}%")
+    print(f"  Projected retention: {projection['projected_retention']}")
+    print(f"  Note: {projection['note']}")
+
+    print(f"\nSequencing:")
+    for step, desc in info['sequencing'].items():
+        print(f"  {step}: {desc}")
+
+    print(f"\nWhy stub now:")
+    for reason in info['why_stub_now']:
+        print(f"  - {reason}")
+
+    print("\n[quantum_stub_receipt emitted above]")
+    print("=" * 60)
+
+
 def main():
     # Check for flag-based invocation
     parser = argparse.ArgumentParser(description="AXIOM-CORE CLI - The Sovereignty Calculator")
@@ -1995,6 +2146,19 @@ def main():
     parser.add_argument('--efficient_sweep_info', action='store_true',
                         help='Output efficient sweep configuration')
 
+    # 500-run RL sweep flags (Dec 17 2025 - NEW)
+    parser.add_argument('--rl_500_sweep', action='store_true',
+                        help='Run 500-iteration RL sweep for 1.05 retention')
+    parser.add_argument('--lr_range', nargs=2, type=float, default=None,
+                        metavar=('MIN', 'MAX'),
+                        help='Override LR bounds (default: 0.001 0.01)')
+    parser.add_argument('--retention_target', type=float, default=1.05,
+                        help='Override retention target (default: 1.05)')
+    parser.add_argument('--quantum_estimate', action='store_true',
+                        help='Show quantum stub estimate')
+    parser.add_argument('--rl_500_sweep_info', action='store_true',
+                        help='Output 500-run sweep configuration')
+
     args = parser.parse_args()
 
     # Combine reroute flags
@@ -2038,6 +2202,20 @@ def main():
 
     if args.efficient_sweep_info:
         cmd_efficient_sweep_info()
+        return
+
+    # Handle 500-run RL sweep flags (Dec 17 2025 - NEW)
+    if args.rl_500_sweep_info:
+        cmd_rl_500_sweep_info()
+        return
+
+    if args.quantum_estimate:
+        cmd_quantum_estimate(args.retention_target)
+        return
+
+    if args.rl_500_sweep:
+        lr_range = tuple(args.lr_range) if args.lr_range else (RL_LR_MIN, RL_LR_MAX)
+        cmd_rl_500_sweep(args.tree_size, lr_range, args.retention_target, args.simulate)
         return
 
     if args.compute_depth:

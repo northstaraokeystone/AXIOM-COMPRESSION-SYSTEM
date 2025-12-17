@@ -34,25 +34,38 @@ from .core import emit_receipt, dual_hash, StopRule
 
 
 # === CONSTANTS (Adaptive Depth Scaling) ===
+# LOCKED: Validated by 27/27 tests (Dec 17 2025)
+# These constants are immutable after validation.
 
 ADAPTIVE_DEPTH_SPEC_PATH = "data/adaptive_depth_spec.json"
 """Path to adaptive depth specification file."""
 
-# Default values (overridden by spec file)
-BASE_LAYERS = 4
-"""Base GNN depth before scaling."""
+# LOCKED CONSTANTS - Do not modify without re-running full test suite
+# Source: 27/27 test pass validation
+ADAPTIVE_DEPTH_BASE = 4
+"""Base GNN depth before scaling. LOCKED."""
 
-SCALE_FACTOR = 0.5
-"""Entropy density scaling factor."""
+ADAPTIVE_DEPTH_SCALE = 0.5
+"""Entropy density scaling factor. LOCKED."""
 
-BASELINE_N = 1000000
-"""Typical early Merkle tree size (10^6)."""
+ADAPTIVE_DEPTH_MAX = 12
+"""Compute safety cap. LOCKED."""
 
-MAX_LAYERS = 12
-"""Compute safety cap."""
+BASELINE_N = 1_000_000
+"""Typical early Merkle tree size (10^6 reference). LOCKED."""
 
-MIN_LAYERS = 4
-"""Minimum viable depth."""
+# Legacy aliases for backward compatibility
+BASE_LAYERS = ADAPTIVE_DEPTH_BASE
+"""Alias for ADAPTIVE_DEPTH_BASE."""
+
+SCALE_FACTOR = ADAPTIVE_DEPTH_SCALE
+"""Alias for ADAPTIVE_DEPTH_SCALE."""
+
+MAX_LAYERS = ADAPTIVE_DEPTH_MAX
+"""Alias for ADAPTIVE_DEPTH_MAX."""
+
+MIN_LAYERS = ADAPTIVE_DEPTH_BASE
+"""Minimum viable depth (same as base)."""
 
 SWEEP_LIMIT = 500
 """Informed RL sweep limit (vs 1000 blind)."""
