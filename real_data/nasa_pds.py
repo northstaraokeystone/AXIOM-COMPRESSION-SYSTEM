@@ -18,7 +18,7 @@ from typing import Dict, List
 
 # Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.core import dual_hash, emit_receipt
+from src.core import dual_hash, emit_receipt  # noqa: E402
 
 
 # === CONSTANTS ===
@@ -71,22 +71,38 @@ TENANT_ID = "axiom-real-data"
 # Based on actual MOXIE performance (NASA public data)
 
 MOXIE_RUNS = [
-    {"run_id": 1, "date": "2021-04-20", "duration_min": 60, "o2_produced_g": 5.4, "power_consumed_w": 300},
-    {"run_id": 2, "date": "2021-08-15", "duration_min": 60, "o2_produced_g": 5.3, "power_consumed_w": 295},
-    {"run_id": 3, "date": "2021-11-20", "duration_min": 55, "o2_produced_g": 5.0, "power_consumed_w": 290},
-    {"run_id": 4, "date": "2022-02-10", "duration_min": 60, "o2_produced_g": 5.6, "power_consumed_w": 305},
-    {"run_id": 5, "date": "2022-05-18", "duration_min": 65, "o2_produced_g": 5.8, "power_consumed_w": 310},
-    {"run_id": 6, "date": "2022-08-25", "duration_min": 60, "o2_produced_g": 5.5, "power_consumed_w": 300},
-    {"run_id": 7, "date": "2022-11-12", "duration_min": 60, "o2_produced_g": 5.7, "power_consumed_w": 308},
-    {"run_id": 8, "date": "2023-02-20", "duration_min": 58, "o2_produced_g": 5.4, "power_consumed_w": 298},
-    {"run_id": 9, "date": "2023-05-08", "duration_min": 62, "o2_produced_g": 5.9, "power_consumed_w": 315},
-    {"run_id": 10, "date": "2023-08-30", "duration_min": 60, "o2_produced_g": 6.0, "power_consumed_w": 320},
-    {"run_id": 11, "date": "2023-11-15", "duration_min": 60, "o2_produced_g": 5.6, "power_consumed_w": 302},
-    {"run_id": 12, "date": "2024-02-28", "duration_min": 63, "o2_produced_g": 6.1, "power_consumed_w": 325},
-    {"run_id": 13, "date": "2024-06-10", "duration_min": 58, "o2_produced_g": 5.5, "power_consumed_w": 300},
-    {"run_id": 14, "date": "2024-09-22", "duration_min": 60, "o2_produced_g": 5.7, "power_consumed_w": 308},
-    {"run_id": 15, "date": "2025-01-05", "duration_min": 61, "o2_produced_g": 5.8, "power_consumed_w": 312},
-    {"run_id": 16, "date": "2025-04-18", "duration_min": 60, "o2_produced_g": 5.6, "power_consumed_w": 305},
+    {"run_id": 1, "date": "2021-04-20", "duration_min": 60,
+     "o2_produced_g": 5.4, "power_consumed_w": 300},
+    {"run_id": 2, "date": "2021-08-15", "duration_min": 60,
+     "o2_produced_g": 5.3, "power_consumed_w": 295},
+    {"run_id": 3, "date": "2021-11-20", "duration_min": 55,
+     "o2_produced_g": 5.0, "power_consumed_w": 290},
+    {"run_id": 4, "date": "2022-02-10", "duration_min": 60,
+     "o2_produced_g": 5.6, "power_consumed_w": 305},
+    {"run_id": 5, "date": "2022-05-18", "duration_min": 65,
+     "o2_produced_g": 5.8, "power_consumed_w": 310},
+    {"run_id": 6, "date": "2022-08-25", "duration_min": 60,
+     "o2_produced_g": 5.5, "power_consumed_w": 300},
+    {"run_id": 7, "date": "2022-11-12", "duration_min": 60,
+     "o2_produced_g": 5.7, "power_consumed_w": 308},
+    {"run_id": 8, "date": "2023-02-20", "duration_min": 58,
+     "o2_produced_g": 5.4, "power_consumed_w": 298},
+    {"run_id": 9, "date": "2023-05-08", "duration_min": 62,
+     "o2_produced_g": 5.9, "power_consumed_w": 315},
+    {"run_id": 10, "date": "2023-08-30", "duration_min": 60,
+     "o2_produced_g": 6.0, "power_consumed_w": 320},
+    {"run_id": 11, "date": "2023-11-15", "duration_min": 60,
+     "o2_produced_g": 5.6, "power_consumed_w": 302},
+    {"run_id": 12, "date": "2024-02-28", "duration_min": 63,
+     "o2_produced_g": 6.1, "power_consumed_w": 325},
+    {"run_id": 13, "date": "2024-06-10", "duration_min": 58,
+     "o2_produced_g": 5.5, "power_consumed_w": 300},
+    {"run_id": 14, "date": "2024-09-22", "duration_min": 60,
+     "o2_produced_g": 5.7, "power_consumed_w": 308},
+    {"run_id": 15, "date": "2025-01-05", "duration_min": 61,
+     "o2_produced_g": 5.8, "power_consumed_w": 312},
+    {"run_id": 16, "date": "2025-04-18", "duration_min": 60,
+     "o2_produced_g": 5.6, "power_consumed_w": 305},
 ]
 """All 16 MOXIE O2 generation runs with actual/projected performance data."""
 

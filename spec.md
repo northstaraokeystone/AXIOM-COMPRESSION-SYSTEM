@@ -49,12 +49,15 @@ axiom-core/
 ├── src/
 │   ├── __init__.py
 │   ├── core.py                # dual_hash, emit_receipt, StopRule, merkle
+│   ├── entropy.py             # v2: Landauer mass equivalent + uncertainty
 │   ├── entropy_shannon.py     # Shannon H, rate calculations
+│   ├── witness.py             # v2: KAN + crossover_detection()
 │   ├── sovereignty.py         # v1 equation + v2 person-equivalent
 │   ├── compounding.py         # Compounding model + τ_velocity
 │   ├── validate.py            # Statistical validation
 │   ├── plot_curve.py          # Visualization
-│   ├── prove.py               # Receipt chain verification
+│   ├── prove.py               # Receipt chain + verify_provenance()
+│   ├── sim.py                 # 14 simulation scenarios
 │   │
 │   ├── build_rate.py          # v2: B = c × A^α × P
 │   ├── stage_gate.py          # v2: Dynamic allocation (30% → 40%)
@@ -62,6 +65,22 @@ axiom-core/
 │   ├── timeline.py            # v2: Year-to-threshold projections
 │   ├── tier_risk.py           # v2: 3-tier probability × impact
 │   └── leading_indicators.py  # v2: Observable proxy monitoring
+├── real_data/                 # v2: Real data loaders with provenance
+│   ├── __init__.py
+│   ├── sparc.py               # SPARC galaxy rotation curves (seed=42)
+│   ├── nasa_pds.py            # MOXIE telemetry (PDS Release 14)
+│   ├── iss_eclss.py           # ISS life support data
+│   └── cache/
+├── benchmarks/                # v2: Symbolic regression comparison
+│   ├── __init__.py
+│   └── pysr_comparison.py     # AXIOM KAN vs pySR
+├── zenodo/                    # v2: DOI-ready archive generation
+│   ├── zenodo.json            # Metadata template
+│   └── export.py              # Archive + merkle root
+├── scripts/
+│   └── verify_provenance.py   # Receipt chain verification CLI
+├── .github/workflows/
+│   └── ci.yml                 # CI with coverage gates + reproducibility
 ├── tests/
 │   ├── test_build_rate.py
 │   ├── test_stage_gate.py
@@ -71,6 +90,9 @@ axiom-core/
 │   ├── test_leading_indicators.py
 │   ├── test_sovereignty_curve.py
 │   ├── test_compounding.py
+│   ├── test_sim_scenarios.py
+│   ├── test_reproducibility.py  # v2: Seed determinism tests
+│   ├── test_real_data.py        # v2: Data loader tests
 │   └── conftest.py
 └── data/
     ├── bandwidth_mars_2025.json
@@ -91,6 +113,21 @@ axiom-core/
 | TIER_3_PROB_RANGE | (0.05, 0.15) | Grok: "5-15%" |
 | ALPHA_BASELINE | 1.8 | Grok: "calibrated to α=1.8" |
 
+## v2 Validation Lock Constants
+
+| Constant | Value | Source |
+|----------|-------|--------|
+| SPARC_RANDOM_SEED | 42 | Reproducibility convention |
+| SPARC_TOTAL_GALAXIES | 175 | SPARC database (Lelli et al. 2016) |
+| PDS_RELEASE_VERSION | "14" | NASA PDS Mars 2020 Release 14 |
+| MOXIE_RUN_COUNT | 16 | Total O2 generation runs 2021-2025 |
+| MOXIE_EFFICIENCY_VARIANCE_PCT | 0.12 | From 16 runs: (6.1-5.0)/(2×5.5) |
+| LANDAUER_LIMIT_J_PER_BIT | 2.87e-21 | kT×ln(2) at T=300K |
+| BASELINE_MASS_KG | 60,000 | Starship payload capacity |
+| CREW_STRESS_ENTROPY_FACTOR | 1.15 | NASA/TM-2010-216130 (Stuster 2010) |
+| ISS_WATER_RECOVERY | 0.98 | NASA ECLSS 2023 |
+| ISS_O2_CLOSURE | 0.875 | NASA ECLSS (85-90% midpoint) |
+
 ## v2 Receipt Types
 
 | Receipt Type | Module | Key Fields |
@@ -103,6 +140,18 @@ axiom-core/
 | leading_indicator | leading_indicators.py | indicator_type, current_value, gap, trend |
 | sovereignty_v2 | sovereignty.py | person_equivalent, threshold, gap_to_threshold |
 | tau_velocity | compounding.py | velocity_raw, velocity_pct, trend, meets_target |
+
+## v2 Validation Lock Receipt Types
+
+| Receipt Type | Module | Key Fields |
+|--------------|--------|------------|
+| real_data | real_data/*.py | dataset_id, source_url, download_hash, random_seed |
+| landauer | entropy.py | bits_per_sec, kg_equivalent, uncertainty_pct, confidence_interval |
+| witness | witness.py | galaxy_id, compression, r_squared, regime_transitions, data_source |
+| benchmark | pysr_comparison.py | tool_name, dataset_id, compression_ratio, r_squared, equation |
+| verification | prove.py | valid_count, invalid_count, broken_chains, merkle_root |
+| zenodo | export.py | doi, archive_hash, files_included, version, merkle_root |
+| ci_gate | ci.yml | jobs_passed, lint_passed, test_passed, reproducibility_passed |
 
 ## Falsifiable Predictions (v2)
 
@@ -147,8 +196,22 @@ At 25% autonomy allocation:
 
 ---
 
+## v2 Validation Lock SLOs
+
+| SLO | Requirement | Validation |
+|-----|-------------|------------|
+| Compression | ≥92% on SPARC galaxies | pysr_comparison.py |
+| R² | ≥0.98 on rotation curves | witness.py |
+| bits/kg calibration | ±15% vs 60k kg baseline | entropy.py |
+| Uncertainty | ≤15% on Landauer output | MOXIE_EFFICIENCY_VARIANCE_PCT |
+| Reproducibility | Same seed → same galaxies | test_reproducibility.py |
+| CI coverage | ≥95% (target) | ci.yml coverage-gate |
+| Scenarios | 14 defined (10 original + 4 new) | sim.py |
+
+---
+
 **Hash of this document:** COMPUTE_ON_SAVE
-**Version:** 2.0
+**Version:** 2.1 (Validation Lock)
 **Status:** ACTIVE
 
-*Build rate B ≈ c × A^α × P. Autonomy multiplies. The rest is commentary.*
+*Same seed. Same galaxies. Same laws witnessed. Uncertainty quantified. CI automated.*

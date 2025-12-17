@@ -14,17 +14,16 @@ v2 FIX #1: SPARC random seed for reproducibility
 """
 
 import hashlib
-import json
 import os
 import sys
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import numpy as np
 
 # Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.core import dual_hash, emit_receipt
+from src.core import dual_hash, emit_receipt  # noqa: E402
 
 
 # === CONSTANTS ===
@@ -126,7 +125,7 @@ def _generate_synthetic_rotation_curve(
 
     # Generate rotation curve (arctangent profile is common)
     # v(r) = v_max * (2/pi) * arctan(r/r_0)
-    v = v_max * (2/np.pi) * np.arctan(r / r_0)
+    v = v_max * (2 / np.pi) * np.arctan(r / r_0)
 
     # Add realistic scatter (5-15% uncertainty)
     uncertainty_pct = 0.05 + rng.rand() * 0.10

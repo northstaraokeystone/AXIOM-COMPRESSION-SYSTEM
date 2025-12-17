@@ -16,7 +16,7 @@ Source: NASA/TM-2010-216130 (Stuster 2010) for psychology constants
 
 import math
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict
 
 from .core import emit_receipt
 

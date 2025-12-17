@@ -12,13 +12,12 @@ THE WITNESSING INSIGHT:
 Source: arXiv 2509.10089 (KAN-SR, 2025)
 """
 
-import math
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Dict, List
 
 import numpy as np
 
-from .core import dual_hash, emit_receipt
+from .core import emit_receipt
 
 # === CONSTANTS ===
 
@@ -343,7 +342,7 @@ def crossover_detection(
 
     for i in range(1, len(d2v_dr2) - 1):
         # Detect sudden changes in second derivative
-        local_change = abs(d2v_dr2[i] - d2v_dr2[i-1])
+        local_change = abs(d2v_dr2[i] - d2v_dr2[i - 1])
         if local_change > threshold * d2v_std and d2v_abs[i] > d2v_mean:
             # Classify regimes based on curve shape
             if dv_dr[i] > 0 and d2v_dr2[i] < 0:
@@ -371,7 +370,8 @@ def crossover_detection(
     if transitions:
         deduped = [transitions[0]]
         for t in transitions[1:]:
-            if abs(t["transition_point_r"] - deduped[-1]["transition_point_r"]) > (r_max - r_min) * 0.05:
+            dist = abs(t["transition_point_r"] - deduped[-1]["transition_point_r"])
+            if dist > (r_max - r_min) * 0.05:
                 deduped.append(t)
         transitions = deduped
 

@@ -8,15 +8,14 @@ THE PROVENANCE INSIGHT:
 
 import json
 import os
-import shutil
 import sys
 import tarfile
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict
 
 # Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.core import dual_hash, emit_receipt, merkle
+from src.core import dual_hash, emit_receipt, merkle  # noqa: E402
 
 
 # === CONSTANTS ===
@@ -141,8 +140,8 @@ def create_archive(
     if source_dir is None:
         source_dir = os.path.dirname(os.path.dirname(__file__))
 
-    # Get metadata
-    metadata = generate_metadata(version)
+    # Get metadata (validates zenodo.json is valid)
+    generate_metadata(version)  # Validates metadata during archive creation
 
     # Freeze receipts
     receipts_path = os.path.join(source_dir, "receipts.jsonl")
@@ -150,7 +149,10 @@ def create_archive(
 
     # Create archive
     archive_name = f"axiom-{version}.tar.gz"
-    archive_path = os.path.join(output_path, archive_name) if os.path.isdir(output_path) else output_path
+    if os.path.isdir(output_path):
+        archive_path = os.path.join(output_path, archive_name)
+    else:
+        archive_path = output_path
 
     # Files to include
     include_patterns = [
@@ -169,7 +171,10 @@ def create_archive(
     with tarfile.open(archive_path, "w:gz") as tar:
         for root, dirs, files in os.walk(source_dir):
             # Skip hidden and cache directories
-            dirs[:] = [d for d in dirs if not d.startswith('.') and d != '__pycache__' and d != 'cache']
+            dirs[:] = [
+                d for d in dirs
+                if not d.startswith('.') and d != '__pycache__' and d != 'cache'
+            ]
 
             for file in files:
                 if file.startswith('.'):

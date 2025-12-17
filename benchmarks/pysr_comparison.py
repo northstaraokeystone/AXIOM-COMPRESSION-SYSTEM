@@ -12,14 +12,13 @@ Literature Reference: arXiv 2509.10089 (KAN-SR, 2025)
 import os
 import sys
 import time
-from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import numpy as np
 
 # Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.core import dual_hash, emit_receipt
+from src.core import emit_receipt  # noqa: E402
 
 
 # === CONSTANTS ===
@@ -129,8 +128,8 @@ class SimpleKAN:
 
         # Model bits: parameters * 32 (float32)
         model_params = (
-            self.hidden_dim * self.n_knots +  # spline coefficients
-            self.hidden_dim  # output weights
+            self.hidden_dim * self.n_knots  # spline coefficients
+            + self.hidden_dim  # output weights
         )
         model_bits = model_params * 32
 
@@ -269,6 +268,7 @@ def run_axiom(data: Dict, epochs: int = DEFAULT_KAN_EPOCHS) -> Dict:
         "mse": float(mse),
         "r_squared": float(r_squared),
         "compression": float(compression),
+        "final_loss": float(final_loss),
         "time_ms": elapsed_ms,
         "tool": "AXIOM",
     }
@@ -315,7 +315,9 @@ def compare(galaxy: Dict) -> Dict:
         "pysr": pysr_result,
         "axiom": axiom_result,
         "axiom_wins_compression": axiom_result["compression"] > 1.0,
-        "axiom_wins_r_squared": axiom_result["r_squared"] >= (1 - pysr_result["mse"] / np.var(galaxy["v"])),
+        "axiom_wins_r_squared": (
+            axiom_result["r_squared"] >= (1 - pysr_result["mse"] / np.var(galaxy["v"]))
+        ),
     }
 
 
@@ -367,12 +369,14 @@ def generate_table(results: List[Dict]) -> str:
     for r in results:
         galaxy_id = r["galaxy_id"]
         pysr_mse = f"{r['pysr']['mse']:.4f}"
-        pysr_eq = r["pysr"]["equation"][:30] + "..." if len(r["pysr"]["equation"]) > 30 else r["pysr"]["equation"]
+        eq = r["pysr"]["equation"]
+        pysr_eq = eq[:30] + "..." if len(eq) > 30 else eq
         axiom_r2 = f"{r['axiom']['r_squared']:.4f}"
         axiom_comp = f"{r['axiom']['compression']:.2f}"
         winner = "AXIOM" if r["axiom_wins_r_squared"] else "pySR"
 
-        lines.append(f"| {galaxy_id} | {pysr_mse} | {pysr_eq} | {axiom_r2} | {axiom_comp} | {winner} |")
+        row = f"| {galaxy_id} | {pysr_mse} | {pysr_eq} | {axiom_r2} | {axiom_comp} | {winner} |"
+        lines.append(row)
 
     return "\n".join(lines)
 

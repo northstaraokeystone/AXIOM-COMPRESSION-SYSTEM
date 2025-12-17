@@ -17,7 +17,7 @@ Source: Grok - "Not coincidence - Merkle batch entropy often bounds as ~e*ln(n)"
 import json
 import math
 import os
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from .core import emit_receipt, dual_hash, StopRule
 # Import all constants for use AND for backward-compatible re-export

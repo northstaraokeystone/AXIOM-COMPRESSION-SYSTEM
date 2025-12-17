@@ -14,7 +14,7 @@ from typing import Dict
 
 # Add parent to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.core import dual_hash, emit_receipt
+from src.core import dual_hash, emit_receipt  # noqa: E402
 
 
 # === CONSTANTS ===
@@ -80,7 +80,8 @@ def load_eclss() -> Dict:
     emit_receipt("real_data", {
         "tenant_id": TENANT_ID,
         "dataset_id": "ISS_ECLSS",
-        "source_url": "https://www.nasa.gov/mission_pages/station/research/experiments/explorer/Facility.html",
+        "source_url": "https://www.nasa.gov/mission_pages/station/research/"
+                      "experiments/explorer/Facility.html",
         "download_hash": data_hash,
         "n_records": 1,
         "provenance_chain": [
@@ -127,7 +128,7 @@ def validate_constants() -> Dict:
         "water_recovery_valid": ISS_WATER_RECOVERY == 0.98,
         "o2_closure_valid": ISS_O2_CLOSURE == 0.875,
         "constants_match": (
-            get_water_recovery() == ISS_WATER_RECOVERY and
-            get_o2_closure() == ISS_O2_CLOSURE
+            get_water_recovery() == ISS_WATER_RECOVERY
+            and get_o2_closure() == ISS_O2_CLOSURE
         )
     }
