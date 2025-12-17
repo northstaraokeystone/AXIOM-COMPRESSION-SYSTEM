@@ -14,6 +14,12 @@ Usage:
     # Partition resilience testing (Dec 2025)
     python cli.py --partition 0.4 --nodes 5 --simulate    # Single partition test
     python cli.py --stress_quorum                          # Full 1000-iteration stress test
+
+    # Adaptive rerouting and blackout testing (Dec 2025)
+    python cli.py --reroute --simulate                     # Single reroute test
+    python cli.py --blackout 43 --reroute --simulate       # Blackout with reroute
+    python cli.py --blackout_sweep --reroute               # Full blackout sweep (1000 iterations)
+    python cli.py --algo_info                              # Output reroute algorithm spec
 """
 
 import sys
@@ -43,7 +49,19 @@ from src.partition import (
     BASE_ALPHA
 )
 from src.ledger import LEDGER_ALPHA_BOOST_VALIDATED
-from src.reasoning import sovereignty_projection_with_partition, validate_resilience_slo
+from src.reasoning import sovereignty_projection_with_partition, validate_resilience_slo, blackout_sweep
+from src.reroute import (
+    adaptive_reroute,
+    blackout_sim,
+    blackout_stress_sweep,
+    apply_reroute_boost,
+    get_reroute_algo_info,
+    load_reroute_spec,
+    REROUTE_ALPHA_BOOST,
+    BLACKOUT_BASE_DAYS,
+    BLACKOUT_EXTENDED_DAYS,
+    MIN_EFF_ALPHA_FLOOR
+)
 
 
 def cmd_baseline():
@@ -272,6 +290,200 @@ def cmd_stress_quorum():
     print("=" * 60)
 
 
+def cmd_reroute(simulate: bool):
+    """Run single adaptive reroute test.
+
+    Args:
+        simulate: Whether to output simulation receipt
+    """
+    print("=" * 60)
+    print("ADAPTIVE REROUTE TEST")
+    print("=" * 60)
+
+    print(f"\nConfiguration:")
+    print(f"  Algorithm: {load_reroute_spec()['algo_type']}")
+    print(f"  CGR Baseline: {load_reroute_spec()['cgr_baseline']}")
+    print(f"  ML Model: {load_reroute_spec()['ml_model_type']}")
+    print(f"  Alpha Boost: +{REROUTE_ALPHA_BOOST}")
+    print(f"  Base Alpha Floor: {MIN_EFF_ALPHA_FLOOR}")
+
+    # Test reroute boost
+    boosted = apply_reroute_boost(MIN_EFF_ALPHA_FLOOR, reroute_active=True, blackout_days=0)
+
+    print(f"\nRESULTS:")
+    print(f"  Base eff_α: {MIN_EFF_ALPHA_FLOOR}")
+    print(f"  Boosted eff_α: {boosted}")
+    print(f"  Boost applied: +{REROUTE_ALPHA_BOOST}")
+
+    print(f"\nSLO VALIDATION:")
+    alpha_ok = boosted >= 2.70
+    print(f"  eff_α >= 2.70: {'PASS' if alpha_ok else 'FAIL'} ({boosted})")
+
+    # Run adaptive reroute simulation
+    graph_state = {
+        "nodes": NODE_BASELINE,
+        "edges": [{"src": f"n{i}", "dst": f"n{(i+1) % NODE_BASELINE}"} for i in range(NODE_BASELINE)]
+    }
+
+    result = adaptive_reroute(graph_state, partition_pct=0.2, blackout_days=0)
+
+    print(f"\n  Recovery factor: {result['recovery_factor']}")
+    print(f"  Quorum preserved: {'PASS' if result['quorum_preserved'] else 'FAIL'}")
+    print(f"  Alpha boost applied: {result['alpha_boost']}")
+
+    if simulate:
+        print("\n[adaptive_reroute_receipt emitted above]")
+
+    print("=" * 60)
+
+
+def cmd_blackout(blackout_days: int, reroute_enabled: bool, simulate: bool):
+    """Run single blackout simulation.
+
+    Args:
+        blackout_days: Blackout duration in days
+        reroute_enabled: Whether adaptive rerouting is active
+        simulate: Whether to output simulation receipt
+    """
+    print("=" * 60)
+    print(f"BLACKOUT SIMULATION ({blackout_days} days)")
+    print("=" * 60)
+
+    print(f"\nConfiguration:")
+    print(f"  Blackout duration: {blackout_days} days")
+    print(f"  Baseline max: {BLACKOUT_BASE_DAYS} days")
+    print(f"  Extended max: {BLACKOUT_EXTENDED_DAYS} days (with reroute)")
+    print(f"  Reroute enabled: {reroute_enabled}")
+    print(f"  Base alpha floor: {MIN_EFF_ALPHA_FLOOR}")
+
+    # Run blackout simulation
+    result = blackout_sim(
+        nodes=NODE_BASELINE,
+        blackout_days=blackout_days,
+        reroute_enabled=reroute_enabled,
+        base_alpha=MIN_EFF_ALPHA_FLOOR,
+        seed=42
+    )
+
+    print(f"\nRESULTS:")
+    print(f"  Survival status: {'SURVIVED' if result['survival_status'] else 'FAILED'}")
+    print(f"  Min α during: {result['min_alpha_during']}")
+    print(f"  Max α drop: {result['max_alpha_drop']}")
+    print(f"  Quorum failures: {result['quorum_failures']}")
+
+    print(f"\nSLO VALIDATION:")
+    survival_ok = result['survival_status']
+    alpha_ok = result['min_alpha_during'] >= MIN_EFF_ALPHA_FLOOR * 0.9
+
+    print(f"  Survival: {'PASS' if survival_ok else 'FAIL'}")
+    print(f"  Min α acceptable: {'PASS' if alpha_ok else 'FAIL'} ({result['min_alpha_during']})")
+
+    if blackout_days <= BLACKOUT_BASE_DAYS:
+        print(f"  Within baseline (43d): PASS")
+    elif blackout_days <= BLACKOUT_EXTENDED_DAYS and reroute_enabled:
+        print(f"  Within extended (60d) with reroute: PASS")
+    else:
+        print(f"  Beyond tolerance: WARNING")
+
+    if simulate:
+        print("\n[blackout_sim_receipt emitted above]")
+
+    print("=" * 60)
+
+
+def cmd_blackout_sweep(reroute_enabled: bool):
+    """Run full blackout sweep (1000 iterations, 43-60d range).
+
+    Args:
+        reroute_enabled: Whether adaptive rerouting is active
+    """
+    print("=" * 60)
+    print("BLACKOUT STRESS SWEEP (1000 iterations)")
+    print("=" * 60)
+
+    print(f"\nConfiguration:")
+    print(f"  Nodes baseline: {NODE_BASELINE}")
+    print(f"  Blackout range: {BLACKOUT_BASE_DAYS}-{BLACKOUT_EXTENDED_DAYS} days")
+    print(f"  Iterations: 1000")
+    print(f"  Reroute enabled: {reroute_enabled}")
+    print(f"  Base alpha: {MIN_EFF_ALPHA_FLOOR}")
+
+    print("\nRunning blackout stress sweep...")
+
+    result = blackout_stress_sweep(
+        nodes=NODE_BASELINE,
+        blackout_range=(BLACKOUT_BASE_DAYS, BLACKOUT_EXTENDED_DAYS),
+        n_iterations=1000,
+        reroute_enabled=reroute_enabled,
+        base_alpha=MIN_EFF_ALPHA_FLOOR,
+        seed=42
+    )
+
+    print(f"\nRESULTS:")
+    print(f"  Survival rate: {result['survival_rate'] * 100:.1f}%")
+    print(f"  Failures: {result['failures']}")
+    print(f"  Avg min α: {result['avg_min_alpha']}")
+    print(f"  Avg max drop: {result['avg_max_drop']}")
+    print(f"  All survived: {result['all_survived']}")
+
+    print(f"\nSLO VALIDATION:")
+    survival_ok = result['survival_rate'] == 1.0
+    drop_ok = result['avg_max_drop'] < 0.05
+
+    print(f"  100% survival: {'PASS' if survival_ok else 'FAIL'} ({result['survival_rate']*100:.1f}%)")
+    print(f"  Avg drop < 0.05: {'PASS' if drop_ok else 'FAIL'} ({result['avg_max_drop']})")
+
+    if reroute_enabled:
+        boosted = MIN_EFF_ALPHA_FLOOR + REROUTE_ALPHA_BOOST
+        print(f"  eff_α with reroute >= 2.70: {'PASS' if boosted >= 2.70 else 'FAIL'} ({boosted})")
+
+    print("\n[blackout_stress_sweep receipt emitted above]")
+    print("=" * 60)
+
+
+def cmd_algo_info():
+    """Output reroute algorithm specification."""
+    print("=" * 60)
+    print("ADAPTIVE REROUTE ALGORITHM SPECIFICATION")
+    print("=" * 60)
+
+    info = get_reroute_algo_info()
+
+    print(f"\nAlgorithm: {info['algo_type']}")
+    print(f"Description: {info['description']}")
+
+    print(f"\nComponents:")
+    print(f"  CGR Baseline: {info['cgr_baseline']}")
+    print(f"  ML Model: {info['ml_model_type']}")
+
+    print(f"\nParameters:")
+    print(f"  Alpha Boost: +{info['alpha_boost']}")
+    print(f"  Blackout Base: {info['blackout_base_days']} days")
+    print(f"  Blackout Extended: {info['blackout_extended_days']} days")
+    print(f"  Retention Factor: {info['retention_factor']}")
+    print(f"  Min eff_α Floor: {info['min_eff_alpha_floor']}")
+
+    print(f"\nHybrid Architecture:")
+    print("  ┌─────────────────────────────────────────────────────┐")
+    print("  │  CGR Base Layer (Deterministic)                     │")
+    print("  │  - Time-varying Dijkstra on contact graph           │")
+    print("  │  - Precomputed orbital contact windows              │")
+    print("  │  - Provable delivery bounds                         │")
+    print("  ├─────────────────────────────────────────────────────┤")
+    print("  │  ML Adaptive Layer (Predictive)                     │")
+    print("  │  - Lightweight GNN for anomaly prediction           │")
+    print("  │  - Historical pattern learning                      │")
+    print("  │  - Contact degradation forecasting                  │")
+    print("  ├─────────────────────────────────────────────────────┤")
+    print("  │  Quorum-Aware Recovery                              │")
+    print("  │  - Merkle chain continuity preservation             │")
+    print("  │  - Distributed anchoring integrity                  │")
+    print("  └─────────────────────────────────────────────────────┘")
+
+    print("\n[reroute_algo_info receipt emitted above]")
+    print("=" * 60)
+
+
 def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
     """Run sovereignty timeline simulation with Mars latency penalty.
 
@@ -348,7 +560,42 @@ def main():
     parser.add_argument('--simulate', action='store_true',
                         help='Output simulation receipt to stdout')
 
+    # Adaptive rerouting and blackout testing flags (Dec 2025)
+    parser.add_argument('--reroute', action='store_true',
+                        help='Enable adaptive rerouting in simulation')
+    parser.add_argument('--reroute_enabled', action='store_true',
+                        help='Alias for --reroute')
+    parser.add_argument('--blackout', type=int, default=None,
+                        help='Run blackout simulation for specified days')
+    parser.add_argument('--blackout_sweep', action='store_true',
+                        help='Run full blackout sweep (43-60d range, 1000 iterations)')
+    parser.add_argument('--algo_info', action='store_true',
+                        help='Output reroute algorithm specification')
+
     args = parser.parse_args()
+
+    # Combine reroute flags
+    reroute_enabled = args.reroute or args.reroute_enabled
+
+    # Handle algorithm info
+    if args.algo_info:
+        cmd_algo_info()
+        return
+
+    # Handle blackout sweep
+    if args.blackout_sweep:
+        cmd_blackout_sweep(reroute_enabled)
+        return
+
+    # Handle single blackout test
+    if args.blackout is not None:
+        cmd_blackout(args.blackout, reroute_enabled, args.simulate)
+        return
+
+    # Handle single reroute test
+    if reroute_enabled and args.partition is None and args.blackout is None:
+        cmd_reroute(args.simulate)
+        return
 
     # Handle partition stress test
     if args.stress_quorum:

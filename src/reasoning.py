@@ -4,12 +4,18 @@ Extends sovereignty timeline projections with:
 1. Partition stress sweep integration
 2. Resilience-adjusted projections
 3. Worst-case α drop calculations
+4. Blackout sweeps and reroute projection (Dec 2025)
 
 THE PHYSICS:
     eff_alpha(partition=0.4, nodes=5) >= 2.63 (per Grok validation)
     Worst-case drop at 40% partition: ~0.05 from baseline 2.68
 
-Source: Grok - "Variable partitions (e.g., 40%)", "eff_α to 2.68"
+REROUTE INTEGRATION (Dec 2025):
+    eff_alpha(reroute=True) >= 2.70 (+0.07 boost)
+    blackout_survival(days=60, reroute=True) == True
+    Blackout resilience metrics in projection receipt
+
+Source: Grok - "Variable partitions (e.g., 40%)", "eff_α to 2.68", "+0.07 to 2.7+"
 """
 
 from typing import Dict, Any, List, Tuple, Optional
@@ -30,6 +36,16 @@ from .ledger import (
     LEDGER_ALPHA_BOOST_VALIDATED,
     BASE_ALPHA_PRE_BOOST,
     get_effective_alpha_with_partition
+)
+from .reroute import (
+    blackout_sim,
+    blackout_stress_sweep,
+    apply_reroute_boost,
+    adaptive_reroute,
+    REROUTE_ALPHA_BOOST,
+    BLACKOUT_BASE_DAYS,
+    BLACKOUT_EXTENDED_DAYS,
+    MIN_EFF_ALPHA_FLOOR
 )
 
 
@@ -355,3 +371,254 @@ def validate_resilience_slo(
     })
 
     return report
+
+
+def blackout_sweep(
+    nodes: int = NODE_BASELINE,
+    blackout_range: Tuple[int, int] = (BLACKOUT_BASE_DAYS, BLACKOUT_EXTENDED_DAYS),
+    reroute_enabled: bool = True,
+    iterations: int = 1000,
+    base_alpha: float = MIN_EFF_ALPHA_BOUND,
+    seed: Optional[int] = None
+) -> Dict[str, Any]:
+    """Run blackout simulation sweep across duration range.
+
+    Runs blackout_sim across the specified range and collects
+    resilience metrics for projection adjustment.
+
+    Args:
+        nodes: Total node count (default: 5)
+        blackout_range: Tuple of (min_days, max_days) (default: 43-60)
+        reroute_enabled: Whether adaptive rerouting is active
+        iterations: Number of iterations (default: 1000)
+        base_alpha: Baseline effective α (default: 2.63)
+        seed: Random seed for reproducibility
+
+    Returns:
+        Dict with:
+            - survival_rate: Fraction of successful blackouts
+            - avg_min_alpha: Average minimum α during blackouts
+            - avg_max_drop: Average maximum α drop
+            - worst_case_alpha: Minimum α across all iterations
+            - blackout_tolerance: Maximum days survived
+
+    Assertions:
+        - assert eff_alpha(reroute=True) >= 2.70
+        - assert blackout_survival(days=60, reroute=True) == True
+
+    Receipt: blackout_sweep
+    """
+    # Use reroute module's stress sweep
+    result = blackout_stress_sweep(
+        nodes=nodes,
+        blackout_range=blackout_range,
+        n_iterations=iterations,
+        reroute_enabled=reroute_enabled,
+        base_alpha=base_alpha,
+        seed=seed
+    )
+
+    # Compute additional metrics
+    if reroute_enabled:
+        # Verify reroute boost pushes alpha to 2.70+
+        boosted_alpha = apply_reroute_boost(base_alpha, True, 0)
+        assert boosted_alpha >= 2.70, \
+            f"eff_alpha(reroute=True) = {boosted_alpha} < 2.70"
+
+        # Verify 60-day survival with reroute
+        extended_sim = blackout_sim(nodes, 60, True, base_alpha, seed)
+        assert extended_sim["survival_status"], \
+            "blackout_survival(days=60, reroute=True) failed"
+
+    # Find blackout tolerance (max days survived)
+    blackout_tolerance = blackout_range[1] if result["all_survived"] else blackout_range[0]
+
+    report = {
+        "nodes": nodes,
+        "blackout_range": list(blackout_range),
+        "iterations": iterations,
+        "reroute_enabled": reroute_enabled,
+        "base_alpha": base_alpha,
+        "survival_rate": result["survival_rate"],
+        "avg_min_alpha": result["avg_min_alpha"],
+        "avg_max_drop": result["avg_max_drop"],
+        "failures": result["failures"],
+        "all_survived": result["all_survived"],
+        "blackout_tolerance": blackout_tolerance,
+        "reroute_boost": REROUTE_ALPHA_BOOST if reroute_enabled else 0.0,
+        "boosted_alpha": base_alpha + REROUTE_ALPHA_BOOST if reroute_enabled else base_alpha
+    }
+
+    emit_receipt("blackout_sweep", {
+        "tenant_id": "axiom-reasoning",
+        **report
+    })
+
+    return report
+
+
+def project_with_reroute(
+    base_projection: Dict[str, Any],
+    reroute_results: Dict[str, Any],
+    blackout_days: int = 0
+) -> Dict[str, Any]:
+    """Adjust sovereignty timeline by reroute boost and blackout tolerance.
+
+    Takes a base projection and applies reroute enhancements.
+
+    Args:
+        base_projection: Base sovereignty projection dict with:
+            - cycles_to_10k_person_eq
+            - cycles_to_1M_person_eq
+            - effective_alpha
+        reroute_results: Output from adaptive_reroute or blackout_sweep
+        blackout_days: Current blackout duration (default: 0)
+
+    Returns:
+        Dict with adjusted projection including reroute metrics
+
+    Receipt: reroute_projection
+    """
+    # Extract base values
+    base_cycles_10k = base_projection.get("cycles_to_10k_person_eq", 4)
+    base_cycles_1M = base_projection.get("cycles_to_1M_person_eq", 15)
+    base_alpha = base_projection.get("effective_alpha", MIN_EFF_ALPHA_BOUND)
+
+    # Get reroute impact
+    alpha_boost = reroute_results.get("alpha_boost", REROUTE_ALPHA_BOOST)
+    recovery_factor = reroute_results.get("recovery_factor", 0.8)
+    survival_rate = reroute_results.get("survival_rate", 1.0)
+
+    # Apply reroute boost
+    boosted_alpha = apply_reroute_boost(base_alpha, True, blackout_days)
+
+    # Calculate adjusted cycles
+    # Higher α means fewer cycles needed
+    # Formula: cycles_adjusted = cycles_base × (base_alpha / boosted_alpha)
+    alpha_ratio = base_alpha / max(0.1, boosted_alpha)
+
+    adjusted_cycles_10k = max(1, math.ceil(base_cycles_10k * alpha_ratio))
+    adjusted_cycles_1M = max(1, math.ceil(base_cycles_1M * alpha_ratio))
+
+    # Cycles saved by reroute
+    cycles_saved_10k = base_cycles_10k - adjusted_cycles_10k
+    cycles_saved_1M = base_cycles_1M - adjusted_cycles_1M
+
+    # Blackout resilience metrics
+    blackout_resilience = {
+        "base_days": BLACKOUT_BASE_DAYS,
+        "extended_days": BLACKOUT_EXTENDED_DAYS,
+        "current_days": blackout_days,
+        "survival_status": blackout_days <= BLACKOUT_EXTENDED_DAYS,
+        "tolerance_factor": 1.0 if blackout_days <= BLACKOUT_BASE_DAYS else (
+            max(0.7, 1.0 - (blackout_days - BLACKOUT_BASE_DAYS) / BLACKOUT_EXTENDED_DAYS)
+        )
+    }
+
+    projection = {
+        "base_cycles_10k": base_cycles_10k,
+        "base_cycles_1M": base_cycles_1M,
+        "base_alpha": base_alpha,
+        "reroute_alpha_boost": alpha_boost,
+        "boosted_alpha": boosted_alpha,
+        "alpha_ratio": round(alpha_ratio, 4),
+        "adjusted_cycles_10k": adjusted_cycles_10k,
+        "adjusted_cycles_1M": adjusted_cycles_1M,
+        "cycles_saved_10k": cycles_saved_10k,
+        "cycles_saved_1M": cycles_saved_1M,
+        "recovery_factor": recovery_factor,
+        "blackout_resilience": blackout_resilience,
+        "reroute_validated": boosted_alpha >= 2.70
+    }
+
+    emit_receipt("reroute_projection", {
+        "tenant_id": "axiom-reasoning",
+        **projection
+    })
+
+    return projection
+
+
+def sovereignty_timeline(
+    c_base: float = 50.0,
+    p_factor: float = 1.8,
+    alpha: float = BASE_ALPHA,
+    loss_pct: float = 0.0,
+    reroute_enabled: bool = False,
+    blackout_days: int = 0
+) -> Dict[str, Any]:
+    """Compute sovereignty timeline with optional reroute and blackout.
+
+    Full sovereignty projection including:
+    1. Base timeline calculation
+    2. Partition impact
+    3. Reroute boost (if enabled)
+    4. Blackout resilience (if applicable)
+
+    Args:
+        c_base: Initial person-eq capacity (default: 50.0)
+        p_factor: Propulsion growth factor (default: 1.8)
+        alpha: Base effective α (default: 2.68)
+        loss_pct: Partition loss percentage (default: 0.0)
+        reroute_enabled: Whether adaptive rerouting is active
+        blackout_days: Current blackout duration in days
+
+    Returns:
+        Dict with complete sovereignty timeline
+
+    Receipt: sovereignty_timeline
+    """
+    # Apply partition if specified
+    if loss_pct > 0:
+        partition_result = partition_sim(
+            NODE_BASELINE, loss_pct, alpha, emit=False, reroute_enabled=reroute_enabled
+        )
+        effective_alpha = partition_result["eff_alpha"]
+    else:
+        effective_alpha = alpha
+
+    # Apply reroute boost if enabled
+    if reroute_enabled:
+        effective_alpha = apply_reroute_boost(effective_alpha, True, blackout_days)
+
+    # Compute base timeline
+    alpha_ratio = effective_alpha / 1.69
+    base_multiplier = 1.0 + (2.75 - 1.0) * alpha_ratio
+
+    person_eq = c_base
+    cycles_10k = None
+    cycles_1M = None
+
+    for cycle in range(1, 200):
+        propulsion = 1.0 + (p_factor - 1.0) * (0.9 ** (cycle - 1))
+        person_eq *= base_multiplier * propulsion
+
+        if cycles_10k is None and person_eq >= CYCLES_THRESHOLD_EARLY:
+            cycles_10k = cycle
+        if cycles_1M is None and person_eq >= CYCLES_THRESHOLD_CITY:
+            cycles_1M = cycle
+            break
+
+    cycles_10k = cycles_10k or 200
+    cycles_1M = cycles_1M or 200
+
+    result = {
+        "c_base": c_base,
+        "p_factor": p_factor,
+        "base_alpha": alpha,
+        "effective_alpha": round(effective_alpha, 4),
+        "loss_pct": loss_pct,
+        "reroute_enabled": reroute_enabled,
+        "blackout_days": blackout_days,
+        "cycles_to_10k_person_eq": cycles_10k,
+        "cycles_to_1M_person_eq": cycles_1M,
+        "reroute_boost_applied": reroute_enabled and REROUTE_ALPHA_BOOST > 0,
+        "min_eff_alpha_floor": MIN_EFF_ALPHA_FLOOR
+    }
+
+    emit_receipt("sovereignty_timeline", {
+        "tenant_id": "axiom-reasoning",
+        **result
+    })
+
+    return result

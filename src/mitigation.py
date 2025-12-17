@@ -6,9 +6,14 @@ and weights mitigation by quorum health.
 THE PHYSICS:
     - PARTITION_MITIGATION_FACTOR = 0.05 (max expected α drop)
     - Quorum health weight: 1.0 if intact, degraded otherwise
-    - Combined mitigation includes τ-penalty + partition + quorum
+    - Combined mitigation includes τ-penalty + partition + quorum + reroute
 
-Source: Grok - "Variable partitions (e.g., 40%)", "quorum intact"
+REROUTE INTEGRATION (Dec 2025 adaptive rerouting):
+    - REROUTE_ALPHA_BOOST = 0.07 (validated boost pushing eff_alpha to 2.70+)
+    - Reroute boost applied multiplicatively in mitigation stack
+    - Blackout factor scales mitigation by duration (graceful degradation beyond 43d)
+
+Source: Grok - "Variable partitions (e.g., 40%)", "quorum intact", "+0.07 to 2.7+"
 """
 
 from typing import Dict, Any, Optional
@@ -47,6 +52,15 @@ QUORUM_HEALTH_DEGRADED_PER_NODE = 0.05
 TAU_MITIGATION_FACTOR = 0.889
 """Receipt-based τ-penalty mitigation factor (from receipt_params.json)."""
 
+REROUTE_ALPHA_BOOST = 0.07
+"""physics: Validated reroute boost. 2.63 + 0.07 = 2.70"""
+
+BLACKOUT_BASE_DAYS = 43
+"""physics: Mars solar conjunction maximum duration in days."""
+
+BLACKOUT_EXTENDED_DAYS = 60
+"""physics: Extended blackout tolerance with reroute (43d * 1.4 retention)."""
+
 
 @dataclass
 class MitigationScore:
@@ -56,12 +70,14 @@ class MitigationScore:
         partition_score: Partition tolerance score (0-1)
         quorum_score: Quorum health score (0-1)
         tau_score: τ-penalty mitigation score (0-1)
+        reroute_score: Reroute mitigation score (0-1)
         combined_score: Weighted combination
         effective_alpha: Final effective α after all mitigations
     """
     partition_score: float
     quorum_score: float
     tau_score: float
+    reroute_score: float
     combined_score: float
     effective_alpha: float
 
@@ -150,17 +166,176 @@ def compute_tau_mitigation(
     return round(receipt_integrity * tau_factor, 4)
 
 
+def compute_reroute_mitigation(
+    reroute_enabled: bool = False,
+    reroute_result: Optional[Dict[str, Any]] = None
+) -> float:
+    """Compute reroute mitigation score.
+
+    Score based on reroute effectiveness and recovery factor.
+
+    Args:
+        reroute_enabled: Whether adaptive rerouting is active
+        reroute_result: Result from adaptive_reroute (optional)
+
+    Returns:
+        Reroute mitigation score (0-1)
+
+    Receipt: reroute_mitigation
+    """
+    if not reroute_enabled:
+        return 0.0
+
+    if reroute_result is None:
+        # Default score when reroute is enabled but no specific result
+        score = 0.7  # Conservative default
+    else:
+        recovery_factor = reroute_result.get("recovery_factor", 0.0)
+        quorum_preserved = reroute_result.get("quorum_preserved", False)
+
+        if not quorum_preserved:
+            score = 0.0
+        else:
+            # Score based on recovery factor
+            score = recovery_factor * 0.9 + 0.1  # 0.1 base for quorum preserved
+
+    emit_receipt("reroute_mitigation", {
+        "tenant_id": "axiom-mitigation",
+        "reroute_enabled": reroute_enabled,
+        "score": round(score, 4),
+        "recovery_factor": reroute_result.get("recovery_factor", 0.0) if reroute_result else 0.0
+    })
+
+    return round(score, 4)
+
+
+def compute_blackout_factor(
+    blackout_days: int = 0,
+    reroute_enabled: bool = False
+) -> float:
+    """Compute blackout factor for graceful degradation.
+
+    Factor degrades gracefully beyond base blackout duration.
+    With reroute enabled, can extend tolerance from 43d to 60d+.
+
+    Args:
+        blackout_days: Current blackout duration in days
+        reroute_enabled: Whether adaptive rerouting is active
+
+    Returns:
+        Blackout factor (0-1), where 1.0 = no degradation
+
+    Receipt: blackout_factor
+    """
+    if blackout_days == 0:
+        factor = 1.0
+    elif not reroute_enabled:
+        # Without reroute, degradation starts immediately
+        if blackout_days <= BLACKOUT_BASE_DAYS:
+            factor = 1.0 - (blackout_days / BLACKOUT_BASE_DAYS) * 0.3
+        else:
+            # Beyond base, severe degradation
+            excess = blackout_days - BLACKOUT_BASE_DAYS
+            factor = 0.7 - min(0.5, excess * 0.02)
+    else:
+        # With reroute, extended tolerance
+        if blackout_days <= BLACKOUT_BASE_DAYS:
+            # Minimal degradation within base period
+            factor = 1.0 - (blackout_days / BLACKOUT_BASE_DAYS) * 0.1
+        elif blackout_days <= BLACKOUT_EXTENDED_DAYS:
+            # Gradual degradation in extended period
+            excess = blackout_days - BLACKOUT_BASE_DAYS
+            max_excess = BLACKOUT_EXTENDED_DAYS - BLACKOUT_BASE_DAYS
+            factor = 0.9 - (excess / max_excess) * 0.2
+        else:
+            # Beyond extended, moderate degradation
+            excess = blackout_days - BLACKOUT_EXTENDED_DAYS
+            factor = 0.7 - min(0.4, excess * 0.01)
+
+    emit_receipt("blackout_factor", {
+        "tenant_id": "axiom-mitigation",
+        "blackout_days": blackout_days,
+        "reroute_enabled": reroute_enabled,
+        "factor": round(max(0.0, factor), 4),
+        "blackout_base_days": BLACKOUT_BASE_DAYS,
+        "blackout_extended_days": BLACKOUT_EXTENDED_DAYS
+    })
+
+    return round(max(0.0, factor), 4)
+
+
+def apply_reroute_mitigation(
+    base_mitigation: MitigationScore,
+    reroute_result: Dict[str, Any],
+    blackout_days: int = 0
+) -> Dict[str, Any]:
+    """Apply reroute boost multiplicatively to mitigation stack.
+
+    Enhances base mitigation with reroute boost and blackout factor.
+
+    Args:
+        base_mitigation: Base MitigationScore to enhance
+        reroute_result: Result from adaptive_reroute
+        blackout_days: Current blackout duration in days
+
+    Returns:
+        Dict with enhanced mitigation including +0.07 boost
+
+    Receipt: reroute_enhanced_mitigation
+    """
+    # Get alpha boost from reroute result
+    alpha_boost = reroute_result.get("alpha_boost", 0.0)
+    recovery_factor = reroute_result.get("recovery_factor", 0.0)
+    quorum_preserved = reroute_result.get("quorum_preserved", False)
+
+    # Compute blackout factor
+    blackout_factor = compute_blackout_factor(blackout_days, reroute_enabled=True)
+
+    # Apply boost multiplicatively
+    if quorum_preserved and recovery_factor > 0.5:
+        effective_boost = alpha_boost * blackout_factor
+        enhanced_alpha = base_mitigation.effective_alpha + effective_boost
+        enhanced_combined = min(1.0, base_mitigation.combined_score + recovery_factor * 0.1)
+    else:
+        effective_boost = 0.0
+        enhanced_alpha = base_mitigation.effective_alpha
+        enhanced_combined = base_mitigation.combined_score
+
+    result = {
+        "base_effective_alpha": base_mitigation.effective_alpha,
+        "reroute_alpha_boost": alpha_boost,
+        "blackout_factor": blackout_factor,
+        "effective_boost": round(effective_boost, 4),
+        "enhanced_alpha": round(enhanced_alpha, 4),
+        "base_combined_score": base_mitigation.combined_score,
+        "enhanced_combined_score": round(enhanced_combined, 4),
+        "recovery_factor": recovery_factor,
+        "quorum_preserved": quorum_preserved,
+        "blackout_days": blackout_days
+    }
+
+    emit_receipt("reroute_enhanced_mitigation", {
+        "tenant_id": "axiom-mitigation",
+        **result
+    })
+
+    return result
+
+
 def compute_mitigation_score(
     loss_pct: float = 0.0,
     nodes_surviving: Optional[int] = None,
     receipt_integrity: float = 0.9,
     base_alpha: float = BASE_ALPHA,
-    weights: Optional[Dict[str, float]] = None
+    weights: Optional[Dict[str, float]] = None,
+    reroute_enabled: bool = False,
+    reroute_result: Optional[Dict[str, Any]] = None,
+    blackout_days: int = 0
 ) -> MitigationScore:
     """Compute combined mitigation score.
 
-    Combines partition tolerance, quorum health, and τ-penalty mitigation
-    into a single weighted score.
+    Combines partition tolerance, quorum health, τ-penalty mitigation,
+    and reroute mitigation into a single weighted score.
 
     Args:
         loss_pct: Partition loss percentage (0-1)
@@ -168,6 +343,9 @@ def compute_mitigation_score(
         receipt_integrity: Receipt coverage (default: 0.9)
         base_alpha: Baseline α (default: 2.68)
         weights: Optional weight overrides (default: equal weights)
+        reroute_enabled: Whether adaptive rerouting is active
+        reroute_result: Result from adaptive_reroute (optional)
+        blackout_days: Current blackout duration in days
 
     Returns:
         MitigationScore with all components
@@ -178,24 +356,29 @@ def compute_mitigation_score(
         nodes_surviving = NODE_BASELINE
 
     if weights is None:
-        weights = {"partition": 0.33, "quorum": 0.34, "tau": 0.33}
+        if reroute_enabled:
+            weights = {"partition": 0.25, "quorum": 0.25, "tau": 0.25, "reroute": 0.25}
+        else:
+            weights = {"partition": 0.33, "quorum": 0.34, "tau": 0.33, "reroute": 0.0}
 
     # Compute individual scores
     partition_score = compute_partition_tolerance(loss_pct, base_alpha)
     quorum_score = compute_quorum_health(nodes_surviving, NODE_BASELINE)
     tau_score = compute_tau_mitigation(receipt_integrity)
+    reroute_score = compute_reroute_mitigation(reroute_enabled, reroute_result)
 
     # Weighted combination
     combined = (
-        partition_score * weights["partition"] +
-        quorum_score * weights["quorum"] +
-        tau_score * weights["tau"]
+        partition_score * weights.get("partition", 0.33) +
+        quorum_score * weights.get("quorum", 0.34) +
+        tau_score * weights.get("tau", 0.33) +
+        reroute_score * weights.get("reroute", 0.0)
     )
     combined = round(combined, 4)
 
     # Compute effective alpha with all factors
     try:
-        partition_result = partition_sim(NODE_BASELINE, loss_pct, base_alpha, emit=False)
+        partition_result = partition_sim(NODE_BASELINE, loss_pct, base_alpha, emit=False, reroute_enabled=reroute_enabled)
         eff_alpha = partition_result["eff_alpha"]
 
         # Apply quorum factor
@@ -205,6 +388,11 @@ def compute_mitigation_score(
         # Apply τ-mitigation boost
         tau_boost = (1.0 - tau_score) * 0.1  # Up to 10% recovery
         eff_alpha = eff_alpha + tau_boost
+
+        # Apply blackout factor if applicable
+        if blackout_days > 0:
+            blackout_factor = compute_blackout_factor(blackout_days, reroute_enabled)
+            eff_alpha = eff_alpha * blackout_factor
     except Exception:
         eff_alpha = 0.0
 
@@ -212,6 +400,7 @@ def compute_mitigation_score(
         partition_score=partition_score,
         quorum_score=quorum_score,
         tau_score=tau_score,
+        reroute_score=reroute_score,
         combined_score=combined,
         effective_alpha=round(eff_alpha, 4)
     )
@@ -224,9 +413,12 @@ def compute_mitigation_score(
         "partition_score": partition_score,
         "quorum_score": quorum_score,
         "tau_score": tau_score,
+        "reroute_score": reroute_score,
         "combined_score": combined,
         "effective_alpha": score.effective_alpha,
-        "weights": weights
+        "weights": weights,
+        "reroute_enabled": reroute_enabled,
+        "blackout_days": blackout_days
     })
 
     return score

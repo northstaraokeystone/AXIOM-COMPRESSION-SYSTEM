@@ -1,0 +1,11 @@
+{
+  "algo_type": "hybrid_ephemeris_ml",
+  "blackout_base_days": 43,
+  "blackout_extended_days": 60,
+  "reroute_alpha_boost": 0.07,
+  "reroute_retention_factor": 1.4,
+  "min_eff_alpha_floor": 2.63,
+  "cgr_baseline": "nasa_dtn_v3",
+  "ml_model_type": "lightweight_gnn",
+  "description": "Immutable physics anchors for adaptive rerouting and conjunction blackout. Dec 2025 hybrid algorithm."
+}

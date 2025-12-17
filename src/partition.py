@@ -9,6 +9,11 @@ QUORUM THRESHOLD:
     Byzantine fault tolerant at 2/3 of baseline.
     5 nodes → quorum threshold of 3 → survives 2 simultaneous failures.
 
+DYNAMIC RECOVERY (Dec 2025 adaptive rerouting):
+    When quorum stressed but not failed, attempt adaptive reroute recovery.
+    Reroute boost applied multiplicatively: +0.07 to eff_α.
+    Extended blackout survival: 43d → 60d+ with reroute.
+
 CONSTANTS (from Grok validation):
     NODE_BASELINE = 5 (3 uncrewed habs + 2 rovers)
     QUORUM_THRESHOLD = 3 (survives 2-node failure)
@@ -152,17 +157,20 @@ def partition_sim(
     nodes_total: int = NODE_BASELINE,
     loss_pct: float = 0.0,
     base_alpha: float = BASE_ALPHA,
-    emit: bool = True
+    emit: bool = True,
+    reroute_enabled: bool = False
 ) -> Dict[str, Any]:
     """Simulate node partition and compute impact on effective alpha.
 
     Pure function. Computes nodes surviving, quorum status, and α drop.
+    When reroute_enabled, attempts dynamic recovery for stressed quorums.
 
     Args:
         nodes_total: Total nodes in baseline (default: 5)
         loss_pct: Fraction of nodes lost (0-1, max 0.40 for tests)
         base_alpha: Baseline effective alpha (default: 2.68)
         emit: Whether to emit receipt (default: True)
+        reroute_enabled: Enable adaptive rerouting recovery (default: False)
 
     Returns:
         Dict with:
@@ -172,6 +180,7 @@ def partition_sim(
             - eff_alpha_drop: Drop in effective alpha
             - eff_alpha: Effective alpha after partition
             - quorum_status: True if quorum intact
+            - reroute_applied: True if reroute recovery was applied
 
     Raises:
         StopRule: If quorum fails (via quorum_check)
@@ -191,13 +200,45 @@ def partition_sim(
     eff_alpha_drop = loss_pct * ALPHA_DROP_FACTOR
     eff_alpha = base_alpha - eff_alpha_drop
 
+    # Dynamic recovery via reroute when enabled and quorum stressed
+    reroute_applied = False
+    reroute_boost = 0.0
+
+    if reroute_enabled and quorum_status:
+        # Check if quorum is stressed (surviving < baseline but >= threshold)
+        quorum_stressed = nodes_surviving < nodes_total and nodes_surviving >= QUORUM_THRESHOLD
+
+        if quorum_stressed or loss_pct > 0:
+            # Import here to avoid circular dependency
+            from .reroute import adaptive_reroute, REROUTE_ALPHA_BOOST
+
+            # Attempt reroute recovery
+            graph_state = {
+                "nodes": nodes_total,
+                "edges": [{"src": f"n{i}", "dst": f"n{(i+1) % nodes_surviving}"}
+                          for i in range(nodes_surviving)]
+            }
+
+            try:
+                reroute_result = adaptive_reroute(graph_state, loss_pct, blackout_days=0)
+
+                if reroute_result["quorum_preserved"] and reroute_result["recovery_factor"] > 0.5:
+                    reroute_applied = True
+                    reroute_boost = reroute_result["alpha_boost"]
+                    eff_alpha = eff_alpha + reroute_boost
+            except StopRule:
+                # Reroute failed, continue with base calculation
+                pass
+
     result = {
         "nodes_total": nodes_total,
         "loss_pct": loss_pct,
         "nodes_surviving": nodes_surviving,
         "eff_alpha_drop": round(eff_alpha_drop, 4),
         "eff_alpha": round(eff_alpha, 4),
-        "quorum_status": quorum_status
+        "quorum_status": quorum_status,
+        "reroute_applied": reroute_applied,
+        "reroute_boost": round(reroute_boost, 4)
     }
 
     if emit:
@@ -210,7 +251,9 @@ def partition_sim(
             "eff_alpha": round(eff_alpha, 4),
             "quorum_status": quorum_status,
             "base_alpha": base_alpha,
-            "drop_factor": ALPHA_DROP_FACTOR
+            "drop_factor": ALPHA_DROP_FACTOR,
+            "reroute_applied": reroute_applied,
+            "reroute_boost": round(reroute_boost, 4)
         })
 
     return result
@@ -221,7 +264,8 @@ def stress_sweep(
     loss_range: Tuple[float, float] = (0.0, PARTITION_MAX_TEST_PCT),
     n_iterations: int = 1000,
     base_alpha: float = BASE_ALPHA,
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
+    reroute_enabled: bool = False
 ) -> List[Dict[str, Any]]:
     """Run stress sweep with random loss in range.
 
@@ -234,6 +278,7 @@ def stress_sweep(
         n_iterations: Number of iterations (default: 1000)
         base_alpha: Baseline effective alpha (default: 2.68)
         seed: Random seed for reproducibility (optional)
+        reroute_enabled: Enable adaptive rerouting recovery (default: False)
 
     Returns:
         List of partition simulation results
@@ -253,7 +298,7 @@ def stress_sweep(
 
         try:
             # Run partition sim (emit=False to avoid 1000 receipts, we'll emit summary)
-            result = partition_sim(nodes_total, loss_pct, base_alpha, emit=False)
+            result = partition_sim(nodes_total, loss_pct, base_alpha, emit=False, reroute_enabled=reroute_enabled)
             results.append(result)
             total_alpha_drop += result["eff_alpha_drop"]
         except StopRule:
@@ -265,13 +310,18 @@ def stress_sweep(
                 "nodes_surviving": nodes_total - int(nodes_total * loss_pct),
                 "eff_alpha_drop": 0.0,
                 "eff_alpha": 0.0,
-                "quorum_status": False
+                "quorum_status": False,
+                "reroute_applied": False,
+                "reroute_boost": 0.0
             })
 
     # Compute summary stats
     success_count = len([r for r in results if r["quorum_status"]])
     success_rate = success_count / n_iterations
     avg_alpha_drop = total_alpha_drop / max(1, success_count)
+
+    # Count reroute applications
+    reroute_count = len([r for r in results if r.get("reroute_applied", False)])
 
     # Emit summary receipt
     emit_receipt("quorum_resilience", {
@@ -285,7 +335,9 @@ def stress_sweep(
         "quorum_failures": quorum_failures,
         "base_alpha": base_alpha,
         "min_eff_alpha": round(min(r["eff_alpha"] for r in results if r["quorum_status"]), 4) if success_count > 0 else 0.0,
-        "max_eff_alpha_drop": round(max(r["eff_alpha_drop"] for r in results if r["quorum_status"]), 4) if success_count > 0 else 0.0
+        "max_eff_alpha_drop": round(max(r["eff_alpha_drop"] for r in results if r["quorum_status"]), 4) if success_count > 0 else 0.0,
+        "reroute_enabled": reroute_enabled,
+        "reroute_applications": reroute_count
     })
 
     return results
