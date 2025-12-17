@@ -12,9 +12,26 @@ v2: Helper layer + Support infrastructure + Optimization agent
 - helper.py: HARVEST → HYPOTHESIZE → GATE → ACTUATE
 - support.py: L0-L4 receipt level infrastructure
 - sim.py: Integrated simulation framework
+
+v3: Modular architecture refactor (Dec 2025)
+- constants.py: Centralized physics constants
+- receipts.py: Receipt emission helpers (DRY)
+- stoprules.py: Centralized stoprule registry
+- pruning_*.py: Split entropy pruning modules
+- gnn_*.py: Split GNN caching modules
 """
 
 from .core import dual_hash, emit_receipt, merkle, StopRule
+
+# Centralized constants (single source of truth)
+from .constants import (
+    SHANNON_FLOOR_ALPHA,
+    ALPHA_CEILING_TARGET,
+    ENTROPY_ASYMPTOTE_E,
+)
+
+# Receipt helpers
+from .receipts import emit_with_hash, emit_anomaly, emit_spec_ingest
 from .entropy_shannon import (
     HUMAN_DECISION_RATE_BPS,
     STARLINK_MARS_BANDWIDTH_MIN_MBPS,
@@ -93,6 +110,10 @@ from .sim import (
 __all__ = [
     # Core
     "dual_hash", "emit_receipt", "merkle", "StopRule",
+    # Centralized constants
+    "SHANNON_FLOOR_ALPHA", "ALPHA_CEILING_TARGET", "ENTROPY_ASYMPTOTE_E",
+    # Receipt helpers
+    "emit_with_hash", "emit_anomaly", "emit_spec_ingest",
     # Entropy (Shannon only)
     "HUMAN_DECISION_RATE_BPS",
     "STARLINK_MARS_BANDWIDTH_MIN_MBPS",
