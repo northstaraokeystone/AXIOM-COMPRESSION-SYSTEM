@@ -10,9 +10,9 @@ Source: AXIOM scalable paths architecture
 
 import os
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, List, Optional
 
-from .core import emit_receipt, dual_hash
+from .core import emit_receipt
 from .paths import (
     REGISTERED_PATHS,
     get_path,
