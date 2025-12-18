@@ -1,0 +1,148 @@
+{
+  "version": "1.0.0",
+  "description": "D11 recursion + Venus acid-cloud autonomy + CFD Navier-Stokes dust dynamics + secure enclave branch prediction defense",
+  "d11_config": {
+    "recursion_depth": 11,
+    "alpha_floor": 3.58,
+    "alpha_target": 3.60,
+    "alpha_ceiling": 3.62,
+    "instability_max": 0.00,
+    "tree_min": 1000000000000,
+    "uplift": 0.28
+  },
+  "uplift_by_depth": {
+    "1": 0.05,
+    "2": 0.09,
+    "3": 0.122,
+    "4": 0.148,
+    "5": 0.168,
+    "6": 0.185,
+    "7": 0.20,
+    "8": 0.22,
+    "9": 0.24,
+    "10": 0.26,
+    "11": 0.28
+  },
+  "depth_contributions": {
+    "1": {
+      "contribution": 0.05,
+      "decay_factor": 1.0,
+      "cumulative": 0.05
+    },
+    "2": {
+      "contribution": 0.04,
+      "decay_factor": 0.8,
+      "cumulative": 0.09
+    },
+    "3": {
+      "contribution": 0.032,
+      "decay_factor": 0.64,
+      "cumulative": 0.122
+    },
+    "4": {
+      "contribution": 0.0256,
+      "decay_factor": 0.512,
+      "cumulative": 0.148
+    },
+    "5": {
+      "contribution": 0.02048,
+      "decay_factor": 0.4096,
+      "cumulative": 0.168
+    },
+    "6": {
+      "contribution": 0.01638,
+      "decay_factor": 0.3277,
+      "cumulative": 0.185
+    },
+    "7": {
+      "contribution": 0.01311,
+      "decay_factor": 0.2621,
+      "cumulative": 0.20
+    },
+    "8": {
+      "contribution": 0.01049,
+      "decay_factor": 0.2097,
+      "cumulative": 0.22
+    },
+    "9": {
+      "contribution": 0.00839,
+      "decay_factor": 0.1678,
+      "cumulative": 0.24
+    },
+    "10": {
+      "contribution": 0.00671,
+      "decay_factor": 0.1342,
+      "cumulative": 0.26
+    },
+    "11": {
+      "contribution": 0.00537,
+      "decay_factor": 0.1074,
+      "cumulative": 0.28
+    }
+  },
+  "expected_alpha": {
+    "depth_1": 3.05,
+    "depth_2": 3.09,
+    "depth_3": 3.12,
+    "depth_4": 3.148,
+    "depth_5": 3.168,
+    "depth_6": 3.185,
+    "depth_7": 3.20,
+    "depth_8": 3.22,
+    "depth_9": 3.24,
+    "depth_10": 3.26,
+    "depth_11": 3.28
+  },
+  "venus_config": {
+    "body": "venus",
+    "surface_temp_c": 465,
+    "surface_pressure_atm": 92,
+    "cloud_altitude_km": [48, 70],
+    "cloud_temp_c": [0, 60],
+    "acid_concentration": 0.85,
+    "autonomy_requirement": 0.99,
+    "latency_min": [2, 14],
+    "operation_zone": "cloud_layer",
+    "hazards": ["sulfuric_acid", "pressure", "temperature"],
+    "earth_callback_max_pct": 0.01,
+    "aerostat_volume_m3": 10000,
+    "payload_capacity_kg": 500
+  },
+  "cfd_config": {
+    "model": "navier_stokes",
+    "reynolds_number_mars": 50,
+    "gravity_mars_m_s2": 3.71,
+    "settling_model": "stokes",
+    "turbulence_model": "laminar",
+    "particle_size_um": [1, 100],
+    "validated": true,
+    "viscosity_mars_pa_s": 1.1e-5,
+    "density_mars_kg_m3": 0.02
+  },
+  "secure_enclave_config": {
+    "type": "SGX",
+    "memory_mb": 128,
+    "branch_prediction_defense": true,
+    "speculative_barrier": true,
+    "resilience_target": 1.0,
+    "attack_types": ["BTB_injection", "PHT_poisoning", "RSB_stuffing"],
+    "defense_mechanisms": ["BTB_flush", "PHT_isolation", "RSB_fill", "IBRS", "STIBP"]
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min_d11": 3.58,
+    "venus_autonomy_min": 0.99,
+    "cfd_validated": true,
+    "enclave_resilience_min": 1.0,
+    "scale_decay_threshold": 0.02,
+    "receipt_required": "d11_fractal_receipt",
+    "venus_receipt_required": "venus_autonomy_receipt",
+    "cfd_receipt_required": "cfd_dust_receipt",
+    "enclave_receipt_required": "secure_enclave_receipt"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM D11 recursion + Venus acid-cloud autonomy + CFD Navier-Stokes + secure enclave defense - alpha 3.60+ target"
+}

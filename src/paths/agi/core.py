@@ -1401,3 +1401,301 @@ def compute_quantum_alignment(
 
     emit_path_receipt("agi", "quantum_alignment", result)
     return result
+
+
+# === SECURE ENCLAVE INTEGRATION ===
+
+
+def integrate_secure_enclave(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire secure enclave defense to AGI path.
+
+    Args:
+        config: Optional enclave config override
+
+    Returns:
+        Dict with secure enclave integration results
+
+    Receipt: agi_enclave_integrate
+    """
+    # Import secure enclave module
+    from ...secure_enclave_audit import (
+        load_enclave_config,
+        run_enclave_audit,
+        ENCLAVE_RESILIENCE_TARGET,
+        ATTACK_TYPES,
+    )
+
+    if config is None:
+        config = load_enclave_config()
+
+    # Run enclave audit
+    audit = run_enclave_audit(attack_types=ATTACK_TYPES)
+
+    result = {
+        "integrated": True,
+        "enclave_config": {
+            "type": config.get("type", "SGX"),
+            "memory_mb": config.get("memory_mb", 128),
+            "branch_prediction_defense": config.get("branch_prediction_defense", True),
+        },
+        "audit_results": {
+            "overall_resilience": audit["overall_resilience"],
+            "target_met": audit["target_met"],
+            "all_passed": audit["all_passed"],
+            "attack_types_tested": audit["attack_types_tested"],
+        },
+        "resilience_target": ENCLAVE_RESILIENCE_TARGET,
+        "resilience_met": audit["target_met"],
+        "key_insight": "Hardware-level isolation defeats speculative execution attacks",
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "enclave_integrate", result)
+    return result
+
+
+def run_btb_stress_test(iterations: int = 100) -> Dict[str, Any]:
+    """Run BTB (Branch Target Buffer) resilience stress test.
+
+    Args:
+        iterations: Number of test iterations
+
+    Returns:
+        Dict with BTB stress test results
+
+    Receipt: agi_btb_stress
+    """
+    # Import secure enclave module
+    from ...secure_enclave_audit import (
+        test_btb_injection,
+        ENCLAVE_RESILIENCE_TARGET,
+    )
+
+    result = test_btb_injection(iterations)
+
+    stress_result = {
+        "stress_test_type": "btb_injection",
+        "iterations": iterations,
+        "resilience": result["resilience"],
+        "target": ENCLAVE_RESILIENCE_TARGET,
+        "passed": result["passed"],
+        "defense_mechanism": result["defense_mechanism"],
+        "alignment_metric": ALIGNMENT_METRIC,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "btb_stress", stress_result)
+    return stress_result
+
+
+def run_pht_stress_test(iterations: int = 100) -> Dict[str, Any]:
+    """Run PHT (Pattern History Table) resilience stress test.
+
+    Args:
+        iterations: Number of test iterations
+
+    Returns:
+        Dict with PHT stress test results
+
+    Receipt: agi_pht_stress
+    """
+    # Import secure enclave module
+    from ...secure_enclave_audit import (
+        test_pht_poisoning,
+        ENCLAVE_RESILIENCE_TARGET,
+    )
+
+    result = test_pht_poisoning(iterations)
+
+    stress_result = {
+        "stress_test_type": "pht_poisoning",
+        "iterations": iterations,
+        "resilience": result["resilience"],
+        "target": ENCLAVE_RESILIENCE_TARGET,
+        "passed": result["passed"],
+        "defense_mechanism": result["defense_mechanism"],
+        "alignment_metric": ALIGNMENT_METRIC,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "pht_stress", stress_result)
+    return stress_result
+
+
+def run_rsb_stress_test(iterations: int = 100) -> Dict[str, Any]:
+    """Run RSB (Return Stack Buffer) resilience stress test.
+
+    Args:
+        iterations: Number of test iterations
+
+    Returns:
+        Dict with RSB stress test results
+
+    Receipt: agi_rsb_stress
+    """
+    # Import secure enclave module
+    from ...secure_enclave_audit import (
+        test_rsb_stuffing,
+        ENCLAVE_RESILIENCE_TARGET,
+    )
+
+    result = test_rsb_stuffing(iterations)
+
+    stress_result = {
+        "stress_test_type": "rsb_stuffing",
+        "iterations": iterations,
+        "resilience": result["resilience"],
+        "target": ENCLAVE_RESILIENCE_TARGET,
+        "passed": result["passed"],
+        "defense_mechanism": result["defense_mechanism"],
+        "alignment_metric": ALIGNMENT_METRIC,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "rsb_stress", stress_result)
+    return stress_result
+
+
+def measure_defense_overhead() -> Dict[str, Any]:
+    """Measure performance overhead of enclave defenses.
+
+    Returns:
+        Dict with defense overhead measurements
+
+    Receipt: agi_defense_overhead
+    """
+    # Import secure enclave module
+    from ...secure_enclave_audit import measure_enclave_overhead
+
+    overhead = measure_enclave_overhead()
+
+    result = {
+        "overhead_pct": overhead["total_overhead_pct"],
+        "acceptable": overhead["acceptable"],
+        "defense_mechanisms": overhead["defense_mechanisms"],
+        "measurements": overhead["measurements"],
+        "alignment_metric": ALIGNMENT_METRIC,
+        "key_insight": "5% overhead acceptable for 100% branch prediction resilience",
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "defense_overhead", result)
+    return result
+
+
+def compute_enclave_alignment(
+    receipts: Optional[List[Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
+    """Compute alignment including secure enclave resilience.
+
+    Args:
+        receipts: Optional system receipts for compression alignment
+
+    Returns:
+        Dict with comprehensive alignment metrics including secure enclave
+
+    Receipt: agi_enclave_alignment
+    """
+    # Import modules
+    from ...adversarial_audit import (
+        run_audit as run_basic_audit,
+        RECOVERY_THRESHOLD as BASIC_THRESHOLD,
+    )
+    from ...agi_audit_expanded import (
+        run_expanded_audit,
+        EXPANDED_RECOVERY_THRESHOLD,
+    )
+    from ...fractal_encrypt_audit import (
+        test_side_channel_resilience,
+        test_model_inversion_resilience,
+        SIDE_CHANNEL_RESILIENCE,
+    )
+    from ...randomized_paths_audit import (
+        run_randomized_audit,
+        TIMING_LEAK_RESILIENCE,
+    )
+    from ...quantum_resist_random import (
+        run_quantum_resist_audit,
+        QUANTUM_RESILIENCE_TARGET,
+    )
+    from ...secure_enclave_audit import (
+        run_enclave_audit,
+        ENCLAVE_RESILIENCE_TARGET,
+    )
+
+    # Compute compression alignment
+    if receipts is None:
+        receipts = []
+    compression_alignment = compute_alignment(receipts)
+
+    # Run basic adversarial audit
+    basic_audit = run_basic_audit(noise_level=0.05, iterations=50)
+    basic_adversarial = basic_audit["avg_recovery"]
+
+    # Run expanded audit
+    expanded_audit = run_expanded_audit(attack_type="all", iterations=50)
+    expanded_recovery = expanded_audit["avg_recovery"]
+
+    # Run fractal encryption tests
+    side_channel = test_side_channel_resilience(50)
+    model_inversion = test_model_inversion_resilience(None, 50)
+    fractal_resilience = (side_channel + model_inversion) / 2
+
+    # Run randomized paths audit
+    randomized_audit = run_randomized_audit(iterations=50)
+    randomized_resilience = randomized_audit["avg_resilience"]
+
+    # Run quantum-resistant audit
+    quantum_audit = run_quantum_resist_audit(iterations=50)
+    quantum_resilience = quantum_audit["overall_resilience"]
+
+    # Run secure enclave audit
+    enclave_audit = run_enclave_audit(iterations=50)
+    enclave_resilience = enclave_audit["overall_resilience"]
+
+    # Combined alignment (weighted) - includes all 7 layers
+    # Compression: 6%, Basic: 10%, Expanded: 16%, Fractal: 17%, Randomized: 17%, Quantum: 17%, Enclave: 17%
+    combined = (
+        compression_alignment * 0.06
+        + basic_adversarial * 0.10
+        + expanded_recovery * 0.16
+        + fractal_resilience * 0.17
+        + randomized_resilience * 0.17
+        + quantum_resilience * 0.17
+        + enclave_resilience * 0.17
+    )
+
+    result = {
+        "compression_alignment": round(compression_alignment, 4),
+        "basic_adversarial_alignment": round(basic_adversarial, 4),
+        "expanded_alignment": round(expanded_recovery, 4),
+        "fractal_resilience": round(fractal_resilience, 4),
+        "randomized_resilience": round(randomized_resilience, 4),
+        "quantum_resilience": round(quantum_resilience, 4),
+        "enclave_resilience": round(enclave_resilience, 4),
+        "combined_alignment": round(combined, 4),
+        "weights": {
+            "compression": 0.06,
+            "basic_adversarial": 0.10,
+            "expanded": 0.16,
+            "fractal": 0.17,
+            "randomized": 0.17,
+            "quantum": 0.17,
+            "enclave": 0.17,
+        },
+        "thresholds": {
+            "basic": BASIC_THRESHOLD,
+            "expanded": EXPANDED_RECOVERY_THRESHOLD,
+            "fractal": SIDE_CHANNEL_RESILIENCE,
+            "randomized": TIMING_LEAK_RESILIENCE,
+            "quantum": QUANTUM_RESILIENCE_TARGET,
+            "enclave": ENCLAVE_RESILIENCE_TARGET,
+        },
+        "is_aligned": combined >= EXPANDED_RECOVERY_THRESHOLD,
+        "alignment_metric": ALIGNMENT_METRIC,
+        "key_insight": "Full alignment via compression + adversarial + expanded + fractal + randomized + quantum + enclave",
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "enclave_alignment", result)
+    return result
