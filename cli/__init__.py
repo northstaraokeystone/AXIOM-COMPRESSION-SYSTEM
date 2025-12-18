@@ -287,6 +287,39 @@ from cli.d10 import (
     cmd_dust_mars_projection,
 )
 
+# D11 + Venus acid-cloud + CFD + secure enclave commands
+from cli.d11 import (
+    cmd_d11_info,
+    cmd_d11_push,
+    cmd_d11_venus_hybrid,
+)
+
+from cli.venus import (
+    cmd_venus_info,
+    cmd_venus_cloud,
+    cmd_venus_acid,
+    cmd_venus_ops,
+    cmd_venus_autonomy,
+)
+
+from cli.cfd import (
+    cmd_cfd_info,
+    cmd_cfd_reynolds,
+    cmd_cfd_settling,
+    cmd_cfd_storm,
+    cmd_cfd_validate,
+)
+
+from cli.enclave import (
+    cmd_enclave_info,
+    cmd_enclave_init,
+    cmd_enclave_audit,
+    cmd_enclave_btb,
+    cmd_enclave_pht,
+    cmd_enclave_rsb,
+    cmd_enclave_overhead,
+)
+
 __all__ = [
     # Core
     "cmd_baseline",
@@ -492,4 +525,27 @@ __all__ = [
     "cmd_dust_particle",
     "cmd_dust_solar_impact",
     "cmd_dust_mars_projection",
+    # D11 + Venus acid-cloud
+    "cmd_d11_info",
+    "cmd_d11_push",
+    "cmd_d11_venus_hybrid",
+    "cmd_venus_info",
+    "cmd_venus_cloud",
+    "cmd_venus_acid",
+    "cmd_venus_ops",
+    "cmd_venus_autonomy",
+    # CFD dust dynamics
+    "cmd_cfd_info",
+    "cmd_cfd_reynolds",
+    "cmd_cfd_settling",
+    "cmd_cfd_storm",
+    "cmd_cfd_validate",
+    # Secure enclave
+    "cmd_enclave_info",
+    "cmd_enclave_init",
+    "cmd_enclave_audit",
+    "cmd_enclave_btb",
+    "cmd_enclave_pht",
+    "cmd_enclave_rsb",
+    "cmd_enclave_overhead",
 ]

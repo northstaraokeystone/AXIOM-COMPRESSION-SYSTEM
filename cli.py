@@ -254,6 +254,27 @@ from cli import (
     cmd_dust_particle,
     cmd_dust_solar_impact,
     cmd_dust_mars_projection,
+    # D11 + Venus + CFD + enclave
+    cmd_d11_info,
+    cmd_d11_push,
+    cmd_d11_venus_hybrid,
+    cmd_venus_info,
+    cmd_venus_cloud,
+    cmd_venus_acid,
+    cmd_venus_ops,
+    cmd_venus_autonomy,
+    cmd_cfd_info,
+    cmd_cfd_reynolds,
+    cmd_cfd_settling,
+    cmd_cfd_storm,
+    cmd_cfd_validate,
+    cmd_enclave_info,
+    cmd_enclave_init,
+    cmd_enclave_audit,
+    cmd_enclave_btb,
+    cmd_enclave_pht,
+    cmd_enclave_rsb,
+    cmd_enclave_overhead,
 )
 
 
@@ -1179,6 +1200,130 @@ def main():
         help="Dust settling duration days (default: 30)",
     )
 
+    # D11 + Venus acid-cloud flags
+    parser.add_argument(
+        "--d11_push", action="store_true", help="Run D11 recursion for alpha>=3.60"
+    )
+    parser.add_argument("--d11_info", action="store_true", help="Show D11 configuration")
+    parser.add_argument(
+        "--d11_venus_hybrid", action="store_true", help="Run integrated D11+Venus hybrid"
+    )
+    parser.add_argument(
+        "--venus_info", action="store_true", help="Show Venus configuration"
+    )
+    parser.add_argument(
+        "--venus_cloud", action="store_true", help="Show Venus cloud zone analysis"
+    )
+    parser.add_argument(
+        "--venus_acid", action="store_true", help="Test Venus acid resistance"
+    )
+    parser.add_argument(
+        "--venus_ops", action="store_true", help="Run Venus operations simulation"
+    )
+    parser.add_argument(
+        "--venus_autonomy", action="store_true", help="Show Venus autonomy metrics"
+    )
+    parser.add_argument(
+        "--venus_altitude",
+        type=float,
+        default=55.0,
+        help="Venus altitude in km (default: 55.0)",
+    )
+    parser.add_argument(
+        "--venus_material",
+        type=str,
+        default="ptfe",
+        help="Venus material for acid test (default: ptfe)",
+    )
+    parser.add_argument(
+        "--venus_duration",
+        type=int,
+        default=30,
+        help="Venus simulation duration days (default: 30)",
+    )
+
+    # CFD Navier-Stokes flags
+    parser.add_argument(
+        "--cfd_info", action="store_true", help="Show CFD configuration"
+    )
+    parser.add_argument(
+        "--cfd_reynolds", action="store_true", help="Compute Reynolds number"
+    )
+    parser.add_argument(
+        "--cfd_settling", action="store_true", help="Compute Stokes settling velocity"
+    )
+    parser.add_argument(
+        "--cfd_storm", action="store_true", help="Run dust storm simulation"
+    )
+    parser.add_argument(
+        "--cfd_validate", action="store_true", help="Run full CFD validation"
+    )
+    parser.add_argument(
+        "--cfd_velocity",
+        type=float,
+        default=1.0,
+        help="CFD flow velocity m/s (default: 1.0)",
+    )
+    parser.add_argument(
+        "--cfd_length",
+        type=float,
+        default=0.001,
+        help="CFD characteristic length m (default: 0.001)",
+    )
+    parser.add_argument(
+        "--cfd_particle_size",
+        type=float,
+        default=10.0,
+        help="CFD particle size um (default: 10.0)",
+    )
+    parser.add_argument(
+        "--cfd_intensity",
+        type=float,
+        default=0.5,
+        help="CFD storm intensity 0-1 (default: 0.5)",
+    )
+    parser.add_argument(
+        "--cfd_duration",
+        type=float,
+        default=24.0,
+        help="CFD storm duration hrs (default: 24.0)",
+    )
+
+    # Secure enclave flags
+    parser.add_argument(
+        "--enclave_info", action="store_true", help="Show secure enclave configuration"
+    )
+    parser.add_argument(
+        "--enclave_init", action="store_true", help="Initialize secure enclave"
+    )
+    parser.add_argument(
+        "--enclave_audit", action="store_true", help="Run full secure enclave audit"
+    )
+    parser.add_argument(
+        "--enclave_btb", action="store_true", help="Test BTB injection defense"
+    )
+    parser.add_argument(
+        "--enclave_pht", action="store_true", help="Test PHT poisoning defense"
+    )
+    parser.add_argument(
+        "--enclave_rsb", action="store_true", help="Test RSB stuffing defense"
+    )
+    parser.add_argument(
+        "--enclave_overhead", action="store_true", help="Measure enclave defense overhead"
+    )
+    parser.add_argument(
+        "--enclave_memory",
+        type=int,
+        default=128,
+        help="Enclave memory MB (default: 128)",
+    )
+    parser.add_argument(
+        "--enclave_iterations",
+        type=int,
+        default=100,
+        help="Enclave test iterations (default: 100)",
+    )
+
     args = parser.parse_args()
     reroute_enabled = args.reroute or args.reroute_enabled
 
@@ -1499,6 +1644,52 @@ def main():
         return cmd_dust_solar_impact(args.dust_depth_mm, args.simulate)
     if args.dust_mars:
         return cmd_dust_mars_projection(args.simulate)
+
+    # D11 + Venus acid-cloud commands
+    if args.d11_info:
+        return cmd_d11_info()
+    if args.d11_push:
+        return cmd_d11_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.d11_venus_hybrid:
+        return cmd_d11_venus_hybrid(args.tree_size, args.base_alpha, args.simulate)
+    if args.venus_info:
+        return cmd_venus_info()
+    if args.venus_cloud:
+        return cmd_venus_cloud(args.venus_altitude)
+    if args.venus_acid:
+        return cmd_venus_acid(args.venus_material)
+    if args.venus_ops:
+        return cmd_venus_ops(args.venus_duration, args.venus_altitude)
+    if args.venus_autonomy:
+        return cmd_venus_autonomy()
+
+    # CFD Navier-Stokes commands
+    if args.cfd_info:
+        return cmd_cfd_info()
+    if args.cfd_reynolds:
+        return cmd_cfd_reynolds(args.cfd_velocity, args.cfd_length)
+    if args.cfd_settling:
+        return cmd_cfd_settling(args.cfd_particle_size)
+    if args.cfd_storm:
+        return cmd_cfd_storm(args.cfd_intensity, args.cfd_duration)
+    if args.cfd_validate:
+        return cmd_cfd_validate()
+
+    # Secure enclave commands
+    if args.enclave_info:
+        return cmd_enclave_info()
+    if args.enclave_init:
+        return cmd_enclave_init(args.enclave_memory)
+    if args.enclave_audit:
+        return cmd_enclave_audit(args.enclave_iterations)
+    if args.enclave_btb:
+        return cmd_enclave_btb(args.enclave_iterations)
+    if args.enclave_pht:
+        return cmd_enclave_pht(args.enclave_iterations)
+    if args.enclave_rsb:
+        return cmd_enclave_rsb(args.enclave_iterations)
+    if args.enclave_overhead:
+        return cmd_enclave_overhead()
 
     # Expanded AGI audit commands
     if args.audit_expanded:
