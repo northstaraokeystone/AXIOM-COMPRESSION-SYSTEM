@@ -327,9 +327,9 @@ def evaluate_hub_suitability() -> Dict[str, Any]:
 
     Receipt: callisto_hub_suitability
     """
-    config = load_callisto_config()
-    radiation = compute_radiation_advantage()
-    ice = compute_ice_availability()
+    load_callisto_config()
+    compute_radiation_advantage()
+    compute_ice_availability()
 
     # Scoring factors (0-10 scale)
     scores = {

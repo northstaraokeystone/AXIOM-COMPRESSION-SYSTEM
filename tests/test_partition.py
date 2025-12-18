@@ -180,7 +180,7 @@ class TestStress1000Iterations:
 
         f = io.StringIO()
         with redirect_stdout(f):
-            results = stress_sweep(
+            stress_sweep(
                 nodes_total=NODE_BASELINE,
                 loss_range=(0.0, PARTITION_MAX_TEST_PCT),
                 n_iterations=100,
@@ -248,14 +248,14 @@ class TestReceiptsEmitted:
 
         f = io.StringIO()
         with redirect_stdout(f):
-            result = partition_sim(
+            partition_sim(
                 nodes_total=5, loss_pct=0.20, base_alpha=BASE_ALPHA, emit=True
             )
 
         output = f.getvalue()
         # With reroute_enabled=True (default), multiple receipts may be emitted.
         # Parse the last line which should be the partition_stress receipt.
-        lines = [l for l in output.strip().split("\n") if l]
+        lines = [line for line in output.strip().split("\n") if line]
         receipt = json.loads(lines[-1])
 
         # Validate receipt structure
@@ -275,7 +275,7 @@ class TestReceiptsEmitted:
 
         f = io.StringIO()
         with redirect_stdout(f):
-            spec = load_partition_spec()
+            load_partition_spec()
 
         output = f.getvalue()
         receipt = json.loads(output.strip())

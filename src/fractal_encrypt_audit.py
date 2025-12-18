@@ -182,7 +182,7 @@ def rotate_key(current_key: bytes, rotation_interval: int = 3600) -> bytes:
     """
     # Generate new seed from current key + time
     time_factor = int(time.time() / rotation_interval).to_bytes(8, "big")
-    new_seed = hashlib.sha256(current_key + time_factor).digest()
+    hashlib.sha256(current_key + time_factor).digest()
 
     # Generate new key with fractal pattern
     new_key = generate_fractal_key(FRACTAL_KEY_DEPTH)
@@ -268,7 +268,7 @@ def test_side_channel_resilience(iterations: int = 100) -> float:
         def protected_keygen():
             return generate_fractal_key(FRACTAL_KEY_DEPTH)
 
-        key = protected_keygen()
+        protected_keygen()
 
         # Simulate attack attempt
         timing_variance = random.uniform(0, 0.02)  # Measured timing variance
@@ -304,7 +304,7 @@ def test_model_inversion_resilience(
 
         # Add defense noise
         defense_noise = random.uniform(-0.1, 0.1)
-        noisy_result = query_result + defense_noise
+        query_result + defense_noise
 
         # Simulate inversion attempt
         inversion_accuracy = (

@@ -594,7 +594,7 @@ def run_quantum_resist_audit(
     Receipt: quantum_resist_receipt
     """
     # Generate key
-    key = generate_quantum_key()
+    generate_quantum_key()
 
     # Run Spectre tests
     spectre_result = test_spectre_defense(iterations)

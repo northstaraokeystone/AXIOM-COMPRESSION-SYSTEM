@@ -182,7 +182,7 @@ class TestBlackout60DaysWithReroute:
         """60-day blackout without reroute: more stressed but may survive."""
         f = io.StringIO()
         with redirect_stdout(f):
-            result = blackout_sim(
+            blackout_sim(
                 nodes=NODE_BASELINE,
                 blackout_days=60,
                 reroute_enabled=False,
@@ -229,7 +229,7 @@ class TestBlackoutSweep1000Iterations:
         """Verify blackout sweep emits receipts."""
         f = io.StringIO()
         with redirect_stdout(f):
-            result = blackout_stress_sweep(
+            blackout_stress_sweep(
                 nodes=NODE_BASELINE,
                 blackout_range=(43, 60),
                 n_iterations=100,
@@ -282,7 +282,7 @@ class TestCGRPathComputation:
 
         f = io.StringIO()
         with redirect_stdout(f):
-            paths = compute_cgr_paths(contact_graph, "a", ["b"])
+            compute_cgr_paths(contact_graph, "a", ["b"])
 
         output = f.getvalue()
         receipt = json.loads(output.strip())
@@ -333,7 +333,7 @@ class TestReceiptsEmitted:
 
         f = io.StringIO()
         with redirect_stdout(f):
-            result = adaptive_reroute(graph_state, partition_pct=0.2, blackout_days=10)
+            adaptive_reroute(graph_state, partition_pct=0.2, blackout_days=10)
 
         output = f.getvalue()
         receipts = [json.loads(line) for line in output.strip().split("\n") if line]
@@ -354,7 +354,7 @@ class TestReceiptsEmitted:
         """blackout_sim emits valid receipt."""
         f = io.StringIO()
         with redirect_stdout(f):
-            result = blackout_sim(
+            blackout_sim(
                 nodes=5, blackout_days=43, reroute_enabled=True, seed=42
             )
 
@@ -377,7 +377,7 @@ class TestReceiptsEmitted:
         """apply_reroute_boost emits receipt."""
         f = io.StringIO()
         with redirect_stdout(f):
-            boosted = apply_reroute_boost(2.63, True, 30)
+            apply_reroute_boost(2.63, True, 30)
 
         output = f.getvalue()
         receipt = json.loads(output.strip())
@@ -390,7 +390,7 @@ class TestReceiptsEmitted:
         """load_reroute_spec emits ingest receipt."""
         f = io.StringIO()
         with redirect_stdout(f):
-            spec = load_reroute_spec()
+            load_reroute_spec()
 
         output = f.getvalue()
         receipt = json.loads(output.strip())

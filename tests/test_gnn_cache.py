@@ -250,14 +250,14 @@ class TestCacheDepthScaling:
         with redirect_stdout(io.StringIO()):
             # Baseline fails at 201d
             try:
-                result_baseline = nonlinear_retention(201, CACHE_DEPTH_BASELINE)
+                nonlinear_retention(201, CACHE_DEPTH_BASELINE)
                 baseline_survived = True
             except StopRule:
                 baseline_survived = False
 
             # Large cache should survive 201d
             try:
-                result_large = nonlinear_retention(201, large_cache)
+                nonlinear_retention(201, large_cache)
                 large_survived = True
             except StopRule:
                 large_survived = False

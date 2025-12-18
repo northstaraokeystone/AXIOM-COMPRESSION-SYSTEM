@@ -380,12 +380,11 @@ class TestReceiptMitigation:
         """With 90% receipts, effective_α should rise from ~0.59 to ~1.58."""
         # Without receipts
         eff_no = effective_alpha(1.69, 1200, 0.0)
-        expected_no = 1.69 * 0.35  # ~0.59
         assert 0.55 <= eff_no <= 0.65, f"Expected ~0.59 without receipts, got {eff_no}"
 
         # With 90% receipts
         eff_yes = effective_alpha(1.69, 1200, 0.9)
-        expected_yes = 1.69 * (1 - 0.65 * 0.1)  # ~1.58
+        1.69 * (1 - 0.65 * 0.1)  # ~1.58
         assert 1.50 <= eff_yes <= 1.65, f"Expected ~1.58 with receipts, got {eff_yes}"
 
         # Mitigation benefit should be ~1.0 (2.7x improvement factor)

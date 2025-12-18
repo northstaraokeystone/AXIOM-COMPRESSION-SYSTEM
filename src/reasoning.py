@@ -530,7 +530,7 @@ def project_with_reroute(
     # Get reroute impact
     alpha_boost = reroute_results.get("alpha_boost", REROUTE_ALPHA_BOOST)
     recovery_factor = reroute_results.get("recovery_factor", 0.8)
-    survival_rate = reroute_results.get("survival_rate", 1.0)
+    reroute_results.get("survival_rate", 1.0)
 
     # Apply reroute boost
     boosted_alpha = apply_reroute_boost(base_alpha, True, blackout_days)
@@ -820,7 +820,7 @@ def extreme_blackout_sweep_200d(
     # Check overflow at boundary
     overflow_at_200d = False
     try:
-        result_200 = gnn_nonlinear_retention(200, cache_depth)
+        gnn_nonlinear_retention(200, cache_depth)
     except StopRule:
         overflow_at_200d = True
 
@@ -961,7 +961,7 @@ def project_with_degradation(
         degraded_alpha = curve_point["eff_alpha"]
         retention_factor = curve_point["retention_factor"]
         degradation_pct = curve_point["degradation_pct"]
-        gnn_boost = (
+        (
             curve_point.get("gnn_boost", 0.0) if "gnn_boost" in curve_point else 0.0
         )
     except StopRule:
@@ -969,7 +969,6 @@ def project_with_degradation(
         degraded_alpha = 0.0
         retention_factor = RETENTION_BASE_FACTOR
         degradation_pct = 100.0
-        gnn_boost = 1.0
 
     # Calculate adjusted cycles
     # Lower α means more cycles needed
@@ -1760,7 +1759,7 @@ def continued_ablation_loop(
             )
 
             # Compute reward
-            reward = tuner.compute_reward(
+            tuner.compute_reward(
                 alpha_before=iteration_alpha, alpha_after=new_alpha, overflow=overflow
             )
 
@@ -1837,7 +1836,7 @@ def validate_no_static_configs() -> Dict[str, bool]:
 
     # Check GNN config
     try:
-        gnn_config = get_gnn_config()
+        get_gnn_config()
         # Dynamic mode is available even if not currently active
         validations["gnn_config_dynamic"] = True
     except Exception:
@@ -1845,7 +1844,7 @@ def validate_no_static_configs() -> Dict[str, bool]:
 
     # Check pruning
     try:
-        aggr = get_current_aggressiveness()
+        get_current_aggressiveness()
         # Dynamic mode is available
         validations["pruning_dynamic"] = True
     except Exception:
@@ -1918,26 +1917,26 @@ def get_rl_integration_status() -> Dict[str, Any]:
     }
 
     try:
-        rl_info = get_rl_tune_info()
+        get_rl_tune_info()
         status["rl_tune_ready"] = True
         status["rl_tune_version"] = "v1.0"
     except Exception:
         pass
 
     try:
-        adaptive_info = get_adaptive_info()
+        get_adaptive_info()
         status["adaptive_ready"] = True
     except Exception:
         pass
 
     try:
-        gnn_config = get_gnn_config()
+        get_gnn_config()
         status["gnn_dynamic_ready"] = True
     except Exception:
         pass
 
     try:
-        aggr = get_current_aggressiveness()
+        get_current_aggressiveness()
         status["pruning_dynamic_ready"] = True
     except Exception:
         pass

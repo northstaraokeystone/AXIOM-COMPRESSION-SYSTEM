@@ -1023,11 +1023,11 @@ def coordinate_jovian_system(
     )
 
     if titan is None:
-        titan_config = load_titan_config()
+        load_titan_config()
     if europa is None:
-        europa_config = load_europa_config()
+        load_europa_config()
     if ganymede is None:
-        ganymede_config = load_ganymede_config()
+        load_ganymede_config()
 
     # Run simulations
     titan_result = simulate_harvest(duration_days=30)

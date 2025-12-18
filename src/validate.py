@@ -199,7 +199,7 @@ def generate_falsifiable_prediction(result: Dict) -> str:
     Key insight: Higher bandwidth = MORE Earth help = HIGHER sovereignty threshold
     (need more crew to generate decisions faster than Earth can provide them)
     """
-    mean = result.get("mean", 50)
+    result.get("mean", 50)
     std = result.get("std", 10)
 
     # Prediction for minimum delay (Mars at opposition)
