@@ -116,7 +116,7 @@ def compute_penalty_reduction(instability: float) -> Dict[str, Any]:
         "standard_penalty": standard,
         "entangled_penalty": entangled,
         "penalty_reduction": reduction,
-        "reduction_pct": round(reduction_pct, 2)
+        "reduction_pct": round(reduction_pct, 2),
     }
 
 
@@ -124,8 +124,7 @@ def compute_penalty_reduction(instability: float) -> Dict[str, Any]:
 
 
 def simulate_quantum_policy(
-    runs: int = QUANTUM_SIM_RUNS,
-    seed: Optional[int] = None
+    runs: int = QUANTUM_SIM_RUNS, seed: Optional[int] = None
 ) -> Dict[str, Any]:
     """Run quantum hybrid simulation with entangled penalty.
 
@@ -182,21 +181,25 @@ def simulate_quantum_policy(
                 total_variance_standard += abs(standard_pen) ** 2
                 total_variance_entangled += abs(entangled_pen) ** 2
 
-                simulation_results.append({
-                    "run": run,
-                    "alpha_drop": alpha_drop,
-                    "standard_penalty": standard_pen,
-                    "entangled_penalty": entangled_pen,
-                    "reduction": abs(standard_pen) - abs(entangled_pen)
-                })
+                simulation_results.append(
+                    {
+                        "run": run,
+                        "alpha_drop": alpha_drop,
+                        "standard_penalty": standard_pen,
+                        "entangled_penalty": entangled_pen,
+                        "reduction": abs(standard_pen) - abs(entangled_pen),
+                    }
+                )
         else:
-            simulation_results.append({
-                "run": run,
-                "alpha_drop": 0.0,
-                "standard_penalty": 0.0,
-                "entangled_penalty": 0.0,
-                "reduction": 0.0
-            })
+            simulation_results.append(
+                {
+                    "run": run,
+                    "alpha_drop": 0.0,
+                    "standard_penalty": 0.0,
+                    "entangled_penalty": 0.0,
+                    "reduction": 0.0,
+                }
+            )
 
     # Compute statistics
     if instability_events > 0:
@@ -206,7 +209,11 @@ def simulate_quantum_policy(
 
         variance_standard = total_variance_standard / instability_events
         variance_entangled = total_variance_entangled / instability_events
-        variance_reduction = ((variance_standard - variance_entangled) / variance_standard) * 100 if variance_standard > 0 else 0
+        variance_reduction = (
+            ((variance_standard - variance_entangled) / variance_standard) * 100
+            if variance_standard > 0
+            else 0
+        )
     else:
         reduction_pct = ENTANGLED_PENALTY_FACTOR * 100  # Expected 8%
         variance_reduction = reduction_pct
@@ -214,7 +221,9 @@ def simulate_quantum_policy(
     # Effective retention boost calculation
     # Reduced penalty allows more aggressive exploration → better solutions
     # Empirically validated at ~0.03 retention boost
-    effective_boost = QUANTUM_RETENTION_BOOST * (reduction_pct / 8.0)  # Scale by observed reduction
+    effective_boost = QUANTUM_RETENTION_BOOST * (
+        reduction_pct / 8.0
+    )  # Scale by observed reduction
 
     result = {
         "runs_completed": runs,
@@ -226,31 +235,38 @@ def simulate_quantum_policy(
         "entangled_penalty_sum": round(entangled_penalty_sum, 4),
         "variance_reduction_pct": round(variance_reduction, 1),
         "paradigm": "hybrid_rl_quantum",
-        "status": "validated"
+        "status": "validated",
     }
 
-    emit_receipt("quantum_10run_sim", {
-        "receipt_type": "quantum_10run_sim",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "runs_completed": runs,
-        "instability_reduction_pct": round(reduction_pct, 1),
-        "effective_retention_boost": round(effective_boost, 4),
-        "entangled_penalty_factor": ENTANGLED_PENALTY_FACTOR,
-        "paradigm": "hybrid_rl_quantum",
-        "payload_hash": dual_hash(json.dumps({
-            "runs": runs,
-            "reduction": reduction_pct,
-            "boost": effective_boost
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "quantum_10run_sim",
+        {
+            "receipt_type": "quantum_10run_sim",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "runs_completed": runs,
+            "instability_reduction_pct": round(reduction_pct, 1),
+            "effective_retention_boost": round(effective_boost, 4),
+            "entangled_penalty_factor": ENTANGLED_PENALTY_FACTOR,
+            "paradigm": "hybrid_rl_quantum",
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "runs": runs,
+                        "reduction": reduction_pct,
+                        "boost": effective_boost,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
 
 def integrate_with_rl(
-    rl_state: Dict[str, Any],
-    quantum_output: Dict[str, Any]
+    rl_state: Dict[str, Any], quantum_output: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Merge quantum penalty reduction into RL reward calculation.
 
@@ -268,7 +284,9 @@ def integrate_with_rl(
     instability = rl_state.get("instability", 0.0)
 
     # Get quantum boost
-    quantum_boost = quantum_output.get("effective_retention_boost", QUANTUM_RETENTION_BOOST)
+    quantum_boost = quantum_output.get(
+        "effective_retention_boost", QUANTUM_RETENTION_BOOST
+    )
 
     # Apply quantum boost to retention
     boosted_retention = base_retention * (1.0 + quantum_boost)
@@ -284,21 +302,26 @@ def integrate_with_rl(
         "penalty_used": "entangled" if instability > ALPHA_DROP_THRESHOLD else "none",
         "penalty_value": penalty,
         "standard_penalty_would_be": compute_standard_penalty(instability),
-        "penalty_saved": abs(compute_standard_penalty(instability)) - abs(penalty)
+        "penalty_saved": abs(compute_standard_penalty(instability)) - abs(penalty),
     }
 
-    emit_receipt("quantum_rl_integration", {
-        "receipt_type": "quantum_rl_integration",
-        "tenant_id": TENANT_ID,
-        "original_retention": base_retention,
-        "boosted_retention": round(boosted_retention, 5),
-        "quantum_boost": quantum_boost,
-        "penalty_type": result["penalty_used"],
-        "payload_hash": dual_hash(json.dumps({
-            "retention": boosted_retention,
-            "boost": quantum_boost
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "quantum_rl_integration",
+        {
+            "receipt_type": "quantum_rl_integration",
+            "tenant_id": TENANT_ID,
+            "original_retention": base_retention,
+            "boosted_retention": round(boosted_retention, 5),
+            "quantum_boost": quantum_boost,
+            "penalty_type": result["penalty_used"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"retention": boosted_retention, "boost": quantum_boost},
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -325,29 +348,36 @@ def get_quantum_rl_hybrid_info() -> Dict[str, Any]:
         "penalty_formula": {
             "standard": "-1.0 if alpha_drop > 0.05",
             "entangled": "-1.0 * (1 - 0.08) = -0.92 if alpha_drop > 0.05",
-            "reduction": "8% penalty reduction"
+            "reduction": "8% penalty reduction",
         },
         "expected_results": {
             "instability_reduction": "~8%",
             "retention_boost": "+0.03",
-            "combined_with_pilot": "1.062 retention"
+            "combined_with_pilot": "1.062 retention",
         },
         "sequencing": {
             "step_1": "50-run pilot → narrow LR",
             "step_2": "10-run quantum sim → validate entanglement",
-            "step_3": "500-run tuned sweep → 1.062 retention"
+            "step_3": "500-run tuned sweep → 1.062 retention",
         },
         "description": "Quantum entangled instability penalty reduces penalty severity "
-                       "from -1.0 to -0.92, enabling more aggressive exploration "
-                       "and ~0.03 effective retention boost."
+        "from -1.0 to -0.92, enabling more aggressive exploration "
+        "and ~0.03 effective retention boost.",
     }
 
-    emit_receipt("quantum_rl_hybrid_info", {
-        "receipt_type": "quantum_rl_hybrid_info",
-        "tenant_id": TENANT_ID,
-        **{k: v for k, v in info.items() if k not in ["penalty_formula", "expected_results", "sequencing"]},
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "quantum_rl_hybrid_info",
+        {
+            "receipt_type": "quantum_rl_hybrid_info",
+            "tenant_id": TENANT_ID,
+            **{
+                k: v
+                for k, v in info.items()
+                if k not in ["penalty_formula", "expected_results", "sequencing"]
+            },
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
+        },
+    )
 
     return info
 
@@ -374,8 +404,7 @@ def get_boost_estimate() -> float:
 
 
 def quantum_fractal_hybrid(
-    state: Dict[str, Any],
-    fractal_result: Dict[str, Any]
+    state: Dict[str, Any], fractal_result: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Combine quantum and fractal contributions for ceiling breach.
 
@@ -425,32 +454,38 @@ def quantum_fractal_hybrid(
         "ceiling_breached": ceiling_breached,
         "hybrid_total": round(quantum_contribution + fractal_contribution, 4),
         "fractal_dimension": fractal_result.get("fractal_dimension", 1.7),
-        "scales_used": fractal_result.get("scales_used", [1, 2, 4, 8, 16])
+        "scales_used": fractal_result.get("scales_used", [1, 2, 4, 8, 16]),
     }
 
-    emit_receipt("quantum_fractal_hybrid", {
-        "receipt_type": "quantum_fractal_hybrid",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "quantum_contribution": quantum_contribution,
-        "fractal_contribution": round(fractal_contribution, 4),
-        "final_alpha": round(final_alpha, 4),
-        "instability": instability,
-        "payload_hash": dual_hash(json.dumps({
-            "base_alpha": base_alpha,
-            "final_alpha": final_alpha,
-            "quantum": quantum_contribution,
-            "fractal": fractal_contribution
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "quantum_fractal_hybrid",
+        {
+            "receipt_type": "quantum_fractal_hybrid",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "quantum_contribution": quantum_contribution,
+            "fractal_contribution": round(fractal_contribution, 4),
+            "final_alpha": round(final_alpha, 4),
+            "instability": instability,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "base_alpha": base_alpha,
+                        "final_alpha": final_alpha,
+                        "quantum": quantum_contribution,
+                        "fractal": fractal_contribution,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
 
 def quantum_fractal_hybrid_at_scale(
-    state: Dict[str, Any],
-    fractal_result: Dict[str, Any],
-    tree_size: int
+    state: Dict[str, Any], fractal_result: Dict[str, Any], tree_size: int
 ) -> Dict[str, Any]:
     """Run quantum-fractal hybrid with scale-aware adjustments.
 
@@ -491,7 +526,7 @@ def quantum_fractal_hybrid_at_scale(
 
     # Apply scale adjustment to alpha
     # Alpha scales with scale_factor^2 (affects both encoding and retention)
-    scale_adjusted_alpha = base_alpha * (scale_factor ** 2)
+    scale_adjusted_alpha = base_alpha * (scale_factor**2)
 
     # Combine: quantum boost on retention, fractal scale on structure
     hybrid_alpha = scale_adjusted_alpha * boosted_retention / base_retention
@@ -513,25 +548,33 @@ def quantum_fractal_hybrid_at_scale(
         "scale_factor": round(scale_factor, 6),
         "adjusted_correlation": round(adjusted_correlation, 6),
         "penalty_applied": penalty,
-        "hybrid_status": "validated" if hybrid_alpha >= 3.06 else "degraded"
+        "hybrid_status": "validated" if hybrid_alpha >= 3.06 else "degraded",
     }
 
-    emit_receipt("quantum_fractal_hybrid_at_scale", {
-        "receipt_type": "quantum_fractal_hybrid_at_scale",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "tree_size": tree_size,
-        "alpha": result["alpha"],
-        "instability": result["instability"],
-        "quantum_boost": quantum_boost,
-        "scale_factor": result["scale_factor"],
-        "hybrid_status": result["hybrid_status"],
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "quantum_fractal_hybrid_at_scale",
+        {
+            "receipt_type": "quantum_fractal_hybrid_at_scale",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
             "tree_size": tree_size,
             "alpha": result["alpha"],
-            "instability": result["instability"]
-        }, sort_keys=True))
-    })
+            "instability": result["instability"],
+            "quantum_boost": quantum_boost,
+            "scale_factor": result["scale_factor"],
+            "hybrid_status": result["hybrid_status"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "tree_size": tree_size,
+                        "alpha": result["alpha"],
+                        "instability": result["instability"],
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -548,8 +591,8 @@ def validate_entanglement(runs: int = 10) -> Dict[str, Any]:
     result = simulate_quantum_policy(runs=runs)
 
     validated = (
-        result["instability_reduction_pct"] > 0 and
-        result["effective_retention_boost"] > 0
+        result["instability_reduction_pct"] > 0
+        and result["effective_retention_boost"] > 0
     )
 
     validation = {
@@ -559,14 +602,17 @@ def validate_entanglement(runs: int = 10) -> Dict[str, Any]:
         "expected_reduction": ENTANGLED_PENALTY_FACTOR * 100,
         "observed_boost": result["effective_retention_boost"],
         "expected_boost": QUANTUM_RETENTION_BOOST,
-        "entanglement_active": True
+        "entanglement_active": True,
     }
 
-    emit_receipt("entanglement_validation", {
-        "receipt_type": "entanglement_validation",
-        "tenant_id": TENANT_ID,
-        **validation,
-        "payload_hash": dual_hash(json.dumps(validation, sort_keys=True))
-    })
+    emit_receipt(
+        "entanglement_validation",
+        {
+            "receipt_type": "entanglement_validation",
+            "tenant_id": TENANT_ID,
+            **validation,
+            "payload_hash": dual_hash(json.dumps(validation, sort_keys=True)),
+        },
+    )
 
     return validation

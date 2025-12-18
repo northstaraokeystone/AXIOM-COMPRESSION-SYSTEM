@@ -71,23 +71,24 @@ def get_hybrid_10e12_spec() -> Dict[str, Any]:
     Receipt: hybrid_10e12_spec_ingest
     """
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "data",
-        "hybrid_10e12_spec.json"
+        os.path.dirname(os.path.dirname(__file__)), "data", "hybrid_10e12_spec.json"
     )
 
     with open(spec_path, "r") as f:
         spec = json.load(f)
 
-    emit_receipt("hybrid_10e12_spec_ingest", {
-        "receipt_type": "hybrid_10e12_spec_ingest",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "tree_target": spec.get("tree_target", TREE_10E12),
-        "alpha_floor": spec.get("alpha_floor", ALPHA_10E12_FLOOR),
-        "alpha_target": spec.get("alpha_target", ALPHA_10E12_TARGET),
-        "payload_hash": dual_hash(json.dumps(spec, sort_keys=True))
-    })
+    emit_receipt(
+        "hybrid_10e12_spec_ingest",
+        {
+            "receipt_type": "hybrid_10e12_spec_ingest",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "tree_target": spec.get("tree_target", TREE_10E12),
+            "alpha_floor": spec.get("alpha_floor", ALPHA_10E12_FLOOR),
+            "alpha_target": spec.get("alpha_target", ALPHA_10E12_TARGET),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
 
     return spec
 
@@ -98,7 +99,7 @@ def get_hybrid_10e12_spec() -> Dict[str, Any]:
 def benchmark_10e12(
     tree_size: int = TREE_10E12,
     base_alpha: float = 2.99,
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Run full hybrid benchmark at 10^12 scale.
 
@@ -144,7 +145,7 @@ def benchmark_10e12(
 
     # Apply scale decay to hybrid alpha
     # At 10^12, we expect ~0.005-0.01 decay due to correlation dilution
-    scale_adjusted_alpha = hybrid_result["final_alpha"] * (scale_factor ** 2)
+    scale_adjusted_alpha = hybrid_result["final_alpha"] * (scale_factor**2)
 
     # For 10^12, scale_factor should be close to 1 (minimal decay)
     # But we simulate realistic decay for large trees
@@ -163,7 +164,9 @@ def benchmark_10e12(
 
     # Check gate pass conditions
     alpha_ok = eff_alpha >= config.get("alpha_floor", ALPHA_10E12_FLOOR)
-    instability_ok = instability <= config.get("validation", {}).get("instability_max", INSTABILITY_MAX)
+    instability_ok = instability <= config.get("validation", {}).get(
+        "instability_max", INSTABILITY_MAX
+    )
     decay_ok = scale_decay <= config.get("scale_decay_max", SCALE_DECAY_MAX)
     gate_pass = alpha_ok and instability_ok and decay_ok
 
@@ -175,8 +178,14 @@ def benchmark_10e12(
         "scale_decay": round(scale_decay, 4),
         "scale_factor": round(scale_factor, 6),
         "quantum_contrib": QUANTUM_RETENTION_BOOST,
-        "fractal_contrib": round(fractal_result.get("uplift_achieved", FRACTAL_UPLIFT), 4),
-        "hybrid_total": round(QUANTUM_RETENTION_BOOST + fractal_result.get("uplift_achieved", FRACTAL_UPLIFT), 4),
+        "fractal_contrib": round(
+            fractal_result.get("uplift_achieved", FRACTAL_UPLIFT), 4
+        ),
+        "hybrid_total": round(
+            QUANTUM_RETENTION_BOOST
+            + fractal_result.get("uplift_achieved", FRACTAL_UPLIFT),
+            4,
+        ),
         "gate_pass": gate_pass,
         "validation": {
             "alpha_ok": alpha_ok,
@@ -187,33 +196,39 @@ def benchmark_10e12(
             "alpha_floor": config.get("alpha_floor", ALPHA_10E12_FLOOR),
             "instability_max": INSTABILITY_MAX,
             "decay_max": config.get("scale_decay_max", SCALE_DECAY_MAX),
-        }
+        },
     }
 
-    emit_receipt("hybrid_10e12_benchmark", {
-        "receipt_type": "hybrid_10e12_benchmark",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "tree_size": tree_size,
-        "eff_alpha": result["eff_alpha"],
-        "instability": result["instability"],
-        "scale_decay": result["scale_decay"],
-        "gate_pass": result["gate_pass"],
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "hybrid_10e12_benchmark",
+        {
+            "receipt_type": "hybrid_10e12_benchmark",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
             "tree_size": tree_size,
             "eff_alpha": result["eff_alpha"],
             "instability": result["instability"],
-            "gate_pass": result["gate_pass"]
-        }, sort_keys=True))
-    })
+            "scale_decay": result["scale_decay"],
+            "gate_pass": result["gate_pass"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "tree_size": tree_size,
+                        "eff_alpha": result["eff_alpha"],
+                        "instability": result["instability"],
+                        "gate_pass": result["gate_pass"],
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
 
 def validate_scale_decay(
-    baseline_alpha: float,
-    scaled_alpha: float,
-    max_decay: float = SCALE_DECAY_MAX
+    baseline_alpha: float, scaled_alpha: float, max_decay: float = SCALE_DECAY_MAX
 ) -> Dict[str, Any]:
     """Check if scale decay is within acceptable SLO.
 
@@ -241,16 +256,19 @@ def validate_scale_decay(
         "decay": round(decay, 4),
         "decay_pct": round(decay_pct, 3),
         "slo_max": max_decay,
-        "valid": valid
+        "valid": valid,
     }
 
-    emit_receipt("scale_decay_validation", {
-        "receipt_type": "scale_decay_validation",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "scale_decay_validation",
+        {
+            "receipt_type": "scale_decay_validation",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -277,10 +295,12 @@ def emit_benchmark_receipt(results: Dict[str, Any]) -> Dict[str, Any]:
         "gate_pass": results.get("gate_pass"),
         "quantum_contrib": results.get("quantum_contrib"),
         "fractal_contrib": results.get("fractal_contrib"),
-        "payload_hash": dual_hash(json.dumps({
-            k: v for k, v in results.items()
-            if k not in ["validation", "slo"]
-        }, sort_keys=True))
+        "payload_hash": dual_hash(
+            json.dumps(
+                {k: v for k, v in results.items() if k not in ["validation", "slo"]},
+                sort_keys=True,
+            )
+        ),
     }
 
     return emit_receipt("hybrid_10e12_benchmark_receipt", receipt)
@@ -311,13 +331,19 @@ def check_release_gate_3_1() -> Dict[str, Any]:
     blockers = []
 
     if not benchmark_result["validation"]["alpha_ok"]:
-        blockers.append(f"eff_alpha {benchmark_result['eff_alpha']} < {ALPHA_10E12_FLOOR}")
+        blockers.append(
+            f"eff_alpha {benchmark_result['eff_alpha']} < {ALPHA_10E12_FLOOR}"
+        )
 
     if not benchmark_result["validation"]["instability_ok"]:
-        blockers.append(f"instability {benchmark_result['instability']} > {INSTABILITY_MAX}")
+        blockers.append(
+            f"instability {benchmark_result['instability']} > {INSTABILITY_MAX}"
+        )
 
     if not benchmark_result["validation"]["decay_ok"]:
-        blockers.append(f"scale_decay {benchmark_result['scale_decay']} > {SCALE_DECAY_MAX}")
+        blockers.append(
+            f"scale_decay {benchmark_result['scale_decay']} > {SCALE_DECAY_MAX}"
+        )
 
     gate_pass = len(blockers) == 0
 
@@ -326,24 +352,32 @@ def check_release_gate_3_1() -> Dict[str, Any]:
         "version": "3.1" if gate_pass else None,
         "blockers": blockers,
         "benchmark_result": benchmark_result,
-        "checked_at": datetime.utcnow().isoformat() + "Z"
+        "checked_at": datetime.utcnow().isoformat() + "Z",
     }
 
-    emit_receipt("release_gate_3_1", {
-        "receipt_type": "release_gate_3_1",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "gate_pass": gate_pass,
-        "version": "3.1" if gate_pass else None,
-        "blockers_count": len(blockers),
-        "eff_alpha": benchmark_result["eff_alpha"],
-        "instability": benchmark_result["instability"],
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "release_gate_3_1",
+        {
+            "receipt_type": "release_gate_3_1",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
             "gate_pass": gate_pass,
             "version": "3.1" if gate_pass else None,
-            "eff_alpha": benchmark_result["eff_alpha"]
-        }, sort_keys=True))
-    })
+            "blockers_count": len(blockers),
+            "eff_alpha": benchmark_result["eff_alpha"],
+            "instability": benchmark_result["instability"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "gate_pass": gate_pass,
+                        "version": "3.1" if gate_pass else None,
+                        "eff_alpha": benchmark_result["eff_alpha"],
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -365,22 +399,25 @@ def get_benchmark_info() -> Dict[str, Any]:
         "slo": {
             "eff_alpha": f">= {ALPHA_10E12_FLOOR}",
             "instability": f"== {INSTABILITY_MAX}",
-            "scale_decay": f"<= {SCALE_DECAY_MAX}"
+            "scale_decay": f"<= {SCALE_DECAY_MAX}",
         },
         "expected_results": {
             "eff_alpha_range": "3.065-3.075",
             "instability": "0.00",
-            "scale_decay": "negligible (<0.02)"
+            "scale_decay": "negligible (<0.02)",
         },
-        "description": "10^12 hybrid benchmark for edge boost validation"
+        "description": "10^12 hybrid benchmark for edge boost validation",
     }
 
-    emit_receipt("benchmark_info", {
-        "receipt_type": "benchmark_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in info.items() if k not in ["slo", "expected_results"]},
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "benchmark_info",
+        {
+            "receipt_type": "benchmark_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in info.items() if k not in ["slo", "expected_results"]},
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
+        },
+    )
 
     return info

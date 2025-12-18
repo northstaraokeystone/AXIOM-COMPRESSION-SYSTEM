@@ -88,6 +88,7 @@ class CalibrationConfig:
         confidence_threshold: Minimum confidence to report (default 0.70)
         decay_weight: Weight for recent vs historical data (default 0.8)
     """
+
     min_data_points: int = MIN_DATA_POINTS
     confidence_threshold: float = CONFIDENCE_THRESHOLD
     decay_weight: float = DECAY_WEIGHT
@@ -104,6 +105,7 @@ class CalibrationInput:
         observation_count: Number of observations
         observation_window_months: Window over which data collected
     """
+
     fsd_improvement_rate: float
     optimus_capability_growth: float
     starship_anomaly_resolution_time: float
@@ -122,6 +124,7 @@ class CalibrationOutput:
         dominant_signal: Which proxy contributed most
         data_quality_score: Quality of input data (0-1)
     """
+
     alpha_estimate: float
     confidence_interval: Tuple[float, float]
     confidence_level: float
@@ -247,8 +250,7 @@ def starship_to_alpha_proxy(resolution_times: List[float]) -> Tuple[float, float
 
 
 def combine_proxies(
-    proxies: List[Tuple[float, float]],
-    weights: List[float] = None
+    proxies: List[Tuple[float, float]], weights: List[float] = None
 ) -> Tuple[float, Tuple[float, float], float]:
     """Combine multiple alpha proxies into single estimate.
 
@@ -339,14 +341,13 @@ def compute_data_quality(inputs: CalibrationInput) -> float:
     plausibility = (fsd_plausible + optimus_plausible + starship_plausible) / 3
 
     # Combined quality
-    quality = (obs_factor * 0.3 + window_factor * 0.3 + plausibility * 0.4)
+    quality = obs_factor * 0.3 + window_factor * 0.3 + plausibility * 0.4
 
     return quality
 
 
 def estimate_alpha(
-    inputs: CalibrationInput,
-    config: CalibrationConfig = None
+    inputs: CalibrationInput, config: CalibrationConfig = None
 ) -> CalibrationOutput:
     """Compute alpha estimate from proxy data.
 
@@ -375,7 +376,7 @@ def estimate_alpha(
             confidence_interval=(ALPHA_MIN_PLAUSIBLE, ALPHA_MAX_PLAUSIBLE),
             confidence_level=0.0,
             dominant_signal="insufficient_data",
-            data_quality_score=0.0
+            data_quality_score=0.0,
         )
 
     # Extract proxies from each source
@@ -383,15 +384,17 @@ def estimate_alpha(
     # In practice, these would come from actual historical data
 
     # FSD proxy - simulate from improvement rate
-    fsd_rates = [inputs.fsd_improvement_rate * (1.1 ** i) for i in range(6)]
+    fsd_rates = [inputs.fsd_improvement_rate * (1.1**i) for i in range(6)]
     fsd_proxy, fsd_conf = fsd_to_alpha_proxy(fsd_rates)
 
     # Optimus proxy - simulate from capability growth
-    optimus_caps = [inputs.optimus_capability_growth * (1.15 ** i) for i in range(6)]
+    optimus_caps = [inputs.optimus_capability_growth * (1.15**i) for i in range(6)]
     optimus_proxy, optimus_conf = optimus_to_alpha_proxy(optimus_caps)
 
     # Starship proxy - simulate from resolution times
-    starship_times = [inputs.starship_anomaly_resolution_time / (1.2 ** i) for i in range(6)]
+    starship_times = [
+        inputs.starship_anomaly_resolution_time / (1.2**i) for i in range(6)
+    ]
     starship_times = [max(1, t) for t in starship_times]  # Floor at 1 day
     starship_proxy, starship_conf = starship_to_alpha_proxy(starship_times)
 
@@ -399,7 +402,7 @@ def estimate_alpha(
     proxies = [
         (fsd_proxy, fsd_conf),
         (optimus_proxy, optimus_conf),
-        (starship_proxy, starship_conf)
+        (starship_proxy, starship_conf),
     ]
     weights = [1.0, 1.0, 1.0]
 
@@ -417,26 +420,29 @@ def estimate_alpha(
         confidence_interval=ci,
         confidence_level=combined_conf,
         dominant_signal=dominant,
-        data_quality_score=quality
+        data_quality_score=quality,
     )
 
     # Emit receipt
-    emit_receipt("calibration", {
-        "tenant_id": "axiom-autonomy",
-        "alpha_estimate": alpha_est,
-        "confidence_interval_low": ci[0],
-        "confidence_interval_high": ci[1],
-        "confidence_level": combined_conf,
-        "fsd_proxy": fsd_proxy,
-        "fsd_confidence": fsd_conf,
-        "optimus_proxy": optimus_proxy,
-        "optimus_confidence": optimus_conf,
-        "starship_proxy": starship_proxy,
-        "starship_confidence": starship_conf,
-        "dominant_signal": dominant,
-        "data_quality_score": quality,
-        "observation_count": inputs.observation_count,
-    })
+    emit_receipt(
+        "calibration",
+        {
+            "tenant_id": "axiom-autonomy",
+            "alpha_estimate": alpha_est,
+            "confidence_interval_low": ci[0],
+            "confidence_interval_high": ci[1],
+            "confidence_level": combined_conf,
+            "fsd_proxy": fsd_proxy,
+            "fsd_confidence": fsd_conf,
+            "optimus_proxy": optimus_proxy,
+            "optimus_confidence": optimus_conf,
+            "starship_proxy": starship_proxy,
+            "starship_confidence": starship_conf,
+            "dominant_signal": dominant,
+            "data_quality_score": quality,
+            "observation_count": inputs.observation_count,
+        },
+    )
 
     return output
 
@@ -445,7 +451,7 @@ def estimate_alpha_from_lists(
     fsd_rates: List[float],
     optimus_caps: List[float],
     starship_times: List[float],
-    config: CalibrationConfig = None
+    config: CalibrationConfig = None,
 ) -> CalibrationOutput:
     """Estimate alpha from explicit data lists.
 
@@ -472,7 +478,7 @@ def estimate_alpha_from_lists(
     proxies = [
         (fsd_proxy, fsd_conf),
         (optimus_proxy, optimus_conf),
-        (starship_proxy, starship_conf)
+        (starship_proxy, starship_conf),
     ]
 
     alpha_est, ci, combined_conf = combine_proxies(proxies)
@@ -490,28 +496,33 @@ def estimate_alpha_from_lists(
         confidence_interval=ci,
         confidence_level=combined_conf,
         dominant_signal=dominant,
-        data_quality_score=quality
+        data_quality_score=quality,
     )
 
     # Emit receipt
-    emit_receipt("calibration", {
-        "tenant_id": "axiom-autonomy",
-        "alpha_estimate": alpha_est,
-        "confidence_interval_low": ci[0],
-        "confidence_interval_high": ci[1],
-        "confidence_level": combined_conf,
-        "fsd_proxy": fsd_proxy,
-        "optimus_proxy": optimus_proxy,
-        "starship_proxy": starship_proxy,
-        "dominant_signal": dominant,
-        "data_quality_score": quality,
-        "observation_count": total_points,
-    })
+    emit_receipt(
+        "calibration",
+        {
+            "tenant_id": "axiom-autonomy",
+            "alpha_estimate": alpha_est,
+            "confidence_interval_low": ci[0],
+            "confidence_interval_high": ci[1],
+            "confidence_level": combined_conf,
+            "fsd_proxy": fsd_proxy,
+            "optimus_proxy": optimus_proxy,
+            "starship_proxy": starship_proxy,
+            "dominant_signal": dominant,
+            "data_quality_score": quality,
+            "observation_count": total_points,
+        },
+    )
 
     return output
 
 
-def emit_calibration_receipt(output: CalibrationOutput, inputs: CalibrationInput = None) -> dict:
+def emit_calibration_receipt(
+    output: CalibrationOutput, inputs: CalibrationInput = None
+) -> dict:
     """Emit detailed calibration receipt per CLAUDEME.
 
     Args:
@@ -534,15 +545,18 @@ def emit_calibration_receipt(output: CalibrationOutput, inputs: CalibrationInput
     }
 
     if inputs:
-        receipt_data.update({
-            "observation_count": inputs.observation_count,
-            "observation_window_months": inputs.observation_window_months,
-        })
+        receipt_data.update(
+            {
+                "observation_count": inputs.observation_count,
+                "observation_window_months": inputs.observation_window_months,
+            }
+        )
 
     return emit_receipt("calibration", receipt_data)
 
 
 # === EMPIRICAL FSD FUNCTIONS ===
+
 
 def compute_gain_factor(mpi_before: int, mpi_after: int) -> float:
     """Compute MPI gain factor between versions.
@@ -605,11 +619,11 @@ def load_fsd_empirical(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, FSD_EMPIRICAL_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     # Extract stored hash
-    stored_hash = data.pop('payload_hash', None)
+    stored_hash = data.pop("payload_hash", None)
     if stored_hash is None:
         raise StopRule("fsd_empirical.json missing payload_hash field")
 
@@ -617,41 +631,51 @@ def load_fsd_empirical(path: str = None) -> Dict[str, Any]:
     computed_hash = dual_hash(json.dumps(data, sort_keys=True))
 
     # Verify hash
-    hash_verified = (stored_hash == computed_hash)
+    hash_verified = stored_hash == computed_hash
 
     if not hash_verified:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-autonomy",
-            "metric": "hash_mismatch",
-            "classification": "violation",
-            "action": "halt",
-            "expected": stored_hash,
-            "actual": computed_hash,
-            "file_path": path
-        })
-        raise StopRule(f"FSD empirical hash mismatch: expected {stored_hash}, got {computed_hash}")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-autonomy",
+                "metric": "hash_mismatch",
+                "classification": "violation",
+                "action": "halt",
+                "expected": stored_hash,
+                "actual": computed_hash,
+                "file_path": path,
+            },
+        )
+        raise StopRule(
+            f"FSD empirical hash mismatch: expected {stored_hash}, got {computed_hash}"
+        )
 
     # Compute derived metrics
-    mpi_v13 = data['mpi_values'][2]  # v13 index
-    mpi_v14 = data['mpi_values'][3]  # v14 index
+    mpi_v13 = data["mpi_values"][2]  # v13 index
+    mpi_v14 = data["mpi_values"][3]  # v14 index
     gain_factor = compute_gain_factor(mpi_v13, mpi_v14)
-    safety_ratio = compute_safety_ratio(data['safety_ap_mpcm'], data['safety_human_mpcm'])
+    safety_ratio = compute_safety_ratio(
+        data["safety_ap_mpcm"], data["safety_human_mpcm"]
+    )
 
     # Emit ingest receipt
-    emit_receipt("fsd_empirical_ingest", {
-        "tenant_id": "axiom-autonomy",
-        "file_path": path,
-        "mpi_v13": mpi_v13,
-        "mpi_v14": mpi_v14,
-        "gain_factor": round(gain_factor, 2),
-        "safety_ratio": round(safety_ratio, 2),
-        "observation_date": data['observation_date'],
-        "hash_verified": hash_verified,
-        "payload_hash": stored_hash
-    })
+    emit_receipt(
+        "fsd_empirical_ingest",
+        {
+            "tenant_id": "axiom-autonomy",
+            "file_path": path,
+            "mpi_v13": mpi_v13,
+            "mpi_v14": mpi_v14,
+            "gain_factor": round(gain_factor, 2),
+            "safety_ratio": round(safety_ratio, 2),
+            "observation_date": data["observation_date"],
+            "hash_verified": hash_verified,
+            "payload_hash": stored_hash,
+        },
+    )
 
     # Restore hash to data for downstream use
-    data['payload_hash'] = stored_hash
+    data["payload_hash"] = stored_hash
 
     return data
 
@@ -679,8 +703,8 @@ def fit_alpha_empirical(fsd_data: Dict[str, Any]) -> Dict[str, Any]:
     Receipt: alpha_calibration with method="empirical"
     """
     # Extract MPI values
-    mpi_v13 = fsd_data['mpi_values'][2]
-    mpi_v14 = fsd_data['mpi_values'][3]
+    mpi_v13 = fsd_data["mpi_values"][2]
+    mpi_v14 = fsd_data["mpi_values"][3]
 
     # Compute gain factor
     gain_factor = compute_gain_factor(mpi_v13, mpi_v14)
@@ -696,21 +720,24 @@ def fit_alpha_empirical(fsd_data: Dict[str, Any]) -> Dict[str, Any]:
         "range_low": ALPHA_EMPIRICAL_LOW,
         "range_high": ALPHA_EMPIRICAL_HIGH,
         "gain_factor": round(gain_factor, 2),
-        "method": "empirical"
+        "method": "empirical",
     }
 
     # Emit alpha calibration receipt with empirical method
-    emit_receipt("alpha_calibration", {
-        "tenant_id": "axiom-autonomy",
-        "alpha_estimate": result["alpha_estimate"],
-        "confidence_interval_low": ALPHA_EMPIRICAL_LOW,
-        "confidence_interval_high": ALPHA_EMPIRICAL_HIGH,
-        "method": "empirical",
-        "data_source": "fsd_empirical_2025",
-        "gain_factor": result["gain_factor"],
-        "mpi_v13": mpi_v13,
-        "mpi_v14": mpi_v14,
-        "observation_date": fsd_data.get('observation_date', 'unknown')
-    })
+    emit_receipt(
+        "alpha_calibration",
+        {
+            "tenant_id": "axiom-autonomy",
+            "alpha_estimate": result["alpha_estimate"],
+            "confidence_interval_low": ALPHA_EMPIRICAL_LOW,
+            "confidence_interval_high": ALPHA_EMPIRICAL_HIGH,
+            "method": "empirical",
+            "data_source": "fsd_empirical_2025",
+            "gain_factor": result["gain_factor"],
+            "mpi_v13": mpi_v13,
+            "mpi_v14": mpi_v14,
+            "observation_date": fsd_data.get("observation_date", "unknown"),
+        },
+    )
 
     return result

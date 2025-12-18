@@ -111,6 +111,7 @@ class TimelineConfig:
         milestone_early: Early sovereignty marker (default 1000)
         milestone_city: City sovereignty threshold (default 1000000)
     """
+
     threshold_person_equivalent: int = THRESHOLD_PERSON_EQUIVALENT
     base_year: int = BASE_YEAR
     cycles_per_year: float = CYCLES_PER_YEAR
@@ -143,6 +144,7 @@ class TimelineProjection:
         effective_alpha_mitigated: Alpha after receipt mitigation
         delay_vs_unmitigated: Cycles saved by receipts
     """
+
     allocation_fraction: float
     annual_multiplier: float
     years_to_threshold_low: int
@@ -161,7 +163,9 @@ class TimelineProjection:
     delay_vs_unmitigated: Optional[int] = None
 
 
-def allocation_to_multiplier(autonomy_fraction: float, alpha: float = ALPHA_DEFAULT) -> float:
+def allocation_to_multiplier(
+    autonomy_fraction: float, alpha: float = ALPHA_DEFAULT
+) -> float:
     """Convert autonomy allocation fraction to expected annual multiplier.
 
     Uses Grok's empirical table values with interpolation.
@@ -208,9 +212,7 @@ def allocation_to_multiplier(autonomy_fraction: float, alpha: float = ALPHA_DEFA
 
 
 def compute_years_to_threshold(
-    annual_multiplier: float,
-    current_capability: float,
-    threshold: int
+    annual_multiplier: float, current_capability: float, threshold: int
 ) -> tuple:
     """Calculate years to reach threshold given multiplier.
 
@@ -242,7 +244,9 @@ def compute_years_to_threshold(
     return (years_low, years_high)
 
 
-def compare_to_optimal(projection: TimelineProjection, optimal_fraction: float = 0.40) -> int:
+def compare_to_optimal(
+    projection: TimelineProjection, optimal_fraction: float = 0.40
+) -> int:
     """Calculate delay in years vs optimal allocation.
 
     Args:
@@ -258,14 +262,14 @@ def compare_to_optimal(projection: TimelineProjection, optimal_fraction: float =
     # Get optimal timeline
     optimal_mult = allocation_to_multiplier(optimal_fraction)
     optimal_years_low, optimal_years_high = compute_years_to_threshold(
-        optimal_mult,
-        CURRENT_PERSON_EQUIVALENT,
-        THRESHOLD_PERSON_EQUIVALENT
+        optimal_mult, CURRENT_PERSON_EQUIVALENT, THRESHOLD_PERSON_EQUIVALENT
     )
     optimal_midpoint = (optimal_years_low + optimal_years_high) // 2
 
     # Current projection midpoint
-    current_midpoint = (projection.years_to_threshold_low + projection.years_to_threshold_high) // 2
+    current_midpoint = (
+        projection.years_to_threshold_low + projection.years_to_threshold_high
+    ) // 2
 
     return current_midpoint - optimal_midpoint
 
@@ -277,7 +281,7 @@ def project_timeline(
     p_factor: float = P_FACTOR_DEFAULT,
     tau_seconds: Optional[float] = None,
     receipt_integrity: float = 0.0,
-    config: TimelineConfig = None
+    config: TimelineConfig = None,
 ) -> TimelineProjection:
     """Project years to 10^6 person-equivalent threshold.
 
@@ -309,9 +313,7 @@ def project_timeline(
 
     # Compute years to threshold
     years_low, years_high = compute_years_to_threshold(
-        multiplier,
-        config.current_capability,
-        config.threshold_person_equivalent
+        multiplier, config.current_capability, config.threshold_person_equivalent
     )
 
     # Compute cycles to milestones using sovereignty timeline logic
@@ -348,7 +350,7 @@ def project_timeline(
         cycles_to_milestone_city=cycles_city,
         receipt_integrity=receipt_integrity,
         effective_alpha_mitigated=effective_alpha_mitigated,
-        delay_vs_unmitigated=delay_vs_unmitigated
+        delay_vs_unmitigated=delay_vs_unmitigated,
     )
 
     # Compute delay vs optimal
@@ -368,40 +370,40 @@ def project_timeline(
         cycles_to_milestone_city=cycles_city,
         receipt_integrity=receipt_integrity,
         effective_alpha_mitigated=effective_alpha_mitigated,
-        delay_vs_unmitigated=delay_vs_unmitigated
+        delay_vs_unmitigated=delay_vs_unmitigated,
     )
 
     # Emit receipt
-    emit_receipt("timeline", {
-        "tenant_id": "axiom-autonomy",
-        "autonomy_fraction": autonomy_fraction,
-        "alpha": alpha,
-        "c_base": c_base,
-        "p_factor": p_factor,
-        "tau_seconds": tau_seconds,
-        "receipt_integrity": receipt_integrity,
-        "effective_alpha": eff_alpha,
-        "effective_alpha_mitigated": effective_alpha_mitigated,
-        "annual_multiplier": multiplier,
-        "years_to_threshold_low": years_low,
-        "years_to_threshold_high": years_high,
-        "threshold_year_low": projection.threshold_year_low,
-        "threshold_year_high": projection.threshold_year_high,
-        "delay_vs_optimal": projection.delay_vs_optimal,
-        "delay_vs_unmitigated": delay_vs_unmitigated,
-        "threshold_person_equivalent": config.threshold_person_equivalent,
-        "cycles_to_milestone_early": cycles_early,
-        "cycles_to_milestone_city": cycles_city,
-    })
+    emit_receipt(
+        "timeline",
+        {
+            "tenant_id": "axiom-autonomy",
+            "autonomy_fraction": autonomy_fraction,
+            "alpha": alpha,
+            "c_base": c_base,
+            "p_factor": p_factor,
+            "tau_seconds": tau_seconds,
+            "receipt_integrity": receipt_integrity,
+            "effective_alpha": eff_alpha,
+            "effective_alpha_mitigated": effective_alpha_mitigated,
+            "annual_multiplier": multiplier,
+            "years_to_threshold_low": years_low,
+            "years_to_threshold_high": years_high,
+            "threshold_year_low": projection.threshold_year_low,
+            "threshold_year_high": projection.threshold_year_high,
+            "delay_vs_optimal": projection.delay_vs_optimal,
+            "delay_vs_unmitigated": delay_vs_unmitigated,
+            "threshold_person_equivalent": config.threshold_person_equivalent,
+            "cycles_to_milestone_early": cycles_early,
+            "cycles_to_milestone_city": cycles_city,
+        },
+    )
 
     return projection
 
 
 def _compute_milestone_cycles(
-    c_base: float,
-    p_factor: float,
-    alpha: float,
-    config: TimelineConfig
+    c_base: float, p_factor: float, alpha: float, config: TimelineConfig
 ) -> tuple:
     """Compute cycles to reach early and city milestones.
 
@@ -426,8 +428,8 @@ def _compute_milestone_cycles(
         # A grows with cycle: autonomy_level = min(1.0, cycle * 0.1)  # Simple model
         # B = c × A^α × P where P grows with p_factor
         autonomy_level = min(1.0, 0.4 + cycle * 0.05)  # Start at 40%, grow
-        propulsion = p_factor ** cycle
-        build_contribution = c_base * (autonomy_level ** alpha) * (propulsion / p_factor)
+        propulsion = p_factor**cycle
+        build_contribution = c_base * (autonomy_level**alpha) * (propulsion / p_factor)
         person_eq += build_contribution
 
         if cycles_early is None and person_eq >= config.milestone_early:
@@ -449,7 +451,7 @@ def _compute_milestone_cycles(
 def generate_timeline_table(
     fractions: List[float] = None,
     alpha: float = ALPHA_DEFAULT,
-    config: TimelineConfig = None
+    config: TimelineConfig = None,
 ) -> List[TimelineProjection]:
     """Generate Grok-style timeline table for multiple allocations.
 
@@ -469,7 +471,9 @@ def generate_timeline_table(
 
     projections = []
     for frac in fractions:
-        proj = project_timeline(frac, alpha, config.c_base, config.p_factor, None, 0.0, config)
+        proj = project_timeline(
+            frac, alpha, config.c_base, config.p_factor, None, 0.0, config
+        )
         projections.append(proj)
 
     return projections
@@ -496,26 +500,65 @@ def validate_grok_table(projections: List[TimelineProjection]) -> dict:
         frac = proj.allocation_fraction
 
         if frac >= 0.35:  # ~40%
-            mult_ok = MULTIPLIER_40PCT[0] - 0.2 <= proj.annual_multiplier <= MULTIPLIER_40PCT[1] + 0.2
-            years_ok = YEARS_40PCT[0] - 2 <= proj.years_to_threshold_low and proj.years_to_threshold_high <= YEARS_40PCT[1] + 2
-            validations["0.40"] = {"multiplier_ok": mult_ok, "years_ok": years_ok, "passed": mult_ok and years_ok}
+            mult_ok = (
+                MULTIPLIER_40PCT[0] - 0.2
+                <= proj.annual_multiplier
+                <= MULTIPLIER_40PCT[1] + 0.2
+            )
+            years_ok = (
+                YEARS_40PCT[0] - 2 <= proj.years_to_threshold_low
+                and proj.years_to_threshold_high <= YEARS_40PCT[1] + 2
+            )
+            validations["0.40"] = {
+                "multiplier_ok": mult_ok,
+                "years_ok": years_ok,
+                "passed": mult_ok and years_ok,
+            }
 
         elif frac >= 0.20:  # ~25%
-            mult_ok = MULTIPLIER_25PCT[0] - 0.2 <= proj.annual_multiplier <= MULTIPLIER_25PCT[1] + 0.2
-            years_ok = YEARS_25PCT[0] - 2 <= proj.years_to_threshold_low and proj.years_to_threshold_high <= YEARS_25PCT[1] + 2
-            validations["0.25"] = {"multiplier_ok": mult_ok, "years_ok": years_ok, "passed": mult_ok and years_ok}
+            mult_ok = (
+                MULTIPLIER_25PCT[0] - 0.2
+                <= proj.annual_multiplier
+                <= MULTIPLIER_25PCT[1] + 0.2
+            )
+            years_ok = (
+                YEARS_25PCT[0] - 2 <= proj.years_to_threshold_low
+                and proj.years_to_threshold_high <= YEARS_25PCT[1] + 2
+            )
+            validations["0.25"] = {
+                "multiplier_ok": mult_ok,
+                "years_ok": years_ok,
+                "passed": mult_ok and years_ok,
+            }
 
         elif frac >= 0.10:  # ~15%
-            mult_ok = MULTIPLIER_15PCT[0] - 0.2 <= proj.annual_multiplier <= MULTIPLIER_15PCT[1] + 0.2
-            years_ok = YEARS_15PCT[0] - 3 <= proj.years_to_threshold_low and proj.years_to_threshold_high <= YEARS_15PCT[1] + 5
-            validations["0.15"] = {"multiplier_ok": mult_ok, "years_ok": years_ok, "passed": mult_ok and years_ok}
+            mult_ok = (
+                MULTIPLIER_15PCT[0] - 0.2
+                <= proj.annual_multiplier
+                <= MULTIPLIER_15PCT[1] + 0.2
+            )
+            years_ok = (
+                YEARS_15PCT[0] - 3 <= proj.years_to_threshold_low
+                and proj.years_to_threshold_high <= YEARS_15PCT[1] + 5
+            )
+            validations["0.15"] = {
+                "multiplier_ok": mult_ok,
+                "years_ok": years_ok,
+                "passed": mult_ok and years_ok,
+            }
 
         elif frac <= 0.05:  # ~0%
             mult_ok = 0.9 <= proj.annual_multiplier <= 1.3
             years_ok = proj.years_to_threshold_low >= 30  # Very long
-            validations["0.00"] = {"multiplier_ok": mult_ok, "years_ok": years_ok, "passed": mult_ok and years_ok}
+            validations["0.00"] = {
+                "multiplier_ok": mult_ok,
+                "years_ok": years_ok,
+                "passed": mult_ok and years_ok,
+            }
 
-    validations["all_passed"] = all(v.get("passed", False) for v in validations.values() if isinstance(v, dict))
+    validations["all_passed"] = all(
+        v.get("passed", False) for v in validations.values() if isinstance(v, dict)
+    )
 
     return validations
 
@@ -545,12 +588,16 @@ def format_timeline_table(projections: List[TimelineProjection]) -> str:
         else:
             delay_str = f"+{proj.delay_vs_optimal} years"
 
-        lines.append(f"| {frac_str:14} | {mult_str:17} | {years_str:17} | {delay_str:12} |")
+        lines.append(
+            f"| {frac_str:14} | {mult_str:17} | {years_str:17} | {delay_str:12} |"
+        )
 
     return "\n".join(lines)
 
 
-def emit_timeline_receipt(projection: TimelineProjection, config: TimelineConfig = None) -> dict:
+def emit_timeline_receipt(
+    projection: TimelineProjection, config: TimelineConfig = None
+) -> dict:
     """Emit detailed timeline receipt per CLAUDEME.
 
     Args:
@@ -563,30 +610,32 @@ def emit_timeline_receipt(projection: TimelineProjection, config: TimelineConfig
     if config is None:
         config = TimelineConfig()
 
-    return emit_receipt("timeline", {
-        "tenant_id": "axiom-autonomy",
-        "autonomy_fraction": projection.allocation_fraction,
-        "alpha": ALPHA_DEFAULT,
-        "c_base": projection.c_base,
-        "p_factor": projection.p_factor,
-        "tau_seconds": projection.tau_seconds,
-        "effective_alpha": projection.effective_alpha,
-        "annual_multiplier": projection.annual_multiplier,
-        "years_to_threshold_low": projection.years_to_threshold_low,
-        "years_to_threshold_high": projection.years_to_threshold_high,
-        "threshold_year_low": projection.threshold_year_low,
-        "threshold_year_high": projection.threshold_year_high,
-        "delay_vs_optimal": projection.delay_vs_optimal,
-        "threshold_person_equivalent": config.threshold_person_equivalent,
-        "base_year": config.base_year,
-        "cycles_to_milestone_early": projection.cycles_to_milestone_early,
-        "cycles_to_milestone_city": projection.cycles_to_milestone_city,
-    })
+    return emit_receipt(
+        "timeline",
+        {
+            "tenant_id": "axiom-autonomy",
+            "autonomy_fraction": projection.allocation_fraction,
+            "alpha": ALPHA_DEFAULT,
+            "c_base": projection.c_base,
+            "p_factor": projection.p_factor,
+            "tau_seconds": projection.tau_seconds,
+            "effective_alpha": projection.effective_alpha,
+            "annual_multiplier": projection.annual_multiplier,
+            "years_to_threshold_low": projection.years_to_threshold_low,
+            "years_to_threshold_high": projection.years_to_threshold_high,
+            "threshold_year_low": projection.threshold_year_low,
+            "threshold_year_high": projection.threshold_year_high,
+            "delay_vs_optimal": projection.delay_vs_optimal,
+            "threshold_person_equivalent": config.threshold_person_equivalent,
+            "base_year": config.base_year,
+            "cycles_to_milestone_early": projection.cycles_to_milestone_early,
+            "cycles_to_milestone_city": projection.cycles_to_milestone_city,
+        },
+    )
 
 
 def project_sovereignty_date(
-    autonomy_fraction: float = 0.40,
-    config: TimelineConfig = None
+    autonomy_fraction: float = 0.40, config: TimelineConfig = None
 ) -> dict:
     """Get projected sovereignty date for given allocation.
 
@@ -602,7 +651,15 @@ def project_sovereignty_date(
     if config is None:
         config = TimelineConfig()
 
-    proj = project_timeline(autonomy_fraction, ALPHA_DEFAULT, config.c_base, config.p_factor, None, 0.0, config)
+    proj = project_timeline(
+        autonomy_fraction,
+        ALPHA_DEFAULT,
+        config.c_base,
+        config.p_factor,
+        None,
+        0.0,
+        config,
+    )
 
     return {
         "allocation": autonomy_fraction,
@@ -612,9 +669,9 @@ def project_sovereignty_date(
         "annual_multiplier": proj.annual_multiplier,
         "threshold": config.threshold_person_equivalent,
         "delay_vs_optimal": proj.delay_vs_optimal,
-        "recommendation": "optimal" if autonomy_fraction >= 0.40 else (
-            "acceptable" if autonomy_fraction >= 0.30 else "under-pivoted"
-        )
+        "recommendation": "optimal"
+        if autonomy_fraction >= 0.40
+        else ("acceptable" if autonomy_fraction >= 0.30 else "under-pivoted"),
     }
 
 
@@ -624,7 +681,7 @@ def sovereignty_timeline(
     alpha: float = ALPHA_DEFAULT,
     tau_seconds: Optional[float] = None,
     receipt_integrity: float = 0.0,
-    strategy: "StrategyConfig" = None
+    strategy: "StrategyConfig" = None,
 ) -> Dict[str, Any]:
     """Compute full sovereignty timeline with milestones.
 
@@ -759,18 +816,24 @@ def sovereignty_timeline(
     delay_vs_earth = 0
     if tau_seconds is not None and tau_seconds > 0:
         earth_result = sovereignty_timeline(c_base, p_factor, alpha, 0, 0.0)
-        delay_vs_earth = cycles_to_10k - earth_result['cycles_to_10k_person_eq']
+        delay_vs_earth = cycles_to_10k - earth_result["cycles_to_10k_person_eq"]
 
     # Compute delay vs unmitigated (receipt_integrity=0)
     delay_vs_unmitigated = None
     if receipt_integrity > 0.0 and tau_seconds is not None and tau_seconds > 0:
-        unmitigated_result = sovereignty_timeline(c_base, p_factor, alpha, tau_seconds, 0.0)
-        delay_vs_unmitigated = unmitigated_result['cycles_to_10k_person_eq'] - cycles_to_10k
+        unmitigated_result = sovereignty_timeline(
+            c_base, p_factor, alpha, tau_seconds, 0.0
+        )
+        delay_vs_unmitigated = (
+            unmitigated_result["cycles_to_10k_person_eq"] - cycles_to_10k
+        )
 
     result = {
         "cycles_to_10k_person_eq": cycles_to_10k,
         "cycles_to_1M_person_eq": cycles_to_1M,
-        "person_eq_trajectory": trajectory[:min(len(trajectory), 50)],  # Limit to 50 for receipt
+        "person_eq_trajectory": trajectory[
+            : min(len(trajectory), 50)
+        ],  # Limit to 50 for receipt
         "effective_alpha": eff_alpha,
         "delay_vs_earth": delay_vs_earth,
         "receipt_integrity": receipt_integrity,
@@ -796,7 +859,9 @@ def sovereignty_timeline(
         "effective_alpha": eff_alpha,
         "cycles_to_10k_person_eq": cycles_to_10k,
         "cycles_to_1M_person_eq": cycles_to_1M,
-        "person_eq_trajectory": trajectory[:min(len(trajectory), 20)],  # Shorter for receipt
+        "person_eq_trajectory": trajectory[
+            : min(len(trajectory), 20)
+        ],  # Shorter for receipt
         "delay_vs_earth": delay_vs_earth,
         "delay_vs_unmitigated": delay_vs_unmitigated,
     }

@@ -32,7 +32,7 @@ from .partition import (
     NODE_BASELINE,
     QUORUM_THRESHOLD,
     BASE_ALPHA,
-    PARTITION_MAX_TEST_PCT
+    PARTITION_MAX_TEST_PCT,
 )
 from .gnn_cache import (
     nonlinear_retention as gnn_nonlinear_retention,
@@ -42,14 +42,14 @@ from .gnn_cache import (
     PRUNING_TARGET_ALPHA,
     CACHE_DEPTH_BASELINE,
     NONLINEAR_RETENTION_FLOOR,
-    RETENTION_FACTOR_GNN_RANGE
+    RETENTION_FACTOR_GNN_RANGE,
 )
 from .alpha_compute import (
     alpha_calc,
     compound_retention,
     ceiling_gap,
     SHANNON_FLOOR_ALPHA,
-    ALPHA_CEILING_TARGET
+    ALPHA_CEILING_TARGET,
 )
 
 
@@ -108,6 +108,7 @@ class MitigationScore:
         combined_score: Weighted combination
         effective_alpha: Final effective α after all mitigations
     """
+
     partition_score: float
     quorum_score: float
     tau_score: float
@@ -117,8 +118,7 @@ class MitigationScore:
 
 
 def compute_partition_tolerance(
-    loss_pct: float = PARTITION_MAX_TEST_PCT,
-    base_alpha: float = BASE_ALPHA
+    loss_pct: float = PARTITION_MAX_TEST_PCT, base_alpha: float = BASE_ALPHA
 ) -> float:
     """Compute partition tolerance score.
 
@@ -153,8 +153,7 @@ def compute_partition_tolerance(
 
 
 def compute_quorum_health(
-    nodes_surviving: int,
-    nodes_baseline: int = NODE_BASELINE
+    nodes_surviving: int, nodes_baseline: int = NODE_BASELINE
 ) -> float:
     """Compute quorum health weight.
 
@@ -176,14 +175,15 @@ def compute_quorum_health(
 
     # Degraded quorum
     nodes_missing = nodes_baseline - nodes_surviving
-    weight = QUORUM_HEALTH_DEGRADED_BASE - (nodes_missing * QUORUM_HEALTH_DEGRADED_PER_NODE)
+    weight = QUORUM_HEALTH_DEGRADED_BASE - (
+        nodes_missing * QUORUM_HEALTH_DEGRADED_PER_NODE
+    )
 
     return max(0.0, round(weight, 4))
 
 
 def compute_tau_mitigation(
-    receipt_integrity: float = 0.9,
-    tau_factor: float = TAU_MITIGATION_FACTOR
+    receipt_integrity: float = 0.9, tau_factor: float = TAU_MITIGATION_FACTOR
 ) -> float:
     """Compute τ-penalty mitigation score.
 
@@ -201,8 +201,7 @@ def compute_tau_mitigation(
 
 
 def compute_reroute_mitigation(
-    reroute_enabled: bool = False,
-    reroute_result: Optional[Dict[str, Any]] = None
+    reroute_enabled: bool = False, reroute_result: Optional[Dict[str, Any]] = None
 ) -> float:
     """Compute reroute mitigation score.
 
@@ -233,19 +232,23 @@ def compute_reroute_mitigation(
             # Score based on recovery factor
             score = recovery_factor * 0.9 + 0.1  # 0.1 base for quorum preserved
 
-    emit_receipt("reroute_mitigation", {
-        "tenant_id": "axiom-mitigation",
-        "reroute_enabled": reroute_enabled,
-        "score": round(score, 4),
-        "recovery_factor": reroute_result.get("recovery_factor", 0.0) if reroute_result else 0.0
-    })
+    emit_receipt(
+        "reroute_mitigation",
+        {
+            "tenant_id": "axiom-mitigation",
+            "reroute_enabled": reroute_enabled,
+            "score": round(score, 4),
+            "recovery_factor": reroute_result.get("recovery_factor", 0.0)
+            if reroute_result
+            else 0.0,
+        },
+    )
 
     return round(score, 4)
 
 
 def compute_blackout_factor(
-    blackout_days: int = 0,
-    reroute_enabled: bool = False
+    blackout_days: int = 0, reroute_enabled: bool = False
 ) -> float:
     """Compute blackout factor for graceful degradation.
 
@@ -286,22 +289,23 @@ def compute_blackout_factor(
             excess = blackout_days - BLACKOUT_EXTENDED_DAYS
             factor = 0.7 - min(0.4, excess * 0.01)
 
-    emit_receipt("blackout_factor", {
-        "tenant_id": "axiom-mitigation",
-        "blackout_days": blackout_days,
-        "reroute_enabled": reroute_enabled,
-        "factor": round(max(0.0, factor), 4),
-        "blackout_base_days": BLACKOUT_BASE_DAYS,
-        "blackout_extended_days": BLACKOUT_EXTENDED_DAYS
-    })
+    emit_receipt(
+        "blackout_factor",
+        {
+            "tenant_id": "axiom-mitigation",
+            "blackout_days": blackout_days,
+            "reroute_enabled": reroute_enabled,
+            "factor": round(max(0.0, factor), 4),
+            "blackout_base_days": BLACKOUT_BASE_DAYS,
+            "blackout_extended_days": BLACKOUT_EXTENDED_DAYS,
+        },
+    )
 
     return round(max(0.0, factor), 4)
 
 
 def apply_duration_degradation(
-    base_mitigation: float,
-    blackout_days: int,
-    cache_depth: int = CACHE_DEPTH_BASELINE
+    base_mitigation: float, blackout_days: int, cache_depth: int = CACHE_DEPTH_BASELINE
 ) -> Dict[str, Any]:
     """Apply duration-dependent degradation to mitigation stack.
 
@@ -342,7 +346,9 @@ def apply_duration_degradation(
         retention_factor = max(NONLINEAR_RETENTION_FLOOR, round(retention_factor, 4))
 
         # Degradation percentage
-        degradation_pct = round((1.0 - retention_factor / RETENTION_BASE_FACTOR) * 100, 2)
+        degradation_pct = round(
+            (1.0 - retention_factor / RETENTION_BASE_FACTOR) * 100, 2
+        )
 
     # Scale mitigation by retention factor (normalized to base)
     retention_scale = retention_factor / RETENTION_BASE_FACTOR
@@ -361,21 +367,16 @@ def apply_duration_degradation(
         "degradation_pct": degradation_pct,
         "degraded_mitigation": round(degraded_mitigation, 4),
         "gnn_boost": round(gnn_boost, 4),
-        "model_type": model_type
+        "model_type": model_type,
     }
 
-    emit_receipt("duration_degradation", {
-        "tenant_id": "axiom-mitigation",
-        **result
-    })
+    emit_receipt("duration_degradation", {"tenant_id": "axiom-mitigation", **result})
 
     return result
 
 
 def apply_pruning_boost(
-    base_mitigation: float,
-    pruning_result: Dict[str, Any],
-    blackout_days: int = 0
+    base_mitigation: float, pruning_result: Dict[str, Any], blackout_days: int = 0
 ) -> Dict[str, Any]:
     """Apply pruning boost to mitigation stack.
 
@@ -408,7 +409,7 @@ def apply_pruning_boost(
                 blackout_days,
                 CACHE_DEPTH_BASELINE,
                 pruning_enabled=True,
-                trim_factor=0.3
+                trim_factor=0.3,
             )
             enhanced_alpha = retention_result["eff_alpha"]
         except Exception:
@@ -425,13 +426,12 @@ def apply_pruning_boost(
         "enhanced_alpha": round(enhanced_alpha, 4),
         "target_alpha": PRUNING_TARGET_ALPHA,
         "target_achieved": enhanced_alpha >= PRUNING_TARGET_ALPHA,
-        "blackout_days": blackout_days
+        "blackout_days": blackout_days,
     }
 
-    emit_receipt("pruning_boost_mitigation", {
-        "tenant_id": "axiom-mitigation",
-        **result
-    })
+    emit_receipt(
+        "pruning_boost_mitigation", {"tenant_id": "axiom-mitigation", **result}
+    )
 
     return result
 
@@ -439,7 +439,7 @@ def apply_pruning_boost(
 def apply_reroute_mitigation(
     base_mitigation: MitigationScore,
     reroute_result: Dict[str, Any],
-    blackout_days: int = 0
+    blackout_days: int = 0,
 ) -> Dict[str, Any]:
     """Apply reroute boost multiplicatively to mitigation stack.
 
@@ -467,7 +467,9 @@ def apply_reroute_mitigation(
     if quorum_preserved and recovery_factor > 0.5:
         effective_boost = alpha_boost * blackout_factor
         enhanced_alpha = base_mitigation.effective_alpha + effective_boost
-        enhanced_combined = min(1.0, base_mitigation.combined_score + recovery_factor * 0.1)
+        enhanced_combined = min(
+            1.0, base_mitigation.combined_score + recovery_factor * 0.1
+        )
     else:
         effective_boost = 0.0
         enhanced_alpha = base_mitigation.effective_alpha
@@ -483,13 +485,12 @@ def apply_reroute_mitigation(
         "enhanced_combined_score": round(enhanced_combined, 4),
         "recovery_factor": recovery_factor,
         "quorum_preserved": quorum_preserved,
-        "blackout_days": blackout_days
+        "blackout_days": blackout_days,
     }
 
-    emit_receipt("reroute_enhanced_mitigation", {
-        "tenant_id": "axiom-mitigation",
-        **result
-    })
+    emit_receipt(
+        "reroute_enhanced_mitigation", {"tenant_id": "axiom-mitigation", **result}
+    )
 
     return result
 
@@ -502,7 +503,7 @@ def compute_mitigation_score(
     weights: Optional[Dict[str, float]] = None,
     reroute_enabled: bool = False,
     reroute_result: Optional[Dict[str, Any]] = None,
-    blackout_days: int = 0
+    blackout_days: int = 0,
 ) -> MitigationScore:
     """Compute combined mitigation score.
 
@@ -541,17 +542,21 @@ def compute_mitigation_score(
 
     # Weighted combination
     combined = (
-        partition_score * weights.get("partition", 0.33) +
-        quorum_score * weights.get("quorum", 0.34) +
-        tau_score * weights.get("tau", 0.33) +
-        reroute_score * weights.get("reroute", 0.0)
+        partition_score * weights.get("partition", 0.33)
+        + quorum_score * weights.get("quorum", 0.34)
+        + tau_score * weights.get("tau", 0.33)
+        + reroute_score * weights.get("reroute", 0.0)
     )
     combined = round(combined, 4)
 
     # Compute effective alpha with all factors
     try:
         partition_result = partition_sim(
-            NODE_BASELINE, loss_pct, base_alpha, emit=False, reroute_enabled=reroute_enabled
+            NODE_BASELINE,
+            loss_pct,
+            base_alpha,
+            emit=False,
+            reroute_enabled=reroute_enabled,
         )
         eff_alpha = partition_result["eff_alpha"]
 
@@ -576,31 +581,33 @@ def compute_mitigation_score(
         tau_score=tau_score,
         reroute_score=reroute_score,
         combined_score=combined,
-        effective_alpha=round(eff_alpha, 4)
+        effective_alpha=round(eff_alpha, 4),
     )
 
-    emit_receipt("mitigation_score", {
-        "tenant_id": "axiom-mitigation",
-        "loss_pct": loss_pct,
-        "nodes_surviving": nodes_surviving,
-        "receipt_integrity": receipt_integrity,
-        "partition_score": partition_score,
-        "quorum_score": quorum_score,
-        "tau_score": tau_score,
-        "reroute_score": reroute_score,
-        "combined_score": combined,
-        "effective_alpha": score.effective_alpha,
-        "weights": weights,
-        "reroute_enabled": reroute_enabled,
-        "blackout_days": blackout_days
-    })
+    emit_receipt(
+        "mitigation_score",
+        {
+            "tenant_id": "axiom-mitigation",
+            "loss_pct": loss_pct,
+            "nodes_surviving": nodes_surviving,
+            "receipt_integrity": receipt_integrity,
+            "partition_score": partition_score,
+            "quorum_score": quorum_score,
+            "tau_score": tau_score,
+            "reroute_score": reroute_score,
+            "combined_score": combined,
+            "effective_alpha": score.effective_alpha,
+            "weights": weights,
+            "reroute_enabled": reroute_enabled,
+            "blackout_days": blackout_days,
+        },
+    )
 
     return score
 
 
 def apply_mitigation_to_projection(
-    base_projection: Dict[str, Any],
-    mitigation: MitigationScore
+    base_projection: Dict[str, Any], mitigation: MitigationScore
 ) -> Dict[str, Any]:
     """Apply mitigation score to sovereignty projection.
 
@@ -624,7 +631,9 @@ def apply_mitigation_to_projection(
     adjusted_cycles = int(base_cycles * mitigation_penalty)
 
     # Cycles saved by effective mitigation
-    cycles_saved = max(0, adjusted_cycles - base_cycles - int((1.0 - mitigation.combined_score) * 2))
+    cycles_saved = max(
+        0, adjusted_cycles - base_cycles - int((1.0 - mitigation.combined_score) * 2)
+    )
 
     result = {
         "base_cycles": base_cycles,
@@ -633,13 +642,10 @@ def apply_mitigation_to_projection(
         "mitigation_effective_alpha": mitigation.effective_alpha,
         "mitigation_penalty_factor": round(mitigation_penalty, 4),
         "adjusted_cycles": adjusted_cycles,
-        "cycles_saved_by_mitigation": cycles_saved
+        "cycles_saved_by_mitigation": cycles_saved,
     }
 
-    emit_receipt("mitigated_projection", {
-        "tenant_id": "axiom-mitigation",
-        **result
-    })
+    emit_receipt("mitigated_projection", {"tenant_id": "axiom-mitigation", **result})
 
     return result
 
@@ -647,7 +653,7 @@ def apply_mitigation_to_projection(
 def get_mitigation_summary(
     loss_pct: float = PARTITION_MAX_TEST_PCT,
     nodes_surviving: Optional[int] = None,
-    receipt_integrity: float = 0.9
+    receipt_integrity: float = 0.9,
 ) -> Dict[str, Any]:
     """Get comprehensive mitigation summary.
 
@@ -667,7 +673,7 @@ def get_mitigation_summary(
     score = compute_mitigation_score(
         loss_pct=loss_pct,
         nodes_surviving=nodes_surviving,
-        receipt_integrity=receipt_integrity
+        receipt_integrity=receipt_integrity,
     )
 
     summary = {
@@ -675,31 +681,27 @@ def get_mitigation_summary(
             "loss_pct": loss_pct,
             "nodes_surviving": nodes_surviving,
             "nodes_baseline": NODE_BASELINE,
-            "receipt_integrity": receipt_integrity
+            "receipt_integrity": receipt_integrity,
         },
         "scores": {
             "partition": score.partition_score,
             "quorum": score.quorum_score,
             "tau": score.tau_score,
-            "combined": score.combined_score
+            "combined": score.combined_score,
         },
         "effective_alpha": score.effective_alpha,
-        "status": "healthy" if score.combined_score >= 0.7 else (
-            "degraded" if score.combined_score >= 0.4 else "critical"
-        )
+        "status": "healthy"
+        if score.combined_score >= 0.7
+        else ("degraded" if score.combined_score >= 0.4 else "critical"),
     }
 
-    emit_receipt("mitigation_summary", {
-        "tenant_id": "axiom-mitigation",
-        **summary
-    })
+    emit_receipt("mitigation_summary", {"tenant_id": "axiom-mitigation", **summary})
 
     return summary
 
 
 def get_mitigation_layer_contributions(
-    blackout_days: int = 150,
-    pruning_result: Optional[Dict[str, Any]] = None
+    blackout_days: int = 150, pruning_result: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Get isolated layer contributions from mitigation stack.
 
@@ -733,8 +735,12 @@ def get_mitigation_layer_contributions(
     computed_alpha = alpha_result["computed_alpha"]
 
     # Compute individual alphas
-    gnn_only_alpha = alpha_calc(SHANNON_FLOOR_ALPHA, 1.0, gnn_factor, validate=False)["computed_alpha"]
-    prune_only_alpha = alpha_calc(SHANNON_FLOOR_ALPHA, 1.0, prune_factor, validate=False)["computed_alpha"]
+    gnn_only_alpha = alpha_calc(SHANNON_FLOOR_ALPHA, 1.0, gnn_factor, validate=False)[
+        "computed_alpha"
+    ]
+    prune_only_alpha = alpha_calc(
+        SHANNON_FLOOR_ALPHA, 1.0, prune_factor, validate=False
+    )["computed_alpha"]
 
     result = {
         "blackout_days": blackout_days,
@@ -742,30 +748,33 @@ def get_mitigation_layer_contributions(
             "retention_factor": gnn_factor,
             "contribution_pct": gnn_isolated["contribution_pct"],
             "alpha_with_gnn_only": gnn_only_alpha,
-            "range_expected": RETENTION_FACTOR_GNN_RANGE
+            "range_expected": RETENTION_FACTOR_GNN_RANGE,
         },
         "prune_layer": {
             "retention_factor": prune_factor,
             "contribution_pct": round((prune_factor - 1.0) * 100, 3),
-            "alpha_with_prune_only": prune_only_alpha
+            "alpha_with_prune_only": prune_only_alpha,
         },
         "compound": {
             "compound_retention": compound,
             "computed_alpha": computed_alpha,
             "formula_used": alpha_result["formula_used"],
-            "total_uplift_from_floor": round(computed_alpha - SHANNON_FLOOR_ALPHA, 4)
+            "total_uplift_from_floor": round(computed_alpha - SHANNON_FLOOR_ALPHA, 4),
         },
         "ceiling_analysis": ceiling_gap(computed_alpha),
         "shannon_floor": SHANNON_FLOOR_ALPHA,
-        "ceiling_target": ALPHA_CEILING_TARGET
+        "ceiling_target": ALPHA_CEILING_TARGET,
     }
 
-    emit_receipt("mitigation_layer_contributions", {
-        "receipt_type": "mitigation_layer_contributions",
-        "tenant_id": "axiom-mitigation",
-        **{k: v for k, v in result.items() if k != "ceiling_analysis"},
-        "gap_to_ceiling_pct": result["ceiling_analysis"]["gap_pct"],
-        "payload_hash": None  # Computed at emit time
-    })
+    emit_receipt(
+        "mitigation_layer_contributions",
+        {
+            "receipt_type": "mitigation_layer_contributions",
+            "tenant_id": "axiom-mitigation",
+            **{k: v for k, v in result.items() if k != "ceiling_analysis"},
+            "gap_to_ceiling_pct": result["ceiling_analysis"]["gap_pct"],
+            "payload_hash": None,  # Computed at emit time
+        },
+    )
 
     return result

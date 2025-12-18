@@ -52,7 +52,9 @@ def gnn_boost_factor(blackout_days: int) -> float:
     return round(min(1.0, boost), 4)
 
 
-def compute_asymptote(blackout_days: int, base_alpha: float = MIN_EFF_ALPHA_VALIDATED) -> float:
+def compute_asymptote(
+    blackout_days: int, base_alpha: float = MIN_EFF_ALPHA_VALIDATED
+) -> float:
     """Compute effective alpha with asymptotic formula.
 
     Asymptotic formula: α = ASYMPTOTE - decay_term
@@ -80,7 +82,7 @@ def compute_asymptote(blackout_days: int, base_alpha: float = MIN_EFF_ALPHA_VALI
 def compute_asymptote_with_pruning(
     blackout_days: int,
     base_alpha: float = MIN_EFF_ALPHA_VALIDATED,
-    pruning_uplift: float = 0.0
+    pruning_uplift: float = 0.0,
 ) -> float:
     """Compute effective alpha with asymptotic formula and pruning boost.
 
@@ -128,7 +130,9 @@ def get_retention_factor_gnn_isolated(blackout_days: int) -> Dict[str, Any]:
     retention_range = max_retention - min_retention
 
     retention_factor_gnn = min_retention + (gnn_boost * retention_range)
-    retention_factor_gnn = round(min(max_retention, max(min_retention, retention_factor_gnn)), 4)
+    retention_factor_gnn = round(
+        min(max_retention, max(min_retention, retention_factor_gnn)), 4
+    )
 
     contribution_pct = round((retention_factor_gnn - 1.0) * 100, 3)
 
@@ -138,22 +142,23 @@ def get_retention_factor_gnn_isolated(blackout_days: int) -> Dict[str, Any]:
         "contribution_pct": contribution_pct,
         "gnn_boost": gnn_boost,
         "range_expected": RETENTION_FACTOR_GNN_RANGE,
-        "layer": "gnn_cache"
+        "layer": "gnn_cache",
     }
 
-    emit_receipt("retention_gnn_isolated", {
-        "tenant_id": "axiom-gnn-cache",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "retention_gnn_isolated",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
 
 def apply_gnn_nonlinear_boost(
-    base_mitigation: float,
-    blackout_days: int,
-    cache_depth: int = CACHE_DEPTH_BASELINE
+    base_mitigation: float, blackout_days: int, cache_depth: int = CACHE_DEPTH_BASELINE
 ) -> Dict[str, Any]:
     """Apply GNN nonlinear boost to mitigation stack.
 
@@ -178,5 +183,5 @@ def apply_gnn_nonlinear_boost(
         "blackout_days": blackout_days,
         "gnn_boost": gnn_boost,
         "asymptote_factor": round(asymptote_factor, 4),
-        "boosted_mitigation": round(boosted_mitigation, 4)
+        "boosted_mitigation": round(boosted_mitigation, 4),
     }

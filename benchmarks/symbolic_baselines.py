@@ -19,6 +19,7 @@ try:
     from src.core import emit_receipt
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from src.core import emit_receipt
 
@@ -37,10 +38,9 @@ AI_FEYNMAN_OPERATORS = {
 
 # === AI FEYNMAN IMPLEMENTATION ===
 
+
 def run_ai_feynman(
-    data: Dict,
-    timeout_s: int = 60,
-    use_physics_prior: bool = True
+    data: Dict, timeout_s: int = 60, use_physics_prior: bool = True
 ) -> Dict:
     """Run AI Feynman-style symbolic regression.
 
@@ -71,26 +71,30 @@ def run_ai_feynman(
 
     # 1. Newtonian: v = sqrt(GM/r)
     # Fit: v^2 * r = const
-    const1 = np.mean(v ** 2 * r)
+    const1 = np.mean(v**2 * r)
     pred1 = np.sqrt(const1 / r)
     mse1 = np.mean((v - pred1) ** 2)
-    candidates.append({
-        "equation": f"sqrt({const1:.2f}/r)",
-        "mse": mse1,
-        "complexity": 8,
-        "physics": "newtonian",
-    })
+    candidates.append(
+        {
+            "equation": f"sqrt({const1:.2f}/r)",
+            "mse": mse1,
+            "complexity": 8,
+            "physics": "newtonian",
+        }
+    )
 
     # 2. Flat rotation curve: v = const
     const2 = np.mean(v)
     pred2 = np.full_like(v, const2)
     mse2 = np.mean((v - pred2) ** 2)
-    candidates.append({
-        "equation": f"{const2:.2f}",
-        "mse": mse2,
-        "complexity": 1,
-        "physics": "isothermal_halo",
-    })
+    candidates.append(
+        {
+            "equation": f"{const2:.2f}",
+            "mse": mse2,
+            "complexity": 1,
+            "physics": "isothermal_halo",
+        }
+    )
 
     # 3. Rising + flat: v = v_max * (1 - exp(-r/r_s))
     # Fit v_max and r_s
@@ -99,25 +103,29 @@ def run_ai_feynman(
     r_s = r_half / np.log(2) if r_half > 0 else 1.0
     pred3 = v_max * (1 - np.exp(-r / r_s))
     mse3 = np.mean((v - pred3) ** 2)
-    candidates.append({
-        "equation": f"{v_max:.2f}*(1-exp(-r/{r_s:.2f}))",
-        "mse": mse3,
-        "complexity": 15,
-        "physics": "exponential_disk",
-    })
+    candidates.append(
+        {
+            "equation": f"{v_max:.2f}*(1-exp(-r/{r_s:.2f}))",
+            "mse": mse3,
+            "complexity": 15,
+            "physics": "exponential_disk",
+        }
+    )
 
     # 4. MOND-like: v = sqrt(sqrt(a^2 + b/r))
     # Simplified MOND interpolation
     a = np.mean(v[-5:]) if len(v) >= 5 else np.max(v)  # Asymptotic velocity
-    b = np.mean(v[:5] ** 4 * r[:5]) if len(v) >= 5 else a ** 4 * r[0]
-    pred4 = np.power(a ** 4 + b / r, 0.25)
+    b = np.mean(v[:5] ** 4 * r[:5]) if len(v) >= 5 else a**4 * r[0]
+    pred4 = np.power(a**4 + b / r, 0.25)
     mse4 = np.mean((v - pred4) ** 2)
-    candidates.append({
-        "equation": f"({a:.2f}^4 + {b:.2f}/r)^0.25",
-        "mse": mse4,
-        "complexity": 12,
-        "physics": "mond_like",
-    })
+    candidates.append(
+        {
+            "equation": f"({a:.2f}^4 + {b:.2f}/r)^0.25",
+            "mse": mse4,
+            "complexity": 12,
+            "physics": "mond_like",
+        }
+    )
 
     # Select best candidate
     best = min(candidates, key=lambda x: x["mse"])
@@ -136,15 +144,18 @@ def run_ai_feynman(
     }
 
     # Emit benchmark receipt
-    emit_receipt("benchmark", {
-        "tenant_id": TENANT_ID,
-        "tool_name": "AI_Feynman",
-        "dataset_id": data.get("id", "unknown"),
-        "compression_ratio": 0,
-        "r_squared": 1 - best["mse"] / np.var(v) if np.var(v) > 0 else 0,
-        "equation": best["equation"],
-        "time_ms": elapsed_ms,
-    })
+    emit_receipt(
+        "benchmark",
+        {
+            "tenant_id": TENANT_ID,
+            "tool_name": "AI_Feynman",
+            "dataset_id": data.get("id", "unknown"),
+            "compression_ratio": 0,
+            "r_squared": 1 - best["mse"] / np.var(v) if np.var(v) > 0 else 0,
+            "equation": best["equation"],
+            "time_ms": elapsed_ms,
+        },
+    )
 
     return result
 
@@ -244,12 +255,15 @@ def batch_compare_baselines(galaxies: List[Dict]) -> Dict:
             summary[f"{method}_std_mse"] = float(np.std(mses))
 
     # Emit summary receipt
-    emit_receipt("baseline_comparison_summary", {
-        "tenant_id": TENANT_ID,
-        "n_galaxies": len(galaxies),
-        "method_wins": method_wins,
-        "best_overall": summary["best_overall"],
-    })
+    emit_receipt(
+        "baseline_comparison_summary",
+        {
+            "tenant_id": TENANT_ID,
+            "n_galaxies": len(galaxies),
+            "method_wins": method_wins,
+            "best_overall": summary["best_overall"],
+        },
+    )
 
     return {
         "individual_results": all_results,

@@ -62,6 +62,7 @@ class StageGateConfig:
         window_months: Evaluation window in months (default 12)
         max_autonomy_fraction: Ceiling for autonomy (default 0.40)
     """
+
     initial_autonomy_fraction: float = STAGE_GATE_INITIAL
     trigger_alpha: float = STAGE_GATE_TRIGGER_ALPHA
     escalation_increment: float = STAGE_GATE_ESCALATION
@@ -81,6 +82,7 @@ class StageGateState:
         months_elapsed: Months since window started
         escalation_applied: True if escalation has been applied
     """
+
     current_autonomy_fraction: float
     alpha_measured: float
     alpha_confidence: float
@@ -93,7 +95,7 @@ def evaluate_gate(
     alpha_measured: float,
     alpha_confidence: float,
     months_elapsed: int,
-    config: StageGateConfig = None
+    config: StageGateConfig = None,
 ) -> StageGateState:
     """Evaluate stage gate and determine if escalation triggers.
 
@@ -126,7 +128,7 @@ def evaluate_gate(
         new_fraction = apply_escalation(
             config.initial_autonomy_fraction,
             config.escalation_increment,
-            config.max_autonomy_fraction
+            config.max_autonomy_fraction,
         )
         escalation_applied = True
     else:
@@ -139,30 +141,31 @@ def evaluate_gate(
         alpha_confidence=alpha_confidence,
         trigger_met=trigger_met,
         months_elapsed=months_elapsed,
-        escalation_applied=escalation_applied
+        escalation_applied=escalation_applied,
     )
 
     # Emit receipt
-    emit_receipt("stage_gate", {
-        "tenant_id": "axiom-autonomy",
-        "current_autonomy_fraction": new_fraction,
-        "alpha_measured": alpha_measured,
-        "alpha_confidence": alpha_confidence,
-        "trigger_alpha": config.trigger_alpha,
-        "trigger_met": trigger_met,
-        "escalation_applied": escalation_applied,
-        "new_autonomy_fraction": new_fraction,
-        "months_elapsed": months_elapsed,
-        "window_months": config.window_months,
-    })
+    emit_receipt(
+        "stage_gate",
+        {
+            "tenant_id": "axiom-autonomy",
+            "current_autonomy_fraction": new_fraction,
+            "alpha_measured": alpha_measured,
+            "alpha_confidence": alpha_confidence,
+            "trigger_alpha": config.trigger_alpha,
+            "trigger_met": trigger_met,
+            "escalation_applied": escalation_applied,
+            "new_autonomy_fraction": new_fraction,
+            "months_elapsed": months_elapsed,
+            "window_months": config.window_months,
+        },
+    )
 
     return state
 
 
 def apply_escalation(
-    current_fraction: float,
-    increment: float,
-    max_fraction: float
+    current_fraction: float, increment: float, max_fraction: float
 ) -> float:
     """Apply escalation increment, respecting ceiling.
 
@@ -178,8 +181,7 @@ def apply_escalation(
 
 
 def get_allocation(
-    state: StageGateState,
-    config: StageGateConfig = None
+    state: StageGateState, config: StageGateConfig = None
 ) -> Tuple[float, float]:
     """Get current propulsion/autonomy allocation from gate state.
 
@@ -221,7 +223,7 @@ def reset_window(state: StageGateState) -> StageGateState:
         alpha_confidence=state.alpha_confidence,
         trigger_met=False,  # Reset trigger for new window
         months_elapsed=0,
-        escalation_applied=state.escalation_applied  # Keep history
+        escalation_applied=state.escalation_applied,  # Keep history
     )
 
 
@@ -247,7 +249,8 @@ def check_gate_slos(state: StageGateState, config: StageGateConfig = None) -> di
 
     slo_checks = {
         "evaluation_frequency": state.months_elapsed <= config.window_months,
-        "autonomy_ceiling": state.current_autonomy_fraction <= config.max_autonomy_fraction,
+        "autonomy_ceiling": state.current_autonomy_fraction
+        <= config.max_autonomy_fraction,
         "propulsion_floor": propulsion >= STAGE_GATE_MIN_PROPULSION,
         "allocations_sum_to_one": abs(propulsion + autonomy - 1.0) < 0.001,
     }
@@ -260,7 +263,7 @@ def check_gate_slos(state: StageGateState, config: StageGateConfig = None) -> di
 def simulate_gate_progression(
     alpha_trajectory: list,
     confidence_trajectory: list = None,
-    config: StageGateConfig = None
+    config: StageGateConfig = None,
 ) -> list:
     """Simulate gate evaluations over multiple months.
 
@@ -288,13 +291,13 @@ def simulate_gate_progression(
             state = StageGateState(
                 current_autonomy_fraction=min(
                     config.initial_autonomy_fraction + config.escalation_increment,
-                    config.max_autonomy_fraction
+                    config.max_autonomy_fraction,
                 ),
                 alpha_measured=alpha,
                 alpha_confidence=conf,
                 trigger_met=True,
                 months_elapsed=month,
-                escalation_applied=True
+                escalation_applied=True,
             )
         else:
             # Evaluate gate
@@ -308,9 +311,7 @@ def simulate_gate_progression(
 
 
 def get_gate_recommendation(
-    alpha_current: float,
-    alpha_confidence: float,
-    months_remaining: int
+    alpha_current: float, alpha_confidence: float, months_remaining: int
 ) -> str:
     """Get human-readable recommendation based on gate status.
 
@@ -322,7 +323,10 @@ def get_gate_recommendation(
     Returns:
         Recommendation string
     """
-    if alpha_current > STAGE_GATE_TRIGGER_ALPHA and alpha_confidence >= ALPHA_CONFIDENCE_THRESHOLD:
+    if (
+        alpha_current > STAGE_GATE_TRIGGER_ALPHA
+        and alpha_confidence >= ALPHA_CONFIDENCE_THRESHOLD
+    ):
         return f"ESCALATE: alpha={alpha_current:.2f} > {STAGE_GATE_TRIGGER_ALPHA} with {alpha_confidence:.0%} confidence. Increase autonomy to 40%."
 
     if alpha_confidence < ALPHA_CONFIDENCE_THRESHOLD:
@@ -336,9 +340,7 @@ def get_gate_recommendation(
 
 
 def emit_stage_gate_receipt(
-    state: StageGateState,
-    config: StageGateConfig = None,
-    recommendation: str = None
+    state: StageGateState, config: StageGateConfig = None, recommendation: str = None
 ) -> dict:
     """Emit detailed stage gate receipt per CLAUDEME.
 
@@ -355,22 +357,26 @@ def emit_stage_gate_receipt(
 
     propulsion, autonomy = get_allocation(state, config)
 
-    return emit_receipt("stage_gate", {
-        "tenant_id": "axiom-autonomy",
-        "current_autonomy_fraction": state.current_autonomy_fraction,
-        "current_propulsion_fraction": propulsion,
-        "alpha_measured": state.alpha_measured,
-        "alpha_confidence": state.alpha_confidence,
-        "trigger_alpha": config.trigger_alpha,
-        "trigger_met": state.trigger_met,
-        "escalation_applied": state.escalation_applied,
-        "new_autonomy_fraction": state.current_autonomy_fraction,
-        "months_elapsed": state.months_elapsed,
-        "window_months": config.window_months,
-        "months_remaining": max(0, config.window_months - state.months_elapsed),
-        "recommendation": recommendation or get_gate_recommendation(
-            state.alpha_measured,
-            state.alpha_confidence,
-            config.window_months - state.months_elapsed
-        ),
-    })
+    return emit_receipt(
+        "stage_gate",
+        {
+            "tenant_id": "axiom-autonomy",
+            "current_autonomy_fraction": state.current_autonomy_fraction,
+            "current_propulsion_fraction": propulsion,
+            "alpha_measured": state.alpha_measured,
+            "alpha_confidence": state.alpha_confidence,
+            "trigger_alpha": config.trigger_alpha,
+            "trigger_met": state.trigger_met,
+            "escalation_applied": state.escalation_applied,
+            "new_autonomy_fraction": state.current_autonomy_fraction,
+            "months_elapsed": state.months_elapsed,
+            "window_months": config.window_months,
+            "months_remaining": max(0, config.window_months - state.months_elapsed),
+            "recommendation": recommendation
+            or get_gate_recommendation(
+                state.alpha_measured,
+                state.alpha_confidence,
+                config.window_months - state.months_elapsed,
+            ),
+        },
+    )

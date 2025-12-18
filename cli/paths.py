@@ -40,6 +40,7 @@ from src.fractal_layers import (
 
 # === PATH STATUS COMMANDS ===
 
+
 def cmd_path_status(path: Optional[str] = None) -> Dict[str, Any]:
     """Show status of one or all paths.
 
@@ -114,7 +115,9 @@ def cmd_path_list() -> Dict[str, Any]:
     return {"paths": paths, "discovered": discovered, "valid": validation["valid"]}
 
 
-def cmd_path_run(path: str, command: str, args: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def cmd_path_run(
+    path: str, command: str, args: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Route command to specific path.
 
     Args:
@@ -165,6 +168,7 @@ def cmd_path_commands(path: str) -> Dict[str, Any]:
 
 # === PATH SHORTCUT COMMANDS ===
 
+
 def cmd_mars_status() -> Dict[str, Any]:
     """Shortcut: Show Mars path status."""
     path_module = get_path("mars")
@@ -185,7 +189,10 @@ def cmd_agi_status() -> Dict[str, Any]:
 
 # === D4 COMMANDS ===
 
-def cmd_d4_push(tree_size: int = D4_TREE_MIN, base_alpha: float = 2.99, simulate: bool = False) -> Dict[str, Any]:
+
+def cmd_d4_push(
+    tree_size: int = D4_TREE_MIN, base_alpha: float = 2.99, simulate: bool = False
+) -> Dict[str, Any]:
     """Run D4 recursion push.
 
     Args:
@@ -240,6 +247,7 @@ def cmd_d4_info() -> Dict[str, Any]:
 
 
 # === REGISTRY INFO ===
+
 
 def cmd_registry_info() -> Dict[str, Any]:
     """Show registry configuration.

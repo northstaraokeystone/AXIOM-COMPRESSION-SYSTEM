@@ -31,23 +31,16 @@ from src.partition import (
     BASE_ALPHA,
     ALPHA_DROP_FACTOR,
     GREENS_CURRENT,
-    REROUTING_POTENTIAL_BOOST
+    REROUTING_POTENTIAL_BOOST,
 )
 from src.ledger import (
     apply_ledger_boost,
     apply_quorum_factor,
     get_effective_alpha_with_partition,
-    LEDGER_ALPHA_BOOST_VALIDATED
+    LEDGER_ALPHA_BOOST_VALIDATED,
 )
-from src.reasoning import (
-    partition_sweep,
-    validate_resilience_slo,
-    MIN_EFF_ALPHA_BOUND
-)
-from src.mitigation import (
-    compute_partition_tolerance,
-    compute_mitigation_score
-)
+from src.reasoning import partition_sweep, validate_resilience_slo, MIN_EFF_ALPHA_BOUND
+from src.mitigation import compute_partition_tolerance, compute_mitigation_score
 from src.core import StopRule
 
 
@@ -61,15 +54,16 @@ class TestQuorumSurvives:
             nodes_total=5,
             loss_pct=0.40,  # 40% = 2 nodes lost
             base_alpha=BASE_ALPHA,
-            emit=False
+            emit=False,
         )
 
-        assert result["nodes_surviving"] == 3, \
+        assert result["nodes_surviving"] == 3, (
             f"Expected 3 nodes surviving, got {result['nodes_surviving']}"
-        assert result["quorum_status"] is True, \
-            "Quorum should survive with 3 nodes"
-        assert result["nodes_total"] - result["nodes_surviving"] == 2, \
+        )
+        assert result["quorum_status"] is True, "Quorum should survive with 3 nodes"
+        assert result["nodes_total"] - result["nodes_surviving"] == 2, (
             "Should have lost exactly 2 nodes"
+        )
 
     def test_quorum_survives_1_node_loss(self):
         """5-node baseline with 1 node lost maintains quorum (4 surviving)."""
@@ -77,25 +71,23 @@ class TestQuorumSurvives:
             nodes_total=5,
             loss_pct=0.20,  # 20% = 1 node lost
             base_alpha=BASE_ALPHA,
-            emit=False
+            emit=False,
         )
 
-        assert result["nodes_surviving"] == 4, \
+        assert result["nodes_surviving"] == 4, (
             f"Expected 4 nodes surviving, got {result['nodes_surviving']}"
-        assert result["quorum_status"] is True, \
-            "Quorum should survive with 4 nodes"
+        )
+        assert result["quorum_status"] is True, "Quorum should survive with 4 nodes"
 
     def test_quorum_full_when_no_loss(self):
         """5-node baseline with 0 loss maintains full quorum."""
         result = partition_sim(
-            nodes_total=5,
-            loss_pct=0.0,
-            base_alpha=BASE_ALPHA,
-            emit=False
+            nodes_total=5, loss_pct=0.0, base_alpha=BASE_ALPHA, emit=False
         )
 
-        assert result["nodes_surviving"] == 5, \
+        assert result["nodes_surviving"] == 5, (
             f"Expected 5 nodes surviving, got {result['nodes_surviving']}"
+        )
         assert result["quorum_status"] is True
         assert result["eff_alpha_drop"] == 0.0
 
@@ -109,16 +101,18 @@ class TestAlphaDropWithinBounds:
             nodes_total=NODE_BASELINE,
             loss_pct=PARTITION_MAX_TEST_PCT,
             base_alpha=BASE_ALPHA,
-            emit=False
+            emit=False,
         )
 
-        assert result["eff_alpha_drop"] <= 0.05, \
+        assert result["eff_alpha_drop"] <= 0.05, (
             f"Alpha drop {result['eff_alpha_drop']} > 0.05 at 40% partition"
+        )
 
         # Verify the drop formula: loss_pct * factor (not multiplied by base)
         expected_drop = PARTITION_MAX_TEST_PCT * ALPHA_DROP_FACTOR
-        assert abs(result["eff_alpha_drop"] - expected_drop) < 0.001, \
+        assert abs(result["eff_alpha_drop"] - expected_drop) < 0.001, (
             f"Drop {result['eff_alpha_drop']} doesn't match formula {expected_drop}"
+        )
 
     def test_alpha_drop_scales_linearly(self):
         """Alpha drop should scale linearly with partition loss."""
@@ -127,12 +121,10 @@ class TestAlphaDropWithinBounds:
         drop_40 = partition_sim(5, 0.40, BASE_ALPHA, emit=False)["eff_alpha_drop"]
 
         # 20% should be ~2x of 10%
-        assert abs(drop_20 / drop_10 - 2.0) < 0.1, \
-            "Drop should scale linearly"
+        assert abs(drop_20 / drop_10 - 2.0) < 0.1, "Drop should scale linearly"
 
         # 40% should be ~4x of 10%
-        assert abs(drop_40 / drop_10 - 4.0) < 0.1, \
-            "Drop should scale linearly"
+        assert abs(drop_40 / drop_10 - 4.0) < 0.1, "Drop should scale linearly"
 
     def test_eff_alpha_above_minimum_bound(self):
         """Effective alpha >= 2.63 at max partition."""
@@ -140,11 +132,12 @@ class TestAlphaDropWithinBounds:
             nodes_total=NODE_BASELINE,
             loss_pct=PARTITION_MAX_TEST_PCT,
             base_alpha=BASE_ALPHA,
-            emit=False
+            emit=False,
         )
 
-        assert result["eff_alpha"] >= MIN_EFF_ALPHA_BOUND, \
+        assert result["eff_alpha"] >= MIN_EFF_ALPHA_BOUND, (
             f"eff_alpha {result['eff_alpha']} < min bound {MIN_EFF_ALPHA_BOUND}"
+        )
 
 
 class TestStress1000Iterations:
@@ -157,18 +150,20 @@ class TestStress1000Iterations:
             loss_range=(0.0, PARTITION_MAX_TEST_PCT),
             n_iterations=1000,
             base_alpha=BASE_ALPHA,
-            seed=42  # Reproducible
+            seed=42,  # Reproducible
         )
 
         # (1) All quorum checks pass
         quorum_successes = [r for r in results if r["quorum_status"]]
-        assert len(quorum_successes) == 1000, \
+        assert len(quorum_successes) == 1000, (
             f"Expected 1000 quorum successes, got {len(quorum_successes)}"
+        )
 
         # (2) Avg α drop < 0.05
-        avg_drop = sum(r["eff_alpha_drop"] for r in quorum_successes) / len(quorum_successes)
-        assert avg_drop < 0.05, \
-            f"Average α drop {avg_drop} >= 0.05"
+        avg_drop = sum(r["eff_alpha_drop"] for r in quorum_successes) / len(
+            quorum_successes
+        )
+        assert avg_drop < 0.05, f"Average α drop {avg_drop} >= 0.05"
 
         # (3) All results are populated
         for i, r in enumerate(results):
@@ -190,16 +185,19 @@ class TestStress1000Iterations:
                 loss_range=(0.0, PARTITION_MAX_TEST_PCT),
                 n_iterations=100,
                 base_alpha=BASE_ALPHA,
-                seed=42
+                seed=42,
             )
 
         output = f.getvalue()
-        receipts = [json.loads(line) for line in output.strip().split('\n') if line]
+        receipts = [json.loads(line) for line in output.strip().split("\n") if line]
 
         # Should have at least one quorum_resilience receipt
-        resilience_receipts = [r for r in receipts if r.get("receipt_type") == "quorum_resilience"]
-        assert len(resilience_receipts) >= 1, \
+        resilience_receipts = [
+            r for r in receipts if r.get("receipt_type") == "quorum_resilience"
+        ]
+        assert len(resilience_receipts) >= 1, (
             "Expected at least 1 quorum_resilience receipt"
+        )
 
         # Verify receipt contents
         receipt = resilience_receipts[0]
@@ -216,10 +214,7 @@ class TestQuorumFailureRaisesStopRule:
         # 60% loss = 3 nodes, leaving only 2 (below threshold of 3)
         with pytest.raises(StopRule) as exc_info:
             partition_sim(
-                nodes_total=5,
-                loss_pct=0.60,
-                base_alpha=BASE_ALPHA,
-                emit=False
+                nodes_total=5, loss_pct=0.60, base_alpha=BASE_ALPHA, emit=False
             )
 
         assert "Quorum failed" in str(exc_info.value)
@@ -254,16 +249,13 @@ class TestReceiptsEmitted:
         f = io.StringIO()
         with redirect_stdout(f):
             result = partition_sim(
-                nodes_total=5,
-                loss_pct=0.20,
-                base_alpha=BASE_ALPHA,
-                emit=True
+                nodes_total=5, loss_pct=0.20, base_alpha=BASE_ALPHA, emit=True
             )
 
         output = f.getvalue()
         # With reroute_enabled=True (default), multiple receipts may be emitted.
         # Parse the last line which should be the partition_stress receipt.
-        lines = [l for l in output.strip().split('\n') if l]
+        lines = [l for l in output.strip().split("\n") if l]
         receipt = json.loads(lines[-1])
 
         # Validate receipt structure
@@ -310,9 +302,7 @@ class TestLedgerIntegration:
         f = io.StringIO()
         with redirect_stdout(f):
             result = apply_quorum_factor(
-                base_alpha=2.68,
-                nodes_surviving=5,
-                nodes_baseline=5
+                base_alpha=2.68, nodes_surviving=5, nodes_baseline=5
             )
 
         assert result == 2.68  # No degradation
@@ -325,9 +315,7 @@ class TestLedgerIntegration:
         f = io.StringIO()
         with redirect_stdout(f):
             result = apply_quorum_factor(
-                base_alpha=2.68,
-                nodes_surviving=3,
-                nodes_baseline=5
+                base_alpha=2.68, nodes_surviving=3, nodes_baseline=5
             )
 
         # 2 missing nodes × 0.02 degradation = 0.04
@@ -336,10 +324,7 @@ class TestLedgerIntegration:
 
     def test_effective_alpha_with_partition(self):
         """get_effective_alpha_with_partition combines boost and partition."""
-        result = get_effective_alpha_with_partition(
-            loss_pct=0.40,
-            base_alpha=2.56
-        )
+        result = get_effective_alpha_with_partition(loss_pct=0.40, base_alpha=2.56)
 
         assert result["ledger_boost"] == 0.12
         assert result["boosted_alpha"] == 2.68
@@ -357,10 +342,7 @@ class TestReasoningIntegration:
         f = io.StringIO()
         with redirect_stdout(f):
             report = partition_sweep(
-                nodes=5,
-                loss_range=(0.0, 0.40),
-                iterations=50,
-                base_alpha=BASE_ALPHA
+                nodes=5, loss_range=(0.0, 0.40), iterations=50, base_alpha=BASE_ALPHA
             )
 
         assert report["nodes"] == 5
@@ -380,7 +362,7 @@ class TestReasoningIntegration:
                 nodes=NODE_BASELINE,
                 max_loss=PARTITION_MAX_TEST_PCT,
                 min_alpha=MIN_EFF_ALPHA_BOUND,
-                max_drop=0.05
+                max_drop=0.05,
             )
 
         assert result["all_passed"] is True
@@ -411,9 +393,7 @@ class TestMitigationIntegration:
         f = io.StringIO()
         with redirect_stdout(f):
             score = compute_mitigation_score(
-                loss_pct=0.20,
-                nodes_surviving=4,
-                receipt_integrity=0.9
+                loss_pct=0.20, nodes_surviving=4, receipt_integrity=0.9
             )
 
         assert 0.0 <= score.partition_score <= 1.0

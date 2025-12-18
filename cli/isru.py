@@ -50,7 +50,7 @@ def cmd_moxie_info() -> Dict[str, Any]:
     print(f"  O2 Peak Rate: {calibration['o2_peak_g_hr']} g/hr")
     print(f"  O2 Avg Rate: {calibration['o2_avg_g_hr']} g/hr")
     print(f"  Runs: {calibration.get('runs', 16)}")
-    print(f"  Efficiency: {calibration.get('conversion_efficiency', 0.06)*100:.1f}%")
+    print(f"  Efficiency: {calibration.get('conversion_efficiency', 0.06) * 100:.1f}%")
 
     print("\nValidation:")
     print(f"  Expected total: {MOXIE_O2_TOTAL_G}g")
@@ -63,10 +63,7 @@ def cmd_moxie_info() -> Dict[str, Any]:
 
 
 def cmd_isru_simulate(
-    hours: int = 24,
-    crew: int = 4,
-    moxie_units: int = 10,
-    simulate: bool = False
+    hours: int = 24, crew: int = 4, moxie_units: int = 10, simulate: bool = False
 ) -> Dict[str, Any]:
     """Run ISRU O2 production simulation.
 
@@ -89,7 +86,9 @@ def cmd_isru_simulate(
     result = simulate_o2_production(hours, crew, moxie_units)
 
     print("\nO2 Production:")
-    print(f"  Production: {result['production_g']:.2f}g ({result['production_kg']:.4f}kg)")
+    print(
+        f"  Production: {result['production_g']:.2f}g ({result['production_kg']:.4f}kg)"
+    )
     print(f"  Peak capacity: {result['peak_production_kg']:.4f}kg")
 
     print("\nO2 Consumption:")
@@ -147,7 +146,7 @@ def cmd_isru_closure(simulate: bool = False) -> Dict[str, Any]:
         "target": ISRU_CLOSURE_TARGET,
         "target_met": closure >= ISRU_CLOSURE_TARGET,
         "production": production,
-        "consumption": consumption
+        "consumption": consumption,
     }
 
 
@@ -157,7 +156,7 @@ def cmd_d5_isru_hybrid(
     crew: int = 4,
     hours: int = 24,
     moxie_units: int = 10,
-    simulate: bool = False
+    simulate: bool = False,
 ) -> Dict[str, Any]:
     """Run integrated D5+ISRU hybrid.
 
@@ -187,13 +186,17 @@ def cmd_d5_isru_hybrid(
     print(f"  Effective alpha: {result['d5_result']['eff_alpha']}")
     print(f"  Uplift: +{result['d5_result']['uplift']}")
     print(f"  Floor met (3.23): {'YES' if result['d5_result']['floor_met'] else 'NO'}")
-    print(f"  Target met (3.25): {'YES' if result['d5_result']['target_met'] else 'NO'}")
+    print(
+        f"  Target met (3.25): {'YES' if result['d5_result']['target_met'] else 'NO'}"
+    )
 
     print("\nISRU SIMULATION:")
     print(f"  O2 production: {result['isru_result']['production_kg']:.4f}kg")
     print(f"  O2 consumption: {result['isru_result']['consumption_kg']:.4f}kg")
     print(f"  O2 balance: {result['isru_result']['balance_kg']:.4f}kg")
-    print(f"  Self-sufficient: {'YES' if result['isru_result']['self_sufficient'] else 'NO'}")
+    print(
+        f"  Self-sufficient: {'YES' if result['isru_result']['self_sufficient'] else 'NO'}"
+    )
 
     print("\nCLOSURE:")
     print(f"  Closure ratio: {result['closure']['ratio']}")
@@ -201,8 +204,12 @@ def cmd_d5_isru_hybrid(
 
     print("\nCOMBINED SLO:")
     combined = result["combined_slo"]
-    print(f"  Alpha target ({combined['alpha_target']}): {'PASS' if combined['alpha_met'] else 'FAIL'}")
-    print(f"  Closure target ({combined['closure_target']}): {'PASS' if combined['closure_met'] else 'FAIL'}")
+    print(
+        f"  Alpha target ({combined['alpha_target']}): {'PASS' if combined['alpha_met'] else 'FAIL'}"
+    )
+    print(
+        f"  Closure target ({combined['closure_target']}): {'PASS' if combined['closure_met'] else 'FAIL'}"
+    )
     print(f"  ALL TARGETS: {'PASS' if combined['all_targets_met'] else 'FAIL'}")
 
     if simulate:
@@ -214,9 +221,7 @@ def cmd_d5_isru_hybrid(
 
 
 def cmd_d5_push_isru(
-    tree_size: int = D5_TREE_MIN,
-    base_alpha: float = 3.0,
-    simulate: bool = False
+    tree_size: int = D5_TREE_MIN, base_alpha: float = 3.0, simulate: bool = False
 ) -> Dict[str, Any]:
     """Run D5 recursion push for alpha >= 3.25.
 
@@ -241,7 +246,9 @@ def cmd_d5_push_isru(
 
     print(f"\nFloor met ({D5_ALPHA_FLOOR}): {'YES' if result['floor_met'] else 'NO'}")
     print(f"Target met ({D5_ALPHA_TARGET}): {'YES' if result['target_met'] else 'NO'}")
-    print(f"Ceiling met ({D5_ALPHA_CEILING}): {'YES' if result['ceiling_met'] else 'NO'}")
+    print(
+        f"Ceiling met ({D5_ALPHA_CEILING}): {'YES' if result['ceiling_met'] else 'NO'}"
+    )
 
     print(f"\nSLO passed: {'YES' if result['slo_passed'] else 'NO'}")
     print(f"Gate: {result['gate']}")
@@ -312,7 +319,7 @@ def cmd_isru_info() -> Dict[str, Any]:
     print(f"  O2 peak: {moxie['o2_peak_g_hr']} g/hr")
     print(f"  O2 avg: {moxie['o2_avg_g_hr']} g/hr")
     print(f"  Runs: {moxie['runs']}")
-    print(f"  Efficiency: {moxie['efficiency']*100:.1f}%")
+    print(f"  Efficiency: {moxie['efficiency'] * 100:.1f}%")
 
     print("\nISRU Config:")
     isru = info["isru_config"]

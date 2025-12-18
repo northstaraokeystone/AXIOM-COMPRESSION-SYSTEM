@@ -9,6 +9,7 @@ Validates ProofPack v3 §3.1 patterns:
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.support import (
@@ -37,7 +38,13 @@ class TestClassifyReceipt:
 
     def test_classify_receipt_l0_other_types(self):
         """Various L0 types should classify correctly."""
-        l0_types = ["propulsion_state", "latency", "bandwidth", "telemetry", "heartbeat"]
+        l0_types = [
+            "propulsion_state",
+            "latency",
+            "bandwidth",
+            "telemetry",
+            "heartbeat",
+        ]
 
         for rtype in l0_types:
             receipt = {"receipt_type": rtype}
@@ -152,10 +159,7 @@ class TestCheckCompleteness:
         """Coverage ≥0.95 for all should return True."""
         coverage = {
             level: SupportCoverage(
-                level=level,
-                receipt_count=100,
-                coverage_ratio=0.95,
-                gaps=[]
+                level=level, receipt_count=100, coverage_ratio=0.95, gaps=[]
             )
             for level in SupportLevel
         }
@@ -169,7 +173,7 @@ class TestCheckCompleteness:
                 level=level,
                 receipt_count=100,
                 coverage_ratio=0.95 if level != SupportLevel.L2_CHANGES else 0.8,
-                gaps=[]
+                gaps=[],
             )
             for level in SupportLevel
         }
@@ -187,31 +191,31 @@ class TestDetectGaps:
                 level=SupportLevel.L0_TELEMETRY,
                 receipt_count=10,
                 coverage_ratio=0.67,
-                gaps=["latency"]
+                gaps=["latency"],
             ),
             SupportLevel.L1_AGENTS: SupportCoverage(
                 level=SupportLevel.L1_AGENTS,
                 receipt_count=5,
                 coverage_ratio=0.5,
-                gaps=["decision", "gate_decision"]
+                gaps=["decision", "gate_decision"],
             ),
             SupportLevel.L2_CHANGES: SupportCoverage(
                 level=SupportLevel.L2_CHANGES,
                 receipt_count=0,
                 coverage_ratio=0.0,
-                gaps=["helper_deployment"]
+                gaps=["helper_deployment"],
             ),
             SupportLevel.L3_QUALITY: SupportCoverage(
                 level=SupportLevel.L3_QUALITY,
                 receipt_count=10,
                 coverage_ratio=1.0,
-                gaps=[]
+                gaps=[],
             ),
             SupportLevel.L4_META: SupportCoverage(
                 level=SupportLevel.L4_META,
                 receipt_count=10,
                 coverage_ratio=1.0,
-                gaps=[]
+                gaps=[],
             ),
         }
 
@@ -232,31 +236,31 @@ class TestL4Feedback:
                 level=SupportLevel.L0_TELEMETRY,
                 receipt_count=5,
                 coverage_ratio=0.5,  # Low coverage
-                gaps=["latency", "propulsion_state"]
+                gaps=["latency", "propulsion_state"],
             ),
             SupportLevel.L1_AGENTS: SupportCoverage(
                 level=SupportLevel.L1_AGENTS,
                 receipt_count=10,
                 coverage_ratio=0.9,
-                gaps=[]
+                gaps=[],
             ),
             SupportLevel.L2_CHANGES: SupportCoverage(
                 level=SupportLevel.L2_CHANGES,
                 receipt_count=10,
                 coverage_ratio=0.9,
-                gaps=[]
+                gaps=[],
             ),
             SupportLevel.L3_QUALITY: SupportCoverage(
                 level=SupportLevel.L3_QUALITY,
                 receipt_count=3,
                 coverage_ratio=0.6,  # Low quality coverage
-                gaps=["validation"]
+                gaps=["validation"],
             ),
             SupportLevel.L4_META: SupportCoverage(
                 level=SupportLevel.L4_META,
                 receipt_count=10,
                 coverage_ratio=0.9,
-                gaps=[]
+                gaps=[],
             ),
         }
 
@@ -267,7 +271,9 @@ class TestL4Feedback:
         # Should suggest improvements
         assert improved["l4_feedback_applied"] is True
         assert "telemetry_level" in improved
-        assert improved["telemetry_level"] == "verbose"  # Upgraded due to low L0 coverage
+        assert (
+            improved["telemetry_level"] == "verbose"
+        )  # Upgraded due to low L0 coverage
         assert "enable_types" in improved  # Specific gaps to enable
         assert "validation_frequency" in improved  # Due to low L3 coverage
 
@@ -279,10 +285,7 @@ class TestL4Feedback:
         """L4 feedback should preserve params when coverage is good."""
         coverage = {
             level: SupportCoverage(
-                level=level,
-                receipt_count=100,
-                coverage_ratio=0.95,
-                gaps=[]
+                level=level, receipt_count=100, coverage_ratio=0.95, gaps=[]
             )
             for level in SupportLevel
         }
@@ -328,9 +331,7 @@ class TestGetLevelSummary:
             SupportLevel.L3_QUALITY: SupportCoverage(
                 SupportLevel.L3_QUALITY, 30, 0.9, []
             ),
-            SupportLevel.L4_META: SupportCoverage(
-                SupportLevel.L4_META, 10, 1.0, []
-            ),
+            SupportLevel.L4_META: SupportCoverage(SupportLevel.L4_META, 10, 1.0, []),
         }
 
         summary = get_level_summary(coverage)
@@ -376,7 +377,9 @@ class TestLevelReceiptTypeMappings:
         """Expected types should be subset of level types."""
         for level, expected in EXPECTED_TYPES.items():
             level_types = LEVEL_RECEIPT_TYPES.get(level, set())
-            assert expected.issubset(level_types), f"Expected types for {level} not in level types"
+            assert expected.issubset(level_types), (
+                f"Expected types for {level} not in level types"
+            )
 
 
 if __name__ == "__main__":

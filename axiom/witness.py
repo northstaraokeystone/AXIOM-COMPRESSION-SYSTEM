@@ -18,6 +18,7 @@ try:
     from src.core import dual_hash, emit_receipt
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from src.core import dual_hash, emit_receipt
 
@@ -32,9 +33,11 @@ DEFAULT_EPOCHS = 100
 
 # === KAN IMPLEMENTATION ===
 
+
 @dataclass
 class KANConfig:
     """Configuration for Kolmogorov-Arnold Network."""
+
     n_basis: int = DEFAULT_N_BASIS
     degree: int = DEFAULT_DEGREE
     learning_rate: float = 0.01
@@ -44,6 +47,7 @@ class KANConfig:
 @dataclass
 class KANState:
     """State of trained KAN."""
+
     weights: np.ndarray = field(default_factory=lambda: np.zeros(DEFAULT_N_BASIS))
     knots: np.ndarray = field(default_factory=lambda: np.zeros(DEFAULT_N_BASIS))
     loss_history: List[float] = field(default_factory=list)
@@ -95,7 +99,9 @@ class KAN:
         width = (x_max - x_min) / (n_basis - 1) if n_basis > 1 else 1.0
 
         for i in range(n_basis):
-            center = x_min + (x_max - x_min) * i / (n_basis - 1) if n_basis > 1 else x_min
+            center = (
+                x_min + (x_max - x_min) * i / (n_basis - 1) if n_basis > 1 else x_min
+            )
             basis[:, i] = np.exp(-0.5 * ((x - center) / width) ** 2)
 
         return basis
@@ -128,8 +134,8 @@ class KAN:
         for epoch in range(epochs):
             pred = basis @ self.state.weights
             residual = y - pred
-            mse = np.mean(residual ** 2)
-            reg_loss = reg * np.sum(self.state.weights ** 2)
+            mse = np.mean(residual**2)
+            reg_loss = reg * np.sum(self.state.weights**2)
             self.state.loss_history.append(mse + reg_loss)
 
             # Gradient update with L2 regularization
@@ -204,12 +210,7 @@ class KAN:
         return " + ".join(terms) if terms else "constant"
 
 
-def train(
-    kan: KAN,
-    r: np.ndarray,
-    v: np.ndarray,
-    epochs: int = DEFAULT_EPOCHS
-) -> Dict:
+def train(kan: KAN, r: np.ndarray, v: np.ndarray, epochs: int = DEFAULT_EPOCHS) -> Dict:
     """Train KAN on rotation curve data.
 
     Args:
@@ -224,25 +225,26 @@ def train(
     result = kan.fit(r, v, epochs=epochs)
 
     # Emit witness receipt
-    emit_receipt("witness", {
-        "tenant_id": TENANT_ID,
-        "data_hash": kan.state.data_hash,
-        "n_points": len(r),
-        "epochs": epochs,
-        "final_mse": result["final_mse"],
-        "r_squared": result["r_squared"],
-        "compression": result["compression"],
-        "n_parameters": result["n_parameters"],
-        "symbolic": kan.get_symbolic(),
-    })
+    emit_receipt(
+        "witness",
+        {
+            "tenant_id": TENANT_ID,
+            "data_hash": kan.state.data_hash,
+            "n_points": len(r),
+            "epochs": epochs,
+            "final_mse": result["final_mse"],
+            "r_squared": result["r_squared"],
+            "compression": result["compression"],
+            "n_parameters": result["n_parameters"],
+            "symbolic": kan.get_symbolic(),
+        },
+    )
 
     return result
 
 
 def crossover_detection(
-    kan: KAN,
-    r_values: np.ndarray,
-    threshold: float = 0.1
+    kan: KAN, r_values: np.ndarray, threshold: float = 0.1
 ) -> List[Dict]:
     """Detect where KAN switches physics regimes.
 
@@ -274,11 +276,12 @@ def crossover_detection(
 
     # Find peaks in second derivative
     for i in range(1, len(d2v_normalized) - 1):
-        is_peak = (d2v_normalized[i] > threshold
-                   and d2v_normalized[i] > d2v_normalized[i - 1]
-                   and d2v_normalized[i] > d2v_normalized[i + 1])
+        is_peak = (
+            d2v_normalized[i] > threshold
+            and d2v_normalized[i] > d2v_normalized[i - 1]
+            and d2v_normalized[i] > d2v_normalized[i + 1]
+        )
         if is_peak:
-
             # Determine regime transition
             if dv[i] > 0:
                 regime_from = "rising"
@@ -287,22 +290,27 @@ def crossover_detection(
                 regime_from = "flat"
                 regime_to = "declining"
 
-            crossovers.append({
-                "transition_point_r": float(r_fine[i]),
-                "regime_from": regime_from,
-                "regime_to": regime_to,
-                "curvature": float(d2v[i]),
-                "confidence": float(min(1.0, d2v_normalized[i] / threshold)),
-            })
+            crossovers.append(
+                {
+                    "transition_point_r": float(r_fine[i]),
+                    "regime_from": regime_from,
+                    "regime_to": regime_to,
+                    "curvature": float(d2v[i]),
+                    "confidence": float(min(1.0, d2v_normalized[i] / threshold)),
+                }
+            )
 
     # Emit detection receipt
     if crossovers:
-        emit_receipt("crossover_detection", {
-            "tenant_id": TENANT_ID,
-            "n_crossovers": len(crossovers),
-            "threshold": threshold,
-            "crossovers": crossovers,
-        })
+        emit_receipt(
+            "crossover_detection",
+            {
+                "tenant_id": TENANT_ID,
+                "n_crossovers": len(crossovers),
+                "threshold": threshold,
+                "crossovers": crossovers,
+            },
+        )
 
     return crossovers
 
@@ -333,7 +341,11 @@ def extract_symbolic(kan: KAN, simplify: bool = True) -> Dict:
     if len(weights) > 0:
         # Check if dominated by single term (flat)
         max_weight = np.max(np.abs(weights))
-        weight_ratio = np.sum(np.abs(weights)) / (max_weight * len(weights)) if max_weight > 0 else 0
+        weight_ratio = (
+            np.sum(np.abs(weights)) / (max_weight * len(weights))
+            if max_weight > 0
+            else 0
+        )
 
         if weight_ratio < 0.3:
             matched_form = "concentrated"
@@ -352,10 +364,9 @@ def extract_symbolic(kan: KAN, simplify: bool = True) -> Dict:
 
 # === BATCH PROCESSING ===
 
+
 def batch_train(
-    galaxies: List[Dict],
-    config: KANConfig = None,
-    epochs: int = DEFAULT_EPOCHS
+    galaxies: List[Dict], config: KANConfig = None, epochs: int = DEFAULT_EPOCHS
 ) -> List[Dict]:
     """Train KAN on multiple galaxies.
 
@@ -384,13 +395,16 @@ def batch_train(
     compressions = [r["compression"] for r in results]
     r_squareds = [r["r_squared"] for r in results]
 
-    emit_receipt("batch_witness", {
-        "tenant_id": TENANT_ID,
-        "n_galaxies": len(galaxies),
-        "mean_compression": float(np.mean(compressions)),
-        "mean_r_squared": float(np.mean(r_squareds)),
-        "min_r_squared": float(np.min(r_squareds)),
-        "max_r_squared": float(np.max(r_squareds)),
-    })
+    emit_receipt(
+        "batch_witness",
+        {
+            "tenant_id": TENANT_ID,
+            "n_galaxies": len(galaxies),
+            "mean_compression": float(np.mean(compressions)),
+            "mean_r_squared": float(np.mean(r_squareds)),
+            "min_r_squared": float(np.min(r_squareds)),
+            "max_r_squared": float(np.max(r_squareds)),
+        },
+    )
 
     return results

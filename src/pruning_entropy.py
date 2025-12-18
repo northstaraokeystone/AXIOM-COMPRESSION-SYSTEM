@@ -76,8 +76,7 @@ def compute_leaf_entropy(leaf_data: Dict[str, Any]) -> float:
 
 
 def classify_leaf_entropy(
-    merkle_tree: Dict[str, Any],
-    threshold: float = ENTROPY_PRUNE_THRESHOLD
+    merkle_tree: Dict[str, Any], threshold: float = ENTROPY_PRUNE_THRESHOLD
 ) -> Dict[str, Any]:
     """Classify all leaves in Merkle tree by entropy.
 
@@ -101,13 +100,16 @@ def classify_leaf_entropy(
             "low_entropy_count": 0,
             "high_entropy_count": 0,
             "classification_threshold": threshold,
-            "classifications": {}
+            "classifications": {},
         }
-        emit_receipt("leaf_entropy", {
-            "tenant_id": "axiom-pruning",
-            **result,
-            "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-        })
+        emit_receipt(
+            "leaf_entropy",
+            {
+                "tenant_id": "axiom-pruning",
+                **result,
+                "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+            },
+        )
         return result
 
     # Compute entropy for each leaf
@@ -133,7 +135,7 @@ def classify_leaf_entropy(
 
         classifications[leaf_id] = {
             "entropy_score": entropy_score,
-            "classification": classification
+            "classification": classification,
         }
 
     result = {
@@ -145,19 +147,22 @@ def classify_leaf_entropy(
         "avg_entropy": round(entropy_sum / n_leaves, 4),
         "entropy_distribution": {
             "low_pct": round(low_count / n_leaves, 4),
-            "high_pct": round(high_count / n_leaves, 4)
+            "high_pct": round(high_count / n_leaves, 4),
         },
-        "classifications": classifications
+        "classifications": classifications,
     }
 
-    emit_receipt("leaf_entropy", {
-        "tenant_id": "axiom-pruning",
-        "total_leaves": n_leaves,
-        "low_entropy_count": low_count,
-        "high_entropy_count": high_count,
-        "classification_threshold": threshold,
-        "entropy_distribution": result["entropy_distribution"],
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "leaf_entropy",
+        {
+            "tenant_id": "axiom-pruning",
+            "total_leaves": n_leaves,
+            "low_entropy_count": low_count,
+            "high_entropy_count": high_count,
+            "classification_threshold": threshold,
+            "entropy_distribution": result["entropy_distribution"],
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result

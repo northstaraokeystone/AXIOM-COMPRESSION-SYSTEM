@@ -19,6 +19,7 @@ from ..base import emit_path_receipt
 
 # === RECEIPT EMISSION HELPERS ===
 
+
 def emit_agi_status(status: Dict[str, Any]) -> Dict[str, Any]:
     """Emit AGI status receipt.
 
@@ -28,10 +29,7 @@ def emit_agi_status(status: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("agi", "status", {
-        **status,
-        "receipt_subtype": "status"
-    })
+    return emit_path_receipt("agi", "status", {**status, "receipt_subtype": "status"})
 
 
 def emit_agi_policy(policy_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -43,10 +41,9 @@ def emit_agi_policy(policy_result: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("agi", "policy", {
-        **policy_result,
-        "receipt_subtype": "fractal_policy"
-    })
+    return emit_path_receipt(
+        "agi", "policy", {**policy_result, "receipt_subtype": "fractal_policy"}
+    )
 
 
 def emit_agi_ethics(ethics_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -58,10 +55,9 @@ def emit_agi_ethics(ethics_result: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("agi", "ethics", {
-        **ethics_result,
-        "receipt_subtype": "ethics_evaluation"
-    })
+    return emit_path_receipt(
+        "agi", "ethics", {**ethics_result, "receipt_subtype": "ethics_evaluation"}
+    )
 
 
 def emit_agi_alignment(alignment_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -73,10 +69,9 @@ def emit_agi_alignment(alignment_result: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("agi", "alignment", {
-        **alignment_result,
-        "receipt_subtype": "alignment_metric"
-    })
+    return emit_path_receipt(
+        "agi", "alignment", {**alignment_result, "receipt_subtype": "alignment_metric"}
+    )
 
 
 def emit_agi_audit(audit_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -88,7 +83,6 @@ def emit_agi_audit(audit_result: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("agi", "audit", {
-        **audit_result,
-        "receipt_subtype": "decision_audit"
-    })
+    return emit_path_receipt(
+        "agi", "audit", {**audit_result, "receipt_subtype": "decision_audit"}
+    )

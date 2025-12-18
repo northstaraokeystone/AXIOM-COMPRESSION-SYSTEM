@@ -40,6 +40,7 @@ TAU_STRATEGIES_PATH = "data/verified/tau_strategies.json"
 
 # === DATACLASS ===
 
+
 @dataclass
 class RelayConfig:
     """Configuration for relay swarm.
@@ -50,6 +51,7 @@ class RelayConfig:
         tau_reduction_factor: τ multiplier (default 0.5)
         operational: Whether swarm is active (default True)
     """
+
     swarm_size: int = RELAY_SWARM_OPTIMAL
     p_cost_per_sat: float = RELAY_P_COST_PER_SAT
     tau_reduction_factor: float = RELAY_TAU_FACTOR
@@ -65,6 +67,7 @@ class RelayConfig:
 
 
 # === FUNCTIONS ===
+
 
 def compute_relay_tau(base_tau: float, config: RelayConfig) -> float:
     """Compute reduced τ with relay swarm.
@@ -87,14 +90,17 @@ def compute_relay_tau(base_tau: float, config: RelayConfig) -> float:
         reduced_tau = base_tau * config.tau_reduction_factor
 
     # Emit receipt
-    emit_receipt("relay_tau", {
-        "tenant_id": "axiom-autonomy",
-        "base_tau": base_tau,
-        "reduced_tau": reduced_tau,
-        "tau_reduction_factor": config.tau_reduction_factor,
-        "swarm_size": config.swarm_size,
-        "operational": config.operational,
-    })
+    emit_receipt(
+        "relay_tau",
+        {
+            "tenant_id": "axiom-autonomy",
+            "base_tau": base_tau,
+            "reduced_tau": reduced_tau,
+            "tau_reduction_factor": config.tau_reduction_factor,
+            "swarm_size": config.swarm_size,
+            "operational": config.operational,
+        },
+    )
 
     return reduced_tau
 
@@ -118,18 +124,23 @@ def compute_relay_p_cost(config: RelayConfig) -> float:
     else:
         p_cost = config.swarm_size * config.p_cost_per_sat
 
-    emit_receipt("relay_p_cost", {
-        "tenant_id": "axiom-autonomy",
-        "swarm_size": config.swarm_size,
-        "p_cost_per_sat": config.p_cost_per_sat,
-        "p_cost_total": p_cost,
-        "operational": config.operational,
-    })
+    emit_receipt(
+        "relay_p_cost",
+        {
+            "tenant_id": "axiom-autonomy",
+            "swarm_size": config.swarm_size,
+            "p_cost_per_sat": config.p_cost_per_sat,
+            "p_cost_total": p_cost,
+            "operational": config.operational,
+        },
+    )
 
     return p_cost
 
 
-def optimal_swarm_size(budget_p: float, target_tau: float, base_tau: float = 1200) -> int:
+def optimal_swarm_size(
+    budget_p: float, target_tau: float, base_tau: float = 1200
+) -> int:
     """Compute optimal swarm size within P budget to achieve target τ.
 
     Finds minimum swarm size that:
@@ -169,16 +180,19 @@ def optimal_swarm_size(budget_p: float, target_tau: float, base_tau: float = 120
 
     actual_cost = optimal * RELAY_P_COST_PER_SAT
 
-    emit_receipt("relay_optimization", {
-        "tenant_id": "axiom-autonomy",
-        "budget_p": budget_p,
-        "target_tau": target_tau,
-        "base_tau": base_tau,
-        "optimal_swarm_size": optimal,
-        "achieved_tau": achieved_tau,
-        "actual_p_cost": actual_cost,
-        "budget_remaining": budget_p - actual_cost,
-    })
+    emit_receipt(
+        "relay_optimization",
+        {
+            "tenant_id": "axiom-autonomy",
+            "budget_p": budget_p,
+            "target_tau": target_tau,
+            "base_tau": base_tau,
+            "optimal_swarm_size": optimal,
+            "achieved_tau": achieved_tau,
+            "actual_p_cost": actual_cost,
+            "budget_remaining": budget_p - actual_cost,
+        },
+    )
 
     return optimal
 
@@ -205,45 +219,53 @@ def load_relay_params(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, TAU_STRATEGIES_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     # Extract and verify hash
-    stored_hash = data.pop('payload_hash', None)
+    stored_hash = data.pop("payload_hash", None)
     if stored_hash is None:
         raise StopRule("tau_strategies.json missing payload_hash field")
 
     computed_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    hash_verified = (stored_hash == computed_hash)
+    hash_verified = stored_hash == computed_hash
 
     if not hash_verified:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-autonomy",
-            "metric": "hash_mismatch",
-            "classification": "violation",
-            "action": "halt",
-            "expected": stored_hash,
-            "actual": computed_hash,
-            "file_path": path
-        })
-        raise StopRule(f"Strategy params hash mismatch: expected {stored_hash}, got {computed_hash}")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-autonomy",
+                "metric": "hash_mismatch",
+                "classification": "violation",
+                "action": "halt",
+                "expected": stored_hash,
+                "actual": computed_hash,
+                "file_path": path,
+            },
+        )
+        raise StopRule(
+            f"Strategy params hash mismatch: expected {stored_hash}, got {computed_hash}"
+        )
 
-    emit_receipt("tau_strategies_ingest", {
-        "tenant_id": "axiom-autonomy",
-        "file_path": path,
-        "relay_tau_factor": data['relay_tau_factor'],
-        "relay_p_cost_per_sat": data['relay_p_cost_per_sat'],
-        "relay_swarm_min": data['relay_swarm_min'],
-        "relay_swarm_optimal": data['relay_swarm_optimal'],
-        "onboard_ai_eff_alpha_floor": data['onboard_ai_eff_alpha_floor'],
-        "predictive_tau_reduction": data['predictive_tau_reduction'],
-        "hash_verified": hash_verified,
-        "payload_hash": stored_hash
-    })
+    emit_receipt(
+        "tau_strategies_ingest",
+        {
+            "tenant_id": "axiom-autonomy",
+            "file_path": path,
+            "relay_tau_factor": data["relay_tau_factor"],
+            "relay_p_cost_per_sat": data["relay_p_cost_per_sat"],
+            "relay_swarm_min": data["relay_swarm_min"],
+            "relay_swarm_optimal": data["relay_swarm_optimal"],
+            "onboard_ai_eff_alpha_floor": data["onboard_ai_eff_alpha_floor"],
+            "predictive_tau_reduction": data["predictive_tau_reduction"],
+            "hash_verified": hash_verified,
+            "payload_hash": stored_hash,
+        },
+    )
 
     # Restore hash for downstream use
-    data['payload_hash'] = stored_hash
+    data["payload_hash"] = stored_hash
 
     return data
 
@@ -263,13 +285,16 @@ def emit_relay_config_receipt(config: RelayConfig, base_tau: float) -> dict:
     reduced_tau = compute_relay_tau(base_tau, config)
     p_cost = compute_relay_p_cost(config)
 
-    return emit_receipt("relay_config", {
-        "tenant_id": "axiom-autonomy",
-        "swarm_size": config.swarm_size,
-        "tau_base": base_tau,
-        "tau_reduced": reduced_tau,
-        "p_cost_total": p_cost,
-        "operational": config.operational,
-        "tau_reduction_factor": config.tau_reduction_factor,
-        "p_cost_per_sat": config.p_cost_per_sat,
-    })
+    return emit_receipt(
+        "relay_config",
+        {
+            "tenant_id": "axiom-autonomy",
+            "swarm_size": config.swarm_size,
+            "tau_base": base_tau,
+            "tau_reduced": reduced_tau,
+            "p_cost_total": p_cost,
+            "operational": config.operational,
+            "tau_reduction_factor": config.tau_reduction_factor,
+            "p_cost_per_sat": config.p_cost_per_sat,
+        },
+    )

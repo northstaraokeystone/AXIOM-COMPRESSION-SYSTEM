@@ -100,27 +100,32 @@ def load_blackout_extension_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, BLACKOUT_EXTENSION_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("blackout_extension_spec_ingest", {
-        "tenant_id": "axiom-blackout",
-        "file_path": path,
-        "blackout_base_days": data["blackout_base_days"],
-        "blackout_sweep_max_days": data["blackout_sweep_max_days"],
-        "retention_base_factor": data["retention_base_factor"],
-        "min_eff_alpha_validated": data["min_eff_alpha_validated"],
-        "rerouting_alpha_boost_locked": data["rerouting_alpha_boost_locked"],
-        "degradation_model": data["degradation_model"],
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "blackout_extension_spec_ingest",
+        {
+            "tenant_id": "axiom-blackout",
+            "file_path": path,
+            "blackout_base_days": data["blackout_base_days"],
+            "blackout_sweep_max_days": data["blackout_sweep_max_days"],
+            "retention_base_factor": data["retention_base_factor"],
+            "min_eff_alpha_validated": data["min_eff_alpha_validated"],
+            "rerouting_alpha_boost_locked": data["rerouting_alpha_boost_locked"],
+            "degradation_model": data["degradation_model"],
+            "payload_hash": content_hash,
+        },
+    )
 
     return data
 
 
-def compute_degradation(blackout_days: int, base_retention: float = RETENTION_BASE_FACTOR) -> float:
+def compute_degradation(
+    blackout_days: int, base_retention: float = RETENTION_BASE_FACTOR
+) -> float:
     """Compute degradation factor for given blackout duration.
 
     GNN NONLINEAR model (Dec 2025): delegates to gnn_cache for exponential decay.
@@ -148,7 +153,9 @@ def compute_degradation(blackout_days: int, base_retention: float = RETENTION_BA
         return round(1.0 - (NONLINEAR_RETENTION_FLOOR / base_retention), 4)
 
 
-def retention_curve(blackout_days: int, cache_depth: int = CACHE_DEPTH_BASELINE) -> Dict[str, Any]:
+def retention_curve(
+    blackout_days: int, cache_depth: int = CACHE_DEPTH_BASELINE
+) -> Dict[str, Any]:
     """Compute retention curve point for given blackout duration.
 
     DELEGATES TO GNN NONLINEAR MODEL (Dec 2025).
@@ -166,15 +173,20 @@ def retention_curve(blackout_days: int, cache_depth: int = CACHE_DEPTH_BASELINE)
         StopRule: If blackout_days > 300 (unrealistic) or cache overflow
     """
     if blackout_days > BLACKOUT_MAX_UNREALISTIC:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-blackout",
-            "metric": "blackout_duration_unrealistic",
-            "baseline": BLACKOUT_MAX_UNREALISTIC,
-            "delta": blackout_days - BLACKOUT_MAX_UNREALISTIC,
-            "classification": "violation",
-            "action": "halt"
-        })
-        raise StopRule(f"Blackout duration {blackout_days}d > {BLACKOUT_MAX_UNREALISTIC}d unrealistic limit")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-blackout",
+                "metric": "blackout_duration_unrealistic",
+                "baseline": BLACKOUT_MAX_UNREALISTIC,
+                "delta": blackout_days - BLACKOUT_MAX_UNREALISTIC,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
+        raise StopRule(
+            f"Blackout duration {blackout_days}d > {BLACKOUT_MAX_UNREALISTIC}d unrealistic limit"
+        )
 
     # DELEGATE TO GNN NONLINEAR MODEL
     try:
@@ -198,14 +210,14 @@ def retention_curve(blackout_days: int, cache_depth: int = CACHE_DEPTH_BASELINE)
         "degradation_pct": degradation_pct,
         "model": DEGRADATION_MODEL,
         "curve_type": CURVE_TYPE,
-        "asymptote_alpha": ASYMPTOTE_ALPHA
+        "asymptote_alpha": ASYMPTOTE_ALPHA,
     }
 
 
 def alpha_at_duration(
     blackout_days: int,
     base_alpha: float = MIN_EFF_ALPHA_VALIDATED,
-    reroute_boost: float = REROUTING_ALPHA_BOOST_LOCKED
+    reroute_boost: float = REROUTING_ALPHA_BOOST_LOCKED,
 ) -> float:
     """Compute effective alpha at given blackout duration.
 
@@ -231,7 +243,7 @@ def sweep_with_pruning(
     day_range: Tuple[int, int] = (BLACKOUT_BASE_DAYS, BLACKOUT_PRUNING_TARGET_DAYS),
     trim_factor: float = 0.3,
     iterations: int = 1000,
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     """Run extended sweep with entropy pruning enabled.
 
@@ -262,7 +274,7 @@ def sweep_with_pruning(
                 blackout_days,
                 CACHE_DEPTH_BASELINE,
                 pruning_enabled=True,
-                trim_factor=trim_factor
+                trim_factor=trim_factor,
             )
 
             survival_status = result["eff_alpha"] >= PRUNING_TARGET_ALPHA * 0.9
@@ -275,26 +287,31 @@ def sweep_with_pruning(
                 "pruning_boost": result["pruning_boost"],
                 "trim_factor": trim_factor,
                 "target_alpha": PRUNING_TARGET_ALPHA,
-                "survival_status": survival_status
+                "survival_status": survival_status,
             }
 
-            emit_receipt("pruning_sweep", {
-                "tenant_id": "axiom-blackout",
-                **sweep_result,
-                "payload_hash": dual_hash(json.dumps(sweep_result, sort_keys=True))
-            })
+            emit_receipt(
+                "pruning_sweep",
+                {
+                    "tenant_id": "axiom-blackout",
+                    **sweep_result,
+                    "payload_hash": dual_hash(json.dumps(sweep_result, sort_keys=True)),
+                },
+            )
 
             results.append(sweep_result)
 
         except StopRule as e:
             # Overflow triggered
-            results.append({
-                "iteration": i,
-                "blackout_days": blackout_days,
-                "overflow_triggered": True,
-                "survival_status": False,
-                "stoprule_reason": str(e)
-            })
+            results.append(
+                {
+                    "iteration": i,
+                    "blackout_days": blackout_days,
+                    "overflow_triggered": True,
+                    "survival_status": False,
+                    "stoprule_reason": str(e),
+                }
+            )
 
     return results
 
@@ -304,7 +321,7 @@ def extended_blackout_sweep(
     iterations: int = 1000,
     seed: Optional[int] = None,
     pruning_enabled: bool = False,
-    trim_factor: float = 0.3
+    trim_factor: float = 0.3,
 ) -> List[Dict[str, Any]]:
     """Run extended blackout sweep across day range.
 
@@ -343,20 +360,22 @@ def extended_blackout_sweep(
                     blackout_days,
                     CACHE_DEPTH_BASELINE,
                     pruning_enabled=True,
-                    trim_factor=trim_factor
+                    trim_factor=trim_factor,
                 )
                 curve = {
                     "retention_factor": retention_result["retention_factor"],
                     "eff_alpha": retention_result["eff_alpha"],
                     "degradation_pct": 0.0,
-                    "pruning_boost": retention_result["pruning_boost"]
+                    "pruning_boost": retention_result["pruning_boost"],
                 }
             else:
                 curve = retention_curve(blackout_days)
                 curve["pruning_boost"] = 0.0
 
             # Survival status: alpha above floor
-            target_alpha = PRUNING_TARGET_ALPHA if pruning_enabled else MIN_EFF_ALPHA_VALIDATED
+            target_alpha = (
+                PRUNING_TARGET_ALPHA if pruning_enabled else MIN_EFF_ALPHA_VALIDATED
+            )
             survival_status = curve["eff_alpha"] >= target_alpha * 0.9
 
             result = {
@@ -367,26 +386,31 @@ def extended_blackout_sweep(
                 "degradation_pct": curve.get("degradation_pct", 0.0),
                 "survival_status": survival_status,
                 "pruning_enabled": pruning_enabled,
-                "pruning_boost": curve.get("pruning_boost", 0.0)
+                "pruning_boost": curve.get("pruning_boost", 0.0),
             }
 
-            emit_receipt("extended_blackout", {
-                "tenant_id": "axiom-blackout",
-                **result,
-                "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-            })
+            emit_receipt(
+                "extended_blackout",
+                {
+                    "tenant_id": "axiom-blackout",
+                    **result,
+                    "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+                },
+            )
 
             results.append(result)
 
         except StopRule:
             # Overflow or unrealistic duration - record failure
-            results.append({
-                "iteration": i,
-                "blackout_days": blackout_days,
-                "overflow_triggered": True,
-                "survival_status": False,
-                "pruning_enabled": pruning_enabled
-            })
+            results.append(
+                {
+                    "iteration": i,
+                    "blackout_days": blackout_days,
+                    "overflow_triggered": True,
+                    "survival_status": False,
+                    "pruning_enabled": pruning_enabled,
+                }
+            )
 
     return results
 
@@ -406,7 +430,7 @@ def find_retention_floor(sweep_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         return {
             "min_retention": RETENTION_BASE_FACTOR,
             "days_at_min": BLACKOUT_BASE_DAYS,
-            "alpha_at_min": MIN_EFF_ALPHA_VALIDATED + REROUTING_ALPHA_BOOST_LOCKED
+            "alpha_at_min": MIN_EFF_ALPHA_VALIDATED + REROUTING_ALPHA_BOOST_LOCKED,
         }
 
     # Find minimum retention
@@ -417,13 +441,13 @@ def find_retention_floor(sweep_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         "days_at_min": min_result["blackout_days"],
         "alpha_at_min": min_result["eff_alpha"],
         "degradation_pct_at_min": min_result["degradation_pct"],
-        "survival_at_min": min_result["survival_status"]
+        "survival_at_min": min_result["survival_status"],
     }
 
 
 def generate_retention_curve_data(
     day_range: Tuple[int, int] = (BLACKOUT_BASE_DAYS, BLACKOUT_SWEEP_MAX_DAYS),
-    step: int = 1
+    step: int = 1,
 ) -> List[Dict[str, float]]:
     """Generate retention curve data points.
 
@@ -442,14 +466,18 @@ def generate_retention_curve_data(
 
     curve_points = []
 
-    for days in range(day_range[0], min(day_range[1] + 1, BLACKOUT_MAX_UNREALISTIC), step):
+    for days in range(
+        day_range[0], min(day_range[1] + 1, BLACKOUT_MAX_UNREALISTIC), step
+    ):
         try:
             curve = retention_curve(days)
-            curve_points.append({
-                "days": days,
-                "retention": curve["retention_factor"],
-                "alpha": curve["eff_alpha"]
-            })
+            curve_points.append(
+                {
+                    "days": days,
+                    "retention": curve["retention_factor"],
+                    "alpha": curve["eff_alpha"],
+                }
+            )
         except StopRule:
             # Cache overflow - stop curve generation
             break
@@ -459,12 +487,14 @@ def generate_retention_curve_data(
 
     # Compute exponential fit R² (GNN nonlinear model)
     retentions = [p["retention"] for p in curve_points]
-    is_monotonic = all(retentions[i] >= retentions[i+1] for i in range(len(retentions)-1))
+    is_monotonic = all(
+        retentions[i] >= retentions[i + 1] for i in range(len(retentions) - 1)
+    )
 
     # Compute max single-day drop
     max_single_drop = 0.0
     for i in range(1, len(retentions)):
-        drop = retentions[i-1] - retentions[i]
+        drop = retentions[i - 1] - retentions[i]
         max_single_drop = max(max_single_drop, drop)
 
     # R² approximation for EXPONENTIAL fit (GNN nonlinear model)
@@ -474,33 +504,41 @@ def generate_retention_curve_data(
 
     # Predict using exponential decay (GNN nonlinear formula)
     from .gnn_cache import DECAY_LAMBDA
+
     predicted = []
     for d in range(day_range[0], day_range[0] + len(curve_points) * step, step):
         if d <= BLACKOUT_BASE_DAYS:
             pred = RETENTION_BASE_FACTOR
         else:
             excess = d - BLACKOUT_BASE_DAYS
-            pred = NONLINEAR_RETENTION_FLOOR + \
-                (RETENTION_BASE_FACTOR - NONLINEAR_RETENTION_FLOOR) * math.exp(-DECAY_LAMBDA * excess)
+            pred = NONLINEAR_RETENTION_FLOOR + (
+                RETENTION_BASE_FACTOR - NONLINEAR_RETENTION_FLOOR
+            ) * math.exp(-DECAY_LAMBDA * excess)
         predicted.append(pred)
 
-    ss_res = sum((retentions[i] - predicted[i]) ** 2 for i in range(min(len(retentions), len(predicted))))
+    ss_res = sum(
+        (retentions[i] - predicted[i]) ** 2
+        for i in range(min(len(retentions), len(predicted)))
+    )
     r_squared = 1 - (ss_res / max(ss_tot, 0.0001))
     r_squared = round(max(0.0, min(1.0, r_squared)), 4)
 
-    emit_receipt("retention_curve", {
-        "tenant_id": "axiom-blackout",
-        "day_range": list(day_range),
-        "curve_points": curve_points,
-        "model_type": DEGRADATION_MODEL,
-        "curve_type": CURVE_TYPE,
-        "r_squared": r_squared,
-        "is_monotonic": is_monotonic,
-        "max_single_day_drop": round(max_single_drop, 4),
-        "no_cliff_behavior": max_single_drop < 0.02,
-        "asymptote_alpha": ASYMPTOTE_ALPHA,
-        "payload_hash": dual_hash(json.dumps(curve_points, sort_keys=True))
-    })
+    emit_receipt(
+        "retention_curve",
+        {
+            "tenant_id": "axiom-blackout",
+            "day_range": list(day_range),
+            "curve_points": curve_points,
+            "model_type": DEGRADATION_MODEL,
+            "curve_type": CURVE_TYPE,
+            "r_squared": r_squared,
+            "is_monotonic": is_monotonic,
+            "max_single_day_drop": round(max_single_drop, 4),
+            "no_cliff_behavior": max_single_drop < 0.02,
+            "asymptote_alpha": ASYMPTOTE_ALPHA,
+            "payload_hash": dual_hash(json.dumps(curve_points, sort_keys=True)),
+        },
+    )
 
     return curve_points
 
@@ -523,21 +561,22 @@ def gnn_sensitivity_stub(param_config: Dict[str, Any]) -> Dict[str, Any]:
         "status": "stub_only",
         "not_implemented": True,
         "next_gate": "gnn_parameter_sensitivity",
-        "description": "Placeholder for GNN complexity sweep (1K-100K params)"
+        "description": "Placeholder for GNN complexity sweep (1K-100K params)",
     }
 
-    emit_receipt("gnn_sensitivity_stub", {
-        "tenant_id": "axiom-blackout",
-        **result,
-        "payload_hash": dual_hash(json.dumps(param_config, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_sensitivity_stub",
+        {
+            "tenant_id": "axiom-blackout",
+            **result,
+            "payload_hash": dual_hash(json.dumps(param_config, sort_keys=True)),
+        },
+    )
 
     return result
 
 
-def validate_retention_slos(
-    sweep_results: List[Dict[str, Any]]
-) -> Dict[str, Any]:
+def validate_retention_slos(sweep_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Validate retention curve SLOs.
 
     SLOs (UPDATED Dec 2025 - GNN nonlinear):
@@ -579,7 +618,7 @@ def validate_retention_slos(
 
     max_drop = 0.0
     for i in range(1, len(retentions)):
-        drop = retentions[i-1] - retentions[i]
+        drop = retentions[i - 1] - retentions[i]
         max_drop = max(max_drop, drop)
 
     no_cliff = max_drop < 0.01  # Tighter threshold for GNN nonlinear
@@ -591,12 +630,11 @@ def validate_retention_slos(
         "max_single_day_drop": round(max_drop, 4),
         "no_cliff_behavior": no_cliff,
         "curve_type": CURVE_TYPE,
-        "validated": all_above_floor and no_cliff and asymptote_ok
+        "validated": all_above_floor and no_cliff and asymptote_ok,
     }
 
-    emit_receipt("retention_slo_validation", {
-        "tenant_id": "axiom-blackout",
-        **validation
-    })
+    emit_receipt(
+        "retention_slo_validation", {"tenant_id": "axiom-blackout", **validation}
+    )
 
     return validation

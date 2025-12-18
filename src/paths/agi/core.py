@@ -44,6 +44,7 @@ AUDIT_REQUIREMENT = "receipts_native"
 
 # === STUB STATUS ===
 
+
 def stub_status() -> Dict[str, Any]:
     """Return current stub status.
 
@@ -59,19 +60,15 @@ def stub_status() -> Dict[str, Any]:
         "stage": "stub",
         "version": spec.get("version", "0.1.0"),
         "evolution_path": ["stub", "policy", "evaluate", "autonomous_audit"],
-        "current_capabilities": [
-            "stub_status",
-            "fractal_policy",
-            "compute_alignment"
-        ],
+        "current_capabilities": ["stub_status", "fractal_policy", "compute_alignment"],
         "pending_capabilities": [
             "evaluate_ethics",
             "audit_decision",
-            "autonomous_audit"
+            "autonomous_audit",
         ],
         "key_insight": spec.get("key_insight", "Audit trail IS alignment"),
         "config": spec.get("config", {}),
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "status", status)
@@ -79,6 +76,7 @@ def stub_status() -> Dict[str, Any]:
 
 
 # === FRACTAL POLICY ===
+
 
 def fractal_policy(depth: int = POLICY_DEPTH_DEFAULT) -> Dict[str, Any]:
     """Generate self-similar policy at given depth.
@@ -105,15 +103,12 @@ def fractal_policy(depth: int = POLICY_DEPTH_DEFAULT) -> Dict[str, Any]:
 
         # Generate sub-dimensions based on ethics dimension
         sub_dims = get_sub_dimensions(dim, current_depth)
-        children = {
-            sub: build_policy_tree(sub, current_depth - 1)
-            for sub in sub_dims
-        }
+        children = {sub: build_policy_tree(sub, current_depth - 1) for sub in sub_dims}
 
         return {
             "weight": 1.0 / len(sub_dims) if sub_dims else 1.0,
             "leaf": False,
-            "children": children
+            "children": children,
         }
 
     policy = {
@@ -122,18 +117,22 @@ def fractal_policy(depth: int = POLICY_DEPTH_DEFAULT) -> Dict[str, Any]:
         "tree": {dim: build_policy_tree(dim, depth - 1) for dim in ETHICS_DIMENSIONS},
         "self_similar": True,
         "fractal_scaling": True,
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     # Compute policy complexity (number of nodes)
     policy["complexity"] = compute_tree_complexity(policy["tree"])
 
-    emit_path_receipt("agi", "policy", {
-        "depth": depth,
-        "dimensions": ETHICS_DIMENSIONS,
-        "complexity": policy["complexity"],
-        "self_similar": True
-    })
+    emit_path_receipt(
+        "agi",
+        "policy",
+        {
+            "depth": depth,
+            "dimensions": ETHICS_DIMENSIONS,
+            "complexity": policy["complexity"],
+            "self_similar": True,
+        },
+    )
 
     return policy
 
@@ -165,7 +164,7 @@ def get_sub_dimensions(dim: str, depth: int) -> List[str]:
         "precaution": ["uncertainty", "reversibility", "fallback"],
         "fairness": ["impartiality", "consistency", "transparency"],
         "equal_treatment": ["non_discrimination", "access", "opportunity"],
-        "proportionality": ["necessity", "balance", "minimal_impact"]
+        "proportionality": ["necessity", "balance", "minimal_impact"],
     }
 
     return sub_dims.get(dim, [f"{dim}_sub_{i}" for i in range(1, 4)])
@@ -190,9 +189,9 @@ def compute_tree_complexity(tree: Dict[str, Any]) -> int:
 
 # === ETHICS EVALUATION (STUB) ===
 
+
 def evaluate_ethics(
-    action: Dict[str, Any],
-    policy: Optional[Dict[str, Any]] = None
+    action: Dict[str, Any], policy: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Evaluate action against ethics policy.
 
@@ -223,7 +222,7 @@ def evaluate_ethics(
         "passes_threshold": True,
         "threshold": 0.7,
         "audit_receipt_id": f"agi_ethics_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "ethics", result)
@@ -231,6 +230,7 @@ def evaluate_ethics(
 
 
 # === ALIGNMENT COMPUTATION ===
+
 
 def compute_alignment(system_receipts: List[Dict[str, Any]]) -> float:
     """Compute alignment via compression metric.
@@ -285,7 +285,7 @@ def compute_alignment(system_receipts: List[Dict[str, Any]]) -> float:
         "alignment_score": round(alignment, 4),
         "metric": ALIGNMENT_METRIC,
         "interpretation": "Higher alignment = more coherent behavior pattern",
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "alignment", result)
@@ -293,6 +293,7 @@ def compute_alignment(system_receipts: List[Dict[str, Any]]) -> float:
 
 
 # === AUDIT (STUB) ===
+
 
 def audit_decision(decision: Dict[str, Any]) -> Dict[str, Any]:
     """Receipt-native audit of decision.
@@ -320,12 +321,12 @@ def audit_decision(decision: Dict[str, Any]) -> Dict[str, Any]:
             {"step": 1, "action": "decision_received", "receipt": True},
             {"step": 2, "action": "policy_lookup", "receipt": True},
             {"step": 3, "action": "ethics_eval", "receipt": True},
-            {"step": 4, "action": "decision_executed", "receipt": True}
+            {"step": 4, "action": "decision_executed", "receipt": True},
         ],
         "complete_trail": True,
         "verifiable": True,
         "key_insight": "If system cannot prove what it did, it did not do it",
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "audit", result)
@@ -333,6 +334,7 @@ def audit_decision(decision: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # === PATH INFO ===
+
 
 def get_agi_info() -> Dict[str, Any]:
     """Get AGI path configuration and status.
@@ -356,7 +358,7 @@ def get_agi_info() -> Dict[str, Any]:
         "dependencies": spec.get("dependencies", []),
         "receipts": spec.get("receipts", []),
         "evolution": spec.get("evolution", {}),
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "info", info)
@@ -389,8 +391,7 @@ def integrate_adversarial(config: Optional[Dict[str, Any]] = None) -> Dict[str, 
 
     # Run audit
     audit = run_audit(
-        noise_level=config["noise_level"],
-        iterations=config["test_iterations"]
+        noise_level=config["noise_level"], iterations=config["test_iterations"]
     )
 
     result = {
@@ -405,16 +406,14 @@ def integrate_adversarial(config: Optional[Dict[str, Any]] = None) -> Dict[str, 
         "recovery_threshold": RECOVERY_THRESHOLD,
         "alignment_metric": ALIGNMENT_METRIC,
         "key_insight": "Compression as alignment - recovery indicates coherent behavior",
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "adversarial_integrate", result)
     return result
 
 
-def run_alignment_stress_test(
-    noise_level: float = 0.05
-) -> Dict[str, Any]:
+def run_alignment_stress_test(noise_level: float = 0.05) -> Dict[str, Any]:
     """Run adversarial alignment stress test.
 
     Args:
@@ -433,8 +432,7 @@ def run_alignment_stress_test(
 
     # Run stress test
     stress = run_stress_test(
-        noise_levels=[0.01, 0.03, 0.05, 0.10, noise_level],
-        iterations_per_level=50
+        noise_levels=[0.01, 0.03, 0.05, 0.10, noise_level], iterations_per_level=50
     )
 
     # Compute alignment metrics
@@ -451,7 +449,7 @@ def run_alignment_stress_test(
         "recovery_threshold": RECOVERY_THRESHOLD,
         "alignment_metric": ALIGNMENT_METRIC,
         "results_summary": stress["results_by_level"],
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "alignment_stress", result)
@@ -459,7 +457,7 @@ def run_alignment_stress_test(
 
 
 def compute_adversarial_alignment(
-    receipts: Optional[List[Dict[str, Any]]] = None
+    receipts: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Compute alignment combining compression metric and adversarial audit.
 
@@ -500,7 +498,7 @@ def compute_adversarial_alignment(
         "is_aligned": combined >= RECOVERY_THRESHOLD,
         "alignment_metric": ALIGNMENT_METRIC,
         "key_insight": "Combined compression + adversarial = robust alignment",
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "combined_alignment", result)
@@ -511,7 +509,7 @@ def compute_adversarial_alignment(
 
 
 def integrate_expanded_audits(
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Wire expanded audits (injection/poisoning) to AGI path.
 
@@ -550,16 +548,14 @@ def integrate_expanded_audits(
         "recovery_threshold": EXPANDED_RECOVERY_THRESHOLD,
         "alignment_metric": ALIGNMENT_METRIC,
         "key_insight": "Hybrid RL defenses adapt to injection/poisoning patterns",
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "expanded_integrate", result)
     return result
 
 
-def run_injection_stress_test(
-    iterations: int = 100
-) -> Dict[str, Any]:
+def run_injection_stress_test(iterations: int = 100) -> Dict[str, Any]:
     """Run injection attack stress test.
 
     Args:
@@ -590,16 +586,14 @@ def run_injection_stress_test(
         "recovery_threshold": EXPANDED_RECOVERY_THRESHOLD,
         "stress_passed": audit["recovery_passed"],
         "alignment_metric": ALIGNMENT_METRIC,
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "injection_stress", result)
     return result
 
 
-def run_poisoning_stress_test(
-    iterations: int = 100
-) -> Dict[str, Any]:
+def run_poisoning_stress_test(iterations: int = 100) -> Dict[str, Any]:
     """Run poisoning attack stress test.
 
     Args:
@@ -630,7 +624,7 @@ def run_poisoning_stress_test(
         "recovery_threshold": EXPANDED_RECOVERY_THRESHOLD,
         "stress_passed": audit["recovery_passed"],
         "alignment_metric": ALIGNMENT_METRIC,
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "poisoning_stress", result)
@@ -638,7 +632,7 @@ def run_poisoning_stress_test(
 
 
 def compute_expanded_alignment(
-    receipts: Optional[List[Dict[str, Any]]] = None
+    receipts: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Compute alignment combining compression, adversarial, and expanded audits.
 
@@ -676,9 +670,7 @@ def compute_expanded_alignment(
     # Combined alignment (weighted)
     # Compression: 20%, Basic adversarial: 30%, Expanded: 50%
     combined = (
-        compression_alignment * 0.2 +
-        basic_adversarial * 0.3 +
-        expanded_recovery * 0.5
+        compression_alignment * 0.2 + basic_adversarial * 0.3 + expanded_recovery * 0.5
     )
 
     result = {
@@ -700,8 +692,213 @@ def compute_expanded_alignment(
         "is_aligned": combined >= EXPANDED_RECOVERY_THRESHOLD,
         "alignment_metric": ALIGNMENT_METRIC,
         "key_insight": "Comprehensive alignment via compression + adversarial + expanded audits",
-        "tenant_id": AGI_TENANT_ID
+        "tenant_id": AGI_TENANT_ID,
     }
 
     emit_path_receipt("agi", "expanded_alignment", result)
+    return result
+
+
+# === FRACTAL ENCRYPTION INTEGRATION ===
+
+
+def integrate_fractal_encrypt(
+    config: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Wire fractal encryption defense to AGI path.
+
+    Args:
+        config: Optional fractal encrypt config override
+
+    Returns:
+        Dict with fractal encryption integration results
+
+    Receipt: agi_fractal_encrypt_integrate
+    """
+    # Import fractal encrypt module
+    from ...fractal_encrypt_audit import (
+        load_encrypt_config,
+        run_fractal_encrypt_audit,
+        SIDE_CHANNEL_RESILIENCE,
+        MODEL_INVERSION_RESILIENCE,
+    )
+
+    if config is None:
+        config = load_encrypt_config()
+
+    # Run encryption audit
+    audit = run_fractal_encrypt_audit(["side_channel", "model_inversion"])
+
+    result = {
+        "integrated": True,
+        "encrypt_config": config,
+        "audit_results": {
+            "side_channel_resilience": audit["results"]
+            .get("side_channel", {})
+            .get("resilience", 0),
+            "model_inversion_resilience": audit["results"]
+            .get("model_inversion", {})
+            .get("resilience", 0),
+            "all_passed": audit["all_passed"],
+        },
+        "thresholds": {
+            "side_channel": SIDE_CHANNEL_RESILIENCE,
+            "model_inversion": MODEL_INVERSION_RESILIENCE,
+        },
+        "defense_mechanisms": config.get("defense_mechanisms", []),
+        "key_insight": "Fractal self-similarity makes pattern extraction exponentially harder",
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "fractal_encrypt_integrate", result)
+    return result
+
+
+def run_side_channel_stress_test(iterations: int = 100) -> Dict[str, Any]:
+    """Run side-channel resilience stress test.
+
+    Args:
+        iterations: Number of test iterations
+
+    Returns:
+        Dict with stress test results
+
+    Receipt: agi_side_channel_stress
+    """
+    # Import fractal encrypt module
+    from ...fractal_encrypt_audit import (
+        test_side_channel_resilience,
+        SIDE_CHANNEL_RESILIENCE,
+    )
+
+    resilience = test_side_channel_resilience(iterations)
+
+    result = {
+        "stress_test_type": "side_channel",
+        "iterations": iterations,
+        "resilience": resilience,
+        "target": SIDE_CHANNEL_RESILIENCE,
+        "passed": resilience >= SIDE_CHANNEL_RESILIENCE,
+        "alignment_metric": ALIGNMENT_METRIC,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "side_channel_stress", result)
+    return result
+
+
+def run_model_inversion_stress_test(iterations: int = 100) -> Dict[str, Any]:
+    """Run model inversion resilience stress test.
+
+    Args:
+        iterations: Number of test iterations
+
+    Returns:
+        Dict with stress test results
+
+    Receipt: agi_model_inversion_stress
+    """
+    # Import fractal encrypt module
+    from ...fractal_encrypt_audit import (
+        test_model_inversion_resilience,
+        MODEL_INVERSION_RESILIENCE,
+    )
+
+    resilience = test_model_inversion_resilience(None, iterations)
+
+    result = {
+        "stress_test_type": "model_inversion",
+        "iterations": iterations,
+        "resilience": resilience,
+        "target": MODEL_INVERSION_RESILIENCE,
+        "passed": resilience >= MODEL_INVERSION_RESILIENCE,
+        "alignment_metric": ALIGNMENT_METRIC,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "model_inversion_stress", result)
+    return result
+
+
+def compute_fractal_alignment(
+    receipts: Optional[List[Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
+    """Compute alignment combining compression, adversarial, expanded, and fractal audits.
+
+    Args:
+        receipts: Optional system receipts for compression alignment
+
+    Returns:
+        Dict with comprehensive alignment metrics including fractal encryption
+
+    Receipt: agi_fractal_alignment
+    """
+    # Import modules
+    from ...adversarial_audit import (
+        run_audit as run_basic_audit,
+        RECOVERY_THRESHOLD as BASIC_THRESHOLD,
+    )
+    from ...agi_audit_expanded import (
+        run_expanded_audit,
+        EXPANDED_RECOVERY_THRESHOLD,
+    )
+    from ...fractal_encrypt_audit import (
+        test_side_channel_resilience,
+        test_model_inversion_resilience,
+        SIDE_CHANNEL_RESILIENCE,
+    )
+
+    # Compute compression alignment
+    if receipts is None:
+        receipts = []
+    compression_alignment = compute_alignment(receipts)
+
+    # Run basic adversarial audit
+    basic_audit = run_basic_audit(noise_level=0.05, iterations=50)
+    basic_adversarial = basic_audit["avg_recovery"]
+
+    # Run expanded audit
+    expanded_audit = run_expanded_audit(attack_type="all", iterations=50)
+    expanded_recovery = expanded_audit["avg_recovery"]
+
+    # Run fractal encryption tests
+    side_channel = test_side_channel_resilience(50)
+    model_inversion = test_model_inversion_resilience(None, 50)
+    fractal_resilience = (side_channel + model_inversion) / 2
+
+    # Combined alignment (weighted)
+    # Compression: 15%, Basic adversarial: 20%, Expanded: 35%, Fractal: 30%
+    combined = (
+        compression_alignment * 0.15
+        + basic_adversarial * 0.20
+        + expanded_recovery * 0.35
+        + fractal_resilience * 0.30
+    )
+
+    result = {
+        "compression_alignment": round(compression_alignment, 4),
+        "basic_adversarial_alignment": round(basic_adversarial, 4),
+        "expanded_alignment": round(expanded_recovery, 4),
+        "fractal_resilience": round(fractal_resilience, 4),
+        "side_channel_resilience": side_channel,
+        "model_inversion_resilience": model_inversion,
+        "combined_alignment": round(combined, 4),
+        "weights": {
+            "compression": 0.15,
+            "basic_adversarial": 0.20,
+            "expanded": 0.35,
+            "fractal": 0.30,
+        },
+        "thresholds": {
+            "basic": BASIC_THRESHOLD,
+            "expanded": EXPANDED_RECOVERY_THRESHOLD,
+            "fractal": SIDE_CHANNEL_RESILIENCE,
+        },
+        "is_aligned": combined >= EXPANDED_RECOVERY_THRESHOLD,
+        "alignment_metric": ALIGNMENT_METRIC,
+        "key_insight": "Comprehensive alignment via compression + adversarial + expanded + fractal encryption",
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "fractal_alignment", result)
     return result

@@ -12,7 +12,6 @@ Source: AXIOM scalable paths architecture - Multi-planet expansion
 """
 
 
-
 def test_multiplanet_spec_loads():
     """Spec loads with valid structure."""
     from src.paths import load_path_spec

@@ -81,6 +81,7 @@ class PartitionResult:
         eff_alpha: Effective alpha after partition
         quorum_status: True if quorum intact (surviving >= threshold)
     """
+
     nodes_total: int
     loss_pct: float
     nodes_surviving: int
@@ -107,24 +108,27 @@ def load_partition_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, PARTITION_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     # Compute dual_hash of contents
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
     # Emit ingest receipt
-    emit_receipt("partition_spec_ingest", {
-        "tenant_id": "axiom-resilience",
-        "file_path": path,
-        "node_baseline": data["node_baseline"],
-        "quorum_min": data["quorum_min"],
-        "partition_test_range": data["partition_test_range"],
-        "greens_current": data["greens_current"],
-        "ledger_alpha_boost": data["ledger_alpha_boost"],
-        "rerouting_potential": data["rerouting_potential"],
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "partition_spec_ingest",
+        {
+            "tenant_id": "axiom-resilience",
+            "file_path": path,
+            "node_baseline": data["node_baseline"],
+            "quorum_min": data["quorum_min"],
+            "partition_test_range": data["partition_test_range"],
+            "greens_current": data["greens_current"],
+            "ledger_alpha_boost": data["ledger_alpha_boost"],
+            "rerouting_potential": data["rerouting_potential"],
+            "payload_hash": content_hash,
+        },
+    )
 
     return data
 
@@ -147,17 +151,22 @@ def quorum_check(nodes_surviving: int, quorum_min: int = QUORUM_THRESHOLD) -> bo
     quorum_intact = nodes_surviving >= quorum_min
 
     if not quorum_intact:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-resilience",
-            "metric": "quorum_failure",
-            "baseline": quorum_min,
-            "delta": nodes_surviving - quorum_min,
-            "classification": "violation",
-            "action": "halt",
-            "nodes_surviving": nodes_surviving,
-            "quorum_threshold": quorum_min
-        })
-        raise StopRule(f"Quorum failed: {nodes_surviving} nodes surviving < {quorum_min} threshold")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-resilience",
+                "metric": "quorum_failure",
+                "baseline": quorum_min,
+                "delta": nodes_surviving - quorum_min,
+                "classification": "violation",
+                "action": "halt",
+                "nodes_surviving": nodes_surviving,
+                "quorum_threshold": quorum_min,
+            },
+        )
+        raise StopRule(
+            f"Quorum failed: {nodes_surviving} nodes surviving < {quorum_min} threshold"
+        )
 
     return quorum_intact
 
@@ -167,7 +176,7 @@ def partition_sim(
     loss_pct: float = 0.0,
     base_alpha: float = BASE_ALPHA,
     emit: bool = True,
-    reroute_enabled: bool = True
+    reroute_enabled: bool = True,
 ) -> Dict[str, Any]:
     """Simulate node partition and compute impact on effective alpha.
 
@@ -208,7 +217,7 @@ def partition_sim(
             "now flows through adaptive reroute. This warning will become "
             "an error in a future version.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
     # Calculate nodes surviving (floor of remaining)
     nodes_lost = int(nodes_total * loss_pct)
@@ -229,7 +238,9 @@ def partition_sim(
 
     if reroute_enabled and quorum_status:
         # Check if quorum is stressed (surviving < baseline but >= threshold)
-        quorum_stressed = nodes_surviving < nodes_total and nodes_surviving >= QUORUM_THRESHOLD
+        quorum_stressed = (
+            nodes_surviving < nodes_total and nodes_surviving >= QUORUM_THRESHOLD
+        )
 
         if quorum_stressed or loss_pct > 0:
             # Import here to avoid circular dependency
@@ -238,14 +249,21 @@ def partition_sim(
             # Attempt reroute recovery
             graph_state = {
                 "nodes": nodes_total,
-                "edges": [{"src": f"n{i}", "dst": f"n{(i+1) % nodes_surviving}"}
-                          for i in range(nodes_surviving)]
+                "edges": [
+                    {"src": f"n{i}", "dst": f"n{(i + 1) % nodes_surviving}"}
+                    for i in range(nodes_surviving)
+                ],
             }
 
             try:
-                reroute_result = adaptive_reroute(graph_state, loss_pct, blackout_days=0)
+                reroute_result = adaptive_reroute(
+                    graph_state, loss_pct, blackout_days=0
+                )
 
-                if reroute_result["quorum_preserved"] and reroute_result["recovery_factor"] > 0.5:
+                if (
+                    reroute_result["quorum_preserved"]
+                    and reroute_result["recovery_factor"] > 0.5
+                ):
                     reroute_applied = True
                     reroute_boost = reroute_result["alpha_boost"]
                     eff_alpha = eff_alpha + reroute_boost
@@ -261,23 +279,26 @@ def partition_sim(
         "eff_alpha": round(eff_alpha, 4),
         "quorum_status": quorum_status,
         "reroute_applied": reroute_applied,
-        "reroute_boost": round(reroute_boost, 4)
+        "reroute_boost": round(reroute_boost, 4),
     }
 
     if emit:
-        emit_receipt("partition_stress", {
-            "tenant_id": "axiom-resilience",
-            "nodes_total": nodes_total,
-            "loss_pct": loss_pct,
-            "nodes_surviving": nodes_surviving,
-            "eff_alpha_drop": round(eff_alpha_drop, 4),
-            "eff_alpha": round(eff_alpha, 4),
-            "quorum_status": quorum_status,
-            "base_alpha": base_alpha,
-            "drop_factor": ALPHA_DROP_FACTOR,
-            "reroute_applied": reroute_applied,
-            "reroute_boost": round(reroute_boost, 4)
-        })
+        emit_receipt(
+            "partition_stress",
+            {
+                "tenant_id": "axiom-resilience",
+                "nodes_total": nodes_total,
+                "loss_pct": loss_pct,
+                "nodes_surviving": nodes_surviving,
+                "eff_alpha_drop": round(eff_alpha_drop, 4),
+                "eff_alpha": round(eff_alpha, 4),
+                "quorum_status": quorum_status,
+                "base_alpha": base_alpha,
+                "drop_factor": ALPHA_DROP_FACTOR,
+                "reroute_applied": reroute_applied,
+                "reroute_boost": round(reroute_boost, 4),
+            },
+        )
 
     return result
 
@@ -288,7 +309,7 @@ def stress_sweep(
     n_iterations: int = 1000,
     base_alpha: float = BASE_ALPHA,
     seed: Optional[int] = None,
-    reroute_enabled: bool = True
+    reroute_enabled: bool = True,
 ) -> List[Dict[str, Any]]:
     """Run stress sweep with random loss in range.
 
@@ -321,22 +342,30 @@ def stress_sweep(
 
         try:
             # Run partition sim (emit=False to avoid 1000 receipts, we'll emit summary)
-            result = partition_sim(nodes_total, loss_pct, base_alpha, emit=False, reroute_enabled=reroute_enabled)
+            result = partition_sim(
+                nodes_total,
+                loss_pct,
+                base_alpha,
+                emit=False,
+                reroute_enabled=reroute_enabled,
+            )
             results.append(result)
             total_alpha_drop += result["eff_alpha_drop"]
         except StopRule:
             # Quorum failed - this shouldn't happen in valid test range
             quorum_failures += 1
-            results.append({
-                "nodes_total": nodes_total,
-                "loss_pct": loss_pct,
-                "nodes_surviving": nodes_total - int(nodes_total * loss_pct),
-                "eff_alpha_drop": 0.0,
-                "eff_alpha": 0.0,
-                "quorum_status": False,
-                "reroute_applied": False,
-                "reroute_boost": 0.0
-            })
+            results.append(
+                {
+                    "nodes_total": nodes_total,
+                    "loss_pct": loss_pct,
+                    "nodes_surviving": nodes_total - int(nodes_total * loss_pct),
+                    "eff_alpha_drop": 0.0,
+                    "eff_alpha": 0.0,
+                    "quorum_status": False,
+                    "reroute_applied": False,
+                    "reroute_boost": 0.0,
+                }
+            )
 
     # Compute summary stats
     success_count = len([r for r in results if r["quorum_status"]])
@@ -347,27 +376,34 @@ def stress_sweep(
     reroute_count = len([r for r in results if r.get("reroute_applied", False)])
 
     # Emit summary receipt
-    emit_receipt("quorum_resilience", {
-        "tenant_id": "axiom-resilience",
-        "baseline_nodes": nodes_total,
-        "quorum_threshold": QUORUM_THRESHOLD,
-        "test_iterations": n_iterations,
-        "loss_range": list(loss_range),
-        "success_rate": round(success_rate, 4),
-        "avg_alpha_drop": round(avg_alpha_drop, 4),
-        "quorum_failures": quorum_failures,
-        "base_alpha": base_alpha,
-        "min_eff_alpha": (
-            round(min(r["eff_alpha"] for r in results if r["quorum_status"]), 4)
-            if success_count > 0 else 0.0
-        ),
-        "max_eff_alpha_drop": (
-            round(max(r["eff_alpha_drop"] for r in results if r["quorum_status"]), 4)
-            if success_count > 0 else 0.0
-        ),
-        "reroute_enabled": reroute_enabled,
-        "reroute_applications": reroute_count
-    })
+    emit_receipt(
+        "quorum_resilience",
+        {
+            "tenant_id": "axiom-resilience",
+            "baseline_nodes": nodes_total,
+            "quorum_threshold": QUORUM_THRESHOLD,
+            "test_iterations": n_iterations,
+            "loss_range": list(loss_range),
+            "success_rate": round(success_rate, 4),
+            "avg_alpha_drop": round(avg_alpha_drop, 4),
+            "quorum_failures": quorum_failures,
+            "base_alpha": base_alpha,
+            "min_eff_alpha": (
+                round(min(r["eff_alpha"] for r in results if r["quorum_status"]), 4)
+                if success_count > 0
+                else 0.0
+            ),
+            "max_eff_alpha_drop": (
+                round(
+                    max(r["eff_alpha_drop"] for r in results if r["quorum_status"]), 4
+                )
+                if success_count > 0
+                else 0.0
+            ),
+            "reroute_enabled": reroute_enabled,
+            "reroute_applications": reroute_count,
+        },
+    )
 
     return results
 
@@ -376,7 +412,7 @@ def validate_partition_bounds(
     nodes_total: int = NODE_BASELINE,
     loss_pct: float = PARTITION_MAX_TEST_PCT,
     base_alpha: float = BASE_ALPHA,
-    min_eff_alpha: float = 2.63
+    min_eff_alpha: float = 2.63,
 ) -> Dict[str, Any]:
     """Validate that partition bounds maintain minimum effective alpha.
 
@@ -397,14 +433,15 @@ def validate_partition_bounds(
     result = partition_sim(nodes_total, loss_pct, base_alpha, emit=False)
 
     # Validate bounds
-    assert result["eff_alpha"] >= min_eff_alpha, \
-        f"eff_alpha {result['eff_alpha']} < min {min_eff_alpha} at {loss_pct*100}% partition"
+    assert result["eff_alpha"] >= min_eff_alpha, (
+        f"eff_alpha {result['eff_alpha']} < min {min_eff_alpha} at {loss_pct * 100}% partition"
+    )
 
-    assert result["quorum_status"], \
-        f"Quorum failed at {loss_pct*100}% partition"
+    assert result["quorum_status"], f"Quorum failed at {loss_pct * 100}% partition"
 
-    assert result["eff_alpha_drop"] <= 0.05, \
-        f"Alpha drop {result['eff_alpha_drop']} > 0.05 at {loss_pct*100}% partition"
+    assert result["eff_alpha_drop"] <= 0.05, (
+        f"Alpha drop {result['eff_alpha_drop']} > 0.05 at {loss_pct * 100}% partition"
+    )
 
     validation = {
         "validated": True,
@@ -413,13 +450,12 @@ def validate_partition_bounds(
         "eff_alpha": result["eff_alpha"],
         "eff_alpha_drop": result["eff_alpha_drop"],
         "min_eff_alpha_required": min_eff_alpha,
-        "quorum_status": result["quorum_status"]
+        "quorum_status": result["quorum_status"],
     }
 
-    emit_receipt("partition_validation", {
-        "tenant_id": "axiom-resilience",
-        **validation
-    })
+    emit_receipt(
+        "partition_validation", {"tenant_id": "axiom-resilience", **validation}
+    )
 
     return validation
 
@@ -439,12 +475,11 @@ def get_rerouting_potential() -> Dict[str, Any]:
         "target_alpha": BASE_ALPHA + REROUTING_POTENTIAL_BOOST,
         "status": "stub",
         "next_gate": True,
-        "description": "Path to 2.7+ α with adaptive rerouting"
+        "description": "Path to 2.7+ α with adaptive rerouting",
     }
 
-    emit_receipt("rerouting_potential_stub", {
-        "tenant_id": "axiom-resilience",
-        **potential
-    })
+    emit_receipt(
+        "rerouting_potential_stub", {"tenant_id": "axiom-resilience", **potential}
+    )
 
     return potential

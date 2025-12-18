@@ -2,6 +2,7 @@
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.validate import test_baseline, bootstrap_threshold
@@ -13,7 +14,9 @@ def test_baseline_threshold():
 
     threshold = result["threshold"]
     # Range adjusted to match actual computed baseline (depends on constants)
-    assert 10 < threshold < 100, f"Baseline threshold {threshold} outside expected range [10, 100]"
+    assert 10 < threshold < 100, (
+        f"Baseline threshold {threshold} outside expected range [10, 100]"
+    )
 
     print(f"PASS: Baseline threshold = {threshold} crew")
 

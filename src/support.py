@@ -30,6 +30,7 @@ TENANT_ID = "axiom-autonomy"
 
 # === ENUMS ===
 
+
 class SupportLevel(Enum):
     """Five levels of receipt infrastructure.
 
@@ -39,6 +40,7 @@ class SupportLevel(Enum):
     L3_QUALITY: Effectiveness receipts (helper performance, timeline accuracy)
     L4_META: Receipts about receipts (coverage, completeness)
     """
+
     L0_TELEMETRY = "L0"
     L1_AGENTS = "L1"
     L2_CHANGES = "L2"
@@ -50,25 +52,50 @@ class SupportLevel(Enum):
 
 LEVEL_RECEIPT_TYPES: Dict[SupportLevel, Set[str]] = {
     SupportLevel.L0_TELEMETRY: {
-        "autonomy_state", "propulsion_state", "latency", "bandwidth",
-        "telemetry", "sensor", "raw_event", "heartbeat"
+        "autonomy_state",
+        "propulsion_state",
+        "latency",
+        "bandwidth",
+        "telemetry",
+        "sensor",
+        "raw_event",
+        "heartbeat",
     },
     SupportLevel.L1_AGENTS: {
-        "optimization", "decision", "selection", "agent_action",
-        "gate_decision", "stage_gate", "helper_action"
+        "optimization",
+        "decision",
+        "selection",
+        "agent_action",
+        "gate_decision",
+        "stage_gate",
+        "helper_action",
     },
     SupportLevel.L2_CHANGES: {
-        "helper_deployment", "helper_blueprint", "config_change",
-        "deployment", "migration", "schema_change"
+        "helper_deployment",
+        "helper_blueprint",
+        "config_change",
+        "deployment",
+        "migration",
+        "schema_change",
     },
     SupportLevel.L3_QUALITY: {
-        "helper_effectiveness", "timeline_accuracy", "quality",
-        "validation", "chain", "sovereignty", "threshold"
+        "helper_effectiveness",
+        "timeline_accuracy",
+        "quality",
+        "validation",
+        "chain",
+        "sovereignty",
+        "threshold",
     },
     SupportLevel.L4_META: {
-        "support_level", "coverage", "completeness", "audit",
-        "meta", "harvest", "helper_retirement"
-    }
+        "support_level",
+        "coverage",
+        "completeness",
+        "audit",
+        "meta",
+        "harvest",
+        "helper_retirement",
+    },
 }
 
 # All expected receipt types per level (for coverage calculation)
@@ -77,11 +104,12 @@ EXPECTED_TYPES: Dict[SupportLevel, Set[str]] = {
     SupportLevel.L1_AGENTS: {"optimization", "decision", "gate_decision"},
     SupportLevel.L2_CHANGES: {"helper_deployment", "helper_blueprint", "config_change"},
     SupportLevel.L3_QUALITY: {"helper_effectiveness", "validation", "chain"},
-    SupportLevel.L4_META: {"support_level", "coverage", "harvest"}
+    SupportLevel.L4_META: {"support_level", "coverage", "harvest"},
 }
 
 
 # === DATACLASSES ===
+
 
 @dataclass
 class SupportCoverage:
@@ -93,6 +121,7 @@ class SupportCoverage:
         coverage_ratio: Ratio of observed types to expected types (0-1)
         gaps: List of missing receipt types
     """
+
     level: SupportLevel
     receipt_count: int
     coverage_ratio: float
@@ -100,6 +129,7 @@ class SupportCoverage:
 
 
 # === FUNCTIONS ===
+
 
 def classify_receipt(receipt: Dict) -> SupportLevel:
     """Determine which level a receipt belongs to.
@@ -161,20 +191,23 @@ def measure_coverage(receipts: List[Dict]) -> Dict[SupportLevel, SupportCoverage
             level=level,
             receipt_count=len(receipts_at_level),
             coverage_ratio=coverage_ratio,
-            gaps=gaps
+            gaps=gaps,
         )
         coverage[level] = support_coverage
 
         # Emit receipt for this level
-        emit_receipt("support_level", {
-            "tenant_id": TENANT_ID,
-            "level": level.value,
-            "receipt_count": len(receipts_at_level),
-            "coverage_ratio": round(coverage_ratio, 4),
-            "gaps": gaps,
-            "types_seen": list(seen),
-            "self_verifying": _is_self_verifying(level, coverage_ratio),
-        })
+        emit_receipt(
+            "support_level",
+            {
+                "tenant_id": TENANT_ID,
+                "level": level.value,
+                "receipt_count": len(receipts_at_level),
+                "coverage_ratio": round(coverage_ratio, 4),
+                "gaps": gaps,
+                "types_seen": list(seen),
+                "self_verifying": _is_self_verifying(level, coverage_ratio),
+            },
+        )
 
     return coverage
 
@@ -220,10 +253,7 @@ def detect_gaps(coverage: Dict[SupportLevel, SupportCoverage]) -> List[str]:
     return all_gaps
 
 
-def l4_feedback(
-    coverage: Dict[SupportLevel, SupportCoverage],
-    l0_params: Dict
-) -> Dict:
+def l4_feedback(coverage: Dict[SupportLevel, SupportCoverage], l0_params: Dict) -> Dict:
     """Use L4 insights to suggest L0 improvements.
 
     This IS self-verification: meta-level analysis improving base-level config.
@@ -259,18 +289,21 @@ def l4_feedback(
     suggestions["feedback_source"] = "support.l4_feedback"
 
     # Emit meta receipt about the feedback
-    emit_receipt("support_level", {
-        "tenant_id": TENANT_ID,
-        "level": "L4",
-        "receipt_count": 1,
-        "coverage_ratio": coverage.get(SupportLevel.L4_META, SupportCoverage(
-            SupportLevel.L4_META, 0, 0.0, []
-        )).coverage_ratio,
-        "gaps": [],
-        "self_verifying": True,
-        "feedback_applied": True,
-        "l0_improvements": list(suggestions.keys()),
-    })
+    emit_receipt(
+        "support_level",
+        {
+            "tenant_id": TENANT_ID,
+            "level": "L4",
+            "receipt_count": 1,
+            "coverage_ratio": coverage.get(
+                SupportLevel.L4_META, SupportCoverage(SupportLevel.L4_META, 0, 0.0, [])
+            ).coverage_ratio,
+            "gaps": [],
+            "self_verifying": True,
+            "feedback_applied": True,
+            "l0_improvements": list(suggestions.keys()),
+        },
+    )
 
     return suggestions
 
@@ -315,7 +348,7 @@ def initialize_coverage() -> Dict[SupportLevel, SupportCoverage]:
             level=level,
             receipt_count=0,
             coverage_ratio=0.0,
-            gaps=list(EXPECTED_TYPES.get(level, set()))
+            gaps=list(EXPECTED_TYPES.get(level, set())),
         )
         for level in SupportLevel
     }

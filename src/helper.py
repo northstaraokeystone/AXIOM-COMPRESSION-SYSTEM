@@ -30,6 +30,7 @@ TENANT_ID = "axiom-autonomy"
 
 # === DATACLASSES ===
 
+
 @dataclass
 class HelperConfig:
     """Configuration for helper layer.
@@ -40,6 +41,7 @@ class HelperConfig:
         auto_approve_confidence: Confidence threshold for auto-approval (default 0.9)
         max_active_helpers: Maximum concurrent active helpers (default 20)
     """
+
     harvest_window_days: int = 30
     recurrence_threshold: int = 5
     auto_approve_confidence: float = 0.9
@@ -58,6 +60,7 @@ class HelperBlueprint:
         risk_score: Risk level 0-1 (higher = riskier)
         status: One of "proposed", "approved", "active", "retired"
     """
+
     id: str
     origin_gaps: List[str]
     pattern: Dict
@@ -71,10 +74,8 @@ class HelperBlueprint:
 
 # === FUNCTIONS ===
 
-def harvest(
-    receipts: List[Dict],
-    config: HelperConfig = None
-) -> List[Dict]:
+
+def harvest(receipts: List[Dict], config: HelperConfig = None) -> List[Dict]:
     """Collect gap receipts and group by problem type.
 
     Returns patterns with ≥recurrence_threshold occurrences.
@@ -115,21 +116,26 @@ def harvest(
     patterns = []
     for problem_type, gaps in by_type.items():
         if len(gaps) >= config.recurrence_threshold:
-            patterns.append({
-                "problem_type": problem_type,
-                "count": len(gaps),
-                "gap_ids": [g.get("id") or g.get("payload_hash", "") for g in gaps],
-                "sample_gap": gaps[0] if gaps else {}
-            })
+            patterns.append(
+                {
+                    "problem_type": problem_type,
+                    "count": len(gaps),
+                    "gap_ids": [g.get("id") or g.get("payload_hash", "") for g in gaps],
+                    "sample_gap": gaps[0] if gaps else {},
+                }
+            )
 
     # Emit receipt
-    emit_receipt("harvest", {
-        "tenant_id": TENANT_ID,
-        "window_days": config.harvest_window_days,
-        "gap_count": len(gap_receipts),
-        "patterns_found": len(patterns),
-        "pattern_types": [p["problem_type"] for p in patterns],
-    })
+    emit_receipt(
+        "harvest",
+        {
+            "tenant_id": TENANT_ID,
+            "window_days": config.harvest_window_days,
+            "gap_count": len(gap_receipts),
+            "patterns_found": len(patterns),
+            "pattern_types": [p["problem_type"] for p in patterns],
+        },
+    )
 
     return patterns
 
@@ -168,36 +174,36 @@ def hypothesize(patterns: List[Dict]) -> List[HelperBlueprint]:
             pattern={
                 "trigger": f"gap.type == '{problem_type}'",
                 "action": f"auto_resolve_{problem_type}",
-                "parameters": {"problem_type": problem_type}
+                "parameters": {"problem_type": problem_type},
             },
             validation_stats={
                 "backtest_success_rate": backtest_success_rate,
                 "sample_size": count,
-                "consistency_score": consistency
+                "consistency_score": consistency,
             },
             risk_score=risk_score,
-            status="proposed"
+            status="proposed",
         )
 
         blueprints.append(blueprint)
 
         # Emit receipt
-        emit_receipt("helper_blueprint", {
-            "tenant_id": TENANT_ID,
-            "blueprint_id": blueprint.id,
-            "origin_gaps": len(blueprint.origin_gaps),
-            "problem_type": problem_type,
-            "backtest_success_rate": round(backtest_success_rate, 4),
-            "risk_score": round(risk_score, 4),
-        })
+        emit_receipt(
+            "helper_blueprint",
+            {
+                "tenant_id": TENANT_ID,
+                "blueprint_id": blueprint.id,
+                "origin_gaps": len(blueprint.origin_gaps),
+                "problem_type": problem_type,
+                "backtest_success_rate": round(backtest_success_rate, 4),
+                "risk_score": round(risk_score, 4),
+            },
+        )
 
     return blueprints
 
 
-def gate(
-    blueprint: HelperBlueprint,
-    config: HelperConfig = None
-) -> str:
+def gate(blueprint: HelperBlueprint, config: HelperConfig = None) -> str:
     """Determine approval status for blueprint.
 
     Returns "auto_approve" if risk<0.2 and confidence>0.9, else "hitl_required".
@@ -230,16 +236,19 @@ def gate(
         blueprint.status = "approved"
 
     # Emit receipt
-    emit_receipt("gate_decision", {
-        "tenant_id": TENANT_ID,
-        "blueprint_id": blueprint.id,
-        "decision": decision,
-        "approver": approver,
-        "risk_score": round(risk, 4),
-        "success_rate": round(success_rate, 4),
-        "threshold_risk": 0.2,
-        "threshold_confidence": config.auto_approve_confidence,
-    })
+    emit_receipt(
+        "gate_decision",
+        {
+            "tenant_id": TENANT_ID,
+            "blueprint_id": blueprint.id,
+            "decision": decision,
+            "approver": approver,
+            "risk_score": round(risk, 4),
+            "success_rate": round(success_rate, 4),
+            "threshold_risk": 0.2,
+            "threshold_confidence": config.auto_approve_confidence,
+        },
+    )
 
     return decision
 
@@ -263,22 +272,22 @@ def actuate(blueprint: HelperBlueprint) -> HelperBlueprint:
     blueprint.status = "active"
 
     # Emit receipt
-    emit_receipt("helper_deployment", {
-        "tenant_id": TENANT_ID,
-        "helper_id": blueprint.id,
-        "trigger": blueprint.pattern.get("trigger", ""),
-        "action": blueprint.pattern.get("action", ""),
-        "parameters": blueprint.pattern.get("parameters", {}),
-        "origin_gaps_count": len(blueprint.origin_gaps),
-    })
+    emit_receipt(
+        "helper_deployment",
+        {
+            "tenant_id": TENANT_ID,
+            "helper_id": blueprint.id,
+            "trigger": blueprint.pattern.get("trigger", ""),
+            "action": blueprint.pattern.get("action", ""),
+            "parameters": blueprint.pattern.get("parameters", {}),
+            "origin_gaps_count": len(blueprint.origin_gaps),
+        },
+    )
 
     return blueprint
 
 
-def measure_effectiveness(
-    helper: HelperBlueprint,
-    receipts: List[Dict]
-) -> float:
+def measure_effectiveness(helper: HelperBlueprint, receipts: List[Dict]) -> float:
     """Measure helper effectiveness as entropy reduction per action.
 
     Args:
@@ -318,16 +327,19 @@ def measure_effectiveness(
     helper.effectiveness_sum += effectiveness * helper_actions
 
     # Emit receipt
-    emit_receipt("helper_effectiveness", {
-        "tenant_id": TENANT_ID,
-        "helper_id": helper.id,
-        "actions_taken": helper.actions_taken,
-        "recent_actions": helper_actions,
-        "effectiveness_score": round(effectiveness, 4),
-        "cumulative_effectiveness": round(
-            helper.effectiveness_sum / max(1, helper.actions_taken), 4
-        ),
-    })
+    emit_receipt(
+        "helper_effectiveness",
+        {
+            "tenant_id": TENANT_ID,
+            "helper_id": helper.id,
+            "actions_taken": helper.actions_taken,
+            "recent_actions": helper_actions,
+            "effectiveness_score": round(effectiveness, 4),
+            "cumulative_effectiveness": round(
+                helper.effectiveness_sum / max(1, helper.actions_taken), 4
+            ),
+        },
+    )
 
     return effectiveness
 
@@ -347,19 +359,20 @@ def retire(helper: HelperBlueprint, reason: str) -> HelperBlueprint:
     helper.status = "retired"
 
     # Calculate lifetime effectiveness
-    lifetime_effectiveness = (
-        helper.effectiveness_sum / max(1, helper.actions_taken)
-    )
+    lifetime_effectiveness = helper.effectiveness_sum / max(1, helper.actions_taken)
 
     # Emit receipt
-    emit_receipt("helper_retirement", {
-        "tenant_id": TENANT_ID,
-        "helper_id": helper.id,
-        "reason": reason,
-        "lifetime_actions": helper.actions_taken,
-        "lifetime_effectiveness": round(lifetime_effectiveness, 4),
-        "origin_gaps_count": len(helper.origin_gaps),
-    })
+    emit_receipt(
+        "helper_retirement",
+        {
+            "tenant_id": TENANT_ID,
+            "helper_id": helper.id,
+            "reason": reason,
+            "lifetime_actions": helper.actions_taken,
+            "lifetime_effectiveness": round(lifetime_effectiveness, 4),
+            "origin_gaps_count": len(helper.origin_gaps),
+        },
+    )
 
     return helper
 
@@ -367,7 +380,7 @@ def retire(helper: HelperBlueprint, reason: str) -> HelperBlueprint:
 def check_retirement_candidates(
     helpers: List[HelperBlueprint],
     min_actions: int = 10,
-    min_effectiveness: float = 0.01
+    min_effectiveness: float = 0.01,
 ) -> List[HelperBlueprint]:
     """Find helpers that should be retired due to low effectiveness.
 
@@ -409,9 +422,7 @@ def get_active_helpers(helpers: List[HelperBlueprint]) -> List[HelperBlueprint]:
 
 
 def create_gap_receipt(
-    problem_type: str,
-    description: str = "",
-    severity: float = 0.5
+    problem_type: str, description: str = "", severity: float = 0.5
 ) -> Dict:
     """Create a gap receipt for testing/simulation.
 
@@ -423,11 +434,14 @@ def create_gap_receipt(
     Returns:
         Gap receipt dict
     """
-    return emit_receipt("gap", {
-        "tenant_id": TENANT_ID,
-        "type": problem_type,
-        "problem_type": problem_type,
-        "description": description,
-        "severity": severity,
-        "id": str(uuid.uuid4()),
-    })
+    return emit_receipt(
+        "gap",
+        {
+            "tenant_id": TENANT_ID,
+            "type": problem_type,
+            "problem_type": problem_type,
+            "description": description,
+            "severity": severity,
+            "id": str(uuid.uuid4()),
+        },
+    )

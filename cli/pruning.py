@@ -21,7 +21,9 @@ from src.reasoning import extended_250d_sovereignty
 from cli.base import print_header
 
 
-def cmd_entropy_prune(blackout_days: int, trim_factor: float, hybrid: bool, simulate: bool):
+def cmd_entropy_prune(
+    blackout_days: int, trim_factor: float, hybrid: bool, simulate: bool
+):
     """Run single entropy pruning test.
 
     Args:
@@ -61,7 +63,7 @@ def cmd_entropy_prune(blackout_days: int, trim_factor: float, hybrid: bool, simu
             blackout_days,
             CACHE_DEPTH_BASELINE,
             pruning_enabled=True,
-            trim_factor=trim_factor
+            trim_factor=trim_factor,
         )
         print(f"\n  Effective alpha at {blackout_days}d: {retention['eff_alpha']}")
         print(f"  Pruning boost: {retention['pruning_boost']}")
@@ -92,17 +94,14 @@ def cmd_pruning_sweep(simulate: bool):
 
     print("\nRESULTS:")
     print(f"  {'Trim':>8} | {'150d':>10} | {'200d':>10} | {'250d':>10}")
-    print(f"  {'-'*8}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}")
+    print(f"  {'-' * 8}-+-{'-' * 10}-+-{'-' * 10}-+-{'-' * 10}")
 
     for trim in trim_factors:
         row = f"  {trim:>8.2f} |"
         for days in test_days:
             try:
                 result = nonlinear_retention_with_pruning(
-                    days,
-                    CACHE_DEPTH_BASELINE,
-                    pruning_enabled=True,
-                    trim_factor=trim
+                    days, CACHE_DEPTH_BASELINE, pruning_enabled=True, trim_factor=trim
                 )
                 row += f" {result['eff_alpha']:>10.4f} |"
             except Exception:
@@ -132,7 +131,7 @@ def cmd_extended_250d(simulate: bool):
     result = extended_250d_sovereignty(
         pruning_enabled=True,
         trim_factor=0.3,
-        blackout_days=BLACKOUT_PRUNING_TARGET_DAYS
+        blackout_days=BLACKOUT_PRUNING_TARGET_DAYS,
     )
 
     print("\nRESULTS:")
@@ -144,10 +143,14 @@ def cmd_extended_250d(simulate: bool):
     print(f"  Cycles to 1M: {result['cycles_to_1M_person_eq']}")
 
     print("\nSLO VALIDATION:")
-    alpha_ok = result['effective_alpha'] >= PRUNING_TARGET_ALPHA
-    overflow_ok = result['overflow_margin'] >= 0
-    print(f"  Alpha >= {PRUNING_TARGET_ALPHA}: {'PASS' if alpha_ok else 'FAIL'} ({result['effective_alpha']})")
-    print(f"  Overflow margin >= 0: {'PASS' if overflow_ok else 'FAIL'} ({result['overflow_margin']}d)")
+    alpha_ok = result["effective_alpha"] >= PRUNING_TARGET_ALPHA
+    overflow_ok = result["overflow_margin"] >= 0
+    print(
+        f"  Alpha >= {PRUNING_TARGET_ALPHA}: {'PASS' if alpha_ok else 'FAIL'} ({result['effective_alpha']})"
+    )
+    print(
+        f"  Overflow margin >= 0: {'PASS' if overflow_ok else 'FAIL'} ({result['overflow_margin']}d)"
+    )
 
     if simulate:
         print("\n[extended_250d_sovereignty receipt emitted above]")
@@ -180,7 +183,7 @@ def cmd_verify_chain(trim_factor: float, simulate: bool):
                 all_passed = False
             else:
                 status = "PASS"
-        print(f"  Iteration {i+1}: {status}")
+        print(f"  Iteration {i + 1}: {status}")
 
     print(f"\nCHAIN INTEGRITY: {'PASS' if all_passed else 'FAIL'}")
 
@@ -197,7 +200,9 @@ def cmd_pruning_info():
     info = get_pruning_info()
 
     print("\nPhysics Constants:")
-    print(f"  ENTROPY_ASYMPTOTE_E: {info['entropy_asymptote_e']} (Shannon bound, NOT tunable)")
+    print(
+        f"  ENTROPY_ASYMPTOTE_E: {info['entropy_asymptote_e']} (Shannon bound, NOT tunable)"
+    )
     print(f"  PRUNING_TARGET_ALPHA: {info['pruning_target_alpha']}")
 
     print("\nTrim Factor Range:")

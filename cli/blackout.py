@@ -22,7 +22,7 @@ from src.reroute import (
     BLACKOUT_EXTENDED_DAYS,
     MIN_EFF_ALPHA_FLOOR,
     MIN_EFF_ALPHA_VALIDATED,
-    REROUTING_ALPHA_BOOST_LOCKED
+    REROUTING_ALPHA_BOOST_LOCKED,
 )
 from src.blackout import (
     generate_retention_curve_data,
@@ -62,7 +62,9 @@ def cmd_reroute(simulate: bool):
     print(f"  Base Alpha Floor: {MIN_EFF_ALPHA_FLOOR}")
 
     # Test reroute boost
-    boosted = apply_reroute_boost(MIN_EFF_ALPHA_FLOOR, reroute_active=True, blackout_days=0)
+    boosted = apply_reroute_boost(
+        MIN_EFF_ALPHA_FLOOR, reroute_active=True, blackout_days=0
+    )
 
     print("\nRESULTS:")
     print(f"  Base eff_α: {MIN_EFF_ALPHA_FLOOR}")
@@ -76,7 +78,10 @@ def cmd_reroute(simulate: bool):
     # Run adaptive reroute simulation
     graph_state = {
         "nodes": NODE_BASELINE,
-        "edges": [{"src": f"n{i}", "dst": f"n{(i+1) % NODE_BASELINE}"} for i in range(NODE_BASELINE)]
+        "edges": [
+            {"src": f"n{i}", "dst": f"n{(i + 1) % NODE_BASELINE}"}
+            for i in range(NODE_BASELINE)
+        ],
     }
 
     result = adaptive_reroute(graph_state, partition_pct=0.2, blackout_days=0)
@@ -155,7 +160,7 @@ def cmd_blackout(blackout_days: int, reroute_enabled: bool, simulate: bool):
         blackout_days=blackout_days,
         reroute_enabled=reroute_enabled,
         base_alpha=MIN_EFF_ALPHA_FLOOR,
-        seed=42
+        seed=42,
     )
 
     print("\nRESULTS:")
@@ -165,11 +170,13 @@ def cmd_blackout(blackout_days: int, reroute_enabled: bool, simulate: bool):
     print(f"  Quorum failures: {result['quorum_failures']}")
 
     print("\nSLO VALIDATION:")
-    survival_ok = result['survival_status']
-    alpha_ok = result['min_alpha_during'] >= MIN_EFF_ALPHA_FLOOR * 0.9
+    survival_ok = result["survival_status"]
+    alpha_ok = result["min_alpha_during"] >= MIN_EFF_ALPHA_FLOOR * 0.9
 
     print(f"  Survival: {'PASS' if survival_ok else 'FAIL'}")
-    print(f"  Min α acceptable: {'PASS' if alpha_ok else 'FAIL'} ({result['min_alpha_during']})")
+    print(
+        f"  Min α acceptable: {'PASS' if alpha_ok else 'FAIL'} ({result['min_alpha_during']})"
+    )
 
     if blackout_days <= BLACKOUT_BASE_DAYS:
         print("  Within baseline (43d): PASS")
@@ -207,7 +214,7 @@ def cmd_blackout_sweep(reroute_enabled: bool):
         n_iterations=1000,
         reroute_enabled=reroute_enabled,
         base_alpha=MIN_EFF_ALPHA_FLOOR,
-        seed=42
+        seed=42,
     )
 
     print("\nRESULTS:")
@@ -218,15 +225,21 @@ def cmd_blackout_sweep(reroute_enabled: bool):
     print(f"  All survived: {result['all_survived']}")
 
     print("\nSLO VALIDATION:")
-    survival_ok = result['survival_rate'] == 1.0
-    drop_ok = result['avg_max_drop'] < 0.05
+    survival_ok = result["survival_rate"] == 1.0
+    drop_ok = result["avg_max_drop"] < 0.05
 
-    print(f"  100% survival: {'PASS' if survival_ok else 'FAIL'} ({result['survival_rate']*100:.1f}%)")
-    print(f"  Avg drop < 0.05: {'PASS' if drop_ok else 'FAIL'} ({result['avg_max_drop']})")
+    print(
+        f"  100% survival: {'PASS' if survival_ok else 'FAIL'} ({result['survival_rate'] * 100:.1f}%)"
+    )
+    print(
+        f"  Avg drop < 0.05: {'PASS' if drop_ok else 'FAIL'} ({result['avg_max_drop']})"
+    )
 
     if reroute_enabled:
         boosted = MIN_EFF_ALPHA_FLOOR + REROUTE_ALPHA_BOOST
-        print(f"  eff_α with reroute >= 2.70: {'PASS' if boosted >= 2.70 else 'FAIL'} ({boosted})")
+        print(
+            f"  eff_α with reroute >= 2.70: {'PASS' if boosted >= 2.70 else 'FAIL'} ({boosted})"
+        )
 
     print("\n[blackout_stress_sweep receipt emitted above]")
     print("=" * 60)
@@ -245,7 +258,7 @@ def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
     print("\nConfiguration:")
     print(f"  c_base (initial capacity): {c_base} person-eq")
     print(f"  p_factor (propulsion growth): {p_factor}x per synod")
-    print(f"  tau (latency): {tau}s ({tau/60:.1f} min)")
+    print(f"  tau (latency): {tau}s ({tau / 60:.1f} min)")
     print(f"  alpha (base): {ALPHA_DEFAULT}")
 
     # Compute effective alpha
@@ -254,7 +267,7 @@ def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
 
     if tau > 0:
         penalty = tau_penalty(tau)
-        print(f"  latency_penalty: {penalty:.2f} ({(1-penalty)*100:.0f}% drop)")
+        print(f"  latency_penalty: {penalty:.2f} ({(1 - penalty) * 100:.0f}% drop)")
 
     # Run simulation
     result = sovereignty_timeline(c_base, p_factor, ALPHA_DEFAULT, tau)
@@ -267,13 +280,13 @@ def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
         print(f"  Delay vs Earth: +{result['delay_vs_earth']} cycles")
 
     # Show trajectory summary
-    traj = result['person_eq_trajectory']
+    traj = result["person_eq_trajectory"]
     print("\nTrajectory (first 10 cycles):")
     for i, val in enumerate(traj[:10]):
         marker = ""
-        if val >= 1000 and (i == 0 or traj[i-1] < 1000):
+        if val >= 1000 and (i == 0 or traj[i - 1] < 1000):
             marker = " <- 10³ milestone"
-        if val >= 1000000 and (i == 0 or traj[i-1] < 1000000):
+        if val >= 1000000 and (i == 0 or traj[i - 1] < 1000000):
             marker = " <- 10⁶ milestone"
         print(f"    Cycle {i}: {val:.0f} person-eq{marker}")
 
@@ -302,9 +315,7 @@ def cmd_extended_sweep(start_days: int, end_days: int, simulate: bool):
     print("\nRunning extended sweep...")
 
     result = extended_blackout_sweep(
-        day_range=(start_days, end_days),
-        iterations=1000,
-        seed=42
+        day_range=(start_days, end_days), iterations=1000, seed=42
     )
 
     print("\nRESULTS:")
@@ -316,13 +327,13 @@ def cmd_extended_sweep(start_days: int, end_days: int, simulate: bool):
     print(f"  α at 90d: {result['alpha_at_90d']}")
 
     print("\nRETENTION FLOOR:")
-    floor = result['retention_floor']
+    floor = result["retention_floor"]
     print(f"  Min retention: {floor['min_retention']}")
     print(f"  Days at min: {floor['days_at_min']}")
     print(f"  α at min: {floor['alpha_at_min']}")
 
     print("\nASSERTION VALIDATION:")
-    assertions = result['assertions_passed']
+    assertions = result["assertions_passed"]
     print(f"  α(60d) >= 2.69: {'PASS' if assertions['alpha_60_ge_2.69'] else 'FAIL'}")
     print(f"  α(90d) >= 2.65: {'PASS' if assertions['alpha_90_ge_2.65'] else 'FAIL'}")
 
@@ -341,7 +352,9 @@ def cmd_retention_curve():
     print(f"  Base retention: {RETENTION_BASE_FACTOR}")
     print("  Degradation model: linear")
 
-    curve_data = generate_retention_curve_data((BLACKOUT_BASE_DAYS, BLACKOUT_SWEEP_MAX_DAYS))
+    curve_data = generate_retention_curve_data(
+        (BLACKOUT_BASE_DAYS, BLACKOUT_SWEEP_MAX_DAYS)
+    )
 
     print(f"\nCurve points: {len(curve_data)}")
     print("\nSample points:")
@@ -353,11 +366,17 @@ def cmd_retention_curve():
     idx_90 = 90 - BLACKOUT_BASE_DAYS
 
     if idx_60 < len(curve_data):
-        print(f"  60d: retention={curve_data[idx_60]['retention']}, α={curve_data[idx_60]['alpha']}")
+        print(
+            f"  60d: retention={curve_data[idx_60]['retention']}, α={curve_data[idx_60]['alpha']}"
+        )
     if idx_75 < len(curve_data):
-        print(f"  75d: retention={curve_data[idx_75]['retention']}, α={curve_data[idx_75]['alpha']}")
+        print(
+            f"  75d: retention={curve_data[idx_75]['retention']}, α={curve_data[idx_75]['alpha']}"
+        )
     if idx_90 < len(curve_data):
-        print(f"  90d: retention={curve_data[idx_90]['retention']}, α={curve_data[idx_90]['alpha']}")
+        print(
+            f"  90d: retention={curve_data[idx_90]['retention']}, α={curve_data[idx_90]['alpha']}"
+        )
 
     print("\n--- JSON OUTPUT ---")
     print(json_lib.dumps(curve_data, indent=2))
@@ -375,7 +394,7 @@ def cmd_gnn_stub():
         "complexity_levels": ["low", "medium", "high"],
         "target_metric": "alpha_uplift_per_watt",
         "hardware_constraint": "mars_surface_edge_compute",
-        "gate": "next"
+        "gate": "next",
     }
 
     result = gnn_sensitivity_stub(param_config)
@@ -420,8 +439,10 @@ def cmd_gnn_nonlinear(blackout_days: int, cache_depth: int, simulate: bool):
         print(f"  Curve type: {result['curve_type']}")
 
         print("\nSLO VALIDATION:")
-        asymptote_ok = result['asymptote_proximity'] <= 0.02
-        print(f"  Asymptote proximity <= 0.02: {'PASS' if asymptote_ok else 'FAIL'} ({result['asymptote_proximity']})")
+        asymptote_ok = result["asymptote_proximity"] <= 0.02
+        print(
+            f"  Asymptote proximity <= 0.02: {'PASS' if asymptote_ok else 'FAIL'} ({result['asymptote_proximity']})"
+        )
 
         if simulate:
             print("\n[gnn_nonlinear_receipt emitted above]")
@@ -450,7 +471,7 @@ def cmd_cache_sweep(simulate: bool):
 
     print("\nRESULTS:")
     print(f"  {'Depth':>12} | {'90d':>10} | {'150d':>10} | {'180d':>10} | {'200d':>10}")
-    print(f"  {'-'*12}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}")
+    print(f"  {'-' * 12}-+-{'-' * 10}-+-{'-' * 10}-+-{'-' * 10}-+-{'-' * 10}")
 
     for depth in cache_depths:
         row = f"  {depth:>12.0e} |"
@@ -484,10 +505,7 @@ def cmd_extreme_sweep(max_days: int, cache_depth: int, simulate: bool):
     print("  Iterations: 100 (abbreviated)")
 
     result = extreme_blackout_sweep_200d(
-        day_range=(43, max_days),
-        cache_depth=cache_depth,
-        iterations=100,
-        seed=42
+        day_range=(43, max_days), cache_depth=cache_depth, iterations=100, seed=42
     )
 
     print("\nRESULTS:")
@@ -529,7 +547,9 @@ def cmd_overflow_test(simulate: bool):
         except Exception:
             status = "STOPRULE"
 
-        print(f"  {days}d: risk={overflow_result['overflow_risk']:.2%}, overflow={overflow}, status={status}")
+        print(
+            f"  {days}d: risk={overflow_result['overflow_risk']:.2%}, overflow={overflow}, status={status}"
+        )
 
     if simulate:
         print("\n[overflow_test receipts emitted above]")

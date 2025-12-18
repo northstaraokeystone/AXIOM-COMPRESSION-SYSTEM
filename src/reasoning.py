@@ -46,7 +46,7 @@ from .reroute import (
     BLACKOUT_BASE_DAYS,
     BLACKOUT_EXTENDED_DAYS,
     MIN_EFF_ALPHA_FLOOR,
-    MIN_EFF_ALPHA_VALIDATED
+    MIN_EFF_ALPHA_VALIDATED,
 )
 from .blackout import (
     retention_curve,
@@ -55,7 +55,7 @@ from .blackout import (
     BLACKOUT_SWEEP_MAX_DAYS,
     RETENTION_BASE_FACTOR,
     CURVE_TYPE,
-    ASYMPTOTE_ALPHA
+    ASYMPTOTE_ALPHA,
 )
 from .gnn_cache import (
     extreme_blackout_sweep as gnn_extreme_sweep,
@@ -80,12 +80,12 @@ from .alpha_compute import (
     ceiling_gap,
     SHANNON_FLOOR_ALPHA,
     ALPHA_CEILING_TARGET,
-    ABLATION_MODES
+    ABLATION_MODES,
 )
 from .pruning import (
     generate_sample_merkle_tree,
     get_retention_factor_prune_isolated,
-    RETENTION_FACTOR_PRUNE_RANGE
+    RETENTION_FACTOR_PRUNE_RANGE,
 )
 
 
@@ -105,7 +105,7 @@ def partition_sweep(
     nodes: int = NODE_BASELINE,
     loss_range: Tuple[float, float] = (0.0, PARTITION_MAX_TEST_PCT),
     iterations: int = 100,
-    base_alpha: float = BASE_ALPHA
+    base_alpha: float = BASE_ALPHA,
 ) -> Dict[str, Any]:
     """Run partition simulation across loss range.
 
@@ -151,11 +151,9 @@ def partition_sweep(
                 quorum_successes += 1
         except Exception:
             # Quorum failed - shouldn't happen in valid range
-            samples.append({
-                "nodes_total": nodes,
-                "loss_pct": loss_pct,
-                "quorum_status": False
-            })
+            samples.append(
+                {"nodes_total": nodes, "loss_pct": loss_pct, "quorum_status": False}
+            )
 
     avg_drop = total_drop / max(1, len(samples))
     quorum_rate = quorum_successes / max(1, len(samples))
@@ -169,20 +167,16 @@ def partition_sweep(
         "avg_drop": round(avg_drop, 4),
         "min_eff_alpha": round(min_alpha, 4),
         "quorum_success_rate": round(quorum_rate, 4),
-        "samples_count": len(samples)
+        "samples_count": len(samples),
     }
 
-    emit_receipt("partition_sweep", {
-        "tenant_id": "axiom-reasoning",
-        **report
-    })
+    emit_receipt("partition_sweep", {"tenant_id": "axiom-reasoning", **report})
 
     return report
 
 
 def project_with_resilience(
-    base_projection: Dict[str, Any],
-    partition_results: Dict[str, Any]
+    base_projection: Dict[str, Any], partition_results: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Adjust sovereignty timeline projection by worst-case α drop.
 
@@ -235,13 +229,12 @@ def project_with_resilience(
         "adjusted_cycles_1M": adjusted_cycles_1M,
         "cycles_delay_10k": cycles_delay_10k,
         "cycles_delay_1M": cycles_delay_1M,
-        "resilience_validated": min_alpha >= MIN_EFF_ALPHA_BOUND
+        "resilience_validated": min_alpha >= MIN_EFF_ALPHA_BOUND,
     }
 
-    emit_receipt("resilience_projection", {
-        "tenant_id": "axiom-reasoning",
-        **projection
-    })
+    emit_receipt(
+        "resilience_projection", {"tenant_id": "axiom-reasoning", **projection}
+    )
 
     return projection
 
@@ -251,7 +244,7 @@ def sovereignty_projection_with_partition(
     p_factor: float = 1.8,
     alpha: float = BASE_ALPHA,
     loss_pct: float = PARTITION_MAX_TEST_PCT,
-    include_sweep: bool = True
+    include_sweep: bool = True,
 ) -> Dict[str, Any]:
     """Full sovereignty projection with partition resilience.
 
@@ -280,8 +273,9 @@ def sovereignty_projection_with_partition(
     """
     # Validate bounds assertion
     partition_result = partition_sim(NODE_BASELINE, loss_pct, alpha, emit=False)
-    assert partition_result["eff_alpha"] >= MIN_EFF_ALPHA_BOUND, \
-        f"eff_alpha {partition_result['eff_alpha']} < {MIN_EFF_ALPHA_BOUND} at {loss_pct*100}% partition"
+    assert partition_result["eff_alpha"] >= MIN_EFF_ALPHA_BOUND, (
+        f"eff_alpha {partition_result['eff_alpha']} < {MIN_EFF_ALPHA_BOUND} at {loss_pct * 100}% partition"
+    )
 
     # Compute base projection (simplified model)
     # B = c × A^α × P where multiplier ≈ 2.75x at α=1.69, scales with α
@@ -310,7 +304,7 @@ def sovereignty_projection_with_partition(
         "p_factor": p_factor,
         "effective_alpha": alpha,
         "cycles_to_10k_person_eq": cycles_10k,
-        "cycles_to_1M_person_eq": cycles_1M
+        "cycles_to_1M_person_eq": cycles_1M,
     }
 
     # Partition impact
@@ -320,7 +314,7 @@ def sovereignty_projection_with_partition(
         "nodes_surviving": partition_result["nodes_surviving"],
         "eff_alpha_drop": partition_result["eff_alpha_drop"],
         "eff_alpha": partition_result["eff_alpha"],
-        "quorum_status": partition_result["quorum_status"]
+        "quorum_status": partition_result["quorum_status"],
     }
 
     # Optional sweep
@@ -329,10 +323,14 @@ def sovereignty_projection_with_partition(
         sweep_results = partition_sweep(NODE_BASELINE, (0.0, loss_pct), 100, alpha)
 
     # Resilience projection
-    partition_for_projection = sweep_results if sweep_results else {
-        "worst_case_drop": partition_result["eff_alpha_drop"],
-        "min_eff_alpha": partition_result["eff_alpha"]
-    }
+    partition_for_projection = (
+        sweep_results
+        if sweep_results
+        else {
+            "worst_case_drop": partition_result["eff_alpha_drop"],
+            "min_eff_alpha": partition_result["eff_alpha"],
+        }
+    )
     resilience = project_with_resilience(base_projection, partition_for_projection)
 
     full_projection = {
@@ -340,21 +338,24 @@ def sovereignty_projection_with_partition(
         "partition_impact": partition_impact,
         "sweep_results": sweep_results,
         "resilience_projection": resilience,
-        "slo_validated": partition_result["eff_alpha"] >= MIN_EFF_ALPHA_BOUND
+        "slo_validated": partition_result["eff_alpha"] >= MIN_EFF_ALPHA_BOUND,
     }
 
-    emit_receipt("sovereignty_partition_projection", {
-        "tenant_id": "axiom-reasoning",
-        "c_base": c_base,
-        "p_factor": p_factor,
-        "base_alpha": alpha,
-        "loss_pct": loss_pct,
-        "base_cycles_10k": cycles_10k,
-        "adjusted_cycles_10k": resilience["adjusted_cycles_10k"],
-        "min_eff_alpha": resilience["min_eff_alpha"],
-        "cycles_delay": resilience["cycles_delay_10k"],
-        "slo_validated": full_projection["slo_validated"]
-    })
+    emit_receipt(
+        "sovereignty_partition_projection",
+        {
+            "tenant_id": "axiom-reasoning",
+            "c_base": c_base,
+            "p_factor": p_factor,
+            "base_alpha": alpha,
+            "loss_pct": loss_pct,
+            "base_cycles_10k": cycles_10k,
+            "adjusted_cycles_10k": resilience["adjusted_cycles_10k"],
+            "min_eff_alpha": resilience["min_eff_alpha"],
+            "cycles_delay": resilience["cycles_delay_10k"],
+            "slo_validated": full_projection["slo_validated"],
+        },
+    )
 
     return full_projection
 
@@ -363,7 +364,7 @@ def validate_resilience_slo(
     nodes: int = NODE_BASELINE,
     max_loss: float = PARTITION_MAX_TEST_PCT,
     min_alpha: float = MIN_EFF_ALPHA_BOUND,
-    max_drop: float = 0.05
+    max_drop: float = 0.05,
 ) -> Dict[str, Any]:
     """Validate resilience SLOs for partition testing.
 
@@ -388,7 +389,7 @@ def validate_resilience_slo(
     validations = {
         "alpha_slo": result["eff_alpha"] >= min_alpha,
         "drop_slo": result["eff_alpha_drop"] <= max_drop,  # At boundary at 40%
-        "quorum_slo": result["quorum_status"]
+        "quorum_slo": result["quorum_status"],
     }
 
     all_passed = all(validations.values())
@@ -402,13 +403,12 @@ def validate_resilience_slo(
         "min_alpha_required": min_alpha,
         "max_drop_allowed": max_drop,
         **validations,
-        "all_passed": all_passed
+        "all_passed": all_passed,
     }
 
-    emit_receipt("resilience_slo_validation", {
-        "tenant_id": "axiom-reasoning",
-        **report
-    })
+    emit_receipt(
+        "resilience_slo_validation", {"tenant_id": "axiom-reasoning", **report}
+    )
 
     return report
 
@@ -419,7 +419,7 @@ def blackout_sweep(
     reroute_enabled: bool = True,
     iterations: int = 1000,
     base_alpha: float = MIN_EFF_ALPHA_BOUND,
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Run blackout simulation sweep across duration range.
 
@@ -455,23 +455,27 @@ def blackout_sweep(
         n_iterations=iterations,
         reroute_enabled=reroute_enabled,
         base_alpha=base_alpha,
-        seed=seed
+        seed=seed,
     )
 
     # Compute additional metrics
     if reroute_enabled:
         # Verify reroute boost pushes alpha to 2.70+
         boosted_alpha = apply_reroute_boost(base_alpha, True, 0)
-        assert boosted_alpha >= 2.70, \
+        assert boosted_alpha >= 2.70, (
             f"eff_alpha(reroute=True) = {boosted_alpha} < 2.70"
+        )
 
         # Verify 60-day survival with reroute
         extended_sim = blackout_sim(nodes, 60, True, base_alpha, seed)
-        assert extended_sim["survival_status"], \
+        assert extended_sim["survival_status"], (
             "blackout_survival(days=60, reroute=True) failed"
+        )
 
     # Find blackout tolerance (max days survived)
-    blackout_tolerance = blackout_range[1] if result["all_survived"] else blackout_range[0]
+    blackout_tolerance = (
+        blackout_range[1] if result["all_survived"] else blackout_range[0]
+    )
 
     report = {
         "nodes": nodes,
@@ -486,13 +490,12 @@ def blackout_sweep(
         "all_survived": result["all_survived"],
         "blackout_tolerance": blackout_tolerance,
         "reroute_boost": REROUTE_ALPHA_BOOST if reroute_enabled else 0.0,
-        "boosted_alpha": base_alpha + REROUTE_ALPHA_BOOST if reroute_enabled else base_alpha
+        "boosted_alpha": base_alpha + REROUTE_ALPHA_BOOST
+        if reroute_enabled
+        else base_alpha,
     }
 
-    emit_receipt("blackout_sweep", {
-        "tenant_id": "axiom-reasoning",
-        **report
-    })
+    emit_receipt("blackout_sweep", {"tenant_id": "axiom-reasoning", **report})
 
     return report
 
@@ -500,7 +503,7 @@ def blackout_sweep(
 def project_with_reroute(
     base_projection: Dict[str, Any],
     reroute_results: Dict[str, Any],
-    blackout_days: int = 0
+    blackout_days: int = 0,
 ) -> Dict[str, Any]:
     """Adjust sovereignty timeline by reroute boost and blackout tolerance.
 
@@ -550,9 +553,13 @@ def project_with_reroute(
         "extended_days": BLACKOUT_EXTENDED_DAYS,
         "current_days": blackout_days,
         "survival_status": blackout_days <= BLACKOUT_EXTENDED_DAYS,
-        "tolerance_factor": 1.0 if blackout_days <= BLACKOUT_BASE_DAYS else (
-            max(0.7, 1.0 - (blackout_days - BLACKOUT_BASE_DAYS) / BLACKOUT_EXTENDED_DAYS)
-        )
+        "tolerance_factor": 1.0
+        if blackout_days <= BLACKOUT_BASE_DAYS
+        else (
+            max(
+                0.7, 1.0 - (blackout_days - BLACKOUT_BASE_DAYS) / BLACKOUT_EXTENDED_DAYS
+            )
+        ),
     }
 
     projection = {
@@ -568,13 +575,10 @@ def project_with_reroute(
         "cycles_saved_1M": cycles_saved_1M,
         "recovery_factor": recovery_factor,
         "blackout_resilience": blackout_resilience,
-        "reroute_validated": boosted_alpha >= 2.70
+        "reroute_validated": boosted_alpha >= 2.70,
     }
 
-    emit_receipt("reroute_projection", {
-        "tenant_id": "axiom-reasoning",
-        **projection
-    })
+    emit_receipt("reroute_projection", {"tenant_id": "axiom-reasoning", **projection})
 
     return projection
 
@@ -585,7 +589,7 @@ def sovereignty_timeline(
     alpha: float = BASE_ALPHA,
     loss_pct: float = 0.0,
     reroute_enabled: bool = False,
-    blackout_days: int = 0
+    blackout_days: int = 0,
 ) -> Dict[str, Any]:
     """Compute sovereignty timeline with optional reroute and blackout.
 
@@ -653,13 +657,10 @@ def sovereignty_timeline(
         "cycles_to_10k_person_eq": cycles_10k,
         "cycles_to_1M_person_eq": cycles_1M,
         "reroute_boost_applied": reroute_enabled and REROUTE_ALPHA_BOOST > 0,
-        "min_eff_alpha_floor": MIN_EFF_ALPHA_FLOOR
+        "min_eff_alpha_floor": MIN_EFF_ALPHA_FLOOR,
     }
 
-    emit_receipt("sovereignty_timeline", {
-        "tenant_id": "axiom-reasoning",
-        **result
-    })
+    emit_receipt("sovereignty_timeline", {"tenant_id": "axiom-reasoning", **result})
 
     return result
 
@@ -668,7 +669,7 @@ def extended_blackout_sweep(
     day_range: Tuple[int, int] = (BLACKOUT_BASE_DAYS, BLACKOUT_SWEEP_MAX_DAYS),
     iterations: int = 1000,
     seed: Optional[int] = None,
-    cache_depth: int = CACHE_DEPTH_BASELINE
+    cache_depth: int = CACHE_DEPTH_BASELINE,
 ) -> Dict[str, Any]:
     """Run extended blackout sweep across day range with GNN nonlinear retention curve.
 
@@ -715,7 +716,9 @@ def extended_blackout_sweep(
         if alpha_180 < 2.50 and not overflow_detected:
             overflow_result = predict_overflow(180, cache_depth)
             if overflow_result["overflow_risk"] < 0.95:
-                assert False, f"eff_alpha(blackout=180) = {alpha_180} < 2.50 without overflow"
+                assert False, (
+                    f"eff_alpha(blackout=180) = {alpha_180} < 2.50 without overflow"
+                )
     except StopRule:
         overflow_detected = True
         alpha_180 = None
@@ -728,7 +731,10 @@ def extended_blackout_sweep(
     if surviving_results:
         floor_data = find_retention_floor(surviving_results)
     else:
-        floor_data = {"min_retention": RETENTION_BASE_FACTOR, "days_at_min": day_range[0]}
+        floor_data = {
+            "min_retention": RETENTION_BASE_FACTOR,
+            "days_at_min": day_range[0],
+        }
 
     # Compute stats
     all_survived = all(r.get("survival_status", False) for r in sweep_results)
@@ -740,7 +746,9 @@ def extended_blackout_sweep(
     min_alpha = min(alpha_values) if alpha_values else 0.0
 
     # Count overflow triggers
-    overflow_count = len([r for r in sweep_results if r.get("overflow_triggered", False)])
+    overflow_count = len(
+        [r for r in sweep_results if r.get("overflow_triggered", False)]
+    )
 
     result = {
         "day_range": list(day_range),
@@ -760,15 +768,21 @@ def extended_blackout_sweep(
         "asymptote_alpha": ASYMPTOTE_ALPHA,
         "assertions_passed": {
             "alpha_150_ge_2.70": alpha_150 is not None and alpha_150 >= 2.70,
-            "alpha_180_ge_2.50_or_overflow": (alpha_180 is not None and alpha_180 >= 2.50) or overflow_detected
-        }
+            "alpha_180_ge_2.50_or_overflow": (
+                alpha_180 is not None and alpha_180 >= 2.50
+            )
+            or overflow_detected,
+        },
     }
 
-    emit_receipt("extended_blackout_sweep", {
-        "tenant_id": "axiom-reasoning",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "extended_blackout_sweep",
+        {
+            "tenant_id": "axiom-reasoning",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -777,7 +791,7 @@ def extreme_blackout_sweep_200d(
     day_range: Tuple[int, int] = (BLACKOUT_BASE_DAYS, OVERFLOW_THRESHOLD_DAYS),
     cache_depth: int = CACHE_DEPTH_BASELINE,
     iterations: int = 1000,
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Run extreme blackout sweep to 200d+ with overflow detection.
 
@@ -820,21 +834,23 @@ def extreme_blackout_sweep_200d(
         "survival_events": len(survival_events),
         "overflow_at_200d": overflow_at_200d,
         "stoprule_expected": day_range[1] >= CACHE_BREAK_DAYS,
-        "quorum_fail_days": QUORUM_FAIL_DAYS
+        "quorum_fail_days": QUORUM_FAIL_DAYS,
     }
 
-    emit_receipt("extreme_blackout_sweep_200d", {
-        "tenant_id": "axiom-reasoning",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "extreme_blackout_sweep_200d",
+        {
+            "tenant_id": "axiom-reasoning",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
 
 def project_with_asymptote(
-    base_projection: Dict[str, Any],
-    gnn_results: Dict[str, Any]
+    base_projection: Dict[str, Any], gnn_results: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Adjust sovereignty timeline by asymptotic α ceiling.
 
@@ -863,7 +879,9 @@ def project_with_asymptote(
 
     # Get GNN asymptote impact
     gnn_alpha = gnn_results.get("eff_alpha", base_alpha)
-    asymptote_proximity = gnn_results.get("asymptote_proximity", abs(ASYMPTOTE_ALPHA - gnn_alpha))
+    asymptote_proximity = gnn_results.get(
+        "asymptote_proximity", abs(ASYMPTOTE_ALPHA - gnn_alpha)
+    )
 
     # Calculate adjusted cycles using asymptotic alpha
     # Higher α means fewer cycles needed
@@ -888,14 +906,17 @@ def project_with_asymptote(
         "adjusted_cycles_1M": adjusted_cycles_1M,
         "cycles_saved_10k": cycles_saved_10k,
         "cycles_saved_1M": cycles_saved_1M,
-        "asymptote_validated": asymptote_proximity <= 0.02
+        "asymptote_validated": asymptote_proximity <= 0.02,
     }
 
-    emit_receipt("asymptote_projection", {
-        "tenant_id": "axiom-reasoning",
-        **projection,
-        "payload_hash": dual_hash(json.dumps(projection, sort_keys=True))
-    })
+    emit_receipt(
+        "asymptote_projection",
+        {
+            "tenant_id": "axiom-reasoning",
+            **projection,
+            "payload_hash": dual_hash(json.dumps(projection, sort_keys=True)),
+        },
+    )
 
     return projection
 
@@ -904,7 +925,7 @@ def project_with_degradation(
     base_projection: Dict[str, Any],
     retention_curve_data: List[Dict[str, float]],
     target_blackout_days: int = 60,
-    cache_depth: int = CACHE_DEPTH_BASELINE
+    cache_depth: int = CACHE_DEPTH_BASELINE,
 ) -> Dict[str, Any]:
     """Adjust sovereignty timeline projection by GNN nonlinear α degradation.
 
@@ -940,7 +961,9 @@ def project_with_degradation(
         degraded_alpha = curve_point["eff_alpha"]
         retention_factor = curve_point["retention_factor"]
         degradation_pct = curve_point["degradation_pct"]
-        gnn_boost = curve_point.get("gnn_boost", 0.0) if "gnn_boost" in curve_point else 0.0
+        gnn_boost = (
+            curve_point.get("gnn_boost", 0.0) if "gnn_boost" in curve_point else 0.0
+        )
     except StopRule:
         overflow_detected = True
         degraded_alpha = 0.0
@@ -955,7 +978,7 @@ def project_with_degradation(
         adjusted_cycles_10k = math.ceil(base_cycles_10k * alpha_ratio)
         adjusted_cycles_1M = math.ceil(base_cycles_1M * alpha_ratio)
     else:
-        alpha_ratio = float('inf')
+        alpha_ratio = float("inf")
         adjusted_cycles_10k = 999
         adjusted_cycles_1M = 999
 
@@ -979,14 +1002,26 @@ def project_with_degradation(
         "degradation_model": CURVE_TYPE,
         "overflow_detected": overflow_detected,
         "asymptote_alpha": ASYMPTOTE_ALPHA,
-        "validated": not overflow_detected and degraded_alpha >= 2.50
+        "validated": not overflow_detected and degraded_alpha >= 2.50,
     }
 
-    emit_receipt("degradation_projection", {
-        "tenant_id": "axiom-reasoning",
-        **projection,
-        "payload_hash": dual_hash(json.dumps({k: v for k, v in projection.items() if k != "alpha_ratio" or not overflow_detected}, sort_keys=True))
-    })
+    emit_receipt(
+        "degradation_projection",
+        {
+            "tenant_id": "axiom-reasoning",
+            **projection,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        k: v
+                        for k, v in projection.items()
+                        if k != "alpha_ratio" or not overflow_detected
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return projection
 
@@ -997,7 +1032,7 @@ def extended_250d_sovereignty(
     alpha: float = None,
     pruning_enabled: bool = True,
     trim_factor: float = 0.3,
-    blackout_days: int = BLACKOUT_PRUNING_TARGET_DAYS
+    blackout_days: int = BLACKOUT_PRUNING_TARGET_DAYS,
 ) -> Dict[str, Any]:
     """Compute sovereignty timeline with 250d pruning-enabled projection.
 
@@ -1035,14 +1070,15 @@ def extended_250d_sovereignty(
                 blackout_days,
                 CACHE_DEPTH_BASELINE,
                 pruning_enabled=True,
-                trim_factor=trim_factor
+                trim_factor=trim_factor,
             )
             effective_alpha = retention_result["eff_alpha"]
             pruning_boost = retention_result["pruning_boost"]
 
             # Assert target achieved
-            assert effective_alpha > PRUNING_TARGET_ALPHA * 0.95, \
+            assert effective_alpha > PRUNING_TARGET_ALPHA * 0.95, (
                 f"eff_alpha(pruning=True, blackout={blackout_days}) = {effective_alpha} < {PRUNING_TARGET_ALPHA}"
+            )
 
         except StopRule:
             # Overflow - use base alpha
@@ -1091,14 +1127,17 @@ def extended_250d_sovereignty(
         "overflow_margin": overflow_margin,
         "cycles_to_10k_person_eq": cycles_10k,
         "cycles_to_1M_person_eq": cycles_1M,
-        "min_eff_alpha_floor": MIN_EFF_ALPHA_FLOOR
+        "min_eff_alpha_floor": MIN_EFF_ALPHA_FLOOR,
     }
 
-    emit_receipt("extended_250d_sovereignty", {
-        "tenant_id": "axiom-reasoning",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "extended_250d_sovereignty",
+        {
+            "tenant_id": "axiom-reasoning",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -1106,7 +1145,7 @@ def extended_250d_sovereignty(
 def validate_pruning_slos(
     sweep_results: List[Dict[str, Any]],
     target_alpha: float = PRUNING_TARGET_ALPHA,
-    target_days: int = BLACKOUT_PRUNING_TARGET_DAYS
+    target_days: int = BLACKOUT_PRUNING_TARGET_DAYS,
 ) -> Dict[str, Any]:
     """Validate pruning SLOs from sweep results.
 
@@ -1132,7 +1171,9 @@ def validate_pruning_slos(
         return {"validated": False, "reason": "no sweep results"}
 
     # Filter results at or near target days
-    target_results = [r for r in sweep_results if abs(r.get("blackout_days", 0) - target_days) <= 10]
+    target_results = [
+        r for r in sweep_results if abs(r.get("blackout_days", 0) - target_days) <= 10
+    ]
 
     # SLO 1: Alpha above target
     alpha_values = [r.get("eff_alpha", 0) for r in target_results if "eff_alpha" in r]
@@ -1142,27 +1183,51 @@ def validate_pruning_slos(
     # SLO 2: No overflow before 300d
     overflow_events = [r for r in sweep_results if r.get("overflow_triggered", False)]
     overflow_days = [r.get("blackout_days", 0) for r in overflow_events]
-    min_overflow_day = min(overflow_days) if overflow_days else OVERFLOW_THRESHOLD_DAYS_PRUNED + 1
+    min_overflow_day = (
+        min(overflow_days) if overflow_days else OVERFLOW_THRESHOLD_DAYS_PRUNED + 1
+    )
     overflow_ok = min_overflow_day >= OVERFLOW_THRESHOLD_DAYS_PRUNED
 
     # SLO 3 & 4: Chain integrity and quorum (check for failures)
-    chain_failures = [r for r in sweep_results if "chain_broken" in str(r.get("stoprule_reason", ""))]
-    quorum_failures = [r for r in sweep_results if "quorum_lost" in str(r.get("stoprule_reason", ""))]
+    chain_failures = [
+        r for r in sweep_results if "chain_broken" in str(r.get("stoprule_reason", ""))
+    ]
+    quorum_failures = [
+        r for r in sweep_results if "quorum_lost" in str(r.get("stoprule_reason", ""))
+    ]
     chain_ok = len(chain_failures) == 0
     quorum_ok = len(quorum_failures) == 0
 
     # SLO 5: Dedup ratio (from pruning results with dedup_removed)
-    dedup_ratios = [r.get("dedup_removed", 0) / max(1, r.get("original_count", 100))
-                   for r in sweep_results if "dedup_removed" in r]
+    dedup_ratios = [
+        r.get("dedup_removed", 0) / max(1, r.get("original_count", 100))
+        for r in sweep_results
+        if "dedup_removed" in r
+    ]
     avg_dedup = sum(dedup_ratios) / max(1, len(dedup_ratios)) if dedup_ratios else 0.15
     dedup_ok = avg_dedup >= 0.15
 
     # SLO 6: Predictive accuracy (from confidence scores)
-    confidence_scores = [r.get("confidence_score", 0.85) for r in sweep_results if "confidence_score" in r]
-    avg_confidence = sum(confidence_scores) / max(1, len(confidence_scores)) if confidence_scores else 0.85
+    confidence_scores = [
+        r.get("confidence_score", 0.85)
+        for r in sweep_results
+        if "confidence_score" in r
+    ]
+    avg_confidence = (
+        sum(confidence_scores) / max(1, len(confidence_scores))
+        if confidence_scores
+        else 0.85
+    )
     predictive_ok = avg_confidence >= 0.85
 
-    all_passed = alpha_ok and overflow_ok and chain_ok and quorum_ok and dedup_ok and predictive_ok
+    all_passed = (
+        alpha_ok
+        and overflow_ok
+        and chain_ok
+        and quorum_ok
+        and dedup_ok
+        and predictive_ok
+    )
 
     validation = {
         "alpha_at_250d_ok": alpha_ok,
@@ -1175,14 +1240,17 @@ def validate_pruning_slos(
         "avg_dedup_ratio": round(avg_dedup, 4),
         "predictive_accuracy_ok": predictive_ok,
         "avg_confidence": round(avg_confidence, 4),
-        "validated": all_passed
+        "validated": all_passed,
     }
 
-    emit_receipt("pruning_slo_validation", {
-        "tenant_id": "axiom-reasoning",
-        **validation,
-        "payload_hash": dual_hash(json.dumps(validation, sort_keys=True))
-    })
+    emit_receipt(
+        "pruning_slo_validation",
+        {
+            "tenant_id": "axiom-reasoning",
+            **validation,
+            "payload_hash": dual_hash(json.dumps(validation, sort_keys=True)),
+        },
+    )
 
     return validation
 
@@ -1194,7 +1262,7 @@ def ablation_sweep(
     modes: List[str] = None,
     blackout_days: int = 150,
     iterations: int = 100,
-    seed: Optional[int] = 42
+    seed: Optional[int] = 42,
 ) -> Dict[str, Any]:
     """Run ablation sweep across all 4 modes.
 
@@ -1237,29 +1305,35 @@ def ablation_sweep(
                     CACHE_DEPTH_BASELINE,
                     pruning_enabled=(mode != "no_prune" and mode != "baseline"),
                     trim_factor=0.3,
-                    ablation_mode=mode
+                    ablation_mode=mode,
                 )
 
                 # Get isolated factors
                 gnn_isolated = get_retention_factor_gnn_isolated(blackout_days)
                 prune_isolated = get_retention_factor_prune_isolated(merkle_tree, 0.3)
 
-                mode_results.append({
-                    "iteration": i,
-                    "ablation_mode": mode,
-                    "eff_alpha": retention_result["eff_alpha"],
-                    "retention_factor_gnn": gnn_isolated["retention_factor_gnn"],
-                    "retention_factor_prune": prune_isolated["retention_factor_prune"],
-                    "success": True
-                })
+                mode_results.append(
+                    {
+                        "iteration": i,
+                        "ablation_mode": mode,
+                        "eff_alpha": retention_result["eff_alpha"],
+                        "retention_factor_gnn": gnn_isolated["retention_factor_gnn"],
+                        "retention_factor_prune": prune_isolated[
+                            "retention_factor_prune"
+                        ],
+                        "success": True,
+                    }
+                )
             except StopRule as e:
-                mode_results.append({
-                    "iteration": i,
-                    "ablation_mode": mode,
-                    "eff_alpha": 0.0,
-                    "success": False,
-                    "stoprule_reason": str(e)
-                })
+                mode_results.append(
+                    {
+                        "iteration": i,
+                        "ablation_mode": mode,
+                        "eff_alpha": 0.0,
+                        "success": False,
+                        "stoprule_reason": str(e),
+                    }
+                )
 
         # Aggregate stats for mode
         successful = [r for r in mode_results if r["success"]]
@@ -1270,10 +1344,12 @@ def ablation_sweep(
             "iterations": iterations,
             "successful": len(successful),
             "failed": len(mode_results) - len(successful),
-            "avg_alpha": round(sum(alpha_values) / max(1, len(alpha_values)), 4) if alpha_values else 0.0,
+            "avg_alpha": round(sum(alpha_values) / max(1, len(alpha_values)), 4)
+            if alpha_values
+            else 0.0,
             "min_alpha": round(min(alpha_values), 4) if alpha_values else 0.0,
             "max_alpha": round(max(alpha_values), 4) if alpha_values else 0.0,
-            "results": mode_results
+            "results": mode_results,
         }
 
     # Validate ordering: baseline < no_prune < no_cache < full
@@ -1289,40 +1365,62 @@ def ablation_sweep(
             prev_alpha = current_alpha
 
     # Compute layer contributions
-    baseline_alpha = results_by_mode.get("baseline", {}).get("avg_alpha", SHANNON_FLOOR_ALPHA)
+    baseline_alpha = results_by_mode.get("baseline", {}).get(
+        "avg_alpha", SHANNON_FLOOR_ALPHA
+    )
     full_alpha = results_by_mode.get("full", {}).get("avg_alpha", SHANNON_FLOOR_ALPHA)
-    no_cache_alpha = results_by_mode.get("no_cache", {}).get("avg_alpha", SHANNON_FLOOR_ALPHA)
-    no_prune_alpha = results_by_mode.get("no_prune", {}).get("avg_alpha", SHANNON_FLOOR_ALPHA)
+    no_cache_alpha = results_by_mode.get("no_cache", {}).get(
+        "avg_alpha", SHANNON_FLOOR_ALPHA
+    )
+    no_prune_alpha = results_by_mode.get("no_prune", {}).get(
+        "avg_alpha", SHANNON_FLOOR_ALPHA
+    )
 
-    gnn_contribution = isolate_layer_contribution(full_alpha, no_cache_alpha, baseline_alpha)
-    prune_contribution = isolate_layer_contribution(full_alpha, no_prune_alpha, baseline_alpha)
+    gnn_contribution = isolate_layer_contribution(
+        full_alpha, no_cache_alpha, baseline_alpha
+    )
+    prune_contribution = isolate_layer_contribution(
+        full_alpha, no_prune_alpha, baseline_alpha
+    )
 
     result = {
         "blackout_days": blackout_days,
         "iterations": iterations,
         "modes_tested": modes,
-        "results_by_mode": {m: {k: v for k, v in r.items() if k != "results"}
-                           for m, r in results_by_mode.items()},
+        "results_by_mode": {
+            m: {k: v for k, v in r.items() if k != "results"}
+            for m, r in results_by_mode.items()
+        },
         "ordering_valid": ordering_valid,
         "expected_ordering": expected_order,
         "layer_contributions": {
             "gnn_contribution": gnn_contribution,
             "prune_contribution": prune_contribution,
-            "total_uplift": round(full_alpha - baseline_alpha, 4)
+            "total_uplift": round(full_alpha - baseline_alpha, 4),
         },
         "shannon_floor": SHANNON_FLOOR_ALPHA,
         "ceiling_target": ALPHA_CEILING_TARGET,
-        "gap_to_ceiling": ceiling_gap(full_alpha)
+        "gap_to_ceiling": ceiling_gap(full_alpha),
     }
 
-    emit_receipt("ablation_sweep", {
-        "receipt_type": "ablation_sweep",
-        "tenant_id": "axiom-reasoning",
-        **{k: v for k, v in result.items() if k != "results_by_mode"},
-        "mode_summary": {m: {"avg_alpha": r["avg_alpha"], "successful": r["successful"]}
-                        for m, r in results_by_mode.items()},
-        "payload_hash": dual_hash(json.dumps({k: v for k, v in result.items() if k != "results_by_mode"}, sort_keys=True))
-    })
+    emit_receipt(
+        "ablation_sweep",
+        {
+            "receipt_type": "ablation_sweep",
+            "tenant_id": "axiom-reasoning",
+            **{k: v for k, v in result.items() if k != "results_by_mode"},
+            "mode_summary": {
+                m: {"avg_alpha": r["avg_alpha"], "successful": r["successful"]}
+                for m, r in results_by_mode.items()
+            },
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {k: v for k, v in result.items() if k != "results_by_mode"},
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -1330,7 +1428,7 @@ def ablation_sweep(
 def compute_alpha_with_isolation(
     gnn_result: Dict[str, Any],
     prune_result: Dict[str, Any],
-    base_min_eff: float = SHANNON_FLOOR_ALPHA
+    base_min_eff: float = SHANNON_FLOOR_ALPHA,
 ) -> Dict[str, Any]:
     """Compute alpha combining isolated layer factors via explicit formula.
 
@@ -1365,22 +1463,24 @@ def compute_alpha_with_isolation(
         "prune_contribution_pct": prune_result.get("contribution_pct", 0.0),
         "base_min_eff": base_min_eff,
         "gap_to_ceiling_pct": alpha_result["gap_to_ceiling_pct"],
-        "formula_used": alpha_result["formula_used"]
+        "formula_used": alpha_result["formula_used"],
     }
 
-    emit_receipt("alpha_with_isolation", {
-        "receipt_type": "alpha_with_isolation",
-        "tenant_id": "axiom-reasoning",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "alpha_with_isolation",
+        {
+            "receipt_type": "alpha_with_isolation",
+            "tenant_id": "axiom-reasoning",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
 
 def get_layer_contributions(
-    blackout_days: int = 150,
-    trim_factor: float = 0.3
+    blackout_days: int = 150, trim_factor: float = 0.3
 ) -> Dict[str, Any]:
     """Get isolated contribution from each layer.
 
@@ -1408,9 +1508,15 @@ def get_layer_contributions(
 
     # Compute alphas at each level
     baseline_alpha = SHANNON_FLOOR_ALPHA
-    gnn_only_alpha = alpha_calc(baseline_alpha, 1.0, gnn_factor, validate=False)["computed_alpha"]
-    prune_only_alpha = alpha_calc(baseline_alpha, 1.0, prune_factor, validate=False)["computed_alpha"]
-    full_alpha = alpha_calc(baseline_alpha, 1.0, compound, validate=False)["computed_alpha"]
+    gnn_only_alpha = alpha_calc(baseline_alpha, 1.0, gnn_factor, validate=False)[
+        "computed_alpha"
+    ]
+    prune_only_alpha = alpha_calc(baseline_alpha, 1.0, prune_factor, validate=False)[
+        "computed_alpha"
+    ]
+    full_alpha = alpha_calc(baseline_alpha, 1.0, compound, validate=False)[
+        "computed_alpha"
+    ]
 
     result = {
         "blackout_days": blackout_days,
@@ -1419,30 +1525,38 @@ def get_layer_contributions(
             "retention_factor": gnn_factor,
             "contribution_pct": gnn_isolated["contribution_pct"],
             "alpha_with_gnn_only": gnn_only_alpha,
-            "range_expected": RETENTION_FACTOR_GNN_RANGE
+            "range_expected": RETENTION_FACTOR_GNN_RANGE,
         },
         "prune_layer": {
             "retention_factor": prune_factor,
             "contribution_pct": prune_isolated["contribution_pct"],
             "alpha_with_prune_only": prune_only_alpha,
-            "range_expected": RETENTION_FACTOR_PRUNE_RANGE
+            "range_expected": RETENTION_FACTOR_PRUNE_RANGE,
         },
         "compound": {
             "compound_retention": compound,
             "full_alpha": full_alpha,
-            "total_uplift_from_floor": round(full_alpha - baseline_alpha, 4)
+            "total_uplift_from_floor": round(full_alpha - baseline_alpha, 4),
         },
         "ceiling_analysis": ceiling_gap(full_alpha),
-        "shannon_floor": baseline_alpha
+        "shannon_floor": baseline_alpha,
     }
 
-    emit_receipt("layer_contributions", {
-        "receipt_type": "layer_contributions",
-        "tenant_id": "axiom-reasoning",
-        **{k: v for k, v in result.items() if k != "ceiling_analysis"},
-        "gap_to_ceiling_pct": result["ceiling_analysis"]["gap_pct"],
-        "payload_hash": dual_hash(json.dumps({k: v for k, v in result.items() if k != "ceiling_analysis"}, sort_keys=True))
-    })
+    emit_receipt(
+        "layer_contributions",
+        {
+            "receipt_type": "layer_contributions",
+            "tenant_id": "axiom-reasoning",
+            **{k: v for k, v in result.items() if k != "ceiling_analysis"},
+            "gap_to_ceiling_pct": result["ceiling_analysis"]["gap_pct"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {k: v for k, v in result.items() if k != "ceiling_analysis"},
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -1460,7 +1574,7 @@ def sovereignty_timeline_dynamic(
     rl_enabled: bool = False,
     rl_episodes: int = 100,
     adaptive_enabled: bool = False,
-    tree_size: int = int(1e6)
+    tree_size: int = int(1e6),
 ) -> Dict[str, Any]:
     """Compute sovereignty timeline with dynamic RL/adaptive configuration.
 
@@ -1505,15 +1619,16 @@ def sovereignty_timeline_dynamic(
             current_retention=base_retention,
             blackout_days=blackout_days,
             episodes=rl_episodes,
-            tree_size=tree_size
+            tree_size=tree_size,
         )
         tuned_retention = rl_result["best_retention"]
         effective_alpha = ENTROPY_ASYMPTOTE_E * tuned_retention
 
         # Assertion: retention >= 1.05 after 100 episodes
         if rl_episodes >= 100:
-            assert tuned_retention >= RETENTION_MILESTONE_1 * 0.95, \
+            assert tuned_retention >= RETENTION_MILESTONE_1 * 0.95, (
                 f"RL retention {tuned_retention} < {RETENTION_MILESTONE_1} after {rl_episodes} episodes"
+            )
 
     # Get adaptive config if enabled
     if adaptive_enabled:
@@ -1523,7 +1638,7 @@ def sovereignty_timeline_dynamic(
             tree_size=tree_size,
             entropy=entropy_level,
             rl_feedback=rl_feedback,
-            blackout_days=blackout_days
+            blackout_days=blackout_days,
         )
 
     # Compute timeline with effective alpha
@@ -1562,15 +1677,22 @@ def sovereignty_timeline_dynamic(
         "cycles_to_10k_person_eq": cycles_10k,
         "cycles_to_1M_person_eq": cycles_1M,
         "min_eff_alpha_floor": MIN_EFF_ALPHA_FLOOR,
-        "dynamic_mode": rl_enabled or adaptive_enabled
+        "dynamic_mode": rl_enabled or adaptive_enabled,
     }
 
-    emit_receipt("sovereignty_timeline_dynamic", {
-        "receipt_type": "sovereignty_timeline_dynamic",
-        "tenant_id": "axiom-reasoning",
-        **{k: v for k, v in result.items() if v is not None},
-        "payload_hash": dual_hash(json.dumps({k: v for k, v in result.items() if v is not None}, sort_keys=True))
-    })
+    emit_receipt(
+        "sovereignty_timeline_dynamic",
+        {
+            "receipt_type": "sovereignty_timeline_dynamic",
+            "tenant_id": "axiom-reasoning",
+            **{k: v for k, v in result.items() if v is not None},
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {k: v for k, v in result.items() if v is not None}, sort_keys=True
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -1580,7 +1702,7 @@ def continued_ablation_loop(
     blackout_days: int = 150,
     rl_enabled: bool = False,
     rl_episodes_per_iteration: int = 10,
-    seed: int = 42
+    seed: int = 42,
 ) -> Dict[str, Any]:
     """Run continued ablation loop with optional RL feedback integration.
 
@@ -1619,7 +1741,7 @@ def continued_ablation_loop(
             modes=ABLATION_MODES,
             blackout_days=blackout_days,
             iterations=10,  # Mini-sweep per iteration
-            seed=seed + iteration if seed else None
+            seed=seed + iteration if seed else None,
         )
 
         # Get full mode result
@@ -1639,9 +1761,7 @@ def continued_ablation_loop(
 
             # Compute reward
             reward = tuner.compute_reward(
-                alpha_before=iteration_alpha,
-                alpha_after=new_alpha,
-                overflow=overflow
+                alpha_before=iteration_alpha, alpha_after=new_alpha, overflow=overflow
             )
 
             # Update best if improved
@@ -1652,17 +1772,21 @@ def continued_ablation_loop(
             rl_improvement = new_alpha - iteration_alpha
             cumulative_retention = new_retention
 
-        results.append({
-            "iteration": iteration,
-            "avg_alpha": iteration_alpha,
-            "cumulative_retention": cumulative_retention,
-            "rl_improvement": rl_improvement,
-            "ordering_valid": ablation_result["ordering_valid"]
-        })
+        results.append(
+            {
+                "iteration": iteration,
+                "avg_alpha": iteration_alpha,
+                "cumulative_retention": cumulative_retention,
+                "rl_improvement": rl_improvement,
+                "ordering_valid": ablation_result["ordering_valid"],
+            }
+        )
 
     # Aggregate results
     avg_alpha_all = sum(r["avg_alpha"] for r in results) / len(results)
-    ordering_valid_pct = sum(1 for r in results if r["ordering_valid"]) / len(results) * 100
+    ordering_valid_pct = (
+        sum(1 for r in results if r["ordering_valid"]) / len(results) * 100
+    )
 
     result = {
         "iterations": iterations,
@@ -1673,15 +1797,18 @@ def continued_ablation_loop(
         "final_retention": cumulative_retention,
         "best_retention": best_retention,
         "ordering_valid_pct": ordering_valid_pct,
-        "iterations_count": len(results)
+        "iterations_count": len(results),
     }
 
-    emit_receipt("continued_ablation_loop", {
-        "receipt_type": "continued_ablation_loop",
-        "tenant_id": "axiom-reasoning",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "continued_ablation_loop",
+        {
+            "receipt_type": "continued_ablation_loop",
+            "tenant_id": "axiom-reasoning",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -1705,7 +1832,7 @@ def validate_no_static_configs() -> Dict[str, bool]:
         "pruning_dynamic": False,
         "alpha_dynamic_available": False,
         "rl_tune_available": False,
-        "adaptive_available": False
+        "adaptive_available": False,
     }
 
     # Check GNN config
@@ -1734,6 +1861,7 @@ def validate_no_static_configs() -> Dict[str, bool]:
     # Check RL tune
     try:
         from .rl_tune import get_rl_tune_info
+
         info = get_rl_tune_info()
         validations["rl_tune_available"] = "retention_milestone_1" in info
     except Exception:
@@ -1742,6 +1870,7 @@ def validate_no_static_configs() -> Dict[str, bool]:
     # Check adaptive
     try:
         from .adaptive import get_adaptive_info
+
         info = get_adaptive_info()
         validations["adaptive_available"] = "adaptive_depth_base" in info
     except Exception:
@@ -1749,13 +1878,16 @@ def validate_no_static_configs() -> Dict[str, bool]:
 
     all_pass = all(validations.values())
 
-    emit_receipt("no_static_configs_validation", {
-        "receipt_type": "no_static_configs_validation",
-        "tenant_id": "axiom-reasoning",
-        **validations,
-        "all_pass": all_pass,
-        "payload_hash": dual_hash(json.dumps(validations, sort_keys=True))
-    })
+    emit_receipt(
+        "no_static_configs_validation",
+        {
+            "receipt_type": "no_static_configs_validation",
+            "tenant_id": "axiom-reasoning",
+            **validations,
+            "all_pass": all_pass,
+            "payload_hash": dual_hash(json.dumps(validations, sort_keys=True)),
+        },
+    )
 
     return validations
 
@@ -1781,8 +1913,8 @@ def get_rl_integration_status() -> Dict[str, Any]:
         "all_modules_ready": False,
         "targets": {
             "retention_milestone_1": RETENTION_MILESTONE_1,
-            "retention_milestone_2": RETENTION_MILESTONE_2
-        }
+            "retention_milestone_2": RETENTION_MILESTONE_2,
+        },
     }
 
     try:
@@ -1811,18 +1943,21 @@ def get_rl_integration_status() -> Dict[str, Any]:
         pass
 
     status["all_modules_ready"] = (
-        status["rl_tune_ready"] and
-        status["adaptive_ready"] and
-        status["gnn_dynamic_ready"] and
-        status["pruning_dynamic_ready"]
+        status["rl_tune_ready"]
+        and status["adaptive_ready"]
+        and status["gnn_dynamic_ready"]
+        and status["pruning_dynamic_ready"]
     )
 
-    emit_receipt("rl_integration_status", {
-        "receipt_type": "rl_integration_status",
-        "tenant_id": "axiom-reasoning",
-        **status,
-        "payload_hash": dual_hash(json.dumps(status, sort_keys=True))
-    })
+    emit_receipt(
+        "rl_integration_status",
+        {
+            "receipt_type": "rl_integration_status",
+            "tenant_id": "axiom-reasoning",
+            **status,
+            "payload_hash": dual_hash(json.dumps(status, sort_keys=True)),
+        },
+    )
 
     return status
 
@@ -1847,7 +1982,7 @@ def execute_full_pipeline(
     sweep_runs: int = 500,
     tree_size: int = int(1e6),
     blackout_days: int = 150,
-    seed: int = 42
+    seed: int = 42,
 ) -> Dict[str, Any]:
     """Execute full pipeline: pilot → quantum sim → post-tune sweep.
 
@@ -1881,7 +2016,7 @@ def execute_full_pipeline(
         pilot_lr_narrow,
         run_tuned_sweep,
         SHANNON_FLOOR,
-        RETENTION_TARGET
+        RETENTION_TARGET,
     )
     from .quantum_rl_hybrid import simulate_quantum_policy
 
@@ -1889,19 +2024,13 @@ def execute_full_pipeline(
 
     # Stage 1: Pilot LR narrowing (50 runs)
     pilot_result = pilot_lr_narrow(
-        runs=pilot_runs,
-        tree_size=tree_size,
-        blackout_days=blackout_days,
-        seed=seed
+        runs=pilot_runs, tree_size=tree_size, blackout_days=blackout_days, seed=seed
     )
     narrowed_lr = tuple(pilot_result["narrowed_range"])
     receipts_emitted.append("lr_pilot_narrow_receipt")
 
     # Stage 2: Quantum simulation (10 runs)
-    quantum_result = simulate_quantum_policy(
-        runs=quantum_runs,
-        seed=seed
-    )
+    quantum_result = simulate_quantum_policy(runs=quantum_runs, seed=seed)
     instability_reduction = quantum_result["instability_reduction_pct"]
     quantum_boost = quantum_result["effective_retention_boost"]
     receipts_emitted.append("quantum_10run_sim_receipt")
@@ -1913,7 +2042,7 @@ def execute_full_pipeline(
         tree_size=tree_size,
         blackout_days=blackout_days,
         quantum_boost=quantum_boost,
-        seed=seed + 1
+        seed=seed + 1,
     )
     receipts_emitted.append("post_tune_sweep_receipt")
 
@@ -1923,8 +2052,9 @@ def execute_full_pipeline(
     target_achieved = final_retention >= RETENTION_TARGET
 
     # Assertion: final_retention >= 1.05
-    assert final_retention >= RETENTION_TARGET * 0.95, \
+    assert final_retention >= RETENTION_TARGET * 0.95, (
         f"Pipeline failed: final_retention {final_retention} < {RETENTION_TARGET * 0.95}"
+    )
 
     result = {
         "final_retention": round(final_retention, 5),
@@ -1944,39 +2074,47 @@ def execute_full_pipeline(
         "pilot_result": {
             "narrowed_range": pilot_result["narrowed_range"],
             "optimal_lr": pilot_result["optimal_lr_found"],
-            "improvement_pct": pilot_result["reward_improvement_pct"]
+            "improvement_pct": pilot_result["reward_improvement_pct"],
         },
         "quantum_result": {
             "reduction_pct": instability_reduction,
-            "boost": quantum_boost
+            "boost": quantum_boost,
         },
         "sweep_result": {
             "retention": sweep_result["best_retention"],
             "convergence_run": sweep_result["convergence_run"],
-            "instability_events": sweep_result["instability_events"]
-        }
+            "instability_events": sweep_result["instability_events"],
+        },
     }
 
-    emit_receipt("full_pipeline", {
-        "receipt_type": "full_pipeline",
-        "tenant_id": "axiom-reasoning",
-        "pilot_runs": pilot_runs,
-        "quantum_runs": quantum_runs,
-        "sweep_runs": sweep_runs,
-        "narrowed_lr": list(narrowed_lr),
-        "instability_reduction": instability_reduction,
-        "quantum_boost": quantum_boost,
-        "final_retention": round(final_retention, 5),
-        "eff_alpha": round(eff_alpha, 2),
-        "target_achieved": target_achieved,
-        "payload_hash": dual_hash(json.dumps({
-            "pilot": pilot_runs,
-            "quantum": quantum_runs,
-            "sweep": sweep_runs,
-            "retention": final_retention,
-            "alpha": eff_alpha
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "full_pipeline",
+        {
+            "receipt_type": "full_pipeline",
+            "tenant_id": "axiom-reasoning",
+            "pilot_runs": pilot_runs,
+            "quantum_runs": quantum_runs,
+            "sweep_runs": sweep_runs,
+            "narrowed_lr": list(narrowed_lr),
+            "instability_reduction": instability_reduction,
+            "quantum_boost": quantum_boost,
+            "final_retention": round(final_retention, 5),
+            "eff_alpha": round(eff_alpha, 2),
+            "target_achieved": target_achieved,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "pilot": pilot_runs,
+                        "quantum": quantum_runs,
+                        "sweep": sweep_runs,
+                        "retention": final_retention,
+                        "alpha": eff_alpha,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -1993,37 +2131,44 @@ def get_pipeline_info() -> Dict[str, Any]:
         "pipeline_stages": [
             "50-run pilot → narrow LR (0.001-0.01) → (0.002-0.008)",
             "10-run quantum sim → entangled instability penalty (-8%)",
-            "500-run tuned sweep → retention 1.062, eff_alpha 2.89"
+            "500-run tuned sweep → retention 1.062, eff_alpha 2.89",
         ],
         "targets": {
             "retention_target": PILOT_RETENTION_TARGET,
             "expected_retention": EXPECTED_FINAL_RETENTION,
-            "expected_eff_alpha": EXPECTED_EFF_ALPHA
+            "expected_eff_alpha": EXPECTED_EFF_ALPHA,
         },
         "narrowing_effect": {
             "initial_lr": "[0.001, 0.01]",
             "narrowed_lr": "[0.002, 0.008]",
-            "dead_zones_eliminated": "LR < 0.002, LR > 0.008"
+            "dead_zones_eliminated": "LR < 0.002, LR > 0.008",
         },
         "quantum_effect": {
             "standard_penalty": "-1.0 if alpha_drop > 0.05",
             "entangled_penalty": "-0.92 (8% reduction)",
-            "retention_boost": "+0.03"
+            "retention_boost": "+0.03",
         },
         "compound_effect": {
             "narrowed_lr_boost": "+0.01 retention (better convergence)",
             "entangled_penalty_boost": "+0.03 retention (reduced instability cost)",
-            "combined_boost": "+0.04 beyond baseline → 1.062"
+            "combined_boost": "+0.04 beyond baseline → 1.062",
         },
-        "description": "Pilot narrows. Quantum softens. Sweep wins."
+        "description": "Pilot narrows. Quantum softens. Sweep wins.",
     }
 
-    emit_receipt("pipeline_info", {
-        "receipt_type": "pipeline_info",
-        "tenant_id": "axiom-reasoning",
-        **{k: v for k, v in info.items() if k not in ["narrowing_effect", "quantum_effect", "compound_effect"]},
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "pipeline_info",
+        {
+            "receipt_type": "pipeline_info",
+            "tenant_id": "axiom-reasoning",
+            **{
+                k: v
+                for k, v in info.items()
+                if k not in ["narrowing_effect", "quantum_effect", "compound_effect"]
+            },
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
+        },
+    )
 
     return info
 
@@ -2070,7 +2215,7 @@ def enforce_scalability_gate(sweep_results: Dict[str, Any]) -> bool:
     """
     from .multi_scale_sweep import (
         scalability_gate,
-        SCALABILITY_GATE_THRESHOLD as GATE_THRESHOLD
+        SCALABILITY_GATE_THRESHOLD as GATE_THRESHOLD,
     )
     from datetime import datetime
 
@@ -2086,16 +2231,19 @@ def enforce_scalability_gate(sweep_results: Dict[str, Any]) -> bool:
         "alpha_at_10e9": alpha_at_10e9,
         "instability_at_10e9": instability_at_10e9,
         "threshold": GATE_THRESHOLD,
-        "ready_for_31_push": gate_passed
+        "ready_for_31_push": gate_passed,
     }
 
-    emit_receipt("scalability_gate_enforcement", {
-        "receipt_type": "scalability_gate_enforcement",
-        "tenant_id": "axiom-reasoning",
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **enforcement_result,
-        "payload_hash": dual_hash(json.dumps(enforcement_result, sort_keys=True))
-    })
+    emit_receipt(
+        "scalability_gate_enforcement",
+        {
+            "receipt_type": "scalability_gate_enforcement",
+            "tenant_id": "axiom-reasoning",
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **enforcement_result,
+            "payload_hash": dual_hash(json.dumps(enforcement_result, sort_keys=True)),
+        },
+    )
 
     if not gate_passed:
         raise StopRule(
@@ -2127,7 +2275,7 @@ def get_31_push_readiness() -> Dict[str, Any]:
         scalability_gate,
         TREE_SCALES,
         ALPHA_BASELINE,
-        SCALABILITY_GATE_THRESHOLD as GATE_THRESHOLD
+        SCALABILITY_GATE_THRESHOLD as GATE_THRESHOLD,
     )
     from datetime import datetime
 
@@ -2161,11 +2309,11 @@ def get_31_push_readiness() -> Dict[str, Any]:
 
     # Determine overall readiness
     ready = (
-        sweep_completed and
-        degradation_ok and
-        gate_passed and
-        (alpha_at_10e9 is not None and alpha_at_10e9 >= GATE_THRESHOLD) and
-        (instability_at_10e9 is not None and instability_at_10e9 == 0.00)
+        sweep_completed
+        and degradation_ok
+        and gate_passed
+        and (alpha_at_10e9 is not None and alpha_at_10e9 >= GATE_THRESHOLD)
+        and (instability_at_10e9 is not None and instability_at_10e9 == 0.00)
     )
 
     result = {
@@ -2175,25 +2323,30 @@ def get_31_push_readiness() -> Dict[str, Any]:
             "degradation_under_1pct": degradation_ok,
             "degradation_pct": degradation_pct,
             "scalability_gate_passed": gate_passed,
-            "alpha_at_10e9_ge_306": alpha_at_10e9 is not None and alpha_at_10e9 >= GATE_THRESHOLD,
+            "alpha_at_10e9_ge_306": alpha_at_10e9 is not None
+            and alpha_at_10e9 >= GATE_THRESHOLD,
             "alpha_at_10e9": alpha_at_10e9,
-            "instability_zero": instability_at_10e9 is not None and instability_at_10e9 == 0.00,
-            "instability_at_10e9": instability_at_10e9
+            "instability_zero": instability_at_10e9 is not None
+            and instability_at_10e9 == 0.00,
+            "instability_at_10e9": instability_at_10e9,
         },
         "gate_threshold": GATE_THRESHOLD,
         "alpha_baseline": ALPHA_BASELINE,
-        "scales_tested": TREE_SCALES
+        "scales_tested": TREE_SCALES,
     }
 
-    emit_receipt("push_31_readiness", {
-        "receipt_type": "push_31_readiness",
-        "tenant_id": "axiom-reasoning",
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "ready_for_31_push": ready,
-        "gate_passed": gate_passed,
-        "alpha_at_10e9": alpha_at_10e9,
-        "degradation_ok": degradation_ok,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "push_31_readiness",
+        {
+            "receipt_type": "push_31_readiness",
+            "tenant_id": "axiom-reasoning",
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "ready_for_31_push": ready,
+            "gate_passed": gate_passed,
+            "alpha_at_10e9": alpha_at_10e9,
+            "degradation_ok": degradation_ok,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result

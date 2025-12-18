@@ -6,6 +6,7 @@ Validates Grok's hedge: "30% now, +10% if alpha > 1.9 in 12 months"
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.stage_gate import (
@@ -32,9 +33,7 @@ class TestEvaluateGate:
     def test_trigger_when_alpha_high(self):
         """Alpha > 1.9 with high confidence should trigger."""
         state = evaluate_gate(
-            alpha_measured=2.0,
-            alpha_confidence=0.85,
-            months_elapsed=6
+            alpha_measured=2.0, alpha_confidence=0.85, months_elapsed=6
         )
         assert state.trigger_met is True
         assert state.escalation_applied is True
@@ -43,9 +42,7 @@ class TestEvaluateGate:
     def test_no_trigger_below_alpha(self):
         """Alpha < 1.9 should not trigger."""
         state = evaluate_gate(
-            alpha_measured=1.7,
-            alpha_confidence=0.85,
-            months_elapsed=6
+            alpha_measured=1.7, alpha_confidence=0.85, months_elapsed=6
         )
         assert state.trigger_met is False
         assert state.escalation_applied is False
@@ -56,7 +53,7 @@ class TestEvaluateGate:
         state = evaluate_gate(
             alpha_measured=2.5,
             alpha_confidence=0.50,  # Below threshold
-            months_elapsed=6
+            months_elapsed=6,
         )
         assert state.trigger_met is False
         assert state.escalation_applied is False
@@ -66,7 +63,7 @@ class TestEvaluateGate:
         state = evaluate_gate(
             alpha_measured=2.5,
             alpha_confidence=0.85,
-            months_elapsed=15  # Past 12 month window
+            months_elapsed=15,  # Past 12 month window
         )
         assert state.trigger_met is False
 
@@ -101,7 +98,7 @@ class TestGetAllocation:
             alpha_confidence=0.80,
             trigger_met=False,
             months_elapsed=3,
-            escalation_applied=False
+            escalation_applied=False,
         )
         prop, auto = get_allocation(state)
         assert abs(prop + auto - 1.0) < 0.001
@@ -114,7 +111,7 @@ class TestGetAllocation:
             alpha_confidence=0.80,
             trigger_met=False,
             months_elapsed=3,
-            escalation_applied=False
+            escalation_applied=False,
         )
         prop, auto = get_allocation(state)
         assert prop >= STAGE_GATE_MIN_PROPULSION
@@ -131,7 +128,7 @@ class TestResetWindow:
             alpha_confidence=0.85,
             trigger_met=True,
             months_elapsed=8,
-            escalation_applied=True
+            escalation_applied=True,
         )
         new_state = reset_window(state)
         assert new_state.months_elapsed == 0
@@ -145,7 +142,7 @@ class TestResetWindow:
             alpha_confidence=0.85,
             trigger_met=True,
             months_elapsed=8,
-            escalation_applied=True
+            escalation_applied=True,
         )
         new_state = reset_window(state)
         assert new_state.current_autonomy_fraction == 0.40
@@ -162,7 +159,7 @@ class TestCheckGateSLOs:
             alpha_confidence=0.80,
             trigger_met=False,
             months_elapsed=6,
-            escalation_applied=False
+            escalation_applied=False,
         )
         slos = check_gate_slos(state)
         assert slos["all_passed"] is True
@@ -175,7 +172,7 @@ class TestCheckGateSLOs:
             alpha_confidence=0.80,
             trigger_met=False,
             months_elapsed=6,
-            escalation_applied=False
+            escalation_applied=False,
         )
         slos = check_gate_slos(state)
         assert slos["autonomy_ceiling"] is False

@@ -90,24 +90,25 @@ class TestCompoundingValidation:
         result = validate_compounding_example(
             initial_speedup=BASE_ITERATION_SPEEDUP,
             alpha=GROWTH_EXPONENT_ALPHA,
-            cycles=2
+            cycles=2,
         )
         assert result["validation"] == "PASS"
         assert result["multiplicative_match"] is True
 
     def test_multiplicative_compounding(self):
         """7.5 * 7.5 = 56.25 ~ 56."""
-        result = BASE_ITERATION_SPEEDUP ** 2
+        result = BASE_ITERATION_SPEEDUP**2
         assert abs(result - 56) < 1  # Within 1 of target
 
     def test_two_cycle_compounding_simulation(self):
         """Simulate two cycles and verify speedup."""
         config = CompoundingConfig(
-            tau_initial=TAU_BASE_CURRENT_S / BASE_ITERATION_SPEEDUP,  # Start at 40s (7.5x speedup)
+            tau_initial=TAU_BASE_CURRENT_S
+            / BASE_ITERATION_SPEEDUP,  # Start at 40s (7.5x speedup)
             tau_target=TAU_THRESHOLD_SOVEREIGNTY_S,
             alpha=GROWTH_EXPONENT_ALPHA,
             max_cycles=2,
-            invest_per_cycle_m=100.0
+            invest_per_cycle_m=100.0,
         )
         result = simulate_compounding(config, include_orbital_variation=False)
 
@@ -130,7 +131,7 @@ class TestSovereigntyThreshold:
             tau_initial=TAU_BASE_CURRENT_S,
             tau_target=TAU_THRESHOLD_SOVEREIGNTY_S,
             invest_per_cycle_m=100.0,
-            alpha=GROWTH_EXPONENT_ALPHA
+            alpha=GROWTH_EXPONENT_ALPHA,
         )
         assert cycles > 0, "Should be achievable"
         assert cycles <= 5, f"Sovereignty should be reached in <=5 cycles, got {cycles}"
@@ -140,7 +141,7 @@ class TestSovereigntyThreshold:
         cycles = cycles_to_sovereignty(
             tau_initial=TAU_BASE_CURRENT_S,
             tau_target=TAU_THRESHOLD_SOVEREIGNTY_S,
-            invest_per_cycle_m=100.0
+            invest_per_cycle_m=100.0,
         )
         assert cycles >= 2, "Sovereignty shouldn't be instant"
 
@@ -168,22 +169,19 @@ class TestEffectiveRateAtSovereignty:
         # decay_tau = 300^2 / 30 = 3000s
         # exp(-1320/3000) ~ 0.64 (still significant)
         eff_rate = effective_rate_at_tau(
-            tau_s=TAU_THRESHOLD_SOVEREIGNTY_S,
-            delay_s=delay_s,
-            bw_mbps=bw_mbps
+            tau_s=TAU_THRESHOLD_SOVEREIGNTY_S, delay_s=delay_s, bw_mbps=bw_mbps
         )
 
         # Compare to baseline (tau=300s, decay_tau=300s)
         # exp(-1320/300) ~ 0.012 (nearly zero)
         baseline_rate = effective_rate_at_tau(
-            tau_s=TAU_BASE_CURRENT_S,
-            delay_s=delay_s,
-            bw_mbps=bw_mbps
+            tau_s=TAU_BASE_CURRENT_S, delay_s=delay_s, bw_mbps=bw_mbps
         )
 
         # Sovereignty rate should be >> baseline rate
-        assert eff_rate > baseline_rate * 50, \
+        assert eff_rate > baseline_rate * 50, (
             f"Sovereignty rate {eff_rate} should be >>50x baseline {baseline_rate}"
+        )
 
     def test_effective_rate_improvement_with_tau_reduction(self):
         """Effective rate should increase as tau decreases."""
@@ -194,8 +192,9 @@ class TestEffectiveRateAtSovereignty:
 
         # Each rate should be higher than the previous
         for i in range(1, len(rates)):
-            assert rates[i] > rates[i-1], \
-                f"Rate at tau={tau_values[i]} should exceed tau={tau_values[i-1]}"
+            assert rates[i] > rates[i - 1], (
+                f"Rate at tau={tau_values[i]} should exceed tau={tau_values[i - 1]}"
+            )
 
 
 class TestBandwidthOnlyPath:
@@ -209,24 +208,25 @@ class TestBandwidthOnlyPath:
     def test_compounding_faster_than_linear(self):
         """Compounding path should reach sovereignty in fewer cycles."""
         result = compare_compounding_vs_linear(
-            total_budget_m=500.0,
-            cycles=5,
-            alpha=GROWTH_EXPONENT_ALPHA
+            total_budget_m=500.0, cycles=5, alpha=GROWTH_EXPONENT_ALPHA
         )
 
         # Both paths may reach sovereignty, but compounding should be faster
         # OR use less investment to reach sovereignty
-        assert result["advantage"]["compounding_faster"] or \
-               result["compounding"]["invest_to_sovereignty_m"] <= result["linear"]["invest_to_sovereignty_m"], \
-            "Compounding should reach sovereignty faster or with less investment"
+        assert (
+            result["advantage"]["compounding_faster"]
+            or result["compounding"]["invest_to_sovereignty_m"]
+            <= result["linear"]["invest_to_sovereignty_m"]
+        ), "Compounding should reach sovereignty faster or with less investment"
 
     def test_compounding_higher_efficiency(self):
         """Compounding path should have higher investment efficiency."""
         result = compare_compounding_vs_linear(total_budget_m=500.0, cycles=5)
 
         # Compounding efficiency > 1 means effective investment exceeds raw investment
-        assert result["compounding"]["investment_efficiency"] > 1.0, \
+        assert result["compounding"]["investment_efficiency"] > 1.0, (
             "Compounding should have efficiency > 1 (effective > raw investment)"
+        )
 
     def test_bandwidth_only_never_reaches_sovereignty(self):
         """Pure bandwidth investment doesn't reduce tau at all."""
@@ -239,11 +239,12 @@ class TestBandwidthOnlyPath:
         # Compounding: tau reduces
         result = simulate_compounding(
             CompoundingConfig(invest_per_cycle_m=100.0, max_cycles=5),
-            include_orbital_variation=False
+            include_orbital_variation=False,
         )
 
-        assert result.final_tau < final_tau_bandwidth_only, \
+        assert result.final_tau < final_tau_bandwidth_only, (
             "Autonomy investment should reduce tau, bandwidth doesn't"
+        )
 
 
 class TestMissionTimeline:
@@ -251,10 +252,7 @@ class TestMissionTimeline:
 
     def test_mission_timeline_structure(self):
         """Timeline should have correct structure."""
-        timeline = mission_timeline_projection(
-            start_year=2026,
-            missions=5
-        )
+        timeline = mission_timeline_projection(start_year=2026, missions=5)
 
         assert len(timeline) >= 1
         assert timeline[0]["year"] == 2026
@@ -266,8 +264,9 @@ class TestMissionTimeline:
         timeline = mission_timeline_projection(missions=5)
 
         for i in range(1, len(timeline)):
-            assert timeline[i]["tau_s"] <= timeline[i-1]["tau_s"], \
+            assert timeline[i]["tau_s"] <= timeline[i - 1]["tau_s"], (
                 "Tau should decrease over missions"
+            )
 
 
 class TestReceipts:
@@ -290,7 +289,9 @@ class TestReceipts:
         receipt = emit_validation_receipt(validation)
 
         assert receipt["receipt_type"] == "compounding_validation"
-        assert receipt["source"] == "Grok Dec 16 2025: '7.5x speed -> 56x in two cycles'"
+        assert (
+            receipt["source"] == "Grok Dec 16 2025: '7.5x speed -> 56x in two cycles'"
+        )
         assert "validation" in receipt
 
     def test_sovereignty_projection_receipt(self):

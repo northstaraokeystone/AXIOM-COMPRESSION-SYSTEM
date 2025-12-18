@@ -16,12 +16,7 @@ Source: Grok - "eff_α to 2.68 (+0.12)", "quorum intact for 5-node eg."
 from typing import Dict, Any, Optional
 
 from .core import emit_receipt
-from .partition import (
-    quorum_check,
-    NODE_BASELINE,
-    QUORUM_THRESHOLD,
-    partition_sim
-)
+from .partition import quorum_check, NODE_BASELINE, QUORUM_THRESHOLD, partition_sim
 
 
 # === CONSTANTS (Dec 2025 distributed anchoring validated) ===
@@ -44,7 +39,7 @@ QUORUM_DEGRADATION_FACTOR = 0.02
 
 def apply_ledger_boost(
     base_alpha: float = BASE_ALPHA_PRE_BOOST,
-    boost: float = LEDGER_ALPHA_BOOST_VALIDATED
+    boost: float = LEDGER_ALPHA_BOOST_VALIDATED,
 ) -> float:
     """Apply distributed anchoring boost to base alpha.
 
@@ -59,14 +54,17 @@ def apply_ledger_boost(
     """
     eff_alpha = base_alpha + boost
 
-    emit_receipt("ledger_boost", {
-        "tenant_id": "axiom-ledger",
-        "base_alpha": base_alpha,
-        "boost": boost,
-        "effective_alpha": eff_alpha,
-        "boost_validated": True,
-        "physics": "Dec 2025 distributed anchoring"
-    })
+    emit_receipt(
+        "ledger_boost",
+        {
+            "tenant_id": "axiom-ledger",
+            "base_alpha": base_alpha,
+            "boost": boost,
+            "effective_alpha": eff_alpha,
+            "boost_validated": True,
+            "physics": "Dec 2025 distributed anchoring",
+        },
+    )
 
     return eff_alpha
 
@@ -75,7 +73,7 @@ def apply_quorum_factor(
     base_alpha: float,
     nodes_surviving: int,
     nodes_baseline: int = NODE_BASELINE,
-    quorum_min: int = QUORUM_THRESHOLD
+    quorum_min: int = QUORUM_THRESHOLD,
 ) -> float:
     """Apply quorum factor to alpha based on node health.
 
@@ -110,29 +108,35 @@ def apply_quorum_factor(
         quorum_status = "degraded"
 
         # Emit warning receipt
-        emit_receipt("quorum_warning", {
-            "tenant_id": "axiom-ledger",
-            "nodes_baseline": nodes_baseline,
-            "nodes_surviving": nodes_surviving,
-            "nodes_missing": nodes_missing,
-            "degradation": degradation,
-            "alpha_before": base_alpha,
-            "alpha_after": base_alpha - degradation,
-            "quorum_status": quorum_status
-        })
+        emit_receipt(
+            "quorum_warning",
+            {
+                "tenant_id": "axiom-ledger",
+                "nodes_baseline": nodes_baseline,
+                "nodes_surviving": nodes_surviving,
+                "nodes_missing": nodes_missing,
+                "degradation": degradation,
+                "alpha_before": base_alpha,
+                "alpha_after": base_alpha - degradation,
+                "quorum_status": quorum_status,
+            },
+        )
 
     adjusted_alpha = base_alpha - degradation
 
-    emit_receipt("quorum_factor", {
-        "tenant_id": "axiom-ledger",
-        "base_alpha": base_alpha,
-        "nodes_surviving": nodes_surviving,
-        "nodes_baseline": nodes_baseline,
-        "quorum_min": quorum_min,
-        "degradation": degradation,
-        "adjusted_alpha": adjusted_alpha,
-        "quorum_status": quorum_status
-    })
+    emit_receipt(
+        "quorum_factor",
+        {
+            "tenant_id": "axiom-ledger",
+            "base_alpha": base_alpha,
+            "nodes_surviving": nodes_surviving,
+            "nodes_baseline": nodes_baseline,
+            "quorum_min": quorum_min,
+            "degradation": degradation,
+            "adjusted_alpha": adjusted_alpha,
+            "quorum_status": quorum_status,
+        },
+    )
 
     return adjusted_alpha
 
@@ -140,7 +144,7 @@ def apply_quorum_factor(
 def anchor_with_quorum(
     data: Dict[str, Any],
     nodes_surviving: Optional[int] = None,
-    base_alpha: float = BASE_ALPHA_PRE_BOOST
+    base_alpha: float = BASE_ALPHA_PRE_BOOST,
 ) -> Dict[str, Any]:
     """Anchor data with quorum check and ledger boost.
 
@@ -171,10 +175,7 @@ def anchor_with_quorum(
         nodes_surviving = NODE_BASELINE
 
     final_alpha = apply_quorum_factor(
-        boosted_alpha,
-        nodes_surviving,
-        NODE_BASELINE,
-        QUORUM_THRESHOLD
+        boosted_alpha, nodes_surviving, NODE_BASELINE, QUORUM_THRESHOLD
     )
 
     # Determine quorum status string
@@ -186,26 +187,28 @@ def anchor_with_quorum(
         quorum_status = "failed"  # Won't reach here due to StopRule
 
     # Step 4: Emit anchor receipt
-    receipt = emit_receipt("distributed_anchor", {
-        "tenant_id": "axiom-ledger",
-        "data_hash": data.get("payload_hash", "uncomputed"),
-        "base_alpha": base_alpha,
-        "ledger_boost": LEDGER_ALPHA_BOOST_VALIDATED,
-        "boosted_alpha": boosted_alpha,
-        "nodes_surviving": nodes_surviving,
-        "nodes_baseline": NODE_BASELINE,
-        "quorum_threshold": QUORUM_THRESHOLD,
-        "quorum_status": quorum_status,
-        "effective_alpha": final_alpha,
-        "physics": "Dec 2025 distributed anchoring + quorum"
-    })
+    receipt = emit_receipt(
+        "distributed_anchor",
+        {
+            "tenant_id": "axiom-ledger",
+            "data_hash": data.get("payload_hash", "uncomputed"),
+            "base_alpha": base_alpha,
+            "ledger_boost": LEDGER_ALPHA_BOOST_VALIDATED,
+            "boosted_alpha": boosted_alpha,
+            "nodes_surviving": nodes_surviving,
+            "nodes_baseline": NODE_BASELINE,
+            "quorum_threshold": QUORUM_THRESHOLD,
+            "quorum_status": quorum_status,
+            "effective_alpha": final_alpha,
+            "physics": "Dec 2025 distributed anchoring + quorum",
+        },
+    )
 
     return receipt
 
 
 def get_effective_alpha_with_partition(
-    loss_pct: float = 0.0,
-    base_alpha: float = BASE_ALPHA_PRE_BOOST
+    loss_pct: float = 0.0, base_alpha: float = BASE_ALPHA_PRE_BOOST
 ) -> Dict[str, Any]:
     """Get effective alpha considering partition loss.
 
@@ -226,7 +229,7 @@ def get_effective_alpha_with_partition(
         nodes_total=NODE_BASELINE,
         loss_pct=loss_pct,
         base_alpha=boosted_alpha,
-        emit=False
+        emit=False,
     )
 
     return {
@@ -236,5 +239,5 @@ def get_effective_alpha_with_partition(
         "loss_pct": loss_pct,
         "eff_alpha_drop": result["eff_alpha_drop"],
         "effective_alpha": result["eff_alpha"],
-        "quorum_status": result["quorum_status"]
+        "quorum_status": result["quorum_status"],
     }

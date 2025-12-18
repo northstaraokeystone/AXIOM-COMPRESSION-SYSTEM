@@ -9,6 +9,7 @@ Validates QED v12 §3.7 patterns:
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.optimize import (
@@ -33,7 +34,9 @@ class TestSampleThompson:
 
     def test_high_mean_yields_high_samples(self):
         """High mean should yield samples closer to 1."""
-        high_mean_samples = [sample_thompson(0.9, 0.05, n_samples=50) for _ in range(20)]
+        high_mean_samples = [
+            sample_thompson(0.9, 0.05, n_samples=50) for _ in range(20)
+        ]
         low_mean_samples = [sample_thompson(0.1, 0.05, n_samples=50) for _ in range(20)]
 
         avg_high = sum(high_mean_samples) / len(high_mean_samples)
@@ -80,8 +83,8 @@ class TestSelectionPressure:
         # Both patterns have same mean, but high_var has much higher variance
         # With exploration bonus, high_var should sometimes beat similar
         fitness = {
-            "high_var": (0.5, 0.3),   # Medium mean, high variance
-            "similar": (0.5, 0.02),   # Same mean, low variance
+            "high_var": (0.5, 0.3),  # Medium mean, high variance
+            "similar": (0.5, 0.02),  # Same mean, low variance
         }
 
         # With exploration bonus, high variance pattern should get boosted
@@ -104,9 +107,9 @@ class TestSelectionPressure:
         """High-mean patterns should be selected >60% of time."""
         patterns = ["good", "medium", "bad"]
         fitness = {
-            "good": (0.9, 0.05),    # High mean
-            "medium": (0.5, 0.05), # Medium mean
-            "bad": (0.1, 0.05),    # Low mean
+            "good": (0.9, 0.05),  # High mean
+            "medium": (0.5, 0.05),  # Medium mean
+            "bad": (0.1, 0.05),  # Low mean
         }
 
         good_first = 0
@@ -140,7 +143,7 @@ class TestUpdateFitness:
         state = OptimizationState(
             pattern_fitness={"a": (0.5, 0.2)},
             selection_history=[],
-            improvement_trace=[]
+            improvement_trace=[],
         )
 
         new_state = update_fitness("a", 0.8, state, OptimizationConfig())
@@ -152,9 +155,7 @@ class TestUpdateFitness:
     def test_creates_new_pattern_if_missing(self):
         """Should create entry for unknown pattern."""
         state = OptimizationState(
-            pattern_fitness={},
-            selection_history=[],
-            improvement_trace=[]
+            pattern_fitness={}, selection_history=[], improvement_trace=[]
         )
 
         new_state = update_fitness("new_pattern", 0.7, state, OptimizationConfig())
@@ -180,9 +181,7 @@ class TestMeasureImprovement:
     def test_empty_state_returns_one(self):
         """Empty state should return improvement of 1.0."""
         state = OptimizationState(
-            pattern_fitness={},
-            selection_history=[],
-            improvement_trace=[]
+            pattern_fitness={}, selection_history=[], improvement_trace=[]
         )
 
         improvement = measure_improvement(state)
@@ -196,8 +195,13 @@ class TestMeasureImprovement:
                 "medium": (0.5, 0.05),
                 "bad": (0.1, 0.05),
             },
-            selection_history=["good", "good", "good", "medium"],  # Selected mostly good
-            improvement_trace=[]
+            selection_history=[
+                "good",
+                "good",
+                "good",
+                "medium",
+            ],  # Selected mostly good
+            improvement_trace=[],
         )
 
         improvement = measure_improvement(state)
@@ -228,6 +232,7 @@ class TestMeasureImprovement:
 
             # Simulate outcome based on actual fitness with noise
             import random
+
             mean, var = state.pattern_fitness[top]
             outcome = min(1.0, max(0.0, mean + random.gauss(0, 0.05)))
 
@@ -258,9 +263,7 @@ class TestExplorationExploitationRatio:
     def test_empty_history_returns_balanced(self):
         """Empty history should return balanced ratio."""
         state = OptimizationState(
-            pattern_fitness={},
-            selection_history=[],
-            improvement_trace=[]
+            pattern_fitness={}, selection_history=[], improvement_trace=[]
         )
 
         explore, exploit = get_exploration_exploitation_ratio(state)
@@ -275,7 +278,7 @@ class TestExplorationExploitationRatio:
                 "exploiter": (0.8, 0.02),  # High mean = exploitation
             },
             selection_history=["explorer", "explorer", "exploiter"],
-            improvement_trace=[]
+            improvement_trace=[],
         )
 
         explore, exploit = get_exploration_exploitation_ratio(state)

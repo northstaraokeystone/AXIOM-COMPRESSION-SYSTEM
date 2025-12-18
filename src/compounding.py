@@ -84,6 +84,7 @@ class CompoundingConfig:
         invest_per_cycle_m: Investment per cycle in $M (default 100)
         max_cycles: Maximum cycles to simulate (default 10)
     """
+
     tau_initial: float = TAU_BASE_CURRENT_S
     tau_target: float = TAU_THRESHOLD_SOVEREIGNTY_S
     alpha: float = GROWTH_EXPONENT_ALPHA
@@ -106,6 +107,7 @@ class CycleResult:
         delay_s: Light delay used for this cycle
         is_sovereign: True if tau_end < threshold
     """
+
     cycle: int
     tau_start: float
     tau_end: float
@@ -132,6 +134,7 @@ class CompoundingResult:
         effective_invest_m: Total effective investment (with compounding)
         investment_efficiency: effective/raw ratio
     """
+
     config: CompoundingConfig
     cycles: List[CycleResult]
     total_cycles: int
@@ -146,7 +149,10 @@ class CompoundingResult:
 
 # === CORE COMPOUNDING FUNCTIONS ===
 
-def iteration_speedup(tau_current: float, tau_base: float = TAU_BASE_CURRENT_S) -> float:
+
+def iteration_speedup(
+    tau_current: float, tau_base: float = TAU_BASE_CURRENT_S
+) -> float:
     """Calculate iteration speedup from tau reduction.
 
     Lower tau = faster decisions = faster R&D iteration.
@@ -189,13 +195,11 @@ def compounding_factor(speedup: float, alpha: float = GROWTH_EXPONENT_ALPHA) -> 
 
     Source: Grok - "7.5x -> 56x in two cycles"
     """
-    return speedup ** alpha
+    return speedup**alpha
 
 
 def effective_investment(
-    raw_invest_m: float,
-    tau_current: float,
-    alpha: float = GROWTH_EXPONENT_ALPHA
+    raw_invest_m: float, tau_current: float, alpha: float = GROWTH_EXPONENT_ALPHA
 ) -> float:
     """Calculate effective investment with compounding.
 
@@ -220,9 +224,7 @@ def effective_investment(
 
 
 def tau_reduction_from_investment(
-    tau_start: float,
-    effective_m: float,
-    tau_min: float = TAU_MIN_ACHIEVABLE_S
+    tau_start: float, effective_m: float, tau_min: float = TAU_MIN_ACHIEVABLE_S
 ) -> float:
     """Calculate tau reduction from effective investment.
 
@@ -269,14 +271,16 @@ def orbital_delay_at_phase(phase: float) -> float:
     # Sinusoidal interpolation between min and max
     # Phase 0 = opposition (min), Phase 0.5 = conjunction (max)
     delay_range = MARS_LIGHT_DELAY_MAX_S - MARS_LIGHT_DELAY_MIN_S
-    delay = MARS_LIGHT_DELAY_MIN_S + (delay_range / 2) * (1 - math.cos(2 * math.pi * phase))
+    delay = MARS_LIGHT_DELAY_MIN_S + (delay_range / 2) * (
+        1 - math.cos(2 * math.pi * phase)
+    )
     return delay
 
 
 def effective_rate_at_tau(
     tau_s: float,
     delay_s: float = MARS_LIGHT_DELAY_AVG_S,
-    bw_mbps: float = STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS
+    bw_mbps: float = STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
 ) -> float:
     """Calculate effective decision rate at given tau.
 
@@ -298,12 +302,13 @@ def effective_rate_at_tau(
 
 # === COMPOUNDING SIMULATION ===
 
+
 def simulate_compounding_cycle(
     cycle: int,
     tau_start: float,
     cumulative_speedup: float,
     config: CompoundingConfig,
-    delay_s: float
+    delay_s: float,
 ) -> CycleResult:
     """Simulate one cycle of compounding autonomy development.
 
@@ -318,7 +323,9 @@ def simulate_compounding_cycle(
         CycleResult with cycle outcomes
     """
     # Calculate effective investment for this cycle
-    eff_invest = config.invest_per_cycle_m * compounding_factor(cumulative_speedup, config.alpha)
+    eff_invest = config.invest_per_cycle_m * compounding_factor(
+        cumulative_speedup, config.alpha
+    )
 
     # Calculate tau reduction
     tau_end = tau_reduction_from_investment(tau_start, eff_invest, config.tau_target)
@@ -340,13 +347,12 @@ def simulate_compounding_cycle(
         effective_invest_m=eff_invest,
         effective_rate=eff_rate,
         delay_s=delay_s,
-        is_sovereign=is_sov
+        is_sovereign=is_sov,
     )
 
 
 def simulate_compounding(
-    config: CompoundingConfig = None,
-    include_orbital_variation: bool = True
+    config: CompoundingConfig = None, include_orbital_variation: bool = True
 ) -> CompoundingResult:
     """Run full compounding simulation.
 
@@ -391,7 +397,7 @@ def simulate_compounding(
             tau_start=tau_current,
             cumulative_speedup=cumulative_speedup,
             config=config,
-            delay_s=delay_s
+            delay_s=delay_s,
         )
         cycles.append(result)
 
@@ -422,16 +428,15 @@ def simulate_compounding(
         final_speedup=cumulative_speedup,
         total_invest_m=total_raw_invest,
         effective_invest_m=total_eff_invest,
-        investment_efficiency=efficiency
+        investment_efficiency=efficiency,
     )
 
 
 # === VALIDATION FUNCTIONS (Grok's 7.5x -> 56x claim) ===
 
+
 def validate_compounding_example(
-    initial_speedup: float = 7.5,
-    alpha: float = GROWTH_EXPONENT_ALPHA,
-    cycles: int = 2
+    initial_speedup: float = 7.5, alpha: float = GROWTH_EXPONENT_ALPHA, cycles: int = 2
 ) -> dict:
     """Validate Grok's compounding example.
 
@@ -473,7 +478,7 @@ def validate_compounding_example(
         "multiplicative_match": abs(history[-1] - 56) < 5,
         "alpha_exponent_result": speedup_alpha,
         "history": history,
-        "validation": "PASS" if abs(history[-1] - 56) < 5 else "FAIL"
+        "validation": "PASS" if abs(history[-1] - 56) < 5 else "FAIL",
     }
 
 
@@ -481,7 +486,7 @@ def cycles_to_sovereignty(
     tau_initial: float = TAU_BASE_CURRENT_S,
     tau_target: float = TAU_THRESHOLD_SOVEREIGNTY_S,
     invest_per_cycle_m: float = 100.0,
-    alpha: float = GROWTH_EXPONENT_ALPHA
+    alpha: float = GROWTH_EXPONENT_ALPHA,
 ) -> int:
     """Calculate cycles needed to reach sovereignty threshold.
 
@@ -499,7 +504,7 @@ def cycles_to_sovereignty(
         tau_target=tau_target,
         alpha=alpha,
         invest_per_cycle_m=invest_per_cycle_m,
-        max_cycles=20
+        max_cycles=20,
     )
 
     result = simulate_compounding(config, include_orbital_variation=False)
@@ -512,10 +517,9 @@ def cycles_to_sovereignty(
 
 # === COMPARISON: COMPOUNDING vs LINEAR ===
 
+
 def compare_compounding_vs_linear(
-    total_budget_m: float = 500.0,
-    cycles: int = 5,
-    alpha: float = GROWTH_EXPONENT_ALPHA
+    total_budget_m: float = 500.0, cycles: int = 5, alpha: float = GROWTH_EXPONENT_ALPHA
 ) -> dict:
     """Compare compounding vs linear investment paths.
 
@@ -538,11 +542,11 @@ def compare_compounding_vs_linear(
 
     # Compounding path
     config_compound = CompoundingConfig(
-        invest_per_cycle_m=invest_per_cycle,
-        alpha=alpha,
-        max_cycles=cycles
+        invest_per_cycle_m=invest_per_cycle, alpha=alpha, max_cycles=cycles
     )
-    result_compound = simulate_compounding(config_compound, include_orbital_variation=False)
+    result_compound = simulate_compounding(
+        config_compound, include_orbital_variation=False
+    )
 
     # Linear path (no compounding - each cycle isolated)
     tau_linear = TAU_BASE_CURRENT_S
@@ -553,13 +557,15 @@ def compare_compounding_vs_linear(
         # Use raw invest (no compounding multiplier)
         tau_new = tau_reduction_from_investment(tau_linear, invest_per_cycle)
         total_linear_invest += invest_per_cycle
-        linear_results.append({
-            "cycle": i + 1,
-            "tau_start": tau_linear,
-            "tau_end": tau_new,
-            "effective_invest_m": invest_per_cycle,
-            "cumulative_invest_m": total_linear_invest
-        })
+        linear_results.append(
+            {
+                "cycle": i + 1,
+                "tau_start": tau_linear,
+                "tau_end": tau_new,
+                "effective_invest_m": invest_per_cycle,
+                "cumulative_invest_m": total_linear_invest,
+            }
+        )
         tau_linear = tau_new
 
     # Find sovereignty cycle for linear
@@ -576,7 +582,9 @@ def compare_compounding_vs_linear(
     cycles_saved = linear_sov - compound_sov
 
     # Investment to sovereignty (how much $ spent before reaching threshold)
-    compound_invest_to_sov = (result_compound.sovereignty_cycle or cycles) * invest_per_cycle
+    compound_invest_to_sov = (
+        result_compound.sovereignty_cycle or cycles
+    ) * invest_per_cycle
     linear_invest_to_sov = total_budget_m  # Uses full budget in linear path
 
     return {
@@ -589,30 +597,31 @@ def compare_compounding_vs_linear(
             "sovereignty_achieved": result_compound.sovereignty_achieved,
             "final_speedup": result_compound.final_speedup,
             "investment_efficiency": result_compound.investment_efficiency,
-            "invest_to_sovereignty_m": compound_invest_to_sov
+            "invest_to_sovereignty_m": compound_invest_to_sov,
         },
         "linear": {
             "final_tau": linear_results[-1]["tau_end"],
             "sovereignty_cycle": linear_sov_cycle,
             "sovereignty_achieved": linear_sov_cycle is not None,
-            "invest_to_sovereignty_m": linear_invest_to_sov
+            "invest_to_sovereignty_m": linear_invest_to_sov,
         },
         "advantage": {
             "cycles_saved": cycles_saved,
             "compounding_faster": cycles_saved > 0,
             "efficiency_ratio": result_compound.investment_efficiency,
-            "same_budget_fewer_cycles": compound_sov < linear_sov
-        }
+            "same_budget_fewer_cycles": compound_sov < linear_sov,
+        },
     }
 
 
 # === ORBITAL MISSION PLANNING ===
 
+
 def mission_timeline_projection(
     start_year: int = 2026,
     mission_interval_years: float = 2.0,
     missions: int = 5,
-    invest_per_mission_m: float = 100.0
+    invest_per_mission_m: float = 100.0,
 ) -> List[dict]:
     """Project autonomy evolution over multi-mission timeline.
 
@@ -630,8 +639,7 @@ def mission_timeline_projection(
     Source: "like self-improving AI bootstrapping Mars sovereignty"
     """
     config = CompoundingConfig(
-        invest_per_cycle_m=invest_per_mission_m,
-        max_cycles=missions
+        invest_per_cycle_m=invest_per_mission_m, max_cycles=missions
     )
 
     result = simulate_compounding(config)
@@ -642,48 +650,60 @@ def mission_timeline_projection(
 
         # Determine orbital phase (opposition vs conjunction)
         # Assume launch at opposition for minimum delay
-        phase_desc = "opposition" if cycle.delay_s < 600 else "conjunction" if cycle.delay_s > 900 else "transit"
+        phase_desc = (
+            "opposition"
+            if cycle.delay_s < 600
+            else "conjunction"
+            if cycle.delay_s > 900
+            else "transit"
+        )
 
-        timeline.append({
-            "mission": cycle.cycle,
-            "year": year,
-            "orbital_phase": phase_desc,
-            "delay_min": round(cycle.delay_s / 60, 1),
-            "tau_s": round(cycle.tau_end, 1),
-            "tau_min": round(cycle.tau_end / 60, 2),
-            "is_sovereign": cycle.is_sovereign,
-            "cumulative_speedup": round(cycle.iteration_speedup, 1),
-            "effective_invest_m": round(cycle.effective_invest_m, 1)
-        })
+        timeline.append(
+            {
+                "mission": cycle.cycle,
+                "year": year,
+                "orbital_phase": phase_desc,
+                "delay_min": round(cycle.delay_s / 60, 1),
+                "tau_s": round(cycle.tau_end, 1),
+                "tau_min": round(cycle.tau_end / 60, 2),
+                "is_sovereign": cycle.is_sovereign,
+                "cumulative_speedup": round(cycle.iteration_speedup, 1),
+                "effective_invest_m": round(cycle.effective_invest_m, 1),
+            }
+        )
 
     return timeline
 
 
 # === RECEIPTS (CLAUDEME LAW_1: "No receipt -> not real") ===
 
+
 def emit_compounding_receipt(result: CompoundingResult) -> dict:
     """Emit receipt for compounding simulation.
 
     Required per CLAUDEME.
     """
-    return emit_receipt("compounding_simulation", {
-        "tenant_id": "axiom-core",
-        "tau_initial_s": result.config.tau_initial,
-        "tau_final_s": result.final_tau,
-        "alpha": result.config.alpha,
-        "total_cycles": result.total_cycles,
-        "sovereignty_achieved": result.sovereignty_achieved,
-        "sovereignty_cycle": result.sovereignty_cycle,
-        "final_speedup": result.final_speedup,
-        "total_invest_m": result.total_invest_m,
-        "effective_invest_m": result.effective_invest_m,
-        "investment_efficiency": result.investment_efficiency,
-        "finding": (
-            f"Sovereignty reached in cycle {result.sovereignty_cycle}"
-            if result.sovereignty_achieved
-            else f"Final tau={result.final_tau:.1f}s after {result.total_cycles} cycles"
-        )
-    })
+    return emit_receipt(
+        "compounding_simulation",
+        {
+            "tenant_id": "axiom-core",
+            "tau_initial_s": result.config.tau_initial,
+            "tau_final_s": result.final_tau,
+            "alpha": result.config.alpha,
+            "total_cycles": result.total_cycles,
+            "sovereignty_achieved": result.sovereignty_achieved,
+            "sovereignty_cycle": result.sovereignty_cycle,
+            "final_speedup": result.final_speedup,
+            "total_invest_m": result.total_invest_m,
+            "effective_invest_m": result.effective_invest_m,
+            "investment_efficiency": result.investment_efficiency,
+            "finding": (
+                f"Sovereignty reached in cycle {result.sovereignty_cycle}"
+                if result.sovereignty_achieved
+                else f"Final tau={result.final_tau:.1f}s after {result.total_cycles} cycles"
+            ),
+        },
+    )
 
 
 def emit_validation_receipt(validation: dict) -> dict:
@@ -691,18 +711,21 @@ def emit_validation_receipt(validation: dict) -> dict:
 
     Source: Grok Dec 16, 2025
     """
-    return emit_receipt("compounding_validation", {
-        "tenant_id": "axiom-core",
-        "initial_speedup": validation["initial_speedup"],
-        "cycles": validation["cycles"],
-        "alpha": validation["alpha"],
-        "result": validation["multiplicative_result"],
-        "target": validation["multiplicative_target"],
-        "match": validation["multiplicative_match"],
-        "validation": validation["validation"],
-        "source": "Grok Dec 16 2025: '7.5x speed -> 56x in two cycles'",
-        "finding": "Compounding autonomy improvements validated as exponential"
-    })
+    return emit_receipt(
+        "compounding_validation",
+        {
+            "tenant_id": "axiom-core",
+            "initial_speedup": validation["initial_speedup"],
+            "cycles": validation["cycles"],
+            "alpha": validation["alpha"],
+            "result": validation["multiplicative_result"],
+            "target": validation["multiplicative_target"],
+            "match": validation["multiplicative_match"],
+            "validation": validation["validation"],
+            "source": "Grok Dec 16 2025: '7.5x speed -> 56x in two cycles'",
+            "finding": "Compounding autonomy improvements validated as exponential",
+        },
+    )
 
 
 def emit_sovereignty_projection_receipt(timeline: List[dict]) -> dict:
@@ -716,33 +739,37 @@ def emit_sovereignty_projection_receipt(timeline: List[dict]) -> dict:
             sov_mission = m
             break
 
-    return emit_receipt("sovereignty_projection", {
-        "tenant_id": "axiom-core",
-        "missions": len(timeline),
-        "start_year": timeline[0]["year"] if timeline else None,
-        "end_year": timeline[-1]["year"] if timeline else None,
-        "sovereignty_achieved": sov_mission is not None,
-        "sovereignty_year": sov_mission["year"] if sov_mission else None,
-        "sovereignty_tau_s": sov_mission["tau_s"] if sov_mission else None,
-        "final_tau_s": timeline[-1]["tau_s"] if timeline else None,
-        "timeline": timeline,
-        "directive": (
-            "pivot to pure paradigm-shifting physics in Elon-sphere "
-            "(Starlink/Starship/Mars delay constraints)"
-        ),
-        "finding": (
-            f"Mars sovereignty projected by {sov_mission['year']}"
-            if sov_mission else "Sovereignty not achieved in projection window"
-        )
-    })
+    return emit_receipt(
+        "sovereignty_projection",
+        {
+            "tenant_id": "axiom-core",
+            "missions": len(timeline),
+            "start_year": timeline[0]["year"] if timeline else None,
+            "end_year": timeline[-1]["year"] if timeline else None,
+            "sovereignty_achieved": sov_mission is not None,
+            "sovereignty_year": sov_mission["year"] if sov_mission else None,
+            "sovereignty_tau_s": sov_mission["tau_s"] if sov_mission else None,
+            "final_tau_s": timeline[-1]["tau_s"] if timeline else None,
+            "timeline": timeline,
+            "directive": (
+                "pivot to pure paradigm-shifting physics in Elon-sphere "
+                "(Starlink/Starship/Mars delay constraints)"
+            ),
+            "finding": (
+                f"Mars sovereignty projected by {sov_mission['year']}"
+                if sov_mission
+                else "Sovereignty not achieved in projection window"
+            ),
+        },
+    )
 
 
 # === TAU VELOCITY TRACKING (v2.0 - Grok Integration) ===
 # Source: Grok - "tau (decision loop time) reduction velocity"
 
+
 def compute_tau_velocity(
-    tau_history: List[float],
-    cycle_history: List[int] = None
+    tau_history: List[float], cycle_history: List[int] = None
 ) -> float:
     """Compute tau velocity d(tau)/dt from historical measurements.
 
@@ -774,7 +801,9 @@ def compute_tau_velocity(
     mean_c = sum(cycle_history) / n
     mean_tau = sum(tau_history) / n
 
-    numerator = sum((cycle_history[i] - mean_c) * (tau_history[i] - mean_tau) for i in range(n))
+    numerator = sum(
+        (cycle_history[i] - mean_c) * (tau_history[i] - mean_tau) for i in range(n)
+    )
     denominator = sum((cycle_history[i] - mean_c) ** 2 for i in range(n))
 
     if denominator == 0:
@@ -786,8 +815,7 @@ def compute_tau_velocity(
 
 
 def compute_tau_velocity_pct(
-    tau_history: List[float],
-    cycle_history: List[int] = None
+    tau_history: List[float], cycle_history: List[int] = None
 ) -> float:
     """Compute tau velocity as percentage change per cycle.
 
@@ -847,6 +875,7 @@ class TauVelocityResult:
         tau_history: Input tau history
         meets_target: True if velocity_pct <= -0.05
     """
+
     velocity_raw: float
     velocity_pct: float
     trend: str
@@ -873,20 +902,23 @@ def analyze_tau_velocity(tau_history: List[float]) -> TauVelocityResult:
         velocity_pct=velocity_pct,
         trend=trend,
         tau_history=tau_history,
-        meets_target=meets_target
+        meets_target=meets_target,
     )
 
     # Emit receipt
-    emit_receipt("tau_velocity", {
-        "tenant_id": "axiom-core",
-        "velocity_raw": velocity_raw,
-        "velocity_pct": velocity_pct,
-        "trend": trend,
-        "meets_target": meets_target,
-        "tau_start": tau_history[0] if tau_history else None,
-        "tau_end": tau_history[-1] if tau_history else None,
-        "observations": len(tau_history),
-    })
+    emit_receipt(
+        "tau_velocity",
+        {
+            "tenant_id": "axiom-core",
+            "velocity_raw": velocity_raw,
+            "velocity_pct": velocity_pct,
+            "trend": trend,
+            "meets_target": meets_target,
+            "tau_start": tau_history[0] if tau_history else None,
+            "tau_end": tau_history[-1] if tau_history else None,
+            "observations": len(tau_history),
+        },
+    )
 
     return result
 
@@ -895,7 +927,7 @@ def project_tau_with_velocity(
     current_tau: float,
     velocity_pct: float,
     cycles: int,
-    tau_min: float = TAU_MIN_ACHIEVABLE_S
+    tau_min: float = TAU_MIN_ACHIEVABLE_S,
 ) -> List[float]:
     """Project tau trajectory given current velocity.
 
@@ -931,14 +963,17 @@ def emit_tau_velocity_receipt(result: TauVelocityResult) -> dict:
     Returns:
         Receipt dict
     """
-    return emit_receipt("tau_velocity", {
-        "tenant_id": "axiom-core",
-        "velocity_raw": result.velocity_raw,
-        "velocity_pct": result.velocity_pct,
-        "trend": result.trend,
-        "meets_target": result.meets_target,
-        "tau_start": result.tau_history[0] if result.tau_history else None,
-        "tau_end": result.tau_history[-1] if result.tau_history else None,
-        "observations": len(result.tau_history),
-        "target_velocity_pct": -0.05,
-    })
+    return emit_receipt(
+        "tau_velocity",
+        {
+            "tenant_id": "axiom-core",
+            "velocity_raw": result.velocity_raw,
+            "velocity_pct": result.velocity_pct,
+            "trend": result.trend,
+            "meets_target": result.meets_target,
+            "tau_start": result.tau_history[0] if result.tau_history else None,
+            "tau_end": result.tau_history[-1] if result.tau_history else None,
+            "observations": len(result.tau_history),
+            "target_velocity_pct": -0.05,
+        },
+    )

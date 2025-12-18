@@ -13,7 +13,6 @@ Source: AXIOM scalable paths architecture - AGI ethics modeling
 """
 
 
-
 def test_agi_spec_loads():
     """Spec loads with valid structure."""
     from src.paths import load_path_spec
@@ -149,7 +148,7 @@ def test_agi_compute_alignment():
     receipts = [
         {"type": "action", "data": "test1"},
         {"type": "action", "data": "test2"},
-        {"type": "decision", "data": "test3"}
+        {"type": "decision", "data": "test3"},
     ]
 
     alignment = compute_alignment(receipts)

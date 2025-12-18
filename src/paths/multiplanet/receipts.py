@@ -18,6 +18,7 @@ from ..base import emit_path_receipt
 
 # === RECEIPT EMISSION HELPERS ===
 
+
 def emit_mp_status(status: Dict[str, Any]) -> Dict[str, Any]:
     """Emit multi-planet status receipt.
 
@@ -27,10 +28,9 @@ def emit_mp_status(status: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("multiplanet", "status", {
-        **status,
-        "receipt_subtype": "status"
-    })
+    return emit_path_receipt(
+        "multiplanet", "status", {**status, "receipt_subtype": "status"}
+    )
 
 
 def emit_mp_sequence(sequence_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -42,10 +42,11 @@ def emit_mp_sequence(sequence_data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("multiplanet", "sequence", {
-        **sequence_data,
-        "receipt_subtype": "expansion_sequence"
-    })
+    return emit_path_receipt(
+        "multiplanet",
+        "sequence",
+        {**sequence_data, "receipt_subtype": "expansion_sequence"},
+    )
 
 
 def emit_mp_body(body_config: Dict[str, Any]) -> Dict[str, Any]:
@@ -57,10 +58,9 @@ def emit_mp_body(body_config: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("multiplanet", "body", {
-        **body_config,
-        "receipt_subtype": "body_config"
-    })
+    return emit_path_receipt(
+        "multiplanet", "body", {**body_config, "receipt_subtype": "body_config"}
+    )
 
 
 def emit_mp_telemetry(telemetry_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -72,10 +72,11 @@ def emit_mp_telemetry(telemetry_data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("multiplanet", "telemetry", {
-        **telemetry_data,
-        "receipt_subtype": "telemetry_compression"
-    })
+    return emit_path_receipt(
+        "multiplanet",
+        "telemetry",
+        {**telemetry_data, "receipt_subtype": "telemetry_compression"},
+    )
 
 
 def emit_mp_latency(latency_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -87,10 +88,9 @@ def emit_mp_latency(latency_data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("multiplanet", "latency", {
-        **latency_data,
-        "receipt_subtype": "latency_budget"
-    })
+    return emit_path_receipt(
+        "multiplanet", "latency", {**latency_data, "receipt_subtype": "latency_budget"}
+    )
 
 
 def emit_mp_autonomy(autonomy_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -102,7 +102,8 @@ def emit_mp_autonomy(autonomy_data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("multiplanet", "autonomy", {
-        **autonomy_data,
-        "receipt_subtype": "autonomy_requirement"
-    })
+    return emit_path_receipt(
+        "multiplanet",
+        "autonomy",
+        {**autonomy_data, "receipt_subtype": "autonomy_requirement"},
+    )

@@ -21,6 +21,7 @@ try:
     from src.core import dual_hash, emit_receipt
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from src.core import dual_hash, emit_receipt
 
@@ -220,6 +221,7 @@ EMBEDDED_MOXIE_DATA = {
 
 # === CORE FUNCTIONS ===
 
+
 def list_runs() -> List[int]:
     """Return available MOXIE run IDs.
 
@@ -313,15 +315,18 @@ def load_moxie(cache_dir: str = DEFAULT_CACHE_DIR) -> Dict:
     ]
 
     # Emit receipt
-    emit_receipt("real_data", {
-        "tenant_id": TENANT_ID,
-        "dataset_id": "MOXIE",
-        "source_url": f"{NASA_PDS_BASE_URL}moxie/",
-        "download_hash": data_hash,
-        "n_records": len(runs),
-        "provenance_chain": provenance_chain,
-        "summary": summary,
-    })
+    emit_receipt(
+        "real_data",
+        {
+            "tenant_id": TENANT_ID,
+            "dataset_id": "MOXIE",
+            "source_url": f"{NASA_PDS_BASE_URL}moxie/",
+            "download_hash": data_hash,
+            "n_records": len(runs),
+            "provenance_chain": provenance_chain,
+            "summary": summary,
+        },
+    )
 
     return result
 
@@ -340,19 +345,25 @@ def compute_moxie_efficiency_trend() -> Dict:
 
     # Simple linear trend
     import numpy as np
+
     x = np.array(run_ids)
     y = np.array(efficiencies)
 
     # Linear regression
     n = len(x)
-    slope = (n * np.sum(x * y) - np.sum(x) * np.sum(y)) / (n * np.sum(x**2) - np.sum(x)**2)
+    slope = (n * np.sum(x * y) - np.sum(x) * np.sum(y)) / (
+        n * np.sum(x**2) - np.sum(x) ** 2
+    )
     intercept = (np.sum(y) - slope * np.sum(x)) / n
 
     return {
         "slope": float(slope),
         "intercept": float(intercept),
         "trend": "improving" if slope > 0 else "declining",
-        "r_squared": float(1 - np.sum((y - (slope * x + intercept))**2) / np.sum((y - np.mean(y))**2)),
+        "r_squared": float(
+            1
+            - np.sum((y - (slope * x + intercept)) ** 2) / np.sum((y - np.mean(y)) ** 2)
+        ),
         "first_efficiency": efficiencies[0],
         "last_efficiency": efficiencies[-1],
         "improvement_pct": (efficiencies[-1] - efficiencies[0]) / efficiencies[0] * 100,
@@ -360,6 +371,7 @@ def compute_moxie_efficiency_trend() -> Dict:
 
 
 # === BITS/KG CALIBRATION ===
+
 
 def compute_moxie_bits_per_kg() -> Dict:
     """Compute bits/kg equivalence from MOXIE data.
@@ -392,14 +404,17 @@ def compute_moxie_bits_per_kg() -> Dict:
 
         if o2_kg > 0:
             bits_per_kg = bits_used / o2_kg
-            calibration_points.append({
-                "run_id": run["run_id"],
-                "bits": bits_used,
-                "kg_o2": o2_kg,
-                "bits_per_kg": bits_per_kg,
-            })
+            calibration_points.append(
+                {
+                    "run_id": run["run_id"],
+                    "bits": bits_used,
+                    "kg_o2": o2_kg,
+                    "bits_per_kg": bits_per_kg,
+                }
+            )
 
     import numpy as np
+
     bits_per_kg_values = [p["bits_per_kg"] for p in calibration_points]
     mean_bits_per_kg = np.mean(bits_per_kg_values)
     std_bits_per_kg = np.std(bits_per_kg_values)

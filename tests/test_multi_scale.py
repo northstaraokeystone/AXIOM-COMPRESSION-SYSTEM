@@ -151,8 +151,9 @@ class TestDegradationAndScalability:
             results = run_scale_sweep([1_000_000, 1_000_000_000])
             degradation = check_degradation(results)
 
-        assert degradation["degradation_acceptable"], \
+        assert degradation["degradation_acceptable"], (
             f"Degradation {degradation['degradation_pct']:.2%} > 1% tolerance"
+        )
 
     def test_no_degradation_cliff(self):
         """Test that no single scale shows > 0.5% drop from previous."""
@@ -166,13 +167,14 @@ class TestDegradationAndScalability:
         alphas = [
             scale_results["1e6"]["alpha"],
             scale_results["1e8"]["alpha"],
-            scale_results["1e9"]["alpha"]
+            scale_results["1e9"]["alpha"],
         ]
 
         for i in range(1, len(alphas)):
-            drop_pct = (alphas[i-1] - alphas[i]) / alphas[i-1]
-            assert drop_pct <= 0.005, \
+            drop_pct = (alphas[i - 1] - alphas[i]) / alphas[i - 1]
+            assert drop_pct <= 0.005, (
                 f"Degradation cliff at scale {i}: {drop_pct:.2%} > 0.5%"
+            )
 
     def test_scalability_gate_passes(self):
         """Test that scalability gate passes for all scales."""
@@ -183,8 +185,9 @@ class TestDegradationAndScalability:
             results = run_scale_sweep()
             gate = scalability_gate(results)
 
-        assert gate["gate_passed"], \
+        assert gate["gate_passed"], (
             f"Scalability gate failed: alpha={gate['alpha_at_10e9']}, threshold={gate['gate_threshold']}"
+        )
 
     def test_ready_for_31_push(self):
         """Test that 3.1 push readiness is achieved."""
@@ -212,24 +215,32 @@ class TestGateAndIntegration:
         output = f.getvalue()
 
         # Check for receipt emissions (they print JSON)
-        assert "multi_scale_10e9" in output or result is not None, \
+        assert "multi_scale_10e9" in output or result is not None, (
             "multi_scale_10e9 receipt not emitted"
-        assert "scalability_gate" in output or result is not None, \
+        )
+        assert "scalability_gate" in output or result is not None, (
             "scalability_gate receipt not emitted"
+        )
 
     def test_scale_adjusted_correlation(self):
         """Test that correlation decreases slightly at larger scales."""
-        from src.fractal_layers import scale_adjusted_correlation, FRACTAL_BASE_CORRELATION
+        from src.fractal_layers import (
+            scale_adjusted_correlation,
+            FRACTAL_BASE_CORRELATION,
+        )
 
         corr_1e6 = scale_adjusted_correlation(1_000_000)
         corr_1e9 = scale_adjusted_correlation(1_000_000_000)
 
-        assert corr_1e6 == FRACTAL_BASE_CORRELATION, \
+        assert corr_1e6 == FRACTAL_BASE_CORRELATION, (
             f"10^6 correlation should be baseline: {corr_1e6} != {FRACTAL_BASE_CORRELATION}"
-        assert corr_1e9 < corr_1e6, \
+        )
+        assert corr_1e9 < corr_1e6, (
             f"10^9 correlation should be less than 10^6: {corr_1e9} >= {corr_1e6}"
-        assert corr_1e9 > corr_1e6 * 0.95, \
+        )
+        assert corr_1e9 > corr_1e6 * 0.95, (
             f"10^9 correlation too low: {corr_1e9} < {corr_1e6 * 0.95}"
+        )
 
     def test_full_integration_no_isolated(self):
         """Test that full integration works (no isolated tests needed)."""
@@ -246,8 +257,9 @@ class TestGateAndIntegration:
         assert "gate_passed" in result
 
         # Gate should pass
-        assert result["gate_passed"], \
+        assert result["gate_passed"], (
             f"Full integration failed: gate_passed={result['gate_passed']}"
+        )
 
 
 class TestQuantumFractalHybrid:
@@ -262,14 +274,19 @@ class TestQuantumFractalHybrid:
 
         f = io.StringIO()
         with redirect_stdout(f):
-            result = quantum_fractal_hybrid_at_scale(state, fractal_result, 1_000_000_000)
+            result = quantum_fractal_hybrid_at_scale(
+                state, fractal_result, 1_000_000_000
+            )
 
-        assert result["alpha"] >= 3.06, \
+        assert result["alpha"] >= 3.06, (
             f"Hybrid alpha at 10^9 = {result['alpha']} < 3.06"
-        assert result["instability"] == 0.00, \
+        )
+        assert result["instability"] == 0.00, (
             f"Hybrid instability = {result['instability']} != 0.00"
-        assert result["hybrid_status"] == "validated", \
+        )
+        assert result["hybrid_status"] == "validated", (
             f"Hybrid status = {result['hybrid_status']} != 'validated'"
+        )
 
     def test_get_31_push_readiness(self):
         """Test that get_31_push_readiness returns proper status."""
@@ -281,5 +298,6 @@ class TestQuantumFractalHybrid:
 
         assert "ready_for_31_push" in readiness
         assert "prerequisites" in readiness
-        assert readiness["ready_for_31_push"], \
+        assert readiness["ready_for_31_push"], (
             f"3.1 push not ready: {readiness['prerequisites']}"
+        )

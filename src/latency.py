@@ -83,15 +83,18 @@ def tau_penalty(tau_seconds: float, relay_factor: float = 1.0) -> float:
         regime = "mars_max"
 
     # Emit receipt
-    emit_receipt("latency_penalty", {
-        "tenant_id": "axiom-autonomy",
-        "tau_seconds": tau_seconds,
-        "relay_factor": relay_factor,
-        "effective_tau": effective_tau,
-        "penalty_multiplier": penalty,
-        "effective_autonomy_retained": penalty,
-        "regime": regime,
-    })
+    emit_receipt(
+        "latency_penalty",
+        {
+            "tenant_id": "axiom-autonomy",
+            "tau_seconds": tau_seconds,
+            "relay_factor": relay_factor,
+            "effective_tau": effective_tau,
+            "penalty_multiplier": penalty,
+            "effective_autonomy_retained": penalty,
+            "regime": regime,
+        },
+    )
 
     return penalty
 
@@ -119,11 +122,11 @@ def load_mars_params(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, MARS_PARAMS_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     # Extract stored hash
-    stored_hash = data.pop('payload_hash', None)
+    stored_hash = data.pop("payload_hash", None)
     if stored_hash is None:
         raise StopRule("mars_params.json missing payload_hash field")
 
@@ -131,35 +134,43 @@ def load_mars_params(path: str = None) -> Dict[str, Any]:
     computed_hash = dual_hash(json.dumps(data, sort_keys=True))
 
     # Verify hash
-    hash_verified = (stored_hash == computed_hash)
+    hash_verified = stored_hash == computed_hash
 
     if not hash_verified:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-autonomy",
-            "metric": "hash_mismatch",
-            "classification": "violation",
-            "action": "halt",
-            "expected": stored_hash,
-            "actual": computed_hash,
-            "file_path": path
-        })
-        raise StopRule(f"Mars params hash mismatch: expected {stored_hash}, got {computed_hash}")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-autonomy",
+                "metric": "hash_mismatch",
+                "classification": "violation",
+                "action": "halt",
+                "expected": stored_hash,
+                "actual": computed_hash,
+                "file_path": path,
+            },
+        )
+        raise StopRule(
+            f"Mars params hash mismatch: expected {stored_hash}, got {computed_hash}"
+        )
 
     # Emit ingest receipt
-    emit_receipt("mars_params_ingest", {
-        "tenant_id": "axiom-autonomy",
-        "file_path": path,
-        "tau_mars_max_seconds": data['tau_mars_max_seconds'],
-        "tau_mars_min_seconds": data['tau_mars_min_seconds'],
-        "latency_penalty_at_max": data['latency_penalty_at_max'],
-        "person_eq_milestone_early": data['person_eq_milestone_early'],
-        "person_eq_milestone_city": data['person_eq_milestone_city'],
-        "hash_verified": hash_verified,
-        "payload_hash": stored_hash
-    })
+    emit_receipt(
+        "mars_params_ingest",
+        {
+            "tenant_id": "axiom-autonomy",
+            "file_path": path,
+            "tau_mars_max_seconds": data["tau_mars_max_seconds"],
+            "tau_mars_min_seconds": data["tau_mars_min_seconds"],
+            "latency_penalty_at_max": data["latency_penalty_at_max"],
+            "person_eq_milestone_early": data["person_eq_milestone_early"],
+            "person_eq_milestone_city": data["person_eq_milestone_city"],
+            "hash_verified": hash_verified,
+            "payload_hash": stored_hash,
+        },
+    )
 
     # Restore hash to data for downstream use
-    data['payload_hash'] = stored_hash
+    data["payload_hash"] = stored_hash
 
     return data
 
@@ -169,7 +180,7 @@ def effective_alpha(
     tau_seconds: float,
     receipt_integrity: float = 0.0,
     relay_factor: float = 1.0,
-    onboard_alpha_floor: float = 0.0
+    onboard_alpha_floor: float = 0.0,
 ) -> float:
     """Calculate effective alpha after latency penalty with receipt mitigation.
 
@@ -224,17 +235,20 @@ def effective_alpha(
         mitigation_benefit = eff_alpha - unmitigated
 
         # Emit effective_alpha_receipt
-        emit_receipt("effective_alpha", {
-            "tenant_id": "axiom-autonomy",
-            "base_alpha": alpha,
-            "tau_seconds": tau_seconds,
-            "relay_factor": relay_factor,
-            "tau_penalty": raw_penalty,
-            "receipt_integrity": receipt_integrity,
-            "effective_alpha": eff_alpha,
-            "mitigation_benefit": mitigation_benefit,
-            "unmitigated_alpha": unmitigated,
-        })
+        emit_receipt(
+            "effective_alpha",
+            {
+                "tenant_id": "axiom-autonomy",
+                "base_alpha": alpha,
+                "tau_seconds": tau_seconds,
+                "relay_factor": relay_factor,
+                "tau_penalty": raw_penalty,
+                "receipt_integrity": receipt_integrity,
+                "effective_alpha": eff_alpha,
+                "mitigation_benefit": mitigation_benefit,
+                "unmitigated_alpha": unmitigated,
+            },
+        )
     else:
         # No receipt mitigation - original formula
         eff_alpha = alpha * raw_penalty

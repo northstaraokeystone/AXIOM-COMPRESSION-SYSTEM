@@ -12,7 +12,6 @@ Source: AXIOM D4 recursion architecture
 """
 
 
-
 def test_d4_spec_loads():
     """Spec loads with valid dual-hash."""
     from src.fractal_layers import get_d4_spec
@@ -30,11 +29,7 @@ def test_d4_alpha_floor():
     """Effective alpha >= 3.18 at depth=4 with base_alpha=3.0."""
     from src.fractal_layers import d4_recursive_fractal, D4_TREE_MIN
 
-    result = d4_recursive_fractal(
-        tree_size=D4_TREE_MIN,
-        base_alpha=3.0,
-        depth=4
-    )
+    result = d4_recursive_fractal(tree_size=D4_TREE_MIN, base_alpha=3.0, depth=4)
 
     assert result["eff_alpha"] >= 3.14  # 3.0 + 0.148 ~ 3.148
     assert result["floor_met"] or result["eff_alpha"] >= 3.1
@@ -45,11 +40,7 @@ def test_d4_alpha_target():
     from src.fractal_layers import d4_recursive_fractal, D4_TREE_MIN
 
     # With base_alpha=3.05, should reach target
-    result = d4_recursive_fractal(
-        tree_size=D4_TREE_MIN,
-        base_alpha=3.05,
-        depth=4
-    )
+    result = d4_recursive_fractal(tree_size=D4_TREE_MIN, base_alpha=3.05, depth=4)
 
     # 3.05 + 0.148 ~ 3.198
     assert result["eff_alpha"] >= 3.19
@@ -60,11 +51,7 @@ def test_d4_instability_zero():
     """Instability should be 0.00 for D4."""
     from src.fractal_layers import d4_recursive_fractal, D4_TREE_MIN
 
-    result = d4_recursive_fractal(
-        tree_size=D4_TREE_MIN,
-        base_alpha=3.0,
-        depth=4
-    )
+    result = d4_recursive_fractal(tree_size=D4_TREE_MIN, base_alpha=3.0, depth=4)
 
     assert result["instability"] == 0.00
 
@@ -79,7 +66,9 @@ def test_d4_uplift_values():
     for depth_str, expected in expected_uplifts.items():
         depth = int(depth_str)
         actual = get_d4_uplift(depth)
-        assert abs(actual - expected) < 0.001, f"Depth {depth}: expected {expected}, got {actual}"
+        assert abs(actual - expected) < 0.001, (
+            f"Depth {depth}: expected {expected}, got {actual}"
+        )
 
 
 def test_d4_depth_contributions():
@@ -101,11 +90,7 @@ def test_d4_push():
     """D4 push returns expected structure."""
     from src.fractal_layers import d4_push
 
-    result = d4_push(
-        tree_size=10**12,
-        base_alpha=3.0,
-        simulate=True
-    )
+    result = d4_push(tree_size=10**12, base_alpha=3.0, simulate=True)
 
     assert "eff_alpha" in result
     assert "instability" in result
@@ -133,17 +118,9 @@ def test_d4_scale_factor():
     """Scale factor applied correctly for large trees."""
     from src.fractal_layers import d4_recursive_fractal
 
-    result_small = d4_recursive_fractal(
-        tree_size=10**6,
-        base_alpha=3.0,
-        depth=4
-    )
+    result_small = d4_recursive_fractal(tree_size=10**6, base_alpha=3.0, depth=4)
 
-    result_large = d4_recursive_fractal(
-        tree_size=10**12,
-        base_alpha=3.0,
-        depth=4
-    )
+    result_large = d4_recursive_fractal(tree_size=10**12, base_alpha=3.0, depth=4)
 
     # Scale factor should cause slight reduction at larger sizes
     # But should be minimal
@@ -155,11 +132,7 @@ def test_d4_slo_check():
     """SLO check validates targets correctly."""
     from src.fractal_layers import d4_recursive_fractal, D4_TREE_MIN
 
-    result = d4_recursive_fractal(
-        tree_size=D4_TREE_MIN,
-        base_alpha=3.0,
-        depth=4
-    )
+    result = d4_recursive_fractal(tree_size=D4_TREE_MIN, base_alpha=3.0, depth=4)
 
     assert "slo_check" in result
     assert "alpha_floor" in result["slo_check"]

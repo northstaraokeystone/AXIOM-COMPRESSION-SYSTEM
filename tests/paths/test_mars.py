@@ -12,7 +12,6 @@ Source: AXIOM scalable paths architecture - Mars autonomous habitat
 """
 
 
-
 def test_mars_spec_loads():
     """Spec loads with valid structure."""
     from src.paths import load_path_spec
@@ -124,7 +123,7 @@ def test_mars_compute_isru_closure():
         "water": (85, 100),
         "o2": (90, 100),
         "power": (95, 100),
-        "food": (30, 100)
+        "food": (30, 100),
     }
 
     closure = compute_isru_closure(resources)

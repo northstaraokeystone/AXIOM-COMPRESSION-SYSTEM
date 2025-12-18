@@ -23,7 +23,7 @@ def emit_with_hash(
     receipt_type: str,
     tenant_id: str,
     data: Dict[str, Any],
-    extra_fields: Optional[Dict[str, Any]] = None
+    extra_fields: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Emit receipt with automatic payload_hash computation.
 
@@ -47,11 +47,7 @@ def emit_with_hash(
     """
     payload_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    receipt_data = {
-        "tenant_id": tenant_id,
-        **data,
-        "payload_hash": payload_hash
-    }
+    receipt_data = {"tenant_id": tenant_id, **data, "payload_hash": payload_hash}
 
     if extra_fields:
         receipt_data.update(extra_fields)
@@ -66,7 +62,7 @@ def emit_anomaly(
     delta: float,
     classification: str,
     action: str,
-    **extra
+    **extra,
 ) -> Dict[str, Any]:
     """Emit anomaly receipt for deviation detection.
 
@@ -100,7 +96,7 @@ def emit_anomaly(
         "delta": delta,
         "classification": classification,
         "action": action,
-        **extra
+        **extra,
     }
 
     return emit_with_hash("anomaly", tenant_id, data)
@@ -111,7 +107,7 @@ def emit_spec_ingest(
     tenant_id: str,
     file_path: str,
     spec_data: Dict[str, Any],
-    key_fields: Optional[list] = None
+    key_fields: Optional[list] = None,
 ) -> Dict[str, Any]:
     """Emit spec file ingest receipt.
 
@@ -138,10 +134,7 @@ def emit_spec_ingest(
     """
     content_hash = dual_hash(json.dumps(spec_data, sort_keys=True))
 
-    receipt_data = {
-        "file_path": file_path,
-        "payload_hash": content_hash
-    }
+    receipt_data = {"file_path": file_path, "payload_hash": content_hash}
 
     # Include specified key fields from spec
     if key_fields:
@@ -149,17 +142,14 @@ def emit_spec_ingest(
             if field in spec_data:
                 receipt_data[field] = spec_data[field]
 
-    return emit_receipt(receipt_type, {
-        "tenant_id": tenant_id,
-        **receipt_data
-    })
+    return emit_receipt(receipt_type, {"tenant_id": tenant_id, **receipt_data})
 
 
 def emit_result(
     receipt_type: str,
     tenant_id: str,
     result: Dict[str, Any],
-    hash_fields: Optional[list] = None
+    hash_fields: Optional[list] = None,
 ) -> Dict[str, Any]:
     """Emit result receipt with selective hashing.
 
@@ -184,15 +174,22 @@ def emit_result(
         hash_data = {k: result[k] for k in hash_fields if k in result}
     else:
         # Exclude common non-hashable fields
-        hash_data = {k: v for k, v in result.items()
-                     if k not in ("pruned_tree", "tree", "leaves")}
+        hash_data = {
+            k: v
+            for k, v in result.items()
+            if k not in ("pruned_tree", "tree", "leaves")
+        }
 
     payload_hash = dual_hash(json.dumps(hash_data, sort_keys=True))
 
     receipt_data = {
         "tenant_id": tenant_id,
-        **{k: v for k, v in result.items() if k not in ("pruned_tree", "tree", "leaves")},
-        "payload_hash": payload_hash
+        **{
+            k: v
+            for k, v in result.items()
+            if k not in ("pruned_tree", "tree", "leaves")
+        },
+        "payload_hash": payload_hash,
     }
 
     return emit_receipt(receipt_type, receipt_data)

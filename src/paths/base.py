@@ -22,11 +22,7 @@ from ..core import dual_hash, emit_receipt, StopRule
 REGISTERED_PATHS = ["mars", "multiplanet", "agi"]
 """List of all registered exploration paths."""
 
-PATH_RECEIPT_PREFIX = {
-    "mars": "mars_",
-    "multiplanet": "mp_",
-    "agi": "agi_"
-}
+PATH_RECEIPT_PREFIX = {"mars": "mars_", "multiplanet": "mp_", "agi": "agi_"}
 """Receipt type prefix for each path."""
 
 PATH_TENANT_ID = "axiom-paths"
@@ -35,17 +31,20 @@ PATH_TENANT_ID = "axiom-paths"
 
 # === EXCEPTION CLASS ===
 
+
 class PathStopRule(StopRule):
     """Raised when a path-specific stoprule triggers.
 
     Includes path context for debugging.
     """
+
     def __init__(self, path: str, message: str):
         self.path = path
         super().__init__(f"[{path}] {message}")
 
 
 # === PATH PRIMITIVES ===
+
 
 def load_path_spec(path_name: str) -> Dict[str, Any]:
     """Load path-specific spec.json with dual-hash verification.
@@ -64,11 +63,7 @@ def load_path_spec(path_name: str) -> Dict[str, Any]:
     if path_name not in REGISTERED_PATHS:
         raise PathStopRule(path_name, f"Unknown path: {path_name}")
 
-    spec_path = os.path.join(
-        os.path.dirname(__file__),
-        path_name,
-        "spec.json"
-    )
+    spec_path = os.path.join(os.path.dirname(__file__), path_name, "spec.json")
 
     if not os.path.exists(spec_path):
         raise PathStopRule(path_name, f"Spec file not found: {spec_path}")
@@ -80,18 +75,23 @@ def load_path_spec(path_name: str) -> Dict[str, Any]:
     spec_hash = dual_hash(json.dumps(spec, sort_keys=True))
 
     receipt_type = f"{PATH_RECEIPT_PREFIX[path_name]}spec_load"
-    emit_receipt(receipt_type, {
-        "path": path_name,
-        "version": spec.get("version", "0.0.0"),
-        "status": spec.get("status", "unknown"),
-        "spec_hash": spec_hash,
-        "tenant_id": PATH_TENANT_ID
-    })
+    emit_receipt(
+        receipt_type,
+        {
+            "path": path_name,
+            "version": spec.get("version", "0.0.0"),
+            "status": spec.get("status", "unknown"),
+            "spec_hash": spec_hash,
+            "tenant_id": PATH_TENANT_ID,
+        },
+    )
 
     return spec
 
 
-def emit_path_receipt(path: str, receipt_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
+def emit_path_receipt(
+    path: str, receipt_type: str, data: Dict[str, Any]
+) -> Dict[str, Any]:
     """Emit receipt with path prefix.
 
     Args:
@@ -115,7 +115,7 @@ def emit_path_receipt(path: str, receipt_type: str, data: Dict[str, Any]) -> Dic
     receipt_data = {
         "path": path,
         "tenant_id": data.get("tenant_id", PATH_TENANT_ID),
-        **data
+        **data,
     }
 
     return emit_receipt(full_type, receipt_data)
@@ -142,7 +142,7 @@ def get_path_status(path_name: str) -> Dict[str, Any]:
             "version": "0.0.0",
             "last_receipt": None,
             "status": "unknown",
-            "error": f"Unknown path: {path_name}"
+            "error": f"Unknown path: {path_name}",
         }
 
     try:
@@ -153,7 +153,7 @@ def get_path_status(path_name: str) -> Dict[str, Any]:
             "last_receipt": datetime.utcnow().isoformat() + "Z",
             "status": spec.get("status", "stub"),
             "dependencies": spec.get("dependencies", []),
-            "receipts": spec.get("receipts", [])
+            "receipts": spec.get("receipts", []),
         }
     except (PathStopRule, FileNotFoundError, json.JSONDecodeError) as e:
         status = {
@@ -161,7 +161,7 @@ def get_path_status(path_name: str) -> Dict[str, Any]:
             "version": "0.0.0",
             "last_receipt": None,
             "status": "error",
-            "error": str(e)
+            "error": str(e),
         }
 
     emit_path_receipt(path_name, "status", status)
@@ -184,7 +184,7 @@ def get_all_path_status() -> Dict[str, Any]:
         "total_paths": len(REGISTERED_PATHS),
         "ready_count": sum(1 for s in statuses.values() if s.get("ready")),
         "paths": statuses,
-        "tenant_id": PATH_TENANT_ID
+        "tenant_id": PATH_TENANT_ID,
     }
 
     emit_receipt("paths_status_all", summary)
@@ -211,7 +211,7 @@ def validate_path_dependencies(path_name: str) -> Dict[str, Any]:
         "dependencies": dependencies,
         "validated": [],
         "missing": [],
-        "all_met": True
+        "all_met": True,
     }
 
     for dep in dependencies:
@@ -238,9 +238,6 @@ def validate_path_dependencies(path_name: str) -> Dict[str, Any]:
     emit_path_receipt(path_name, "dependencies_validated", results)
 
     if not results["all_met"]:
-        raise PathStopRule(
-            path_name,
-            f"Missing dependencies: {results['missing']}"
-        )
+        raise PathStopRule(path_name, f"Missing dependencies: {results['missing']}")
 
     return results

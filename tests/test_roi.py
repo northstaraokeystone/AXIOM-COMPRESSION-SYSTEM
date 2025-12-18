@@ -11,6 +11,7 @@ Validates:
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.roi import (
@@ -122,7 +123,7 @@ class TestComputeROI:
             c_factor=1.0,
             p_cost=0.0,
             cycles_to_10k=3,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         result = StrategyResult(
@@ -132,7 +133,7 @@ class TestComputeROI:
             c_factor=1.0,
             p_cost=0.30,
             cycles_to_10k=2,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         roi = compute_roi(result, baseline, config)
@@ -156,7 +157,7 @@ class TestComputeROI:
             c_factor=1.0,
             p_cost=0.0,
             cycles_to_10k=3,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         result = StrategyResult(
@@ -166,7 +167,7 @@ class TestComputeROI:
             c_factor=1.0,
             p_cost=0.30,
             cycles_to_10k=2,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         compute_roi(result, baseline, config)
@@ -224,7 +225,7 @@ class TestRankByROI:
             c_factor=1.0,
             p_cost=0.0,
             cycles_to_10k=5,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         results = [
@@ -250,7 +251,7 @@ class TestRankByROI:
             c_factor=1.0,
             p_cost=0.0,
             cycles_to_10k=5,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         results = [
@@ -277,7 +278,7 @@ class TestUpdateResultROI:
             c_factor=1.0,
             p_cost=0.0,
             cycles_to_10k=3,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         result = StrategyResult(
@@ -287,7 +288,7 @@ class TestUpdateResultROI:
             c_factor=1.0,
             p_cost=0.0,
             cycles_to_10k=2,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         updated = update_result_roi(result, baseline, config)
@@ -310,7 +311,7 @@ class TestEvaluateStrategyROI:
             c_factor=1.0,
             p_cost=0.0,
             cycles_to_10k=3,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         result = StrategyResult(
@@ -320,7 +321,7 @@ class TestEvaluateStrategyROI:
             c_factor=1.0,
             p_cost=0.30,
             cycles_to_10k=2,
-            roi_score=0.0
+            roi_score=0.0,
         )
 
         evaluation = evaluate_strategy_roi(result, baseline, config)

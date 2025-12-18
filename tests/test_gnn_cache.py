@@ -47,7 +47,7 @@ from src.gnn_cache import (
     ENTRIES_PER_SOL,
     BLACKOUT_BASE_DAYS,
     NONLINEAR_RETENTION_FLOOR,
-    CURVE_TYPE
+    CURVE_TYPE,
 )
 from src.core import StopRule
 
@@ -61,8 +61,9 @@ class TestAsymptoteApproach:
             result = nonlinear_retention(150, CACHE_DEPTH_BASELINE)
 
         asymptote_proximity = abs(ASYMPTOTE_ALPHA - result["eff_alpha"])
-        assert asymptote_proximity <= 0.02, \
+        assert asymptote_proximity <= 0.02, (
             f"eff_alpha at 150d = {result['eff_alpha']}, proximity {asymptote_proximity} > 0.02"
+        )
 
     def test_asymptote_constant_value(self):
         """ASYMPTOTE_ALPHA = 2.72."""
@@ -78,7 +79,9 @@ class TestAsymptoteApproach:
         assert alpha_150 >= alpha_90, "Alpha should not decrease toward asymptote"
         assert alpha_150 <= ASYMPTOTE_ALPHA, f"Alpha {alpha_150} exceeds asymptote"
         # Check both are near asymptote
-        assert abs(alpha_150 - ASYMPTOTE_ALPHA) < 0.01, f"Alpha {alpha_150} not near asymptote"
+        assert abs(alpha_150 - ASYMPTOTE_ALPHA) < 0.01, (
+            f"Alpha {alpha_150} not near asymptote"
+        )
 
 
 class TestMinAlphaValidated:
@@ -89,13 +92,15 @@ class TestMinAlphaValidated:
         with redirect_stdout(io.StringIO()):
             result = nonlinear_retention(90, CACHE_DEPTH_BASELINE)
 
-        assert result["eff_alpha"] >= 2.7185, \
+        assert result["eff_alpha"] >= 2.7185, (
             f"eff_alpha at 90d = {result['eff_alpha']} < 2.7185"
+        )
 
     def test_min_eff_alpha_constant(self):
         """MIN_EFF_ALPHA_VALIDATED = 2.7185."""
-        assert MIN_EFF_ALPHA_VALIDATED == 2.7185, \
+        assert MIN_EFF_ALPHA_VALIDATED == 2.7185, (
             f"MIN_EFF_ALPHA_VALIDATED = {MIN_EFF_ALPHA_VALIDATED} != 2.7185"
+        )
 
 
 class TestNonlinearBeatsLinear:
@@ -107,8 +112,9 @@ class TestNonlinearBeatsLinear:
             result = nonlinear_retention(90, CACHE_DEPTH_BASELINE)
 
         linear_90d = 2.65  # Prior linear model prediction
-        assert result["eff_alpha"] > linear_90d, \
+        assert result["eff_alpha"] > linear_90d, (
             f"Nonlinear {result['eff_alpha']} <= linear {linear_90d} at 90d"
+        )
 
     def test_nonlinear_beats_linear_150d(self):
         """Nonlinear alpha at 150d > linear prediction (2.55)."""
@@ -116,8 +122,9 @@ class TestNonlinearBeatsLinear:
             result = nonlinear_retention(150, CACHE_DEPTH_BASELINE)
 
         linear_150d = 2.55  # Extrapolated linear model
-        assert result["eff_alpha"] > linear_150d, \
+        assert result["eff_alpha"] > linear_150d, (
             f"Nonlinear {result['eff_alpha']} <= linear {linear_150d} at 150d"
+        )
 
 
 class TestNoCliffBehavior:
@@ -139,8 +146,9 @@ class TestNoCliffBehavior:
                 except StopRule:
                     break
 
-        assert max_drop < 0.01, \
+        assert max_drop < 0.01, (
             f"Cliff behavior detected: max single-day drop = {max_drop} >= 0.01"
+        )
 
     def test_retention_monotonically_decreasing(self):
         """Retention factor monotonically decreases with duration."""
@@ -151,8 +159,9 @@ class TestNoCliffBehavior:
                 try:
                     result = nonlinear_retention(days, CACHE_DEPTH_BASELINE)
                     if prev_retention is not None:
-                        assert result["retention_factor"] <= prev_retention, \
+                        assert result["retention_factor"] <= prev_retention, (
                             f"Retention increased at day {days}"
+                        )
                     prev_retention = result["retention_factor"]
                 except StopRule:
                     break
@@ -177,8 +186,9 @@ class TestCacheOverflowAt200d:
                 pass
 
         output_str = output.getvalue()
-        assert "overflow_stoprule" in output_str, \
+        assert "overflow_stoprule" in output_str, (
             "overflow_stoprule receipt not emitted"
+        )
 
     def test_predict_overflow_function(self):
         """predict_overflow correctly calculates overflow risk.
@@ -191,18 +201,21 @@ class TestCacheOverflowAt200d:
         result = predict_overflow(200, CACHE_DEPTH_BASELINE)
 
         # Verify the function returns valid overflow risk (10% at 200d)
-        assert result["overflow_risk"] == 0.1, \
+        assert result["overflow_risk"] == 0.1, (
             f"Overflow risk at 200d = {result['overflow_risk']} != 0.1"
+        )
         # Overflow day should be at 95% capacity
-        assert result["overflow_day"] == 1900, \
+        assert result["overflow_day"] == 1900, (
             f"Overflow day = {result['overflow_day']} != 1900"
+        )
 
     def test_no_overflow_at_150d(self):
         """No overflow at 150d with baseline cache."""
         result = predict_overflow(150, CACHE_DEPTH_BASELINE)
 
-        assert result["overflow_risk"] < OVERFLOW_CAPACITY_PCT, \
+        assert result["overflow_risk"] < OVERFLOW_CAPACITY_PCT, (
             f"Unexpected overflow at 150d: risk = {result['overflow_risk']}"
+        )
 
 
 class TestQuorumDegradation180d:
@@ -214,8 +227,9 @@ class TestQuorumDegradation180d:
             try:
                 result = nonlinear_retention(180, CACHE_DEPTH_BASELINE)
                 # Either low alpha or overflow
-                assert result["eff_alpha"] < ASYMPTOTE_ALPHA, \
+                assert result["eff_alpha"] < ASYMPTOTE_ALPHA, (
                     "Should show degradation at 180d"
+                )
             except StopRule:
                 # Overflow is acceptable at this duration
                 pass
@@ -271,14 +285,15 @@ class TestSweep1000Iterations:
                 day_range=(BLACKOUT_BASE_DAYS, 180),  # Stop before overflow
                 cache_depth=CACHE_DEPTH_BASELINE,
                 iterations=100,  # Reduced for speed
-                seed=42
+                seed=42,
             )
 
         # Verify alpha >= 2.50 until overflow
         for r in results:
             if "eff_alpha" in r and r.get("survival_status", False):
-                assert r["eff_alpha"] >= 2.50, \
+                assert r["eff_alpha"] >= 2.50, (
                     f"Alpha {r['eff_alpha']} < 2.50 at day {r['blackout_days']}"
+                )
 
     def test_sweep_receipts_populated(self):
         """Verify receipts are populated for sweep."""
@@ -288,7 +303,7 @@ class TestSweep1000Iterations:
                 day_range=(BLACKOUT_BASE_DAYS, 90),
                 cache_depth=CACHE_DEPTH_BASELINE,
                 iterations=10,
-                seed=42
+                seed=42,
             )
 
         assert len(results) == 10, f"Expected 10 results, got {len(results)}"
@@ -306,20 +321,24 @@ class TestInnovationStubs:
             quantum = quantum_relay_stub()
             swarm = swarm_autorepair_stub()
 
-        assert quantum["status"] == "stub_only", \
+        assert quantum["status"] == "stub_only", (
             f"quantum_relay_stub status = {quantum['status']} != 'stub_only'"
-        assert swarm["status"] == "stub_only", \
+        )
+        assert swarm["status"] == "stub_only", (
             f"swarm_autorepair_stub status = {swarm['status']} != 'stub_only'"
+        )
 
     def test_cosmos_sim_not_available(self):
         """cosmos_sim_stub returns status='not_available'."""
         with redirect_stdout(io.StringIO()):
             cosmos = cosmos_sim_stub()
 
-        assert cosmos["status"] == "not_available", \
+        assert cosmos["status"] == "not_available", (
             f"cosmos_sim_stub status = {cosmos['status']} != 'not_available'"
-        assert cosmos["reason"] == "no_public_api", \
+        )
+        assert cosmos["reason"] == "no_public_api", (
             f"cosmos_sim_stub reason = {cosmos['reason']} != 'no_public_api'"
+        )
 
 
 class TestLockedConstants:
@@ -367,8 +386,9 @@ class TestGNNBoostFactor:
         boost_90 = gnn_boost_factor(90)
         boost_150 = gnn_boost_factor(150)
 
-        assert boost_150 > boost_90, \
+        assert boost_150 > boost_90, (
             f"Boost at 150d ({boost_150}) not > boost at 90d ({boost_90})"
+        )
 
     def test_gnn_boost_saturates(self):
         """GNN boost saturates toward 1.0."""
@@ -384,16 +404,18 @@ class TestRetentionCurvePhysics:
         with redirect_stdout(io.StringIO()):
             result = nonlinear_retention(BLACKOUT_BASE_DAYS, CACHE_DEPTH_BASELINE)
 
-        assert abs(result["retention_factor"] - 1.4) < 0.01, \
+        assert abs(result["retention_factor"] - 1.4) < 0.01, (
             f"Retention at 43d = {result['retention_factor']} != ~1.4"
+        )
 
     def test_retention_floor(self):
         """Retention approaches floor (1.25) at extended duration."""
         with redirect_stdout(io.StringIO()):
             result = nonlinear_retention(180, CACHE_DEPTH_BASELINE)
 
-        assert result["retention_factor"] >= NONLINEAR_RETENTION_FLOOR, \
+        assert result["retention_factor"] >= NONLINEAR_RETENTION_FLOOR, (
             f"Retention {result['retention_factor']} < floor {NONLINEAR_RETENTION_FLOOR}"
+        )
 
     def test_nonlinear_retention_floor_constant(self):
         """NONLINEAR_RETENTION_FLOOR = 1.25."""
@@ -411,7 +433,7 @@ class TestSLOValidation:
                 day_range=(43, 150),
                 cache_depth=CACHE_DEPTH_BASELINE,
                 iterations=50,
-                seed=42
+                seed=42,
             )
 
             validation = validate_gnn_nonlinear_slos(sweep_results)
@@ -445,5 +467,6 @@ class TestApplyGNNNonlinearBoost:
 
         assert "boosted_mitigation" in result
         assert "gnn_boost" in result
-        assert result["boosted_mitigation"] >= result["base_mitigation"], \
+        assert result["boosted_mitigation"] >= result["base_mitigation"], (
             "Boosted mitigation should be >= base"
+        )

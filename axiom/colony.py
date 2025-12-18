@@ -19,6 +19,7 @@ try:
     from src.core import emit_receipt
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from src.core import emit_receipt
 
@@ -51,6 +52,7 @@ AUTONOMOUS_DECISION_RATE_BPS = 1000  # bits/sec for autonomous systems
 
 class ColonyPhase(Enum):
     """Colony development phase."""
+
     INITIAL = "initial"
     GROWTH = "growth"
     SELF_SUFFICIENT = "self_sufficient"
@@ -59,6 +61,7 @@ class ColonyPhase(Enum):
 
 class CrewRole(Enum):
     """Crew member roles."""
+
     COMMANDER = "commander"
     PILOT = "pilot"
     ENGINEER = "engineer"
@@ -69,9 +72,11 @@ class CrewRole(Enum):
 
 # === DATA STRUCTURES ===
 
+
 @dataclass
 class CrewMember:
     """Individual crew member state."""
+
     id: str
     role: CrewRole
     stress_level: float = 0.3
@@ -83,6 +88,7 @@ class CrewMember:
 @dataclass
 class CrewState:
     """Aggregate crew state."""
+
     members: List[CrewMember] = field(default_factory=list)
     psychology: CrewPsychologyState = field(default_factory=CrewPsychologyState)
     cohesion: float = 1.0
@@ -92,6 +98,7 @@ class CrewState:
 @dataclass
 class ResourceState:
     """Colony resource levels."""
+
     o2_kg: float = 1000.0
     water_kg: float = 5000.0
     food_kg: float = 10000.0
@@ -102,6 +109,7 @@ class ResourceState:
 @dataclass
 class EnvironmentState:
     """Mars environment state."""
+
     sol: int = 0
     temperature_c: float = -60.0
     dust_opacity: float = 0.3
@@ -113,6 +121,7 @@ class EnvironmentState:
 @dataclass
 class ColonyState:
     """Complete colony state."""
+
     name: str = "Alpha Base"
     phase: ColonyPhase = ColonyPhase.INITIAL
     crew: CrewState = field(default_factory=CrewState)
@@ -125,9 +134,9 @@ class ColonyState:
 
 # === INITIALIZATION ===
 
+
 def initialize_crew(
-    crew_size: int = DEFAULT_CREW_SIZE,
-    initial_stress: float = NOMINAL_STRESS
+    crew_size: int = DEFAULT_CREW_SIZE, initial_stress: float = NOMINAL_STRESS
 ) -> CrewState:
     """Initialize crew state.
 
@@ -163,7 +172,7 @@ def initialize_crew(
 def initialize_colony(
     name: str = "Alpha Base",
     crew_size: int = DEFAULT_CREW_SIZE,
-    initial_resources: ResourceState = None
+    initial_resources: ResourceState = None,
 ) -> ColonyState:
     """Initialize complete colony state.
 
@@ -189,22 +198,24 @@ def initialize_colony(
     )
 
     # Emit initialization receipt
-    emit_receipt("colony_init", {
-        "tenant_id": TENANT_ID,
-        "colony_name": name,
-        "crew_size": crew_size,
-        "initial_phase": colony.phase.value,
-    })
+    emit_receipt(
+        "colony_init",
+        {
+            "tenant_id": TENANT_ID,
+            "colony_name": name,
+            "crew_size": crew_size,
+            "initial_phase": colony.phase.value,
+        },
+    )
 
     return colony
 
 
 # === STATE UPDATES ===
 
+
 def update_crew_stress(
-    crew: CrewState,
-    stress_delta: float,
-    crisis_event: bool = False
+    crew: CrewState, stress_delta: float, crisis_event: bool = False
 ) -> CrewState:
     """Update crew stress levels.
 
@@ -239,8 +250,7 @@ def update_crew_stress(
 
 
 def update_environment(
-    env: EnvironmentState,
-    days_elapsed: int = 1
+    env: EnvironmentState, days_elapsed: int = 1
 ) -> EnvironmentState:
     """Update Mars environment state.
 
@@ -274,9 +284,7 @@ def update_environment(
 
 
 def consume_resources(
-    resources: ResourceState,
-    crew_size: int,
-    days: int = 1
+    resources: ResourceState, crew_size: int, days: int = 1
 ) -> Tuple[ResourceState, bool]:
     """Consume daily resources.
 
@@ -297,9 +305,7 @@ def consume_resources(
     resources.food_kg -= food_needed
 
     sufficient = (
-        resources.o2_kg > 0 and
-        resources.water_kg > 0 and
-        resources.food_kg > 0
+        resources.o2_kg > 0 and resources.water_kg > 0 and resources.food_kg > 0
     )
 
     return resources, sufficient
@@ -334,7 +340,7 @@ def update_colony_state(
     colony: ColonyState,
     days_elapsed: int = 1,
     crisis_event: bool = False,
-    stress_delta: float = 0.0
+    stress_delta: float = 0.0,
 ) -> ColonyState:
     """Update complete colony state.
 
@@ -360,9 +366,7 @@ def update_colony_state(
 
     # Consume resources
     colony.resources, sufficient = consume_resources(
-        colony.resources,
-        len(colony.crew.members),
-        days_elapsed
+        colony.resources, len(colony.crew.members), days_elapsed
     )
 
     if not sufficient:
@@ -378,7 +382,7 @@ def update_colony_state(
         colony.crew.psychology.stress_level,
         colony.crew.psychology.isolation_days,
         colony.crew.psychology.crisis_count,
-        colony.crew.cohesion
+        colony.crew.cohesion,
     )
 
     h_total = total_colony_entropy(
@@ -392,7 +396,11 @@ def update_colony_state(
 
     # External dependency (decreases as autonomy increases)
     external_support_kg = 60000 * (1 - colony.autonomy_level)
-    colony.sovereignty_ratio = colony_mass_eq / external_support_kg if external_support_kg > 0 else float("inf")
+    colony.sovereignty_ratio = (
+        colony_mass_eq / external_support_kg
+        if external_support_kg > 0
+        else float("inf")
+    )
 
     # Update phase based on sovereignty
     if colony.sovereignty_ratio > 1.0:
@@ -405,24 +413,24 @@ def update_colony_state(
         colony.phase = ColonyPhase.INITIAL
 
     # Emit update receipt
-    emit_receipt("colony_update", {
-        "tenant_id": TENANT_ID,
-        "sol": colony.environment.sol,
-        "crew_stress": colony.crew.psychology.stress_level,
-        "h_psychology": h_psychology,
-        "h_total": h_total,
-        "sovereignty_ratio": colony.sovereignty_ratio,
-        "phase": colony.phase.value,
-        "is_conjunction": colony.environment.is_conjunction,
-    })
+    emit_receipt(
+        "colony_update",
+        {
+            "tenant_id": TENANT_ID,
+            "sol": colony.environment.sol,
+            "crew_stress": colony.crew.psychology.stress_level,
+            "h_psychology": h_psychology,
+            "h_total": h_total,
+            "sovereignty_ratio": colony.sovereignty_ratio,
+            "phase": colony.phase.value,
+            "is_conjunction": colony.environment.is_conjunction,
+        },
+    )
 
     return colony
 
 
-def simulate_blackout(
-    colony: ColonyState,
-    blackout_days: int = 43
-) -> ColonyState:
+def simulate_blackout(colony: ColonyState, blackout_days: int = 43) -> ColonyState:
     """Simulate communication blackout (Mars conjunction).
 
     Args:
@@ -439,22 +447,21 @@ def simulate_blackout(
     for day in range(blackout_days):
         # Higher stress accumulation during blackout
         stress_delta = 0.01 if day < 20 else 0.02
-        colony = update_colony_state(
-            colony,
-            days_elapsed=1,
-            stress_delta=stress_delta
-        )
+        colony = update_colony_state(colony, days_elapsed=1, stress_delta=stress_delta)
 
     # End conjunction
     colony.environment.is_conjunction = False
     colony.crew.communication_quality = 1.0
 
-    emit_receipt("blackout_complete", {
-        "tenant_id": TENANT_ID,
-        "blackout_days": blackout_days,
-        "final_stress": colony.crew.psychology.stress_level,
-        "final_sovereignty": colony.sovereignty_ratio,
-        "survived": colony.sovereignty_ratio > 0,
-    })
+    emit_receipt(
+        "blackout_complete",
+        {
+            "tenant_id": TENANT_ID,
+            "blackout_days": blackout_days,
+            "final_stress": colony.crew.psychology.stress_level,
+            "final_sovereignty": colony.sovereignty_ratio,
+            "survived": colony.sovereignty_ratio > 0,
+        },
+    )
 
     return colony

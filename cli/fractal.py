@@ -47,14 +47,16 @@ def cmd_fractal_push(tree_size: int, base_alpha: float, simulate: bool):
     print(f"  Ceiling breached: {'YES' if result['ceiling_breached'] else 'NO'}")
 
     print("\nScale Entropies:")
-    for scale_key, entropy in result['scale_entropies'].items():
+    for scale_key, entropy in result["scale_entropies"].items():
         print(f"  {scale_key}: {entropy}")
 
     print(f"\nCross-scale correlation: {result['cross_scale_corr']}")
 
     print("\nSLO VALIDATION:")
-    alpha_ok = result['fractal_alpha'] > 3.0
-    print(f"  fractal_alpha > 3.0: {'PASS' if alpha_ok else 'FAIL'} ({result['fractal_alpha']})")
+    alpha_ok = result["fractal_alpha"] > 3.0
+    print(
+        f"  fractal_alpha > 3.0: {'PASS' if alpha_ok else 'FAIL'} ({result['fractal_alpha']})"
+    )
 
     if simulate:
         print_receipt_note("fractal_layer")
@@ -117,7 +119,9 @@ def cmd_alpha_boost(mode: str, tree_size: int, base_alpha: float, simulate: bool
         print(f"  Total boost: +{hybrid_result['hybrid_total']}")
         print(f"  Final alpha: {hybrid_result['final_alpha']}")
         print(f"  Instability: {hybrid_result['instability']}")
-        print(f"  Ceiling breached: {'YES' if hybrid_result['ceiling_breached'] else 'NO'}")
+        print(
+            f"  Ceiling breached: {'YES' if hybrid_result['ceiling_breached'] else 'NO'}"
+        )
 
         if simulate:
             print_receipt_note("fractal_layer")

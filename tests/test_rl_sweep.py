@@ -47,6 +47,7 @@ def suppress_receipts():
 @pytest.fixture
 def capture_receipts():
     """Capture receipts emitted during tests."""
+
     class ReceiptCapture:
         def __init__(self):
             self.output = io.StringIO()
@@ -62,7 +63,7 @@ def capture_receipts():
 
         @property
         def receipts(self):
-            lines = self.output.getvalue().strip().split('\n')
+            lines = self.output.getvalue().strip().split("\n")
             receipts = []
             for line in lines:
                 if line:
@@ -80,6 +81,7 @@ def clear_cache():
     """Clear cached specs before each test."""
     from src.rl_tune import clear_sweep_spec_cache
     from src.adaptive_depth import clear_spec_cache
+
     clear_sweep_spec_cache()
     clear_spec_cache()
     yield
@@ -102,16 +104,22 @@ class TestSpecLoads:
     def test_spec_loads_valid_json(self, suppress_receipts, clear_cache):
         """Verify spec loads as valid JSON."""
         from src.rl_tune import load_sweep_spec
+
         spec = load_sweep_spec()
         assert isinstance(spec, dict), "Spec should be a dict"
 
     def test_spec_contains_required_fields(self, suppress_receipts, clear_cache):
         """Verify spec contains all required fields."""
         from src.rl_tune import load_sweep_spec
+
         spec = load_sweep_spec()
         required_fields = [
-            "sweep_runs", "lr_min", "lr_max",
-            "retention_target", "seed", "early_stop_threshold"
+            "sweep_runs",
+            "lr_min",
+            "lr_max",
+            "retention_target",
+            "seed",
+            "early_stop_threshold",
         ]
         for field in required_fields:
             assert field in spec, f"Missing required field: {field}"
@@ -137,7 +145,9 @@ class TestSpecHasDualHash:
 
         receipt = spec_receipts[0]
         assert "payload_hash" in receipt, "Receipt missing payload_hash"
-        assert ":" in receipt["payload_hash"], "payload_hash should be dual format (sha256:blake3)"
+        assert ":" in receipt["payload_hash"], (
+            "payload_hash should be dual format (sha256:blake3)"
+        )
 
 
 # === TEST 3: SWEEP RUNS VALUE ===
@@ -149,12 +159,16 @@ class TestSweepRunsValue:
     def test_sweep_runs_equals_500(self, suppress_receipts, clear_cache):
         """Verify sweep_runs is exactly 500."""
         from src.rl_tune import load_sweep_spec
+
         spec = load_sweep_spec()
-        assert spec["sweep_runs"] == 500, f"sweep_runs should be 500, got {spec['sweep_runs']}"
+        assert spec["sweep_runs"] == 500, (
+            f"sweep_runs should be 500, got {spec['sweep_runs']}"
+        )
 
     def test_constant_matches_spec(self, suppress_receipts, clear_cache):
         """Verify RL_SWEEP_RUNS constant matches spec."""
         from src.rl_tune import RL_SWEEP_RUNS, load_sweep_spec
+
         spec = load_sweep_spec()
         assert RL_SWEEP_RUNS == spec["sweep_runs"], "Constant should match spec"
 
@@ -168,18 +182,21 @@ class TestLRRangeValid:
     def test_lr_min_value(self, suppress_receipts, clear_cache):
         """Verify lr_min is 0.001."""
         from src.rl_tune import load_sweep_spec
+
         spec = load_sweep_spec()
         assert spec["lr_min"] == 0.001, f"lr_min should be 0.001, got {spec['lr_min']}"
 
     def test_lr_max_value(self, suppress_receipts, clear_cache):
         """Verify lr_max is 0.01."""
         from src.rl_tune import load_sweep_spec
+
         spec = load_sweep_spec()
         assert spec["lr_max"] == 0.01, f"lr_max should be 0.01, got {spec['lr_max']}"
 
     def test_lr_min_less_than_max(self, suppress_receipts, clear_cache):
         """Verify lr_min < lr_max."""
         from src.rl_tune import load_sweep_spec
+
         spec = load_sweep_spec()
         assert spec["lr_min"] < spec["lr_max"], "lr_min should be < lr_max"
 
@@ -197,8 +214,9 @@ class TestSeedDeterminism:
         result1 = run_500_sweep(runs=50, seed=42, early_stopping=False)
         result2 = run_500_sweep(runs=50, seed=42, early_stopping=False)
 
-        assert result1["best_retention"] == result2["best_retention"], \
+        assert result1["best_retention"] == result2["best_retention"], (
             "Same seed should produce same retention"
+        )
 
     def test_different_seed_different_results(self, suppress_receipts, clear_cache):
         """Verify different seeds can produce different results."""
@@ -223,12 +241,7 @@ class TestStateDimension:
         """Verify build_state returns 4-element tuple."""
         from src.rl_tune import build_state
 
-        state = build_state(
-            retention=1.01,
-            tree_size=int(1e6),
-            entropy=0.5,
-            depth=6
-        )
+        state = build_state(retention=1.01, tree_size=int(1e6), entropy=0.5, depth=6)
 
         assert len(state) == 4, f"State should have 4 elements, got {len(state)}"
         assert isinstance(state, tuple), "State should be a tuple"
@@ -263,8 +276,9 @@ class TestActionLayersBounded:
         for _ in range(100):
             state = (1.01, int(1e6), 0.5, 6)
             action = sample_action(state, {})
-            assert action["layers_delta"] in valid_deltas, \
+            assert action["layers_delta"] in valid_deltas, (
                 f"layers_delta should be in {valid_deltas}, got {action['layers_delta']}"
+            )
 
 
 # === TEST 8: ACTION LR IN RANGE ===
@@ -283,8 +297,9 @@ class TestActionLRInRange:
         for _ in range(100):
             state = (1.01, int(1e6), 0.5, 6)
             action = sample_action(state, {})
-            assert RL_LR_MIN <= action["lr"] <= RL_LR_MAX, \
+            assert RL_LR_MIN <= action["lr"] <= RL_LR_MAX, (
                 f"lr should be in [{RL_LR_MIN}, {RL_LR_MAX}], got {action['lr']}"
+            )
 
 
 # === TEST 9: REWARD COMPUTATION ===
@@ -302,16 +317,24 @@ class TestRewardComputation:
 
         # Expected: 2.85 - 0.1*0.5 - 0 = 2.80
         expected = 2.85 - 0.1 * 0.5
-        assert abs(reward - expected) < 0.001, f"Reward should be ~{expected}, got {reward}"
+        assert abs(reward - expected) < 0.001, (
+            f"Reward should be ~{expected}, got {reward}"
+        )
 
     def test_reward_with_cost(self, suppress_receipts):
         """Verify compute cost penalty is applied."""
         from src.rl_tune import compute_reward_500
 
-        reward_low_cost = compute_reward_500(eff_alpha=2.85, compute_cost=0.1, stability=0.0)
-        reward_high_cost = compute_reward_500(eff_alpha=2.85, compute_cost=0.9, stability=0.0)
+        reward_low_cost = compute_reward_500(
+            eff_alpha=2.85, compute_cost=0.1, stability=0.0
+        )
+        reward_high_cost = compute_reward_500(
+            eff_alpha=2.85, compute_cost=0.9, stability=0.0
+        )
 
-        assert reward_low_cost > reward_high_cost, "Higher cost should give lower reward"
+        assert reward_low_cost > reward_high_cost, (
+            "Higher cost should give lower reward"
+        )
 
 
 # === TEST 10: INSTABILITY PENALTY ===
@@ -325,15 +348,20 @@ class TestInstabilityPenalty:
         from src.rl_tune import compute_reward_500
 
         # Stable (no penalty)
-        reward_stable = compute_reward_500(eff_alpha=2.85, compute_cost=0.5, stability=0.03)
+        reward_stable = compute_reward_500(
+            eff_alpha=2.85, compute_cost=0.5, stability=0.03
+        )
 
         # Unstable (penalty applied)
-        reward_unstable = compute_reward_500(eff_alpha=2.85, compute_cost=0.5, stability=0.06)
+        reward_unstable = compute_reward_500(
+            eff_alpha=2.85, compute_cost=0.5, stability=0.06
+        )
 
         # Unstable should be lower by ~1.0 penalty
         penalty_diff = reward_stable - reward_unstable
-        assert abs(penalty_diff - 1.0) < 0.01, \
+        assert abs(penalty_diff - 1.0) < 0.01, (
             f"Penalty should be ~1.0, difference was {penalty_diff}"
+        )
 
 
 # === TEST 11: EARLY STOP AT TARGET ===
@@ -356,7 +384,9 @@ class TestEarlyStopAtTarget:
         assert early_stop_check(1.04) is False, "Should not stop below 1.05"
         assert early_stop_check(1.01) is False, "Should not stop at baseline"
 
-    def test_sweep_stops_early_when_target_reached(self, suppress_receipts, clear_cache):
+    def test_sweep_stops_early_when_target_reached(
+        self, suppress_receipts, clear_cache
+    ):
         """Verify sweep stops early when target achieved."""
         from src.rl_tune import run_500_sweep
 
@@ -364,7 +394,9 @@ class TestEarlyStopAtTarget:
 
         if result["target_achieved"]:
             assert result["runs_completed"] <= 500, "Should complete <= 500 runs"
-            assert result["convergence_run"] is not None, "Should record convergence run"
+            assert result["convergence_run"] is not None, (
+                "Should record convergence run"
+            )
 
 
 # === TEST 12: 100 RUN PROGRESS ===
@@ -379,8 +411,9 @@ class TestProgress100Runs:
 
         result = run_500_sweep(runs=100, seed=42, early_stopping=False)
 
-        assert result["best_retention"] > 1.01, \
+        assert result["best_retention"] > 1.01, (
             f"100 runs should achieve retention > 1.01, got {result['best_retention']}"
+        )
 
 
 # === TEST 13: 300 RUN PROGRESS ===
@@ -395,8 +428,9 @@ class TestProgress300Runs:
 
         result = run_500_sweep(runs=300, seed=42, early_stopping=False)
 
-        assert result["best_retention"] > 1.03, \
+        assert result["best_retention"] > 1.03, (
             f"300 runs should achieve retention > 1.03, got {result['best_retention']}"
+        )
 
 
 # === TEST 14: 500 RUN TARGET ===
@@ -412,8 +446,9 @@ class TestTarget500Runs:
         result = run_500_sweep(runs=500, seed=42, early_stopping=False)
 
         # Allow small tolerance for randomness
-        assert result["best_retention"] >= RETENTION_TARGET - 0.01, \
+        assert result["best_retention"] >= RETENTION_TARGET - 0.01, (
             f"500 runs should achieve retention >= {RETENTION_TARGET - 0.01}, got {result['best_retention']}"
+        )
 
     def test_target_achieved_flag_set(self, suppress_receipts, clear_cache):
         """Verify target_achieved flag is set when target reached."""
@@ -440,7 +475,9 @@ class TestReceiptsEmitted:
             run_500_sweep(runs=50, seed=42)
 
         receipts = cap.receipts
-        sweep_receipts = [r for r in receipts if r.get("receipt_type") == "rl_500_sweep"]
+        sweep_receipts = [
+            r for r in receipts if r.get("receipt_type") == "rl_500_sweep"
+        ]
         assert len(sweep_receipts) >= 1, "No rl_500_sweep receipt emitted"
 
         receipt = sweep_receipts[0]
@@ -448,7 +485,9 @@ class TestReceiptsEmitted:
         assert "target_achieved" in receipt
         assert "payload_hash" in receipt
 
-    def test_retention_105_receipt_when_target_achieved(self, capture_receipts, clear_cache):
+    def test_retention_105_receipt_when_target_achieved(
+        self, capture_receipts, clear_cache
+    ):
         """Verify retention_105_receipt emitted when target achieved."""
         from src.rl_tune import run_500_sweep
 
@@ -458,9 +497,12 @@ class TestReceiptsEmitted:
 
         if result["target_achieved"]:
             receipts = cap.receipts
-            target_receipts = [r for r in receipts if r.get("receipt_type") == "retention_105"]
-            assert len(target_receipts) >= 1, \
+            target_receipts = [
+                r for r in receipts if r.get("receipt_type") == "retention_105"
+            ]
+            assert len(target_receipts) >= 1, (
                 "retention_105_receipt should be emitted when target achieved"
+            )
 
     def test_receipt_has_valid_payload_hash(self, capture_receipts, clear_cache):
         """Verify receipts have valid dual-hash payload_hash."""
@@ -471,7 +513,9 @@ class TestReceiptsEmitted:
             run_500_sweep(runs=50, seed=42)
 
         receipts = cap.receipts
-        sweep_receipts = [r for r in receipts if r.get("receipt_type") == "rl_500_sweep"]
+        sweep_receipts = [
+            r for r in receipts if r.get("receipt_type") == "rl_500_sweep"
+        ]
 
         for receipt in sweep_receipts:
             assert ":" in receipt["payload_hash"], "payload_hash should be dual format"

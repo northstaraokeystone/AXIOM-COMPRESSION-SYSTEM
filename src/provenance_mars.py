@@ -54,6 +54,7 @@ RECEIPT_PARAMS_PATH = "data/verified/receipt_params.json"
 
 # === DATACLASSES ===
 
+
 @dataclass
 class ProvenanceConfig:
     """Configuration for Mars provenance system.
@@ -63,6 +64,7 @@ class ProvenanceConfig:
         disparity_threshold: Halt threshold for missing receipts (default 0.005)
         integrity_target: Target receipt coverage (default 0.90)
     """
+
     sync_window_hours: int = SYNC_WINDOW_HOURS
     disparity_threshold: float = DISPARITY_HALT_THRESHOLD
     integrity_target: float = RECEIPT_INTEGRITY_BASELINE
@@ -81,6 +83,7 @@ class ProvenanceState:
         last_sync_ts: ISO8601 timestamp of last sync
         synced_batches: Set of batch IDs that have been synced
     """
+
     pending_receipts: List[Dict] = field(default_factory=list)
     merkle_batches: List[str] = field(default_factory=list)
     receipt_count: int = 0
@@ -91,6 +94,7 @@ class ProvenanceState:
 
 
 # === FUNCTIONS ===
+
 
 def load_receipt_params(path: str = None) -> Dict[str, Any]:
     """Load and verify receipt integrity parameters.
@@ -114,11 +118,11 @@ def load_receipt_params(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, RECEIPT_PARAMS_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     # Extract stored hash
-    stored_hash = data.pop('payload_hash', None)
+    stored_hash = data.pop("payload_hash", None)
     if stored_hash is None:
         raise StopRule("receipt_params.json missing payload_hash field")
 
@@ -126,35 +130,45 @@ def load_receipt_params(path: str = None) -> Dict[str, Any]:
     computed_hash = dual_hash(json.dumps(data, sort_keys=True))
 
     # Verify hash
-    hash_verified = (stored_hash == computed_hash)
+    hash_verified = stored_hash == computed_hash
 
     if not hash_verified:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-autonomy",
-            "metric": "hash_mismatch",
-            "classification": "violation",
-            "action": "halt",
-            "expected": stored_hash,
-            "actual": computed_hash,
-            "file_path": path
-        })
-        raise StopRule(f"Receipt params hash mismatch: expected {stored_hash}, got {computed_hash}")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-autonomy",
+                "metric": "hash_mismatch",
+                "classification": "violation",
+                "action": "halt",
+                "expected": stored_hash,
+                "actual": computed_hash,
+                "file_path": path,
+            },
+        )
+        raise StopRule(
+            f"Receipt params hash mismatch: expected {stored_hash}, got {computed_hash}"
+        )
 
     # Emit ingest receipt
-    emit_receipt("receipt_params_ingest", {
-        "tenant_id": "axiom-autonomy",
-        "file_path": path,
-        "receipt_integrity_baseline": data['receipt_integrity_baseline'],
-        "receipt_efficacy_factor": data['receipt_efficacy_factor'],
-        "disparity_halt_threshold": data['disparity_halt_threshold'],
-        "sync_window_hours": data['sync_window_hours'],
-        "receipt_mitigation_acceleration_cycles": data['receipt_mitigation_acceleration_cycles'],
-        "hash_verified": hash_verified,
-        "payload_hash": stored_hash
-    })
+    emit_receipt(
+        "receipt_params_ingest",
+        {
+            "tenant_id": "axiom-autonomy",
+            "file_path": path,
+            "receipt_integrity_baseline": data["receipt_integrity_baseline"],
+            "receipt_efficacy_factor": data["receipt_efficacy_factor"],
+            "disparity_halt_threshold": data["disparity_halt_threshold"],
+            "sync_window_hours": data["sync_window_hours"],
+            "receipt_mitigation_acceleration_cycles": data[
+                "receipt_mitigation_acceleration_cycles"
+            ],
+            "hash_verified": hash_verified,
+            "payload_hash": stored_hash,
+        },
+    )
 
     # Restore hash to data for downstream use
-    data['payload_hash'] = stored_hash
+    data["payload_hash"] = stored_hash
 
     return data
 
@@ -192,14 +206,17 @@ def emit_mars_receipt(decision: Dict, state: ProvenanceState) -> ProvenanceState
     state.pending_receipts.append(receipt_record)
 
     # Emit mars_provenance_receipt
-    emit_receipt("mars_provenance_receipt", {
-        "tenant_id": "axiom-autonomy",
-        "decision_id": receipt_record["decision_id"],
-        "decision_type": receipt_record["decision_type"],
-        "cycle": receipt_record["cycle"],
-        "integrity": state.integrity,
-        "pending_count": len(state.pending_receipts),
-    })
+    emit_receipt(
+        "mars_provenance_receipt",
+        {
+            "tenant_id": "axiom-autonomy",
+            "decision_id": receipt_record["decision_id"],
+            "decision_type": receipt_record["decision_type"],
+            "cycle": receipt_record["cycle"],
+            "integrity": state.integrity,
+            "pending_count": len(state.pending_receipts),
+        },
+    )
 
     return state
 
@@ -234,14 +251,17 @@ def batch_pending(state: ProvenanceState) -> Tuple[str, ProvenanceState]:
     state.pending_receipts = []
 
     # Emit merkle_batch_receipt
-    emit_receipt("merkle_batch_receipt", {
-        "tenant_id": "axiom-autonomy",
-        "batch_id": batch_id,
-        "receipt_count": receipt_count,
-        "merkle_root": root,
-        "pending_sync": True,
-        "total_batches": len(state.merkle_batches),
-    })
+    emit_receipt(
+        "merkle_batch_receipt",
+        {
+            "tenant_id": "axiom-autonomy",
+            "batch_id": batch_id,
+            "receipt_count": receipt_count,
+            "merkle_root": root,
+            "pending_sync": True,
+            "total_batches": len(state.merkle_batches),
+        },
+    )
 
     return root, state
 
@@ -267,13 +287,16 @@ def sync_batch(state: ProvenanceState, root: str) -> ProvenanceState:
     state.synced_batches.append(root)
 
     # Emit sync_receipt
-    emit_receipt("sync_receipt", {
-        "tenant_id": "axiom-autonomy",
-        "batch_id": f"sync_{len(state.synced_batches)}",
-        "merkle_root": root,
-        "synced_ts": sync_ts,
-        "total_synced": len(state.synced_batches),
-    })
+    emit_receipt(
+        "sync_receipt",
+        {
+            "tenant_id": "axiom-autonomy",
+            "batch_id": f"sync_{len(state.synced_batches)}",
+            "merkle_root": root,
+            "synced_ts": sync_ts,
+            "total_synced": len(state.synced_batches),
+        },
+    )
 
     return state
 
@@ -308,15 +331,18 @@ def check_disparity(state: ProvenanceState, config: ProvenanceConfig = None) -> 
 
     if disparity > config.disparity_threshold:
         # Emit disparity_halt_receipt
-        emit_receipt("disparity_halt_receipt", {
-            "tenant_id": "axiom-autonomy",
-            "integrity": state.integrity,
-            "threshold": config.disparity_threshold,
-            "disparity": disparity,
-            "decisions_unreceipted": unreceipted,
-            "decisions_total": state.decisions_total,
-            "action": "HALT",
-        })
+        emit_receipt(
+            "disparity_halt_receipt",
+            {
+                "tenant_id": "axiom-autonomy",
+                "integrity": state.integrity,
+                "threshold": config.disparity_threshold,
+                "disparity": disparity,
+                "decisions_unreceipted": unreceipted,
+                "decisions_total": state.decisions_total,
+                "action": "HALT",
+            },
+        )
         raise StopRule(
             f"Disparity halt: {disparity:.4f} > {config.disparity_threshold} "
             f"({unreceipted}/{state.decisions_total} decisions unreceipted)"
@@ -354,7 +380,7 @@ def initialize_provenance_state() -> ProvenanceState:
         decisions_total=0,
         integrity=1.0,
         last_sync_ts=None,
-        synced_batches=[]
+        synced_batches=[],
     )
 
 

@@ -59,7 +59,7 @@ def cmd_hybrid_10e12(tree_size: int, base_alpha: float, simulate: bool):
     print(f"  Hybrid total: +{result['hybrid_total']}")
 
     print("\nVALIDATION:")
-    val = result['validation']
+    val = result["validation"]
     print(f"  alpha >= {ALPHA_10E12_FLOOR}: {'PASS' if val['alpha_ok'] else 'FAIL'}")
     print(f"  instability == 0.00: {'PASS' if val['instability_ok'] else 'FAIL'}")
     print(f"  decay <= {SCALE_DECAY_MAX}: {'PASS' if val['decay_ok'] else 'FAIL'}")
@@ -85,20 +85,20 @@ def cmd_release_gate(simulate: bool):
     result = check_release_gate_3_1()
 
     print("\nBENCHMARK RESULTS:")
-    bm = result['benchmark_result']
+    bm = result["benchmark_result"]
     print(f"  eff_alpha: {bm['eff_alpha']}")
     print(f"  instability: {bm['instability']}")
     print(f"  scale_decay: {bm['scale_decay']}")
 
-    if result['blockers']:
+    if result["blockers"]:
         print("\nBLOCKERS:")
-        for blocker in result['blockers']:
+        for blocker in result["blockers"]:
             print(f"  - {blocker}")
     else:
         print("\nBLOCKERS: None")
 
     print(f"\nGATE STATUS: {'PASS' if result['gate_pass'] else 'FAIL'}")
-    if result['gate_pass']:
+    if result["gate_pass"]:
         print(f"VERSION: {result['version']} UNLOCKED")
 
     if simulate:
@@ -107,7 +107,9 @@ def cmd_release_gate(simulate: bool):
     print("=" * 60)
 
 
-def cmd_fractal_recursion(tree_size: int, base_alpha: float, depth: int, simulate: bool):
+def cmd_fractal_recursion(
+    tree_size: int, base_alpha: float, depth: int, simulate: bool
+):
     """Run fractal recursion for ceiling breach.
 
     Args:
@@ -129,8 +131,10 @@ def cmd_fractal_recursion(tree_size: int, base_alpha: float, depth: int, simulat
     result = recursive_fractal(tree_size, base_alpha, depth=depth)
 
     print("\nDEPTH CONTRIBUTIONS:")
-    for contrib in result['depth_contributions']:
-        print(f"  Depth {contrib['depth']}: +{contrib['contribution']} (decay: {contrib['decay_factor']})")
+    for contrib in result["depth_contributions"]:
+        print(
+            f"  Depth {contrib['depth']}: +{contrib['contribution']} (decay: {contrib['decay_factor']})"
+        )
 
     print("\nRESULTS:")
     print(f"  Total uplift: {result['total_uplift']}")
@@ -166,10 +170,12 @@ def cmd_fractal_recursion_sweep(tree_size: int, base_alpha: float, simulate: boo
 
     print("\nSWEEP RESULTS:")
     print(f"  {'Depth':>6} | {'Alpha':>8} | {'Uplift':>8} | {'3.1 Target':>10}")
-    print(f"  {'-'*6} | {'-'*8} | {'-'*8} | {'-'*10}")
-    for r in result['sweep_results']:
-        target = "YES" if r['target_3_1'] else "NO"
-        print(f"  {r['depth']:>6} | {r['final_alpha']:>8.4f} | {r['uplift']:>8.4f} | {target:>10}")
+    print(f"  {'-' * 6} | {'-' * 8} | {'-' * 8} | {'-' * 10}")
+    for r in result["sweep_results"]:
+        target = "YES" if r["target_3_1"] else "NO"
+        print(
+            f"  {r['depth']:>6} | {r['final_alpha']:>8.4f} | {r['uplift']:>8.4f} | {target:>10}"
+        )
 
     print("\nOPTIMAL:")
     print(f"  Depth: {result['optimal_depth']}")
@@ -197,11 +203,11 @@ def cmd_benchmark_info():
     print(f"  Instability max: {bm_info['instability_max']}")
 
     print("\nSLO Requirements:")
-    for key, value in bm_info['slo'].items():
+    for key, value in bm_info["slo"].items():
         print(f"  {key}: {value}")
 
     print("\nExpected Results:")
-    for key, value in bm_info['expected_results'].items():
+    for key, value in bm_info["expected_results"].items():
         print(f"  {key}: {value}")
 
     # Get recursive fractal info
@@ -214,7 +220,7 @@ def cmd_benchmark_info():
     print(f"  Base uplift: {rf_info['base_uplift']}")
 
     print("\nExpected Uplifts by Depth:")
-    for key, value in rf_info['expected_uplifts'].items():
+    for key, value in rf_info["expected_uplifts"].items():
         print(f"  {key}: +{value}")
 
     print_receipt_note("benchmark_info")

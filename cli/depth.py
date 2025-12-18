@@ -52,7 +52,7 @@ def cmd_adaptive_depth_run(rl_sweep_runs: int, tree_size: int, simulate: bool):
         tree_size=tree_size,
         adaptive_depth=True,
         early_stopping=True,
-        seed=42
+        seed=42,
     )
 
     print("\nRESULTS:")
@@ -63,12 +63,14 @@ def cmd_adaptive_depth_run(rl_sweep_runs: int, tree_size: int, simulate: bool):
     print(f"  Target achieved: {'PASS' if result['target_achieved'] else 'PENDING'}")
     print(f"  Early stopped: {result['early_stopped']}")
 
-    if result['convergence_run']:
+    if result["convergence_run"]:
         print(f"  Convergence run: {result['convergence_run']}")
 
     print("\nSLO VALIDATION:")
-    ret_ok = result['best_retention'] >= RETENTION_QUICK_WIN_TARGET
-    print(f"  Retention >= {RETENTION_QUICK_WIN_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})")
+    ret_ok = result["best_retention"] >= RETENTION_QUICK_WIN_TARGET
+    print(
+        f"  Retention >= {RETENTION_QUICK_WIN_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})"
+    )
 
     if simulate:
         print("\n[efficient_rl_sweep receipt emitted above]")
@@ -83,10 +85,7 @@ def cmd_depth_scaling_test():
     print("\nComparing 500 informed vs 300 blind runs...")
 
     result = compare_sweep_efficiency(
-        informed_runs=500,
-        blind_runs=300,
-        tree_size=int(1e8),
-        seed=42
+        informed_runs=500, blind_runs=300, tree_size=int(1e8), seed=42
     )
 
     print("\nRESULTS:")
@@ -125,7 +124,9 @@ def cmd_compute_depth_single(tree_size: int):
     print(f"  scale_factor * log({tree_size} / {spec['baseline_n']})")
 
     if tree_size > 0:
-        raw = spec['base_layers'] + spec['scale_factor'] * math.log(tree_size / spec['baseline_n'])
+        raw = spec["base_layers"] + spec["scale_factor"] * math.log(
+            tree_size / spec["baseline_n"]
+        )
         print(f"  Raw value: {raw:.4f}")
 
     print(f"\nRESULT: {depth} layers")
@@ -133,7 +134,7 @@ def cmd_compute_depth_single(tree_size: int):
     # Show expected examples
     info = get_depth_scaling_info()
     print("\nExpected depths table:")
-    for key, val in info['example_depths'].items():
+    for key, val in info["example_depths"].items():
         print(f"  {key}: {val} layers")
 
     print("\n[adaptive_depth receipt emitted above]")
@@ -160,7 +161,7 @@ def cmd_depth_scaling_info():
     print(f"\nFormula: {info['formula']}")
 
     print("\nExample Depths:")
-    for key, val in info['example_depths'].items():
+    for key, val in info["example_depths"].items():
         print(f"  {key}: {val} layers")
 
     print(f"\nDescription: {info['description']}")

@@ -74,25 +74,26 @@ def load_multi_scale_spec() -> Dict[str, Any]:
     Receipt: multi_scale_spec_receipt
     """
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "data",
-        "multi_scale_spec.json"
+        os.path.dirname(os.path.dirname(__file__)), "data", "multi_scale_spec.json"
     )
 
     with open(spec_path, "r") as f:
         spec = json.load(f)
 
-    emit_receipt("multi_scale_spec", {
-        "receipt_type": "multi_scale_spec",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": spec.get("version", "v1.0"),
-        "tree_scale_target": spec.get("tree_scale_target"),
-        "alpha_hybrid_validated": spec.get("alpha_hybrid_validated"),
-        "degradation_tolerance": spec.get("degradation_tolerance"),
-        "scalability_gate_threshold": spec.get("scalability_gate_threshold"),
-        "payload_hash": dual_hash(json.dumps(spec, sort_keys=True))
-    })
+    emit_receipt(
+        "multi_scale_spec",
+        {
+            "receipt_type": "multi_scale_spec",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": spec.get("version", "v1.0"),
+            "tree_scale_target": spec.get("tree_scale_target"),
+            "alpha_hybrid_validated": spec.get("alpha_hybrid_validated"),
+            "degradation_tolerance": spec.get("degradation_tolerance"),
+            "scalability_gate_threshold": spec.get("scalability_gate_threshold"),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
 
     return spec
 
@@ -117,7 +118,7 @@ def compute_alpha_at_scale(tree_size: int) -> Dict[str, Any]:
 
     # Compute alpha using physics model
     # Alpha scales with scale_factor^2 (affects both encoding and retention)
-    alpha = ALPHA_BASELINE * (scale_factor ** 2)
+    alpha = ALPHA_BASELINE * (scale_factor**2)
 
     # Instability is always 0 in stable hybrid (physics invariant)
     instability = 0.00
@@ -128,7 +129,7 @@ def compute_alpha_at_scale(tree_size: int) -> Dict[str, Any]:
         "instability": instability,
         "scale_factor": round(scale_factor, 6),
         "adjusted_correlation": round(adjusted_correlation, 6),
-        "baseline_alpha": ALPHA_BASELINE
+        "baseline_alpha": ALPHA_BASELINE,
     }
 
 
@@ -165,17 +166,20 @@ def run_scale_sweep(scales: Optional[List[int]] = None) -> Dict[str, Any]:
     sweep_result = {
         "scales_tested": scales,
         "results": results,
-        "ts": datetime.utcnow().isoformat() + "Z"
+        "ts": datetime.utcnow().isoformat() + "Z",
     }
 
-    emit_receipt("scale_sweep", {
-        "receipt_type": "scale_sweep",
-        "tenant_id": TENANT_ID,
-        "ts": sweep_result["ts"],
-        "scales_count": len(scales),
-        "scales_tested": scales,
-        "payload_hash": dual_hash(json.dumps(sweep_result, sort_keys=True))
-    })
+    emit_receipt(
+        "scale_sweep",
+        {
+            "receipt_type": "scale_sweep",
+            "tenant_id": TENANT_ID,
+            "ts": sweep_result["ts"],
+            "scales_count": len(scales),
+            "scales_tested": scales,
+            "payload_hash": dual_hash(json.dumps(sweep_result, sort_keys=True)),
+        },
+    )
 
     return sweep_result
 
@@ -225,20 +229,23 @@ def check_degradation(results: Dict[str, Any]) -> Dict[str, Any]:
         "degradation": round(degradation, 4),
         "degradation_pct": round(degradation_pct, 6),
         "tolerance": DEGRADATION_TOLERANCE,
-        "degradation_acceptable": acceptable
+        "degradation_acceptable": acceptable,
     }
 
     # Stoprule if degradation exceeds tolerance
     if not acceptable:
-        emit_receipt("anomaly", {
-            "receipt_type": "anomaly",
-            "tenant_id": TENANT_ID,
-            "metric": "degradation_cliff",
-            "baseline": baseline_alpha,
-            "delta": -degradation,
-            "classification": "scaling_violation",
-            "action": "halt"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "receipt_type": "anomaly",
+                "tenant_id": TENANT_ID,
+                "metric": "degradation_cliff",
+                "baseline": baseline_alpha,
+                "delta": -degradation,
+                "classification": "scaling_violation",
+                "action": "halt",
+            },
+        )
         raise StopRule(
             f"Degradation cliff detected: {degradation_pct:.2%} > {DEGRADATION_TOLERANCE:.2%} tolerance"
         )
@@ -268,15 +275,18 @@ def validate_scalability(results: Dict[str, Any]) -> bool:
 
         # Stoprule: instability must be zero
         if instability > INSTABILITY_TOLERANCE:
-            emit_receipt("anomaly", {
-                "receipt_type": "anomaly",
-                "tenant_id": TENANT_ID,
-                "metric": "instability_nonzero",
-                "scale": scale_key,
-                "instability": instability,
-                "classification": "stability_violation",
-                "action": "halt"
-            })
+            emit_receipt(
+                "anomaly",
+                {
+                    "receipt_type": "anomaly",
+                    "tenant_id": TENANT_ID,
+                    "metric": "instability_nonzero",
+                    "scale": scale_key,
+                    "instability": instability,
+                    "classification": "stability_violation",
+                    "action": "halt",
+                },
+            )
             raise StopRule(f"Instability nonzero at scale {scale_key}: {instability}")
 
     # Check 10^9 threshold specifically
@@ -287,15 +297,18 @@ def validate_scalability(results: Dict[str, Any]) -> bool:
         target_alpha = scale_results[1_000_000_000]["alpha"]
 
     if target_alpha is not None and target_alpha < SCALABILITY_GATE_THRESHOLD:
-        emit_receipt("anomaly", {
-            "receipt_type": "anomaly",
-            "tenant_id": TENANT_ID,
-            "metric": "below_threshold",
-            "alpha_at_10e9": target_alpha,
-            "threshold": SCALABILITY_GATE_THRESHOLD,
-            "classification": "scalability_violation",
-            "action": "halt"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "receipt_type": "anomaly",
+                "tenant_id": TENANT_ID,
+                "metric": "below_threshold",
+                "alpha_at_10e9": target_alpha,
+                "threshold": SCALABILITY_GATE_THRESHOLD,
+                "classification": "scalability_violation",
+                "action": "halt",
+            },
+        )
         raise StopRule(
             f"Alpha at 10^9 below threshold: {target_alpha} < {SCALABILITY_GATE_THRESHOLD}"
         )
@@ -341,9 +354,9 @@ def scalability_gate(results: Dict[str, Any]) -> Dict[str, Any]:
 
     # Determine gate pass
     gate_passed = (
-        alpha_at_10e9 >= SCALABILITY_GATE_THRESHOLD and
-        instability_at_10e9 == INSTABILITY_TOLERANCE and
-        degradation_acceptable
+        alpha_at_10e9 >= SCALABILITY_GATE_THRESHOLD
+        and instability_at_10e9 == INSTABILITY_TOLERANCE
+        and degradation_acceptable
     )
 
     ready_for_31_push = gate_passed
@@ -354,16 +367,19 @@ def scalability_gate(results: Dict[str, Any]) -> Dict[str, Any]:
         "instability_at_10e9": instability_at_10e9,
         "degradation_acceptable": degradation_acceptable,
         "gate_passed": gate_passed,
-        "ready_for_31_push": ready_for_31_push
+        "ready_for_31_push": ready_for_31_push,
     }
 
-    emit_receipt("scalability_gate", {
-        "receipt_type": "scalability_gate",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **gate_result,
-        "payload_hash": dual_hash(json.dumps(gate_result, sort_keys=True))
-    })
+    emit_receipt(
+        "scalability_gate",
+        {
+            "receipt_type": "scalability_gate",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **gate_result,
+            "payload_hash": dual_hash(json.dumps(gate_result, sort_keys=True)),
+        },
+    )
 
     return gate_result
 
@@ -414,26 +430,35 @@ def run_multi_scale_validation() -> Dict[str, Any]:
         "gate_passed": gate_result["gate_passed"],
         "ready_for_31_push": gate_result["ready_for_31_push"],
         "alpha_at_10e9": gate_result["alpha_at_10e9"],
-        "instability_at_10e9": gate_result["instability_at_10e9"]
+        "instability_at_10e9": gate_result["instability_at_10e9"],
     }
 
-    emit_receipt("multi_scale_10e9", {
-        "receipt_type": "multi_scale_10e9",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "scales_tested": TREE_SCALES,
-        "results": {
-            "1e6": {"alpha": sweep_results["results"]["1e6"]["alpha"],
-                    "instability": sweep_results["results"]["1e6"]["instability"]},
-            "1e8": {"alpha": sweep_results["results"]["1e8"]["alpha"],
-                    "instability": sweep_results["results"]["1e8"]["instability"]},
-            "1e9": {"alpha": sweep_results["results"]["1e9"]["alpha"],
-                    "instability": sweep_results["results"]["1e9"]["instability"]}
+    emit_receipt(
+        "multi_scale_10e9",
+        {
+            "receipt_type": "multi_scale_10e9",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "scales_tested": TREE_SCALES,
+            "results": {
+                "1e6": {
+                    "alpha": sweep_results["results"]["1e6"]["alpha"],
+                    "instability": sweep_results["results"]["1e6"]["instability"],
+                },
+                "1e8": {
+                    "alpha": sweep_results["results"]["1e8"]["alpha"],
+                    "instability": sweep_results["results"]["1e8"]["instability"],
+                },
+                "1e9": {
+                    "alpha": sweep_results["results"]["1e9"]["alpha"],
+                    "instability": sweep_results["results"]["1e9"]["instability"],
+                },
+            },
+            "degradation_pct": degradation["degradation_pct"],
+            "degradation_acceptable": degradation["degradation_acceptable"],
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
-        "degradation_pct": degradation["degradation_pct"],
-        "degradation_acceptable": degradation["degradation_acceptable"],
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    )
 
     return result
 
@@ -458,22 +483,29 @@ def get_multi_scale_info() -> Dict[str, Any]:
         "expected_results": {
             "1e6": {"alpha": 3.070, "instability": 0.00},
             "1e8": {"alpha": 3.068, "instability": 0.00},
-            "1e9": {"alpha": 3.065, "instability": 0.00}
+            "1e9": {"alpha": 3.065, "instability": 0.00},
         },
         "stoprules": [
             "stoprule_degradation_cliff: alpha drops > 1% between scales",
             "stoprule_instability_nonzero: instability > 0 at any scale",
-            "stoprule_below_threshold: alpha at 10^9 < 3.06"
+            "stoprule_below_threshold: alpha at 10^9 < 3.06",
         ],
-        "description": "Multi-scale 10^9 validation with scalability gate before 3.1 push"
+        "description": "Multi-scale 10^9 validation with scalability gate before 3.1 push",
     }
 
-    emit_receipt("multi_scale_info", {
-        "receipt_type": "multi_scale_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in info.items() if k not in ["expected_results", "stoprules"]},
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "multi_scale_info",
+        {
+            "receipt_type": "multi_scale_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{
+                k: v
+                for k, v in info.items()
+                if k not in ["expected_results", "stoprules"]
+            },
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
+        },
+    )
 
     return info

@@ -33,14 +33,22 @@ def cmd_rl_info():
     info = get_rl_tune_info()
 
     print("\nTargets:")
-    print(f"  Retention milestone 1: {info['retention_milestone_1']} (α = {info['alpha_target_m1']})")
-    print(f"  Retention milestone 2: {info['retention_milestone_2']} (α = {info['alpha_target_m2']})")
-    print(f"  Retention ceiling: {info['retention_ceiling']} (α = {info['alpha_ceiling']})")
+    print(
+        f"  Retention milestone 1: {info['retention_milestone_1']} (α = {info['alpha_target_m1']})"
+    )
+    print(
+        f"  Retention milestone 2: {info['retention_milestone_2']} (α = {info['alpha_target_m2']})"
+    )
+    print(
+        f"  Retention ceiling: {info['retention_ceiling']} (α = {info['alpha_ceiling']})"
+    )
 
     print("\nSafety Bounds:")
     print(f"  Alpha drop threshold: {info['alpha_drop_threshold']}")
     print(f"  Exploration bound: {info['exploration_bound']} (±15%)")
-    print(f"  Max episodes without improvement: {info['max_episodes_without_improvement']}")
+    print(
+        f"  Max episodes without improvement: {info['max_episodes_without_improvement']}"
+    )
 
     print("\nAction Space:")
     print(f"  GNN layers range: {info['gnn_layers_range']}")
@@ -95,14 +103,16 @@ def cmd_rl_status():
     print(f"  RL tune ready: {'PASS' if status['rl_tune_ready'] else 'FAIL'}")
     print(f"  Adaptive ready: {'PASS' if status['adaptive_ready'] else 'FAIL'}")
     print(f"  GNN dynamic ready: {'PASS' if status['gnn_dynamic_ready'] else 'FAIL'}")
-    print(f"  Pruning dynamic ready: {'PASS' if status['pruning_dynamic_ready'] else 'FAIL'}")
+    print(
+        f"  Pruning dynamic ready: {'PASS' if status['pruning_dynamic_ready'] else 'FAIL'}"
+    )
 
     print("\nOverall Status:")
-    all_ready = status['all_modules_ready']
+    all_ready = status["all_modules_ready"]
     print(f"  All modules ready: {'PASS' if all_ready else 'FAIL'}")
 
     print("\nTargets:")
-    targets = status['targets']
+    targets = status["targets"]
     print(f"  Retention milestone 1: {targets['retention_milestone_1']}")
     print(f"  Retention milestone 2: {targets['retention_milestone_2']}")
 
@@ -121,13 +131,21 @@ def cmd_validate_no_static():
         if key != "all_pass":
             print(f"  {key}: {'PASS' if value else 'FAIL'}")
 
-    print(f"\nOverall: {'ALL PASS' if validations.get('all_pass', False) else 'SOME FAILED'}")
+    print(
+        f"\nOverall: {'ALL PASS' if validations.get('all_pass', False) else 'SOME FAILED'}"
+    )
 
     print("\n[no_static_configs_validation receipt emitted above]")
     print("=" * 60)
 
 
-def cmd_rl_tune(blackout_days: int, episodes: int, rl_enabled: bool, adaptive_enabled: bool, simulate: bool):
+def cmd_rl_tune(
+    blackout_days: int,
+    episodes: int,
+    rl_enabled: bool,
+    adaptive_enabled: bool,
+    simulate: bool,
+):
     """Run RL auto-tuning simulation.
 
     Args:
@@ -152,16 +170,16 @@ def cmd_rl_tune(blackout_days: int, episodes: int, rl_enabled: bool, adaptive_en
         blackout_days=blackout_days,
         rl_enabled=rl_enabled,
         rl_episodes=episodes,
-        adaptive_enabled=adaptive_enabled
+        adaptive_enabled=adaptive_enabled,
     )
 
     print("\nRESULTS:")
     print(f"  Base alpha: {result['base_alpha']}")
     print(f"  Effective alpha: {result['effective_alpha']}")
-    if result['rl_best_retention']:
+    if result["rl_best_retention"]:
         print(f"  Best retention: {result['rl_best_retention']}")
     print(f"  Target achieved: {'PASS' if result['rl_target_achieved'] else 'PENDING'}")
-    if result['adaptive_depth']:
+    if result["adaptive_depth"]:
         print(f"  Adaptive depth: {result['adaptive_depth']}")
 
     print("\nSOVEREIGNTY TIMELINE:")
@@ -170,9 +188,11 @@ def cmd_rl_tune(blackout_days: int, episodes: int, rl_enabled: bool, adaptive_en
     print(f"  Dynamic mode: {result['dynamic_mode']}")
 
     print("\nSLO VALIDATION:")
-    if result['rl_best_retention']:
-        ret_ok = result['rl_best_retention'] >= RETENTION_MILESTONE_1
-        print(f"  Retention >= {RETENTION_MILESTONE_1}: {'PASS' if ret_ok else 'FAIL'} ({result['rl_best_retention']})")
+    if result["rl_best_retention"]:
+        ret_ok = result["rl_best_retention"] >= RETENTION_MILESTONE_1
+        print(
+            f"  Retention >= {RETENTION_MILESTONE_1}: {'PASS' if ret_ok else 'FAIL'} ({result['rl_best_retention']})"
+        )
 
     if simulate:
         print("\n[sovereignty_timeline_dynamic receipt emitted above]")
@@ -199,7 +219,7 @@ def cmd_dynamic_mode(blackout_days: int, episodes: int, simulate: bool):
         blackout_days=blackout_days,
         rl_enabled=True,
         rl_episodes=episodes,
-        adaptive_enabled=True
+        adaptive_enabled=True,
     )
 
     print("\nRESULTS:")
@@ -234,29 +254,32 @@ def cmd_tune_sweep(simulate: bool):
 
     for eps in episodes_list:
         result = rl_auto_tune(
-            current_retention=1.01,
-            blackout_days=150,
-            episodes=eps,
-            seed=42
+            current_retention=1.01, blackout_days=150, episodes=eps, seed=42
         )
-        results.append({
-            "episodes": eps,
-            "best_retention": result["best_retention"],
-            "best_alpha": result["best_alpha"],
-            "target_achieved": result["target_achieved"]
-        })
+        results.append(
+            {
+                "episodes": eps,
+                "best_retention": result["best_retention"],
+                "best_alpha": result["best_alpha"],
+                "target_achieved": result["target_achieved"],
+            }
+        )
 
     print("\nRESULTS:")
     print(f"  {'Episodes':>10} | {'Retention':>10} | {'Alpha':>8} | {'Target':>8}")
-    print(f"  {'-'*10}-+-{'-'*10}-+-{'-'*8}-+-{'-'*8}")
+    print(f"  {'-' * 10}-+-{'-' * 10}-+-{'-' * 8}-+-{'-' * 8}")
 
     for r in results:
         target_str = "PASS" if r["target_achieved"] else "PENDING"
-        print(f"  {r['episodes']:>10} | {r['best_retention']:>10.4f} | {r['best_alpha']:>8.4f} | {target_str:>8}")
+        print(
+            f"  {r['episodes']:>10} | {r['best_retention']:>10.4f} | {r['best_alpha']:>8.4f} | {target_str:>8}"
+        )
 
     # Check if target achieved at any episode count
     any_target = any(r["target_achieved"] for r in results)
-    print(f"\nTarget {RETENTION_MILESTONE_1} achieved: {'YES' if any_target else 'NOT YET'}")
+    print(
+        f"\nTarget {RETENTION_MILESTONE_1} achieved: {'YES' if any_target else 'NOT YET'}"
+    )
 
     if simulate:
         print("\n[rl_tune_receipt emitted per episode]")
@@ -264,7 +287,9 @@ def cmd_tune_sweep(simulate: bool):
     print("=" * 60)
 
 
-def cmd_rl_500_sweep(tree_size: int, lr_range: tuple, retention_target: float, simulate: bool):
+def cmd_rl_500_sweep(
+    tree_size: int, lr_range: tuple, retention_target: float, simulate: bool
+):
     """Run 500-run RL sweep for 1.05 retention.
 
     Args:
@@ -299,7 +324,7 @@ def cmd_rl_500_sweep(tree_size: int, lr_range: tuple, retention_target: float, s
         tree_size=tree_size,
         adaptive_depth=True,
         early_stopping=True,
-        seed=42
+        seed=42,
     )
 
     print("\nRESULTS:")
@@ -311,15 +336,17 @@ def cmd_rl_500_sweep(tree_size: int, lr_range: tuple, retention_target: float, s
     print(f"  Depth used: {result['depth_used']}")
     print(f"  LR range: {result['lr_range']}")
 
-    if result['best_action']:
+    if result["best_action"]:
         print("\nBest Action:")
         print(f"  layers_delta: {result['best_action']['layers_delta']}")
         print(f"  lr: {result['best_action']['lr']}")
         print(f"  prune_factor: {result['best_action']['prune_factor']}")
 
     print("\nSLO VALIDATION:")
-    ret_ok = result['best_retention'] >= RETENTION_TARGET
-    print(f"  Retention >= {RETENTION_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})")
+    ret_ok = result["best_retention"] >= RETENTION_TARGET
+    print(
+        f"  Retention >= {RETENTION_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})"
+    )
 
     if simulate:
         print("\n[rl_500_sweep_receipt emitted above]")
@@ -342,11 +369,11 @@ def cmd_rl_500_sweep_info():
     print(f"  divergence_threshold: {info['divergence_threshold']}")
 
     print("\nState Components:")
-    for comp in info['state_components']:
+    for comp in info["state_components"]:
         print(f"  - {comp}")
 
     print("\nAction Components:")
-    for comp in info['action_components']:
+    for comp in info["action_components"]:
         print(f"  - {comp}")
 
     print("\nExpected Behavior:")

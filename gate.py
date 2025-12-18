@@ -16,7 +16,6 @@ Source: CLAUDEME.md §3 Timeline Gates + BLOW IT UP optimization
 
 import hashlib
 import json
-import os
 import py_compile
 import shutil
 import subprocess
@@ -36,12 +35,14 @@ PROJECT_ROOT = Path(__file__).parent.absolute()
 # blake3 availability
 try:
     import blake3
+
     HAS_BLAKE3 = True
 except ImportError:
     HAS_BLAKE3 = False
 
 
 # === CORE FUNCTIONS (per CLAUDEME §8) ===
+
 
 def dual_hash(data: bytes | str) -> str:
     """SHA256:BLAKE3 format. ALWAYS use this, never single hash."""
@@ -52,7 +53,9 @@ def dual_hash(data: bytes | str) -> str:
     return f"{sha}:{b3}"
 
 
-def emit_gate_receipt(checks: dict[str, dict], all_passed: bool, gate_hash: str) -> dict:
+def emit_gate_receipt(
+    checks: dict[str, dict], all_passed: bool, gate_hash: str
+) -> dict:
     """Emit gate_receipt to receipts file. Returns the receipt."""
     receipt = {
         "receipt_type": "gate",
@@ -99,42 +102,44 @@ def emit_install_receipt(hook_path: str, gate_hash: str) -> dict:
 
 # === STOPRULE FUNCTIONS ===
 
+
 def stoprule_syntax(error: str) -> None:
     """Print stoprule for syntax errors."""
-    print(f"\n[STOPRULE] syntax_check FAILED")
+    print("\n[STOPRULE] syntax_check FAILED")
     print(f"  Error: {error}")
-    print(f"  Fix: Correct the syntax error in the indicated file")
+    print("  Fix: Correct the syntax error in the indicated file")
 
 
 def stoprule_import(error: str) -> None:
     """Print stoprule for import errors."""
-    print(f"\n[STOPRULE] import_check FAILED")
+    print("\n[STOPRULE] import_check FAILED")
     print(f"  Error: {error}")
-    print(f"  Fix: Check for missing dependencies or circular imports")
+    print("  Fix: Check for missing dependencies or circular imports")
 
 
 def stoprule_cli(error: str) -> None:
     """Print stoprule for CLI errors."""
-    print(f"\n[STOPRULE] cli_check FAILED")
+    print("\n[STOPRULE] cli_check FAILED")
     print(f"  Error: {error}")
-    print(f"  Fix: Ensure cli.py runs without errors")
+    print("  Fix: Ensure cli.py runs without errors")
 
 
 def stoprule_test(error: str) -> None:
     """Print stoprule for test errors."""
-    print(f"\n[STOPRULE] test_check FAILED")
+    print("\n[STOPRULE] test_check FAILED")
     print(f"  Error: {error}")
-    print(f"  Fix: Run 'pytest tests/ -v' to see failing tests")
+    print("  Fix: Run 'pytest tests/ -v' to see failing tests")
 
 
 def stoprule_lint(error: str) -> None:
     """Print stoprule for lint errors."""
-    print(f"\n[STOPRULE] lint_check FAILED")
+    print("\n[STOPRULE] lint_check FAILED")
     print(f"  Error: {error}")
-    print(f"  Fix: Run 'ruff check . --fix' to auto-fix issues")
+    print("  Fix: Run 'ruff check . --fix' to auto-fix issues")
 
 
 # === VALIDATION CHECKS ===
+
 
 def check_syntax() -> dict[str, Any]:
     """Check 1: Compile all .py files."""
@@ -143,8 +148,10 @@ def check_syntax() -> dict[str, Any]:
 
     for py_file in PROJECT_ROOT.rglob("*.py"):
         # Skip hidden directories, __pycache__, venv
-        if any(part.startswith('.') or part in ('__pycache__', 'venv', '.venv')
-               for part in py_file.parts):
+        if any(
+            part.startswith(".") or part in ("__pycache__", "venv", ".venv")
+            for part in py_file.parts
+        ):
             continue
         try:
             py_compile.compile(str(py_file), doraise=True)
@@ -157,7 +164,7 @@ def check_syntax() -> dict[str, Any]:
     return {
         "passed": passed,
         "duration_ms": duration_ms,
-        "error": "; ".join(errors[:3]) if errors else None  # Limit error length
+        "error": "; ".join(errors[:3]) if errors else None,  # Limit error length
     }
 
 
@@ -191,7 +198,7 @@ def check_imports() -> dict[str, Any]:
     return {
         "passed": passed,
         "duration_ms": duration_ms,
-        "error": "; ".join(errors[:3]) if errors else None
+        "error": "; ".join(errors[:3]) if errors else None,
     }
 
 
@@ -209,7 +216,7 @@ def check_cli() -> dict[str, Any]:
             capture_output=True,
             text=True,
             timeout=30,
-            cwd=str(PROJECT_ROOT)
+            cwd=str(PROJECT_ROOT),
         )
         passed = result.returncode == 0
         error = result.stderr[:200] if not passed else None
@@ -222,11 +229,7 @@ def check_cli() -> dict[str, Any]:
 
     duration_ms = int((time.time() - t0) * 1000)
 
-    return {
-        "passed": passed,
-        "duration_ms": duration_ms,
-        "error": error
-    }
+    return {"passed": passed, "duration_ms": duration_ms, "error": error}
 
 
 def check_tests() -> dict[str, Any]:
@@ -241,12 +244,18 @@ def check_tests() -> dict[str, Any]:
     pytest_available = shutil.which("pytest") is not None
     if not pytest_available:
         try:
-            subprocess.run([sys.executable, "-m", "pytest", "--version"],
-                          capture_output=True, check=True)
+            subprocess.run(
+                [sys.executable, "-m", "pytest", "--version"],
+                capture_output=True,
+                check=True,
+            )
             pytest_cmd = [sys.executable, "-m", "pytest"]
         except:
-            return {"passed": True, "duration_ms": 0,
-                    "error": "pytest not installed, skipping"}
+            return {
+                "passed": True,
+                "duration_ms": 0,
+                "error": "pytest not installed, skipping",
+            }
     else:
         pytest_cmd = ["pytest"]
 
@@ -256,7 +265,7 @@ def check_tests() -> dict[str, Any]:
             capture_output=True,
             text=True,
             timeout=300,  # 5 minute timeout for tests
-            cwd=str(PROJECT_ROOT)
+            cwd=str(PROJECT_ROOT),
         )
         passed = result.returncode == 0
         if not passed:
@@ -279,11 +288,7 @@ def check_tests() -> dict[str, Any]:
 
     duration_ms = int((time.time() - t0) * 1000)
 
-    return {
-        "passed": passed,
-        "duration_ms": duration_ms,
-        "error": error
-    }
+    return {"passed": passed, "duration_ms": duration_ms, "error": error}
 
 
 def check_lint() -> dict[str, Any]:
@@ -294,12 +299,18 @@ def check_lint() -> dict[str, Any]:
     ruff_available = shutil.which("ruff") is not None
     if not ruff_available:
         try:
-            subprocess.run([sys.executable, "-m", "ruff", "--version"],
-                          capture_output=True, check=True)
+            subprocess.run(
+                [sys.executable, "-m", "ruff", "--version"],
+                capture_output=True,
+                check=True,
+            )
             ruff_cmd = [sys.executable, "-m", "ruff"]
         except:
-            return {"passed": True, "duration_ms": 0,
-                    "error": "ruff not installed, skipping"}
+            return {
+                "passed": True,
+                "duration_ms": 0,
+                "error": "ruff not installed, skipping",
+            }
     else:
         ruff_cmd = ["ruff"]
 
@@ -309,7 +320,7 @@ def check_lint() -> dict[str, Any]:
             capture_output=True,
             text=True,
             timeout=60,
-            cwd=str(PROJECT_ROOT)
+            cwd=str(PROJECT_ROOT),
         )
         passed = result.returncode == 0
         if not passed:
@@ -327,14 +338,11 @@ def check_lint() -> dict[str, Any]:
 
     duration_ms = int((time.time() - t0) * 1000)
 
-    return {
-        "passed": passed,
-        "duration_ms": duration_ms,
-        "error": error
-    }
+    return {"passed": passed, "duration_ms": duration_ms, "error": error}
 
 
 # === MAIN GATE FUNCTION ===
+
 
 def run_gate() -> int:
     """Run all validation checks. Returns 0 on pass, 1 on fail."""
@@ -405,6 +413,7 @@ def run_gate() -> int:
 
 # === SELF-INSTALLATION ===
 
+
 def install_hook() -> int:
     """Install gate.py as git pre-commit hook."""
     git_dir = PROJECT_ROOT / ".git"
@@ -448,6 +457,7 @@ def check_hook_installed() -> bool:
 
 
 # === CI GENERATION ===
+
 
 def generate_ci() -> None:
     """Output minimal GitHub Actions CI config."""
@@ -497,6 +507,7 @@ jobs:
 
 # === SELF-VERIFICATION ===
 
+
 def show_version() -> None:
     """Show gate.py version and self-hash."""
     gate_path = Path(__file__).absolute()
@@ -505,10 +516,13 @@ def show_version() -> None:
     print("AXIOM Gate v2.0")
     print(f"Path: {gate_path}")
     print(f"Hash: {gate_hash}")
-    print(f"BLAKE3: {'available' if HAS_BLAKE3 else 'unavailable (using SHA256 fallback)'}")
+    print(
+        f"BLAKE3: {'available' if HAS_BLAKE3 else 'unavailable (using SHA256 fallback)'}"
+    )
 
 
 # === ENTRY POINT ===
+
 
 def main() -> int:
     """Main entry point."""

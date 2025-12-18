@@ -37,11 +37,11 @@ class TestSPARCSeedReproducibility:
         """
         # First load
         g1 = load_sparc(n_galaxies=30, seed=SPARC_RANDOM_SEED)
-        ids1 = [x['id'] for x in g1]
+        ids1 = [x["id"] for x in g1]
 
         # Second load (must be identical)
         g2 = load_sparc(n_galaxies=30, seed=SPARC_RANDOM_SEED)
-        ids2 = [x['id'] for x in g2]
+        ids2 = [x["id"] for x in g2]
 
         assert ids1 == ids2, "Seed reproducibility failed"
 
@@ -103,16 +103,16 @@ class TestLandauerReproducibility:
         r1 = landauer_mass_equivalent(1e6)
         r2 = landauer_mass_equivalent(1e6)
 
-        assert r1['value'] == r2['value']
-        assert r1['uncertainty_pct'] == r2['uncertainty_pct']
-        assert r1['confidence_interval_lower'] == r2['confidence_interval_lower']
-        assert r1['confidence_interval_upper'] == r2['confidence_interval_upper']
+        assert r1["value"] == r2["value"]
+        assert r1["uncertainty_pct"] == r2["uncertainty_pct"]
+        assert r1["confidence_interval_lower"] == r2["confidence_interval_lower"]
+        assert r1["confidence_interval_upper"] == r2["confidence_interval_upper"]
 
     def test_uncertainty_is_consistent(self):
         """Uncertainty should always be MOXIE_EFFICIENCY_VARIANCE_PCT."""
         for bps in [1e5, 1e6, 1e7]:
             result = landauer_mass_equivalent(bps)
-            assert result['uncertainty_pct'] == MOXIE_EFFICIENCY_VARIANCE_PCT
+            assert result["uncertainty_pct"] == MOXIE_EFFICIENCY_VARIANCE_PCT
 
     def test_ci_contains_baseline(self):
         """Confidence interval must contain 60k kg baseline.
@@ -121,11 +121,12 @@ class TestLandauerReproducibility:
         """
         result = landauer_mass_equivalent(1e6)
 
-        ci_lower = result['confidence_interval_lower']
-        ci_upper = result['confidence_interval_upper']
+        ci_lower = result["confidence_interval_lower"]
+        ci_upper = result["confidence_interval_upper"]
 
-        assert ci_lower < BASELINE_MASS_KG < ci_upper, \
+        assert ci_lower < BASELINE_MASS_KG < ci_upper, (
             f"CI [{ci_lower}, {ci_upper}] must contain {BASELINE_MASS_KG}"
+        )
 
 
 class TestDataConsistency:
@@ -136,11 +137,11 @@ class TestDataConsistency:
         galaxies = load_sparc(n_galaxies=5, seed=42)
 
         for g in galaxies:
-            assert 'id' in g
-            assert 'r' in g
-            assert 'v' in g
-            assert 'v_unc' in g
-            assert 'params' in g
+            assert "id" in g
+            assert "r" in g
+            assert "v" in g
+            assert "v_unc" in g
+            assert "params" in g
 
     def test_rotation_curve_validity(self):
         """Rotation curves should have valid data."""
@@ -149,8 +150,8 @@ class TestDataConsistency:
         galaxies = load_sparc(n_galaxies=5, seed=42)
 
         for g in galaxies:
-            r = np.array(g['r'])
-            v = np.array(g['v'])
+            r = np.array(g["r"])
+            v = np.array(g["v"])
 
             # Radii should be positive
             assert all(r > 0)
@@ -173,7 +174,7 @@ class TestCrossRunReproducibility:
 
         # Not just same set, but same ORDER
         for i in range(10):
-            assert g1[i]['id'] == g2[i]['id'], f"Order mismatch at index {i}"
+            assert g1[i]["id"] == g2[i]["id"], f"Order mismatch at index {i}"
 
     def test_subset_consistency(self):
         """First n galaxies should be consistent regardless of total."""
@@ -181,8 +182,8 @@ class TestCrossRunReproducibility:
         g20 = load_sparc(n_galaxies=20, seed=42)
 
         # First 10 should be same in both
-        ids_10 = [g['id'] for g in g10]
-        ids_20_first_10 = [g['id'] for g in g20[:10]]
+        ids_10 = [g["id"] for g in g10]
+        ids_20_first_10 = [g["id"] for g in g20[:10]]
 
         # Note: Due to random selection, these may differ
         # But with same seed and sorted indices, should be deterministic

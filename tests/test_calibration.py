@@ -6,6 +6,7 @@ Validates alpha calibration from FSD/Optimus/Starship data.
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.calibration import (
@@ -51,7 +52,9 @@ class TestFsdToAlphaProxy:
         """Constant improvement rates should give alpha ~1.0."""
         rates = [10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
         alpha, conf = fsd_to_alpha_proxy(rates)
-        assert 0.8 <= alpha <= 1.5, f"Constant rates should give alpha ~1.0, got {alpha}"
+        assert 0.8 <= alpha <= 1.5, (
+            f"Constant rates should give alpha ~1.0, got {alpha}"
+        )
 
     def test_insufficient_data(self):
         """Too few data points should return baseline with low confidence."""
@@ -138,7 +141,7 @@ class TestComputeDataQuality:
             optimus_capability_growth=5.0,
             starship_anomaly_resolution_time=20.0,
             observation_count=30,
-            observation_window_months=18
+            observation_window_months=18,
         )
         quality = compute_data_quality(inputs)
         assert quality >= 0.7, f"Good data should give quality >= 0.7, got {quality}"
@@ -150,7 +153,7 @@ class TestComputeDataQuality:
             optimus_capability_growth=-5.0,  # Invalid
             starship_anomaly_resolution_time=-20.0,  # Invalid
             observation_count=3,  # Too few
-            observation_window_months=2  # Too short
+            observation_window_months=2,  # Too short
         )
         quality = compute_data_quality(inputs)
         assert quality < 0.5, "Poor data should give low quality score"
@@ -166,7 +169,7 @@ class TestEstimateAlpha:
             optimus_capability_growth=8.0,
             starship_anomaly_resolution_time=25.0,
             observation_count=20,
-            observation_window_months=12
+            observation_window_months=12,
         )
         output = estimate_alpha(inputs)
         assert validate_alpha_range(output.alpha_estimate)
@@ -179,7 +182,7 @@ class TestEstimateAlpha:
             optimus_capability_growth=8.0,
             starship_anomaly_resolution_time=25.0,
             observation_count=3,  # Below MIN_DATA_POINTS
-            observation_window_months=12
+            observation_window_months=12,
         )
         output = estimate_alpha(inputs)
         assert output.alpha_estimate == ALPHA_BASELINE
@@ -203,9 +206,7 @@ class TestEstimateAlphaFromLists:
     def test_dominant_signal_identified(self):
         """Should identify which proxy contributed most."""
         output = estimate_alpha_from_lists(
-            [5, 8, 12, 18, 27],
-            [10, 18, 30, 50, 80],
-            [30, 20, 14, 10, 7]
+            [5, 8, 12, 18, 27], [10, 18, 30, 50, 80], [30, 20, 14, 10, 7]
         )
         assert output.dominant_signal in ["fsd", "optimus", "starship"]
 
@@ -220,7 +221,7 @@ class TestCalibrationOutput:
             optimus_capability_growth=8.0,
             starship_anomaly_resolution_time=25.0,
             observation_count=20,
-            observation_window_months=12
+            observation_window_months=12,
         )
         output = estimate_alpha(inputs)
         ci_low, ci_high = output.confidence_interval
@@ -284,15 +285,16 @@ class TestLoadFsdEmpirical:
         """Payload hash should match computed hash."""
         try:
             data = load_fsd_empirical()
-            assert 'payload_hash' in data
+            assert "payload_hash" in data
             # If we get here without StopRule, hash was valid
         except Exception as e:
             # Print debug info if test fails
             import json
             import os
+
             repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             path = os.path.join(repo_root, "data/verified/fsd_empirical.json")
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 raw_data = json.load(f)
             print(f"DEBUG: Exception={e}")
             print(f"DEBUG: File path={path}")
@@ -304,16 +306,16 @@ class TestLoadFsdEmpirical:
         """Should emit fsd_empirical_ingest receipt."""
         load_fsd_empirical()
         captured = capsys.readouterr()
-        assert 'fsd_empirical_ingest' in captured.out
+        assert "fsd_empirical_ingest" in captured.out
 
     def test_load_fsd_empirical_data_structure(self):
         """Should return correct data structure."""
         data = load_fsd_empirical()
-        assert data['versions'] == ['v12', 'v12.3', 'v13', 'v14']
-        assert data['mpi_values'][2] == 441
-        assert data['mpi_values'][3] == 9200
-        assert data['safety_ap_mpcm'] == 6360000
-        assert data['safety_human_mpcm'] == 700000
+        assert data["versions"] == ["v12", "v12.3", "v13", "v14"]
+        assert data["mpi_values"][2] == 441
+        assert data["mpi_values"][3] == 9200
+        assert data["safety_ap_mpcm"] == 6360000
+        assert data["safety_human_mpcm"] == 700000
 
 
 class TestFitAlphaEmpirical:
@@ -323,36 +325,40 @@ class TestFitAlphaEmpirical:
         """Alpha estimate should be in validated range [1.5, 2.1]."""
         data = load_fsd_empirical()
         result = fit_alpha_empirical(data)
-        assert ALPHA_EMPIRICAL_LOW <= result['alpha_estimate'] <= ALPHA_EMPIRICAL_HIGH, \
+        assert (
+            ALPHA_EMPIRICAL_LOW <= result["alpha_estimate"] <= ALPHA_EMPIRICAL_HIGH
+        ), (
             f"Alpha {result['alpha_estimate']} not in range [{ALPHA_EMPIRICAL_LOW}, {ALPHA_EMPIRICAL_HIGH}]"
+        )
 
     def test_fit_alpha_empirical_gain_factor(self, capsys):
         """Gain factor should be ~20.86."""
         data = load_fsd_empirical()
         result = fit_alpha_empirical(data)
-        assert abs(result['gain_factor'] - 20.86) < 0.01, \
+        assert abs(result["gain_factor"] - 20.86) < 0.01, (
             f"Expected gain_factor ~20.86, got {result['gain_factor']}"
+        )
 
     def test_fit_alpha_empirical_emits_receipt(self, capsys):
         """Should emit alpha_calibration receipt with method=empirical."""
         data = load_fsd_empirical()
         fit_alpha_empirical(data)
         captured = capsys.readouterr()
-        assert 'alpha_calibration' in captured.out
+        assert "alpha_calibration" in captured.out
         assert '"method": "empirical"' in captured.out
 
     def test_fit_alpha_empirical_method_field(self, capsys):
         """Result should have method='empirical'."""
         data = load_fsd_empirical()
         result = fit_alpha_empirical(data)
-        assert result['method'] == 'empirical'
+        assert result["method"] == "empirical"
 
     def test_fit_alpha_empirical_range_bounds(self, capsys):
         """Result should include range bounds."""
         data = load_fsd_empirical()
         result = fit_alpha_empirical(data)
-        assert result['range_low'] == ALPHA_EMPIRICAL_LOW
-        assert result['range_high'] == ALPHA_EMPIRICAL_HIGH
+        assert result["range_low"] == ALPHA_EMPIRICAL_LOW
+        assert result["range_high"] == ALPHA_EMPIRICAL_HIGH
 
 
 class TestEmpiricalConstants:

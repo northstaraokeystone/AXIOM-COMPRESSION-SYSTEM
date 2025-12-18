@@ -50,6 +50,7 @@ def suppress_receipts():
 @pytest.fixture
 def capture_receipts():
     """Capture receipts emitted during tests."""
+
     class ReceiptCapture:
         def __init__(self):
             self.output = io.StringIO()
@@ -65,7 +66,7 @@ def capture_receipts():
 
         @property
         def receipts(self):
-            lines = self.output.getvalue().strip().split('\n')
+            lines = self.output.getvalue().strip().split("\n")
             receipts = []
             for line in lines:
                 if line:
@@ -83,6 +84,7 @@ def clear_cache():
     """Clear cached specs before each test."""
     from src.rl_tune import clear_sweep_spec_cache, clear_pilot_spec_cache
     from src.adaptive_depth import clear_spec_cache
+
     clear_sweep_spec_cache()
     clear_pilot_spec_cache()
     clear_spec_cache()
@@ -107,17 +109,24 @@ class TestPilotSpecLoads:
     def test_spec_loads_valid_json(self, suppress_receipts, clear_cache):
         """Verify spec loads as valid JSON."""
         from src.rl_tune import load_pilot_spec
+
         spec = load_pilot_spec()
         assert isinstance(spec, dict), "Spec should be a dict"
 
     def test_spec_contains_required_fields(self, suppress_receipts, clear_cache):
         """Verify spec contains all required fields."""
         from src.rl_tune import load_pilot_spec
+
         spec = load_pilot_spec()
         required_fields = [
-            "pilot_runs", "initial_lr_min", "initial_lr_max",
-            "target_narrow_min", "target_narrow_max",
-            "quantum_sim_runs", "full_tuned_runs", "retention_target"
+            "pilot_runs",
+            "initial_lr_min",
+            "initial_lr_max",
+            "target_narrow_min",
+            "target_narrow_max",
+            "quantum_sim_runs",
+            "full_tuned_runs",
+            "retention_target",
         ]
         for field in required_fields:
             assert field in spec, f"Missing required field: {field}"
@@ -143,7 +152,9 @@ class TestSpecHasDualHash:
 
         receipt = spec_receipts[0]
         assert "payload_hash" in receipt, "Receipt missing payload_hash"
-        assert ":" in receipt["payload_hash"], "payload_hash should be dual format (sha256:blake3)"
+        assert ":" in receipt["payload_hash"], (
+            "payload_hash should be dual format (sha256:blake3)"
+        )
 
 
 # === TEST 3: PILOT RUNS VALUE ===
@@ -155,12 +166,16 @@ class TestPilotRunsValue:
     def test_pilot_runs_equals_50(self, suppress_receipts, clear_cache):
         """Verify pilot_runs is exactly 50."""
         from src.rl_tune import load_pilot_spec
+
         spec = load_pilot_spec()
-        assert spec["pilot_runs"] == 50, f"pilot_runs should be 50, got {spec['pilot_runs']}"
+        assert spec["pilot_runs"] == 50, (
+            f"pilot_runs should be 50, got {spec['pilot_runs']}"
+        )
 
     def test_constant_matches_spec(self, suppress_receipts, clear_cache):
         """Verify PILOT_LR_RUNS constant matches spec."""
         from src.rl_tune import PILOT_LR_RUNS, load_pilot_spec
+
         spec = load_pilot_spec()
         assert PILOT_LR_RUNS == spec["pilot_runs"], "Constant should match spec"
 
@@ -174,14 +189,20 @@ class TestInitialLRRange:
     def test_initial_lr_min(self, suppress_receipts, clear_cache):
         """Verify initial_lr_min is 0.001."""
         from src.rl_tune import load_pilot_spec
+
         spec = load_pilot_spec()
-        assert spec["initial_lr_min"] == 0.001, f"initial_lr_min should be 0.001, got {spec['initial_lr_min']}"
+        assert spec["initial_lr_min"] == 0.001, (
+            f"initial_lr_min should be 0.001, got {spec['initial_lr_min']}"
+        )
 
     def test_initial_lr_max(self, suppress_receipts, clear_cache):
         """Verify initial_lr_max is 0.01."""
         from src.rl_tune import load_pilot_spec
+
         spec = load_pilot_spec()
-        assert spec["initial_lr_max"] == 0.01, f"initial_lr_max should be 0.01, got {spec['initial_lr_max']}"
+        assert spec["initial_lr_max"] == 0.01, (
+            f"initial_lr_max should be 0.01, got {spec['initial_lr_max']}"
+        )
 
 
 # === TEST 5: TARGET NARROW RANGE ===
@@ -193,12 +214,14 @@ class TestTargetNarrowRange:
     def test_target_narrow_min(self, suppress_receipts, clear_cache):
         """Verify target_narrow_min is 0.002."""
         from src.rl_tune import load_pilot_spec
+
         spec = load_pilot_spec()
         assert spec["target_narrow_min"] == 0.002, "target_narrow_min should be 0.002"
 
     def test_target_narrow_max(self, suppress_receipts, clear_cache):
         """Verify target_narrow_max is 0.008."""
         from src.rl_tune import load_pilot_spec
+
         spec = load_pilot_spec()
         assert spec["target_narrow_max"] == 0.008, "target_narrow_max should be 0.008"
 
@@ -215,8 +238,9 @@ class TestPilot50Runs:
 
         result = pilot_lr_narrow(runs=50, seed=42)
 
-        assert result["runs_completed"] == 50, \
+        assert result["runs_completed"] == 50, (
             f"Pilot should complete 50 runs, got {result['runs_completed']}"
+        )
 
 
 # === TEST 7: NARROWING OCCURS ===
@@ -232,10 +256,12 @@ class TestNarrowingOccurs:
         result = pilot_lr_narrow(runs=50, seed=42)
         narrowed = result["narrowed_range"]
 
-        assert narrowed[0] >= INITIAL_LR_RANGE[0], \
+        assert narrowed[0] >= INITIAL_LR_RANGE[0], (
             f"narrowed_min {narrowed[0]} < initial_min {INITIAL_LR_RANGE[0]}"
-        assert narrowed[1] <= INITIAL_LR_RANGE[1], \
+        )
+        assert narrowed[1] <= INITIAL_LR_RANGE[1], (
             f"narrowed_max {narrowed[1]} > initial_max {INITIAL_LR_RANGE[1]}"
+        )
 
 
 # === TEST 8: NARROWED MIN ABOVE ===
@@ -284,8 +310,9 @@ class TestQuantumSimRuns:
 
         result = simulate_quantum_policy(runs=10, seed=42)
 
-        assert result["runs_completed"] == 10, \
+        assert result["runs_completed"] == 10, (
             f"Quantum sim should complete 10 runs, got {result['runs_completed']}"
+        )
 
 
 # === TEST 11: ENTANGLED PENALTY ===
@@ -296,7 +323,10 @@ class TestEntangledPenalty:
 
     def test_entangled_penalty_reduced(self, suppress_receipts):
         """Verify entangled penalty is less than standard."""
-        from src.quantum_rl_hybrid import compute_entangled_penalty, compute_standard_penalty
+        from src.quantum_rl_hybrid import (
+            compute_entangled_penalty,
+            compute_standard_penalty,
+        )
 
         instability = 0.06  # Above threshold
 
@@ -308,14 +338,17 @@ class TestEntangledPenalty:
         reduction_pct = (reduction / abs(standard)) * 100
 
         # Should be ~8% reduction
-        assert 5 <= reduction_pct <= 12, f"Reduction should be ~8%, got {reduction_pct}%"
+        assert 5 <= reduction_pct <= 12, (
+            f"Reduction should be ~8%, got {reduction_pct}%"
+        )
 
     def test_penalty_factor_value(self, suppress_receipts):
         """Verify ENTANGLED_PENALTY_FACTOR is 0.08."""
         from src.quantum_rl_hybrid import ENTANGLED_PENALTY_FACTOR
 
-        assert ENTANGLED_PENALTY_FACTOR == 0.08, \
+        assert ENTANGLED_PENALTY_FACTOR == 0.08, (
             f"Factor should be 0.08, got {ENTANGLED_PENALTY_FACTOR}"
+        )
 
 
 # === TEST 12: RETENTION BOOST ===
@@ -328,8 +361,9 @@ class TestRetentionBoost:
         """Verify quantum retention boost is ~0.03."""
         from src.quantum_rl_hybrid import QUANTUM_RETENTION_BOOST
 
-        assert QUANTUM_RETENTION_BOOST == 0.03, \
+        assert QUANTUM_RETENTION_BOOST == 0.03, (
             f"Boost should be 0.03, got {QUANTUM_RETENTION_BOOST}"
+        )
 
     def test_effective_boost_positive(self, suppress_receipts):
         """Verify effective boost from simulation is positive."""
@@ -337,7 +371,9 @@ class TestRetentionBoost:
 
         result = simulate_quantum_policy(runs=10, seed=42)
 
-        assert result["effective_retention_boost"] > 0, "Effective boost should be positive"
+        assert result["effective_retention_boost"] > 0, (
+            "Effective boost should be positive"
+        )
 
 
 # === TEST 13: CHAIN PILOT TO QUANTUM ===
@@ -386,11 +422,12 @@ class TestTunedSweep500:
         result = run_tuned_sweep(
             lr_range=lr_range,
             runs=50,  # Mini test
-            seed=42
+            seed=42,
         )
 
-        assert result["runs_completed"] == 50, \
+        assert result["runs_completed"] == 50, (
             f"Sweep should complete 50 runs, got {result['runs_completed']}"
+        )
 
 
 # === TEST 16: FINAL RETENTION TARGET ===
@@ -405,15 +442,13 @@ class TestFinalRetentionTarget:
 
         lr_range = (0.002, 0.008)
         result = run_tuned_sweep(
-            lr_range=lr_range,
-            runs=100,
-            quantum_boost=0.03,
-            seed=42
+            lr_range=lr_range, runs=100, quantum_boost=0.03, seed=42
         )
 
         # With quantum boost, should be well above 1.01
-        assert result["best_retention"] > 1.01, \
+        assert result["best_retention"] > 1.01, (
             f"Retention should exceed baseline, got {result['best_retention']}"
+        )
 
 
 # === TEST 17: FINAL EFF ALPHA ===
@@ -428,16 +463,14 @@ class TestFinalEffAlpha:
 
         lr_range = (0.002, 0.008)
         result = run_tuned_sweep(
-            lr_range=lr_range,
-            runs=100,
-            quantum_boost=0.03,
-            seed=42
+            lr_range=lr_range, runs=100, quantum_boost=0.03, seed=42
         )
 
         # eff_alpha = e * retention, should be > 2.71828 * 1.01 = 2.745
         expected_min = SHANNON_FLOOR * 1.01
-        assert result["eff_alpha"] >= expected_min, \
+        assert result["eff_alpha"] >= expected_min, (
             f"eff_alpha {result['eff_alpha']} below minimum {expected_min}"
+        )
 
 
 # === TEST 18: ALL RECEIPTS EMITTED ===
@@ -455,7 +488,9 @@ class TestAllReceiptsEmitted:
             pilot_lr_narrow(runs=10, seed=42)
 
         receipts = cap.receipts
-        pilot_receipts = [r for r in receipts if r.get("receipt_type") == "lr_pilot_narrow"]
+        pilot_receipts = [
+            r for r in receipts if r.get("receipt_type") == "lr_pilot_narrow"
+        ]
         assert len(pilot_receipts) >= 1, "No lr_pilot_narrow receipt emitted"
 
     def test_quantum_receipt_emitted(self, capture_receipts):
@@ -467,7 +502,9 @@ class TestAllReceiptsEmitted:
             simulate_quantum_policy(runs=5, seed=42)
 
         receipts = cap.receipts
-        quantum_receipts = [r for r in receipts if r.get("receipt_type") == "quantum_10run_sim"]
+        quantum_receipts = [
+            r for r in receipts if r.get("receipt_type") == "quantum_10run_sim"
+        ]
         assert len(quantum_receipts) >= 1, "No quantum_10run_sim receipt emitted"
 
     def test_sweep_receipt_emitted(self, capture_receipts, clear_cache):
@@ -476,14 +513,12 @@ class TestAllReceiptsEmitted:
 
         cap = capture_receipts()
         with cap:
-            run_tuned_sweep(
-                lr_range=(0.002, 0.008),
-                runs=20,
-                seed=42
-            )
+            run_tuned_sweep(lr_range=(0.002, 0.008), runs=20, seed=42)
 
         receipts = cap.receipts
-        sweep_receipts = [r for r in receipts if r.get("receipt_type") == "post_tune_sweep"]
+        sweep_receipts = [
+            r for r in receipts if r.get("receipt_type") == "post_tune_sweep"
+        ]
         assert len(sweep_receipts) >= 1, "No post_tune_sweep receipt emitted"
 
     def test_full_pipeline_emits_all(self, capture_receipts, clear_cache):
@@ -493,12 +528,7 @@ class TestAllReceiptsEmitted:
         cap = capture_receipts()
         with cap:
             # Mini pipeline
-            execute_full_pipeline(
-                pilot_runs=10,
-                quantum_runs=5,
-                sweep_runs=20,
-                seed=42
-            )
+            execute_full_pipeline(pilot_runs=10, quantum_runs=5, sweep_runs=20, seed=42)
 
         receipts = cap.receipts
         receipt_types = set(r.get("receipt_type") for r in receipts)

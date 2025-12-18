@@ -108,16 +108,19 @@ def load_moxie_calibration() -> Dict[str, Any]:
         "o2_avg_g_hr": moxie.get("o2_avg_g_hr", MOXIE_O2_AVG_G_HR),
         "runs": moxie.get("runs", MOXIE_RUNS),
         "atmospheric_co2_pct": moxie.get("atmospheric_co2_pct", MOXIE_CO2_PCT),
-        "conversion_efficiency": moxie.get("conversion_efficiency", MOXIE_EFFICIENCY)
+        "conversion_efficiency": moxie.get("conversion_efficiency", MOXIE_EFFICIENCY),
     }
 
-    emit_receipt("moxie_calibration_load", {
-        "receipt_type": "moxie_calibration_load",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **calibration,
-        "payload_hash": dual_hash(json.dumps(calibration, sort_keys=True))
-    })
+    emit_receipt(
+        "moxie_calibration_load",
+        {
+            "receipt_type": "moxie_calibration_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **calibration,
+            "payload_hash": dual_hash(json.dumps(calibration, sort_keys=True)),
+        },
+    )
 
     return calibration
 
@@ -134,25 +137,28 @@ def moxie_calibration() -> Dict[str, Any]:
 
     # Validate against expected values
     valid = (
-        calibration["o2_total_g"] == MOXIE_O2_TOTAL_G and
-        calibration["o2_peak_g_hr"] == MOXIE_O2_PEAK_G_HR
+        calibration["o2_total_g"] == MOXIE_O2_TOTAL_G
+        and calibration["o2_peak_g_hr"] == MOXIE_O2_PEAK_G_HR
     )
 
     result = {
         **calibration,
         "validated": valid,
         "expected_total": MOXIE_O2_TOTAL_G,
-        "expected_peak": MOXIE_O2_PEAK_G_HR
+        "expected_peak": MOXIE_O2_PEAK_G_HR,
     }
 
-    emit_receipt("moxie_calibration", {
-        "receipt_type": "moxie_calibration",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "o2_total_g": result["o2_total_g"],
-        "validated": valid,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "moxie_calibration",
+        {
+            "receipt_type": "moxie_calibration",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "o2_total_g": result["o2_total_g"],
+            "validated": valid,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -161,9 +167,7 @@ def moxie_calibration() -> Dict[str, Any]:
 
 
 def simulate_o2_production(
-    hours: int = 24,
-    crew: int = 4,
-    moxie_units: int = 10
+    hours: int = 24, crew: int = 4, moxie_units: int = 10
 ) -> Dict[str, Any]:
     """Simulate O2 production based on MOXIE calibration.
 
@@ -212,18 +216,21 @@ def simulate_o2_production(
         "balance_kg": round(balance_kg, 4),
         "self_sufficient": self_sufficient,
         "rate_per_crew_kg_day": round(rate_per_crew * 24 / hours, 4),
-        "efficiency": calibration["conversion_efficiency"]
+        "efficiency": calibration["conversion_efficiency"],
     }
 
-    emit_receipt("isru_production", {
-        "receipt_type": "isru_production",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "production_kg": result["production_kg"],
-        "consumption_kg": result["consumption_kg"],
-        "self_sufficient": self_sufficient,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "isru_production",
+        {
+            "receipt_type": "isru_production",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "production_kg": result["production_kg"],
+            "consumption_kg": result["consumption_kg"],
+            "self_sufficient": self_sufficient,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -232,8 +239,7 @@ def simulate_o2_production(
 
 
 def compute_isru_closure(
-    production: Dict[str, float],
-    consumption: Dict[str, float]
+    production: Dict[str, float], consumption: Dict[str, float]
 ) -> float:
     """Compute ISRU closure ratio.
 
@@ -266,17 +272,20 @@ def compute_isru_closure(
         "target_met": target_met,
         "uplift_required": round(1.0 - closure, 4),
         "production": production,
-        "consumption": consumption
+        "consumption": consumption,
     }
 
-    emit_receipt("isru_closure", {
-        "receipt_type": "isru_closure",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "closure_ratio": result["closure_ratio"],
-        "target_met": target_met,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "isru_closure",
+        {
+            "receipt_type": "isru_closure",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "closure_ratio": result["closure_ratio"],
+            "target_met": target_met,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return closure
 
@@ -302,7 +311,7 @@ def d5_isru_hybrid(
     base_alpha: float = 3.0,
     crew: int = 4,
     hours: int = 24,
-    moxie_units: int = 10
+    moxie_units: int = 10,
 ) -> Dict[str, Any]:
     """Integrated D5 fractal + ISRU simulation.
 
@@ -342,18 +351,18 @@ def d5_isru_hybrid(
             "eff_alpha": d5_result["eff_alpha"],
             "uplift": d5_result["adjusted_uplift"],
             "target_met": d5_result["target_met"],
-            "floor_met": d5_result["floor_met"]
+            "floor_met": d5_result["floor_met"],
         },
         "isru_result": {
             "production_kg": production_result["production_kg"],
             "consumption_kg": production_result["consumption_kg"],
             "balance_kg": production_result["balance_kg"],
-            "self_sufficient": production_result["self_sufficient"]
+            "self_sufficient": production_result["self_sufficient"],
         },
         "closure": {
             "ratio": round(closure, 4),
             "target": ISRU_CLOSURE_TARGET,
-            "target_met": closure >= ISRU_CLOSURE_TARGET
+            "target_met": closure >= ISRU_CLOSURE_TARGET,
         },
         "combined_slo": {
             "alpha_target": D5_ALPHA_TARGET,
@@ -361,25 +370,28 @@ def d5_isru_hybrid(
             "closure_target": ISRU_CLOSURE_TARGET,
             "closure_met": closure >= ISRU_CLOSURE_TARGET,
             "all_targets_met": (
-                d5_result["eff_alpha"] >= D5_ALPHA_TARGET and
-                closure >= ISRU_CLOSURE_TARGET
-            )
+                d5_result["eff_alpha"] >= D5_ALPHA_TARGET
+                and closure >= ISRU_CLOSURE_TARGET
+            ),
         },
         "crew": crew,
         "hours": hours,
-        "moxie_units": moxie_units
+        "moxie_units": moxie_units,
     }
 
-    emit_receipt("d5_isru_hybrid", {
-        "receipt_type": "d5_isru_hybrid",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "eff_alpha": d5_result["eff_alpha"],
-        "closure_ratio": round(closure, 4),
-        "alpha_target_met": d5_result["target_met"],
-        "closure_target_met": closure >= ISRU_CLOSURE_TARGET,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "d5_isru_hybrid",
+        {
+            "receipt_type": "d5_isru_hybrid",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "eff_alpha": d5_result["eff_alpha"],
+            "closure_ratio": round(closure, 4),
+            "alpha_target_met": d5_result["target_met"],
+            "closure_target_met": closure >= ISRU_CLOSURE_TARGET,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True, default=str)),
+        },
+    )
 
     return result
 
@@ -387,10 +399,7 @@ def d5_isru_hybrid(
 # === AUTONOMY METRICS ===
 
 
-def compute_o2_autonomy(
-    production_rate_kg_hr: float,
-    crew: int
-) -> float:
+def compute_o2_autonomy(production_rate_kg_hr: float, crew: int) -> float:
     """Compute O2 self-sufficiency ratio.
 
     Args:
@@ -418,17 +427,20 @@ def compute_o2_autonomy(
         "consumption_rate_kg_hr": round(consumption_rate_kg_hr, 6),
         "autonomy_ratio": round(autonomy, 4),
         "crew": crew,
-        "self_sufficient": autonomy >= 1.0
+        "self_sufficient": autonomy >= 1.0,
     }
 
-    emit_receipt("o2_autonomy", {
-        "receipt_type": "o2_autonomy",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "autonomy_ratio": result["autonomy_ratio"],
-        "self_sufficient": result["self_sufficient"],
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "o2_autonomy",
+        {
+            "receipt_type": "o2_autonomy",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "autonomy_ratio": result["autonomy_ratio"],
+            "self_sufficient": result["self_sufficient"],
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return autonomy
 
@@ -452,33 +464,36 @@ def get_isru_info() -> Dict[str, Any]:
             "o2_peak_g_hr": MOXIE_O2_PEAK_G_HR,
             "o2_avg_g_hr": MOXIE_O2_AVG_G_HR,
             "runs": MOXIE_RUNS,
-            "efficiency": MOXIE_EFFICIENCY
+            "efficiency": MOXIE_EFFICIENCY,
         },
         "isru_config": {
             "closure_target": ISRU_CLOSURE_TARGET,
             "resources": ISRU_RESOURCES,
             "sabatier_efficiency": SABATIER_EFFICIENCY,
-            "electrolysis_efficiency": ELECTROLYSIS_EFFICIENCY
+            "electrolysis_efficiency": ELECTROLYSIS_EFFICIENCY,
         },
         "d5_integration": {
             "alpha_target": D5_ALPHA_TARGET,
             "uplift": D5_UPLIFT,
-            "tree_min": D5_TREE_MIN
+            "tree_min": D5_TREE_MIN,
         },
         "consumption_rates": {
             "o2_kg_day": O2_CONSUMPTION_KG_DAY,
-            "h2o_kg_day": H2O_CONSUMPTION_KG_DAY
+            "h2o_kg_day": H2O_CONSUMPTION_KG_DAY,
         },
-        "description": "MOXIE-calibrated ISRU simulation with D5 fractal integration"
+        "description": "MOXIE-calibrated ISRU simulation with D5 fractal integration",
     }
 
-    emit_receipt("isru_info", {
-        "receipt_type": "isru_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "closure_target": ISRU_CLOSURE_TARGET,
-        "alpha_target": D5_ALPHA_TARGET,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "isru_info",
+        {
+            "receipt_type": "isru_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "closure_target": ISRU_CLOSURE_TARGET,
+            "alpha_target": D5_ALPHA_TARGET,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info

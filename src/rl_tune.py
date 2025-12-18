@@ -158,26 +158,31 @@ def load_rl_tune_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, RL_TUNE_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("rl_tune_spec_ingest", {
-        "tenant_id": "axiom-rl-tune",
-        "file_path": path,
-        "version": data["version"],
-        "retention_milestone_1": data["targets"]["retention_milestone_1"],
-        "retention_ceiling": data["targets"]["retention_ceiling"],
-        "alpha_drop_threshold": data["safety_bounds"]["alpha_drop_threshold"],
-        "exploration_bound": data["safety_bounds"]["exploration_bound"],
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "rl_tune_spec_ingest",
+        {
+            "tenant_id": "axiom-rl-tune",
+            "file_path": path,
+            "version": data["version"],
+            "retention_milestone_1": data["targets"]["retention_milestone_1"],
+            "retention_ceiling": data["targets"]["retention_ceiling"],
+            "alpha_drop_threshold": data["safety_bounds"]["alpha_drop_threshold"],
+            "exploration_bound": data["safety_bounds"]["exploration_bound"],
+            "payload_hash": content_hash,
+        },
+    )
 
     return data
 
 
-def bounded_exploration(current: float, delta: float, bound: float = EXPLORATION_BOUND) -> float:
+def bounded_exploration(
+    current: float, delta: float, bound: float = EXPLORATION_BOUND
+) -> float:
     """Enforce exploration limits on parameter updates.
 
     Clips delta to ±bound fraction of current value.
@@ -230,15 +235,20 @@ def stoprule_alpha_crash(alpha_drop: float) -> None:
         StopRule: If drop > ALPHA_DROP_THRESHOLD
     """
     if alpha_drop > ALPHA_DROP_THRESHOLD:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-rl-tune",
-            "metric": "alpha_drop",
-            "baseline": ALPHA_DROP_THRESHOLD,
-            "delta": alpha_drop - ALPHA_DROP_THRESHOLD,
-            "classification": "violation",
-            "action": "revert"
-        })
-        raise StopRule(f"Alpha crash: drop {alpha_drop:.4f} > {ALPHA_DROP_THRESHOLD} threshold")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-rl-tune",
+                "metric": "alpha_drop",
+                "baseline": ALPHA_DROP_THRESHOLD,
+                "delta": alpha_drop - ALPHA_DROP_THRESHOLD,
+                "classification": "violation",
+                "action": "revert",
+            },
+        )
+        raise StopRule(
+            f"Alpha crash: drop {alpha_drop:.4f} > {ALPHA_DROP_THRESHOLD} threshold"
+        )
 
 
 def stoprule_stuck(episodes_without_improvement: int) -> None:
@@ -251,15 +261,21 @@ def stoprule_stuck(episodes_without_improvement: int) -> None:
         StopRule: If episodes > MAX_EPISODES_WITHOUT_IMPROVEMENT
     """
     if episodes_without_improvement > MAX_EPISODES_WITHOUT_IMPROVEMENT:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-rl-tune",
-            "metric": "episodes_stuck",
-            "baseline": MAX_EPISODES_WITHOUT_IMPROVEMENT,
-            "delta": episodes_without_improvement - MAX_EPISODES_WITHOUT_IMPROVEMENT,
-            "classification": "deviation",
-            "action": "halt"
-        })
-        raise StopRule(f"Stuck: {episodes_without_improvement} episodes without improvement")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-rl-tune",
+                "metric": "episodes_stuck",
+                "baseline": MAX_EPISODES_WITHOUT_IMPROVEMENT,
+                "delta": episodes_without_improvement
+                - MAX_EPISODES_WITHOUT_IMPROVEMENT,
+                "classification": "deviation",
+                "action": "halt",
+            },
+        )
+        raise StopRule(
+            f"Stuck: {episodes_without_improvement} episodes without improvement"
+        )
 
 
 def stoprule_overflow_during_tune(overflow_detected: bool) -> float:
@@ -272,14 +288,17 @@ def stoprule_overflow_during_tune(overflow_detected: bool) -> float:
         Penalty value (0 if no overflow, negative if overflow)
     """
     if overflow_detected:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-rl-tune",
-            "metric": "overflow_during_tune",
-            "baseline": 0.0,
-            "delta": 1.0,
-            "classification": "violation",
-            "action": "penalize"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-rl-tune",
+                "metric": "overflow_during_tune",
+                "baseline": 0.0,
+                "delta": 1.0,
+                "classification": "violation",
+                "action": "penalize",
+            },
+        )
         return OVERFLOW_PENALTY_WEIGHT
 
     return 0.0
@@ -295,14 +314,17 @@ def stoprule_retention_below_floor(retention: float) -> None:
         StopRule: If retention < 1.0
     """
     if retention < RETENTION_FLOOR:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-rl-tune",
-            "metric": "retention_below_floor",
-            "baseline": RETENTION_FLOOR,
-            "delta": retention - RETENTION_FLOOR,
-            "classification": "violation",
-            "action": "halt"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-rl-tune",
+                "metric": "retention_below_floor",
+                "baseline": RETENTION_FLOOR,
+                "delta": retention - RETENTION_FLOOR,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
         raise StopRule(f"Retention {retention:.4f} below floor {RETENTION_FLOOR}")
 
 
@@ -340,13 +362,13 @@ class RLTuner:
         # Policy parameters (Gaussian mean and std)
         self.policy_mean = {
             "gnn_layers_delta": 1.0,  # Start with +1 layer
-            "lr_decay": 0.002,        # Middle of range
-            "prune_aggressiveness": 0.35  # Middle of range
+            "lr_decay": 0.002,  # Middle of range
+            "prune_aggressiveness": 0.35,  # Middle of range
         }
         self.policy_std = {
             "gnn_layers_delta": 0.5,
             "lr_decay": 0.001,
-            "prune_aggressiveness": 0.05
+            "prune_aggressiveness": 0.05,
         }
 
         # Learning rate for policy updates
@@ -379,19 +401,25 @@ class RLTuner:
         current_retention, current_alpha, blackout_days, tree_size = state
 
         # Sample from Gaussian policy
-        gnn_delta_raw = random.gauss(self.policy_mean["gnn_layers_delta"],
-                                     self.policy_std["gnn_layers_delta"])
-        lr_decay_raw = random.gauss(self.policy_mean["lr_decay"],
-                                    self.policy_std["lr_decay"])
-        prune_aggr_raw = random.gauss(self.policy_mean["prune_aggressiveness"],
-                                      self.policy_std["prune_aggressiveness"])
+        gnn_delta_raw = random.gauss(
+            self.policy_mean["gnn_layers_delta"], self.policy_std["gnn_layers_delta"]
+        )
+        lr_decay_raw = random.gauss(
+            self.policy_mean["lr_decay"], self.policy_std["lr_decay"]
+        )
+        prune_aggr_raw = random.gauss(
+            self.policy_mean["prune_aggressiveness"],
+            self.policy_std["prune_aggressiveness"],
+        )
 
         # Apply bounds
-        gnn_layers_delta = int(max(GNN_LAYERS_ADD_MIN,
-                                   min(GNN_LAYERS_ADD_MAX, round(gnn_delta_raw))))
+        gnn_layers_delta = int(
+            max(GNN_LAYERS_ADD_MIN, min(GNN_LAYERS_ADD_MAX, round(gnn_delta_raw)))
+        )
         lr_decay = max(LR_DECAY_MIN, min(LR_DECAY_MAX, lr_decay_raw))
-        prune_aggressiveness = max(PRUNE_AGGRESSIVENESS_MIN,
-                                   min(PRUNE_AGGRESSIVENESS_MAX, prune_aggr_raw))
+        prune_aggressiveness = max(
+            PRUNE_AGGRESSIVENESS_MIN, min(PRUNE_AGGRESSIVENESS_MAX, prune_aggr_raw)
+        )
 
         action = {
             "gnn_layers_delta": gnn_layers_delta,
@@ -400,8 +428,8 @@ class RLTuner:
             "state": {
                 "retention": current_retention,
                 "alpha": current_alpha,
-                "blackout_days": blackout_days
-            }
+                "blackout_days": blackout_days,
+            },
         }
 
         return action
@@ -411,7 +439,7 @@ class RLTuner:
         alpha_before: float,
         alpha_after: float,
         overflow: bool = False,
-        instability: float = 0.0
+        instability: float = 0.0,
     ) -> float:
         """Compute reward using weighted components.
 
@@ -427,25 +455,29 @@ class RLTuner:
             Computed reward value
         """
         # Alpha gain component
-        alpha_gain = (alpha_after - alpha_before) * \
-            self.reward_weights.get("alpha_gain", ALPHA_GAIN_WEIGHT)
+        alpha_gain = (alpha_after - alpha_before) * self.reward_weights.get(
+            "alpha_gain", ALPHA_GAIN_WEIGHT
+        )
 
         # Overflow penalty
         overflow_penalty = 0.0
         if overflow:
-            overflow_penalty = abs(self.reward_weights.get("overflow_penalty",
-                                                           OVERFLOW_PENALTY_WEIGHT))
+            overflow_penalty = abs(
+                self.reward_weights.get("overflow_penalty", OVERFLOW_PENALTY_WEIGHT)
+            )
 
         # Instability penalty
-        instability_penalty = instability * \
-            abs(self.reward_weights.get("instability_penalty", INSTABILITY_PENALTY_WEIGHT))
+        instability_penalty = instability * abs(
+            self.reward_weights.get("instability_penalty", INSTABILITY_PENALTY_WEIGHT)
+        )
 
         # Efficiency bonus (reward for being close to target)
         efficiency_bonus = 0.0
         target_alpha = self.targets.get("alpha_target_m1", ALPHA_TARGET_M1)
         if alpha_after >= target_alpha:
-            efficiency_bonus = self.reward_weights.get("efficiency_bonus",
-                                                       EFFICIENCY_BONUS_WEIGHT)
+            efficiency_bonus = self.reward_weights.get(
+                "efficiency_bonus", EFFICIENCY_BONUS_WEIGHT
+            )
 
         reward = alpha_gain - overflow_penalty - instability_penalty + efficiency_bonus
 
@@ -482,29 +514,35 @@ class RLTuner:
                 # Move mean toward this action
                 for key in self.policy_mean:
                     if key in action:
-                        delta = (action[key] - self.policy_mean[key]) * \
-                            self.learning_rate * advantage
+                        delta = (
+                            (action[key] - self.policy_mean[key])
+                            * self.learning_rate
+                            * advantage
+                        )
                         self.policy_mean[key] += delta
             else:
                 # Move mean away from this action
                 for key in self.policy_mean:
                     if key in action:
-                        delta = (self.policy_mean[key] - action[key]) * \
-                            self.learning_rate * abs(advantage) * 0.5
+                        delta = (
+                            (self.policy_mean[key] - action[key])
+                            * self.learning_rate
+                            * abs(advantage)
+                            * 0.5
+                        )
                         self.policy_mean[key] += delta
 
         # Clip policy means to valid ranges
         self.policy_mean["gnn_layers_delta"] = max(
             GNN_LAYERS_ADD_MIN,
-            min(GNN_LAYERS_ADD_MAX, self.policy_mean["gnn_layers_delta"])
+            min(GNN_LAYERS_ADD_MAX, self.policy_mean["gnn_layers_delta"]),
         )
         self.policy_mean["lr_decay"] = max(
-            LR_DECAY_MIN,
-            min(LR_DECAY_MAX, self.policy_mean["lr_decay"])
+            LR_DECAY_MIN, min(LR_DECAY_MAX, self.policy_mean["lr_decay"])
         )
         self.policy_mean["prune_aggressiveness"] = max(
             PRUNE_AGGRESSIVENESS_MIN,
-            min(PRUNE_AGGRESSIVENESS_MAX, self.policy_mean["prune_aggressiveness"])
+            min(PRUNE_AGGRESSIVENESS_MAX, self.policy_mean["prune_aggressiveness"]),
         )
 
         # Add rewards to history
@@ -545,7 +583,7 @@ class RLTuner:
             reverted = {
                 "gnn_layers_delta": 0,
                 "lr_decay": 0.002,
-                "prune_aggressiveness": 0.3
+                "prune_aggressiveness": 0.3,
             }
         else:
             reverted = self.prior_params.copy()
@@ -558,16 +596,21 @@ class RLTuner:
         # Reset stagnation counter
         self.episodes_without_improvement = 0
 
-        emit_receipt("rl_revert", {
-            "tenant_id": "axiom-rl-tune",
-            "reverted_to": reverted,
-            "reason": "safety_check_triggered",
-            "payload_hash": dual_hash(json.dumps(reverted, sort_keys=True))
-        })
+        emit_receipt(
+            "rl_revert",
+            {
+                "tenant_id": "axiom-rl-tune",
+                "reverted_to": reverted,
+                "reason": "safety_check_triggered",
+                "payload_hash": dual_hash(json.dumps(reverted, sort_keys=True)),
+            },
+        )
 
         return reverted
 
-    def update_best(self, params: Dict[str, Any], alpha: float, retention: float) -> bool:
+    def update_best(
+        self, params: Dict[str, Any], alpha: float, retention: float
+    ) -> bool:
         """Update best params if this is an improvement.
 
         Args:
@@ -591,9 +634,7 @@ class RLTuner:
 
 
 def simulate_retention_with_action(
-    action: Dict[str, Any],
-    blackout_days: int,
-    base_retention: float = 1.01
+    action: Dict[str, Any], blackout_days: int, base_retention: float = 1.01
 ) -> Tuple[float, float, bool]:
     """Simulate retention and alpha given an action.
 
@@ -626,10 +667,14 @@ def simulate_retention_with_action(
     # Simulate pruning contribution
     prune_optimal = 0.35
     prune_deviation = abs(prune_aggr - prune_optimal) / prune_optimal
-    prune_contribution = 1.0 + (0.008 * (1.0 - min(1.0, prune_deviation)))  # Up to +0.8%
+    prune_contribution = 1.0 + (
+        0.008 * (1.0 - min(1.0, prune_deviation))
+    )  # Up to +0.8%
 
     # Compound retention
-    new_retention = base_retention * gnn_contribution * lr_contribution * prune_contribution
+    new_retention = (
+        base_retention * gnn_contribution * lr_contribution * prune_contribution
+    )
 
     # Cap at ceiling
     new_retention = min(RETENTION_CEILING, new_retention)
@@ -649,7 +694,7 @@ def rl_auto_tune(
     blackout_days: int,
     episodes: int = 100,
     tree_size: int = int(1e6),
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Main entry point for RL auto-tuning.
 
@@ -699,9 +744,7 @@ def rl_auto_tune(
 
         # Compute reward
         reward = tuner.compute_reward(
-            alpha_before=alpha_before,
-            alpha_after=new_alpha,
-            overflow=overflow
+            alpha_before=alpha_before, alpha_after=new_alpha, overflow=overflow
         )
 
         # Check for alpha crash
@@ -710,18 +753,23 @@ def rl_auto_tune(
             safety_triggered = True
             reverted_params = tuner.revert()
 
-            emit_receipt("rl_revert", {
-                "receipt_type": "rl_revert",
-                "tenant_id": "axiom-rl-tune",
-                "alpha_drop": alpha_drop,
-                "threshold": ALPHA_DROP_THRESHOLD,
-                "reverted_to": reverted_params,
-                "episode_reverted": episode,
-                "payload_hash": dual_hash(json.dumps({
+            emit_receipt(
+                "rl_revert",
+                {
+                    "receipt_type": "rl_revert",
+                    "tenant_id": "axiom-rl-tune",
                     "alpha_drop": alpha_drop,
-                    "episode": episode
-                }, sort_keys=True))
-            })
+                    "threshold": ALPHA_DROP_THRESHOLD,
+                    "reverted_to": reverted_params,
+                    "episode_reverted": episode,
+                    "payload_hash": dual_hash(
+                        json.dumps(
+                            {"alpha_drop": alpha_drop, "episode": episode},
+                            sort_keys=True,
+                        )
+                    ),
+                },
+            )
 
             # Don't update retention if we reverted
             continue
@@ -740,7 +788,7 @@ def rl_auto_tune(
             "alpha_before": alpha_before,
             "alpha_after": new_alpha,
             "overflow": overflow,
-            "improvement": improvement
+            "improvement": improvement,
         }
         history.append(step)
 
@@ -752,23 +800,35 @@ def rl_auto_tune(
         current_alpha = new_alpha
 
         # Emit episode receipt
-        emit_receipt("rl_tune", {
-            "receipt_type": "rl_tune",
-            "tenant_id": "axiom-rl-tune",
-            "episode": episode,
-            "state": {"retention": state[0], "alpha": state[1], "blackout_days": state[2]},
-            "action": {k: v for k, v in action.items() if k != "state"},
-            "reward": reward,
-            "retention_before": step["retention_before"],
-            "retention_after": step["retention_after"],
-            "alpha_achieved": new_alpha,
-            "safety_triggered": safety_triggered,
-            "payload_hash": dual_hash(json.dumps({
+        emit_receipt(
+            "rl_tune",
+            {
+                "receipt_type": "rl_tune",
+                "tenant_id": "axiom-rl-tune",
                 "episode": episode,
-                "retention": new_retention,
-                "alpha": new_alpha
-            }, sort_keys=True))
-        })
+                "state": {
+                    "retention": state[0],
+                    "alpha": state[1],
+                    "blackout_days": state[2],
+                },
+                "action": {k: v for k, v in action.items() if k != "state"},
+                "reward": reward,
+                "retention_before": step["retention_before"],
+                "retention_after": step["retention_after"],
+                "alpha_achieved": new_alpha,
+                "safety_triggered": safety_triggered,
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "episode": episode,
+                            "retention": new_retention,
+                            "alpha": new_alpha,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
 
         # Check for stagnation
         try:
@@ -790,20 +850,23 @@ def rl_auto_tune(
         "safety_triggered": safety_triggered,
         "target_achieved": target_achieved,
         "target_milestone": RETENTION_MILESTONE_1,
-        "alpha_target": ALPHA_TARGET_M1
+        "alpha_target": ALPHA_TARGET_M1,
     }
 
-    emit_receipt("rl_auto_tune_summary", {
-        "receipt_type": "rl_auto_tune_summary",
-        "tenant_id": "axiom-rl-tune",
-        "tuned_retention": current_retention,
-        "best_retention": tuner.best_retention,
-        "best_alpha": tuner.best_alpha,
-        "episodes_run": len(history),
-        "safety_triggered": safety_triggered,
-        "target_achieved": target_achieved,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "rl_auto_tune_summary",
+        {
+            "receipt_type": "rl_auto_tune_summary",
+            "tenant_id": "axiom-rl-tune",
+            "tuned_retention": current_retention,
+            "best_retention": tuner.best_retention,
+            "best_alpha": tuner.best_alpha,
+            "episodes_run": len(history),
+            "safety_triggered": safety_triggered,
+            "target_achieved": target_achieved,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -829,17 +892,23 @@ def get_rl_tune_info() -> Dict[str, Any]:
         "max_episodes_without_improvement": MAX_EPISODES_WITHOUT_IMPROVEMENT,
         "gnn_layers_range": (GNN_LAYERS_ADD_MIN, GNN_LAYERS_ADD_MAX),
         "lr_decay_range": (LR_DECAY_MIN, LR_DECAY_MAX),
-        "prune_aggressiveness_range": (PRUNE_AGGRESSIVENESS_MIN, PRUNE_AGGRESSIVENESS_MAX),
+        "prune_aggressiveness_range": (
+            PRUNE_AGGRESSIVENESS_MIN,
+            PRUNE_AGGRESSIVENESS_MAX,
+        ),
         "layer_retention_range": (LAYER_RETENTION_MIN, LAYER_RETENTION_MAX),
         "description": "Lightweight RL auto-tuning with REINFORCE policy gradient. "
-                       "Kill static baselines - go dynamic."
+        "Kill static baselines - go dynamic.",
     }
 
-    emit_receipt("rl_tune_info", {
-        "tenant_id": "axiom-rl-tune",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "rl_tune_info",
+        {
+            "tenant_id": "axiom-rl-tune",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -855,7 +924,7 @@ def run_sweep(
     blackout_days: int = 150,
     adaptive_depth: bool = True,
     early_stopping: bool = True,
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Run efficient informed RL sweep with adaptive depth.
 
@@ -890,6 +959,7 @@ def run_sweep(
     if adaptive_depth:
         try:
             from .adaptive_depth import compute_depth
+
             depth_used = compute_depth(tree_size, 0.5)
         except ImportError:
             pass
@@ -901,7 +971,9 @@ def run_sweep(
     # Deeper networks benefit from lower LR
     if depth_used > 6:
         tuner.policy_mean["lr_decay"] = 0.0015  # Lower LR for deeper
-        tuner.policy_mean["gnn_layers_delta"] = max(0, 8 - depth_used)  # Less delta needed
+        tuner.policy_mean["gnn_layers_delta"] = max(
+            0, 8 - depth_used
+        )  # Less delta needed
 
     current_retention = 1.01  # Start from baseline
     current_alpha = SHANNON_FLOOR * current_retention
@@ -930,15 +1002,13 @@ def run_sweep(
         # Depth bonus: deeper networks get slight retention boost
         if depth_used > 6:
             depth_bonus = (depth_used - 6) * 0.002  # +0.2% per extra layer
-            new_retention *= (1.0 + depth_bonus)
+            new_retention *= 1.0 + depth_bonus
             new_retention = min(RETENTION_CEILING, new_retention)
             new_alpha = SHANNON_FLOOR * new_retention
 
         # Compute reward
         reward = tuner.compute_reward(
-            alpha_before=alpha_before,
-            alpha_after=new_alpha,
-            overflow=overflow
+            alpha_before=alpha_before, alpha_after=new_alpha, overflow=overflow
         )
 
         # Update best tracking
@@ -949,12 +1019,7 @@ def run_sweep(
         current_alpha = new_alpha
 
         # Build trajectory and update policy
-        step = {
-            "episode": run,
-            "state": state,
-            "action": action,
-            "reward": reward
-        }
+        step = {"episode": run, "state": state, "action": action, "reward": reward}
         tuner.update_policy([step])
 
         # Check for quick win target
@@ -984,27 +1049,35 @@ def run_sweep(
         "adaptive_depth_enabled": adaptive_depth,
         "early_stopped": runs_completed < runs and target_achieved,
         "tree_size": tree_size,
-        "blackout_days": blackout_days
+        "blackout_days": blackout_days,
     }
 
     # Emit efficient_rl_sweep_receipt
-    emit_receipt("efficient_rl_sweep", {
-        "receipt_type": "efficient_rl_sweep",
-        "tenant_id": "axiom-colony",
-        "runs_completed": runs_completed,
-        "runs_limit": runs,
-        "final_retention": round(current_retention, 5),
-        "best_retention": round(tuner.best_retention, 5),
-        "target_achieved": target_achieved,
-        "depth_used": depth_used,
-        "convergence_run": convergence_run,
-        "adaptive_depth_enabled": adaptive_depth,
-        "payload_hash": dual_hash(json.dumps({
-            "runs": runs_completed,
-            "retention": tuner.best_retention,
-            "depth": depth_used
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "efficient_rl_sweep",
+        {
+            "receipt_type": "efficient_rl_sweep",
+            "tenant_id": "axiom-colony",
+            "runs_completed": runs_completed,
+            "runs_limit": runs,
+            "final_retention": round(current_retention, 5),
+            "best_retention": round(tuner.best_retention, 5),
+            "target_achieved": target_achieved,
+            "depth_used": depth_used,
+            "convergence_run": convergence_run,
+            "adaptive_depth_enabled": adaptive_depth,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "runs": runs_completed,
+                        "retention": tuner.best_retention,
+                        "depth": depth_used,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -1013,7 +1086,7 @@ def compare_sweep_efficiency(
     informed_runs: int = 500,
     blind_runs: int = 300,
     tree_size: int = int(1e6),
-    seed: int = 42
+    seed: int = 42,
 ) -> Dict[str, Any]:
     """Compare informed vs blind sweep accuracy.
 
@@ -1036,7 +1109,7 @@ def compare_sweep_efficiency(
         tree_size=tree_size,
         adaptive_depth=True,
         early_stopping=False,
-        seed=seed
+        seed=seed,
     )
 
     # Run blind sweep (no adaptive depth)
@@ -1045,7 +1118,7 @@ def compare_sweep_efficiency(
         tree_size=tree_size,
         adaptive_depth=False,
         early_stopping=False,
-        seed=seed + 1  # Different seed for independence
+        seed=seed + 1,  # Different seed for independence
     )
 
     informed_better = informed["best_retention"] > blind["best_retention"]
@@ -1058,15 +1131,18 @@ def compare_sweep_efficiency(
         "blind_runs": blind_runs,
         "informed_better": informed_better,
         "efficiency_gain": round(efficiency_gain, 5),
-        "conclusion": f"{'500 informed > 300 blind' if informed_better else 'Blind unexpectedly better'}"
+        "conclusion": f"{'500 informed > 300 blind' if informed_better else 'Blind unexpectedly better'}",
     }
 
-    emit_receipt("sweep_efficiency_comparison", {
-        "receipt_type": "sweep_efficiency_comparison",
-        "tenant_id": "axiom-colony",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "sweep_efficiency_comparison",
+        {
+            "receipt_type": "sweep_efficiency_comparison",
+            "tenant_id": "axiom-colony",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -1087,14 +1163,17 @@ def get_efficient_sweep_info() -> Dict[str, Any]:
         "expected_convergence": "300-500 runs",
         "vs_blind": "500 informed > 1000 blind efficiency",
         "description": "Efficient RL sweep with adaptive depth awareness. "
-                       "500 informed runs with depth prior converge faster than 1000 blind."
+        "500 informed runs with depth prior converge faster than 1000 blind.",
     }
 
-    emit_receipt("efficient_sweep_info", {
-        "tenant_id": "axiom-colony",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "efficient_sweep_info",
+        {
+            "tenant_id": "axiom-colony",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -1124,22 +1203,25 @@ def load_sweep_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, RL_SWEEP_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("sweep_spec", {
-        "receipt_type": "sweep_spec",
-        "tenant_id": "axiom-colony",
-        "sweep_runs": data["sweep_runs"],
-        "lr_min": data["lr_min"],
-        "lr_max": data["lr_max"],
-        "retention_target": data["retention_target"],
-        "seed": data["seed"],
-        "spec_hash": content_hash,
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "sweep_spec",
+        {
+            "receipt_type": "sweep_spec",
+            "tenant_id": "axiom-colony",
+            "sweep_runs": data["sweep_runs"],
+            "lr_min": data["lr_min"],
+            "lr_max": data["lr_max"],
+            "retention_target": data["retention_target"],
+            "seed": data["seed"],
+            "spec_hash": content_hash,
+            "payload_hash": content_hash,
+        },
+    )
 
     _sweep_spec_cache = data
     return data
@@ -1152,10 +1234,7 @@ def clear_sweep_spec_cache() -> None:
 
 
 def build_state(
-    retention: float,
-    tree_size: int,
-    entropy: float,
-    depth: int
+    retention: float, tree_size: int, entropy: float, depth: int
 ) -> Tuple[float, int, float, int]:
     """Construct RL state vector.
 
@@ -1174,7 +1253,7 @@ def build_state(
 def sample_action(
     state: Tuple[float, int, float, int],
     policy: Dict[str, Any],
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Sample action from policy.
 
@@ -1208,14 +1287,12 @@ def sample_action(
     return {
         "layers_delta": layers_delta,
         "lr": round(lr, 6),
-        "prune_factor": round(prune_factor, 4)
+        "prune_factor": round(prune_factor, 4),
     }
 
 
 def compute_reward_500(
-    eff_alpha: float,
-    compute_cost: float,
-    stability: float
+    eff_alpha: float, compute_cost: float, stability: float
 ) -> float:
     """Compute reward for 500-run sweep.
 
@@ -1264,15 +1341,20 @@ def stoprule_sweep_divergence(alpha_drop: float) -> None:
         StopRule: If alpha_drop > DIVERGENCE_THRESHOLD
     """
     if alpha_drop > DIVERGENCE_THRESHOLD:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-colony",
-            "metric": "sweep_divergence",
-            "baseline": DIVERGENCE_THRESHOLD,
-            "delta": alpha_drop - DIVERGENCE_THRESHOLD,
-            "classification": "violation",
-            "action": "halt"
-        })
-        raise StopRule(f"Sweep divergence: alpha drop {alpha_drop:.4f} > {DIVERGENCE_THRESHOLD}")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-colony",
+                "metric": "sweep_divergence",
+                "baseline": DIVERGENCE_THRESHOLD,
+                "delta": alpha_drop - DIVERGENCE_THRESHOLD,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
+        raise StopRule(
+            f"Sweep divergence: alpha drop {alpha_drop:.4f} > {DIVERGENCE_THRESHOLD}"
+        )
 
 
 def stoprule_nan_reward(reward: float) -> None:
@@ -1287,14 +1369,17 @@ def stoprule_nan_reward(reward: float) -> None:
     import math as _math
 
     if _math.isnan(reward) or _math.isinf(reward):
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-colony",
-            "metric": "nan_reward",
-            "baseline": "finite",
-            "delta": str(reward),
-            "classification": "violation",
-            "action": "halt"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-colony",
+                "metric": "nan_reward",
+                "baseline": "finite",
+                "delta": str(reward),
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
         raise StopRule(f"NaN/Inf reward detected: {reward}")
 
 
@@ -1304,7 +1389,7 @@ def run_500_sweep(
     blackout_days: int = 150,
     adaptive_depth: bool = True,
     early_stopping: bool = True,
-    seed: Optional[int] = SEED
+    seed: Optional[int] = SEED,
 ) -> Dict[str, Any]:
     """Run 500-run informed RL sweep with depth-guided policy.
 
@@ -1348,6 +1433,7 @@ def run_500_sweep(
     if adaptive_depth:
         try:
             from .adaptive_depth import compute_depth
+
             depth_used = compute_depth(tree_size, 0.5)
         except ImportError:
             pass
@@ -1381,7 +1467,7 @@ def run_500_sweep(
         tuner_action = {
             "gnn_layers_delta": max(0, action["layers_delta"]),
             "lr_decay": action["lr"],
-            "prune_aggressiveness": action["prune_factor"]
+            "prune_aggressiveness": action["prune_factor"],
         }
 
         # Simulate effect
@@ -1393,7 +1479,7 @@ def run_500_sweep(
         # Depth bonus
         if depth_used > 6:
             depth_bonus = (depth_used - 6) * 0.002
-            new_retention *= (1.0 + depth_bonus)
+            new_retention *= 1.0 + depth_bonus
             new_retention = min(RETENTION_CEILING, new_retention)
             new_alpha = SHANNON_FLOOR * new_retention
 
@@ -1430,18 +1516,23 @@ def run_500_sweep(
                 convergence_run = runs_completed
 
                 # Emit retention_105_receipt
-                emit_receipt("retention_105", {
-                    "receipt_type": "retention_105",
-                    "tenant_id": "axiom-colony",
-                    "achieved_retention": round(best_retention, 5),
-                    "runs_to_achieve": convergence_run,
-                    "eff_alpha": round(SHANNON_FLOOR * best_retention, 5),
-                    "method": "rl_500_sweep",
-                    "payload_hash": dual_hash(json.dumps({
-                        "retention": best_retention,
-                        "run": convergence_run
-                    }, sort_keys=True))
-                })
+                emit_receipt(
+                    "retention_105",
+                    {
+                        "receipt_type": "retention_105",
+                        "tenant_id": "axiom-colony",
+                        "achieved_retention": round(best_retention, 5),
+                        "runs_to_achieve": convergence_run,
+                        "eff_alpha": round(SHANNON_FLOOR * best_retention, 5),
+                        "method": "rl_500_sweep",
+                        "payload_hash": dual_hash(
+                            json.dumps(
+                                {"retention": best_retention, "run": convergence_run},
+                                sort_keys=True,
+                            )
+                        ),
+                    },
+                )
 
             if early_stopping:
                 break
@@ -1458,28 +1549,36 @@ def run_500_sweep(
         "runs_limit": runs,
         "depth_used": depth_used,
         "adaptive_depth_enabled": adaptive_depth,
-        "seed": seed
+        "seed": seed,
     }
 
     # Emit rl_500_sweep_receipt
-    emit_receipt("rl_500_sweep", {
-        "receipt_type": "rl_500_sweep",
-        "tenant_id": "axiom-colony",
-        "runs_completed": runs_completed,
-        "runs_limit": runs,
-        "lr_range": [lr_min, lr_max],
-        "final_retention": round(current_retention, 5),
-        "target_achieved": target_achieved,
-        "convergence_run": convergence_run,
-        "best_action": best_action,
-        "depth_used": depth_used,
-        "seed": seed,
-        "payload_hash": dual_hash(json.dumps({
-            "runs": runs_completed,
-            "retention": best_retention,
-            "depth": depth_used
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "rl_500_sweep",
+        {
+            "receipt_type": "rl_500_sweep",
+            "tenant_id": "axiom-colony",
+            "runs_completed": runs_completed,
+            "runs_limit": runs,
+            "lr_range": [lr_min, lr_max],
+            "final_retention": round(current_retention, 5),
+            "target_achieved": target_achieved,
+            "convergence_run": convergence_run,
+            "best_action": best_action,
+            "depth_used": depth_used,
+            "seed": seed,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "runs": runs_completed,
+                        "retention": best_retention,
+                        "depth": depth_used,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -1504,14 +1603,17 @@ def get_500_sweep_info() -> Dict[str, Any]:
         "expected_convergence": "300-500 runs",
         "vs_blind": "~30% faster convergence",
         "description": "500-run depth-informed RL sweep. "
-                       "Depth as policy prior enables faster convergence to 1.05."
+        "Depth as policy prior enables faster convergence to 1.05.",
     }
 
-    emit_receipt("rl_500_sweep_info", {
-        "tenant_id": "axiom-colony",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "rl_500_sweep_info",
+        {
+            "tenant_id": "axiom-colony",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -1558,25 +1660,28 @@ def load_pilot_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, LR_PILOT_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("pilot_spec", {
-        "receipt_type": "pilot_spec",
-        "tenant_id": "axiom-colony",
-        "pilot_runs": data["pilot_runs"],
-        "initial_lr_min": data["initial_lr_min"],
-        "initial_lr_max": data["initial_lr_max"],
-        "target_narrow_min": data["target_narrow_min"],
-        "target_narrow_max": data["target_narrow_max"],
-        "quantum_sim_runs": data["quantum_sim_runs"],
-        "full_tuned_runs": data["full_tuned_runs"],
-        "retention_target": data["retention_target"],
-        "spec_hash": content_hash,
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "pilot_spec",
+        {
+            "receipt_type": "pilot_spec",
+            "tenant_id": "axiom-colony",
+            "pilot_runs": data["pilot_runs"],
+            "initial_lr_min": data["initial_lr_min"],
+            "initial_lr_max": data["initial_lr_max"],
+            "target_narrow_min": data["target_narrow_min"],
+            "target_narrow_max": data["target_narrow_max"],
+            "quantum_sim_runs": data["quantum_sim_runs"],
+            "full_tuned_runs": data["full_tuned_runs"],
+            "retention_target": data["retention_target"],
+            "spec_hash": content_hash,
+            "payload_hash": content_hash,
+        },
+    )
 
     _pilot_spec_cache = data
     return data
@@ -1635,7 +1740,7 @@ def pilot_lr_narrow(
     runs: int = PILOT_LR_RUNS,
     tree_size: int = int(1e6),
     blackout_days: int = 150,
-    seed: Optional[int] = SEED
+    seed: Optional[int] = SEED,
 ) -> Dict[str, Any]:
     """Run pilot iterations to narrow LR range.
 
@@ -1666,6 +1771,7 @@ def pilot_lr_narrow(
     depth_used = 6
     try:
         from .adaptive_depth import compute_depth
+
         depth_used = compute_depth(tree_size, 0.5)
     except ImportError:
         pass
@@ -1677,7 +1783,7 @@ def pilot_lr_narrow(
     current_alpha = SHANNON_FLOOR * current_retention
     pilot_results = []
     best_lr = None
-    best_reward = float('-inf')
+    best_reward = float("-inf")
 
     for run in range(runs):
         # Sample LR from log_uniform over initial range
@@ -1692,7 +1798,7 @@ def pilot_lr_narrow(
         action = {
             "gnn_layers_delta": random.choice([0, 1, 2]),
             "lr_decay": lr,
-            "prune_aggressiveness": random.uniform(0.2, 0.5)
+            "prune_aggressiveness": random.uniform(0.2, 0.5),
         }
 
         # Simulate effect
@@ -1706,13 +1812,15 @@ def pilot_lr_narrow(
         stability = max(0, alpha_before - new_alpha)
         reward = compute_reward_500(new_alpha, compute_cost, stability)
 
-        pilot_results.append({
-            "run": run,
-            "lr": lr,
-            "reward": reward,
-            "retention": new_retention,
-            "alpha": new_alpha
-        })
+        pilot_results.append(
+            {
+                "run": run,
+                "lr": lr,
+                "reward": reward,
+                "retention": new_retention,
+                "alpha": new_alpha,
+            }
+        )
 
         if reward > best_reward:
             best_reward = reward
@@ -1727,14 +1835,24 @@ def pilot_lr_narrow(
     optimal_lr = best_lr if best_lr else (narrowed_range[0] + narrowed_range[1]) / 2
 
     # Compute improvement (compare avg reward in narrowed vs full range)
-    in_band = [r for r in pilot_results
-               if narrowed_range[0] <= r["lr"] <= narrowed_range[1]]
-    out_band = [r for r in pilot_results
-                if r["lr"] < narrowed_range[0] or r["lr"] > narrowed_range[1]]
+    in_band = [
+        r for r in pilot_results if narrowed_range[0] <= r["lr"] <= narrowed_range[1]
+    ]
+    out_band = [
+        r
+        for r in pilot_results
+        if r["lr"] < narrowed_range[0] or r["lr"] > narrowed_range[1]
+    ]
 
     avg_in = sum(r["reward"] for r in in_band) / max(1, len(in_band))
-    avg_out = sum(r["reward"] for r in out_band) / max(1, len(out_band)) if out_band else avg_in
-    improvement_pct = ((avg_in - avg_out) / max(0.001, abs(avg_out))) * 100 if avg_out != 0 else 0
+    avg_out = (
+        sum(r["reward"] for r in out_band) / max(1, len(out_band))
+        if out_band
+        else avg_in
+    )
+    improvement_pct = (
+        ((avg_in - avg_out) / max(0.001, abs(avg_out))) * 100 if avg_out != 0 else 0
+    )
 
     result = {
         "narrowed_range": list(narrowed_range),
@@ -1743,23 +1861,31 @@ def pilot_lr_narrow(
         "runs_completed": runs,
         "initial_range": list(INITIAL_LR_RANGE),
         "best_retention": max(r["retention"] for r in pilot_results),
-        "depth_used": depth_used
+        "depth_used": depth_used,
     }
 
-    emit_receipt("lr_pilot_narrow", {
-        "receipt_type": "lr_pilot_narrow",
-        "tenant_id": "axiom-colony",
-        "pilot_runs": runs,
-        "initial_range": list(INITIAL_LR_RANGE),
-        "narrowed_range": list(narrowed_range),
-        "optimal_lr_found": round(optimal_lr, 6),
-        "reward_improvement_pct": round(improvement_pct, 2),
-        "payload_hash": dual_hash(json.dumps({
-            "runs": runs,
-            "narrowed": narrowed_range,
-            "optimal_lr": optimal_lr
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "lr_pilot_narrow",
+        {
+            "receipt_type": "lr_pilot_narrow",
+            "tenant_id": "axiom-colony",
+            "pilot_runs": runs,
+            "initial_range": list(INITIAL_LR_RANGE),
+            "narrowed_range": list(narrowed_range),
+            "optimal_lr_found": round(optimal_lr, 6),
+            "reward_improvement_pct": round(improvement_pct, 2),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "runs": runs,
+                        "narrowed": narrowed_range,
+                        "optimal_lr": optimal_lr,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -1770,7 +1896,7 @@ def run_tuned_sweep(
     tree_size: int = int(1e6),
     blackout_days: int = 150,
     quantum_boost: float = 0.0,
-    seed: Optional[int] = SEED
+    seed: Optional[int] = SEED,
 ) -> Dict[str, Any]:
     """Execute sweep with narrowed LR range.
 
@@ -1798,6 +1924,7 @@ def run_tuned_sweep(
     depth_used = 6
     try:
         from .adaptive_depth import compute_depth
+
         depth_used = compute_depth(tree_size, 0.5)
     except ImportError:
         pass
@@ -1831,7 +1958,7 @@ def run_tuned_sweep(
             "prune_aggressiveness": random.uniform(0.25, 0.45),
             "layers_delta": random.choice([-1, 0, 1]),
             "lr": lr,
-            "prune_factor": random.uniform(0.25, 0.45)
+            "prune_factor": random.uniform(0.25, 0.45),
         }
 
         # Simulate effect
@@ -1843,13 +1970,13 @@ def run_tuned_sweep(
         # Apply depth bonus
         if depth_used > 6:
             depth_bonus = (depth_used - 6) * 0.002
-            new_retention *= (1.0 + depth_bonus)
+            new_retention *= 1.0 + depth_bonus
             new_retention = min(RETENTION_CEILING, new_retention)
             new_alpha = SHANNON_FLOOR * new_retention
 
         # Apply quantum boost if provided
         if quantum_boost > 0:
-            new_retention *= (1.0 + quantum_boost)
+            new_retention *= 1.0 + quantum_boost
             new_retention = min(RETENTION_CEILING, new_retention)
             new_alpha = SHANNON_FLOOR * new_retention
 
@@ -1886,25 +2013,29 @@ def run_tuned_sweep(
         "convergence_run": convergence_run,
         "instability_events": instability_events,
         "depth_used": depth_used,
-        "best_action": best_action
+        "best_action": best_action,
     }
 
-    emit_receipt("post_tune_sweep", {
-        "receipt_type": "post_tune_sweep",
-        "tenant_id": "axiom-colony",
-        "runs_completed": runs,
-        "lr_range_used": list(lr_range),
-        "quantum_integrated": quantum_boost > 0,
-        "final_retention": round(best_retention, 5),
-        "eff_alpha": round(eff_alpha, 2),
-        "target_achieved": best_retention >= RETENTION_TARGET,
-        "instability_events": instability_events,
-        "payload_hash": dual_hash(json.dumps({
-            "runs": runs,
-            "retention": best_retention,
-            "eff_alpha": eff_alpha
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "post_tune_sweep",
+        {
+            "receipt_type": "post_tune_sweep",
+            "tenant_id": "axiom-colony",
+            "runs_completed": runs,
+            "lr_range_used": list(lr_range),
+            "quantum_integrated": quantum_boost > 0,
+            "final_retention": round(best_retention, 5),
+            "eff_alpha": round(eff_alpha, 2),
+            "target_achieved": best_retention >= RETENTION_TARGET,
+            "instability_events": instability_events,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"runs": runs, "retention": best_retention, "eff_alpha": eff_alpha},
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -1915,7 +2046,7 @@ def chain_pilot_to_sweep(
     sweep_runs: int = FULL_TUNED_RUNS,
     tree_size: int = int(1e6),
     blackout_days: int = 150,
-    seed: Optional[int] = SEED
+    seed: Optional[int] = SEED,
 ) -> Dict[str, Any]:
     """Full pipeline: pilot -> narrow -> quantum -> tuned sweep.
 
@@ -1936,10 +2067,7 @@ def chain_pilot_to_sweep(
     """
     # Stage 1: Pilot LR narrowing
     pilot_result = pilot_lr_narrow(
-        runs=pilot_runs,
-        tree_size=tree_size,
-        blackout_days=blackout_days,
-        seed=seed
+        runs=pilot_runs, tree_size=tree_size, blackout_days=blackout_days, seed=seed
     )
     narrowed_lr = tuple(pilot_result["narrowed_range"])
 
@@ -1948,6 +2076,7 @@ def chain_pilot_to_sweep(
     quantum_result = None
     try:
         from .quantum_rl_hybrid import simulate_quantum_policy
+
         quantum_result = simulate_quantum_policy(runs=quantum_runs, seed=seed)
         quantum_boost = quantum_result.get("effective_retention_boost", 0.03)
     except (ImportError, Exception):
@@ -1957,7 +2086,7 @@ def chain_pilot_to_sweep(
             "runs_completed": quantum_runs,
             "instability_reduction_pct": 8.0,
             "effective_retention_boost": 0.03,
-            "status": "estimated"
+            "status": "estimated",
         }
 
     # Stage 3: Tuned sweep with narrowed LR and quantum boost
@@ -1967,7 +2096,7 @@ def chain_pilot_to_sweep(
         tree_size=tree_size,
         blackout_days=blackout_days,
         quantum_boost=quantum_boost,
-        seed=seed + 1 if seed else None
+        seed=seed + 1 if seed else None,
     )
 
     result = {
@@ -1979,27 +2108,35 @@ def chain_pilot_to_sweep(
         "target_achieved": sweep_result["target_achieved"],
         "narrowed_lr": list(narrowed_lr),
         "quantum_boost_applied": quantum_boost,
-        "total_runs": pilot_runs + sweep_runs
+        "total_runs": pilot_runs + sweep_runs,
     }
 
-    emit_receipt("pipeline_complete", {
-        "receipt_type": "pipeline_complete",
-        "tenant_id": "axiom-colony",
-        "pilot_runs": pilot_runs,
-        "quantum_runs": quantum_runs,
-        "sweep_runs": sweep_runs,
-        "narrowed_lr": list(narrowed_lr),
-        "quantum_boost": quantum_boost,
-        "final_retention": sweep_result["best_retention"],
-        "eff_alpha": sweep_result["eff_alpha"],
-        "target_achieved": sweep_result["target_achieved"],
-        "payload_hash": dual_hash(json.dumps({
-            "pilot": pilot_runs,
-            "quantum": quantum_runs,
-            "sweep": sweep_runs,
-            "retention": sweep_result["best_retention"]
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "pipeline_complete",
+        {
+            "receipt_type": "pipeline_complete",
+            "tenant_id": "axiom-colony",
+            "pilot_runs": pilot_runs,
+            "quantum_runs": quantum_runs,
+            "sweep_runs": sweep_runs,
+            "narrowed_lr": list(narrowed_lr),
+            "quantum_boost": quantum_boost,
+            "final_retention": sweep_result["best_retention"],
+            "eff_alpha": sweep_result["eff_alpha"],
+            "target_achieved": sweep_result["target_achieved"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "pilot": pilot_runs,
+                        "quantum": quantum_runs,
+                        "sweep": sweep_runs,
+                        "retention": sweep_result["best_retention"],
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -2022,21 +2159,24 @@ def get_pilot_info() -> Dict[str, Any]:
         "quantum_integration": {
             "runs": 10,
             "instability_reduction": "8%",
-            "retention_boost": 0.03
+            "retention_boost": 0.03,
         },
         "expected_results": {
             "narrowed_range": "[0.0021, 0.0078]",
             "final_retention": 1.062,
-            "eff_alpha": 2.89
+            "eff_alpha": 2.89,
         },
         "description": "LR pilot narrowing eliminates dead zones. "
-                       "50 pilot → narrow → 10 quantum → 500 tuned sweep."
+        "50 pilot → narrow → 10 quantum → 500 tuned sweep.",
     }
 
-    emit_receipt("pilot_info", {
-        "tenant_id": "axiom-colony",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "pilot_info",
+        {
+            "tenant_id": "axiom-colony",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
+        },
+    )
 
     return info

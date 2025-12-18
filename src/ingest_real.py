@@ -134,8 +134,7 @@ def emit_data_ingest_receipt(data_type: str, source: str) -> Dict:
     Returns:
         Receipt dict
     """
-    return emit_receipt("data_ingest", {
-        "tenant_id": "axiom-core",
-        "data_type": data_type,
-        "source": source
-    })
+    return emit_receipt(
+        "data_ingest",
+        {"tenant_id": "axiom-core", "data_type": data_type, "source": source},
+    )

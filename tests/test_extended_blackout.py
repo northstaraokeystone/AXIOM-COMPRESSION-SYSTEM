@@ -29,7 +29,7 @@ from src.blackout import (
     RETENTION_BASE_FACTOR,
     MIN_EFF_ALPHA_VALIDATED,
     REROUTING_ALPHA_BOOST_LOCKED,
-    DEGRADATION_RATE
+    DEGRADATION_RATE,
 )
 from src.partition import partition_sim
 from src.core import StopRule
@@ -41,20 +41,23 @@ class TestAlphaHoldsAtExtendedDurations:
     def test_alpha_holds_at_60d(self):
         """eff_α ≥ 2.69 at 60-day blackout."""
         result = retention_curve(60)
-        assert result["eff_alpha"] >= 2.69, \
+        assert result["eff_alpha"] >= 2.69, (
             f"eff_alpha at 60d = {result['eff_alpha']} < 2.69"
+        )
 
     def test_alpha_holds_at_75d(self):
         """eff_α ≥ 2.67 at 75-day blackout."""
         result = retention_curve(75)
-        assert result["eff_alpha"] >= 2.67, \
+        assert result["eff_alpha"] >= 2.67, (
             f"eff_alpha at 75d = {result['eff_alpha']} < 2.67"
+        )
 
     def test_alpha_above_floor_at_90d(self):
         """eff_α ≥ 2.65 at 90-day blackout (above min floor 2.656)."""
         result = retention_curve(90)
-        assert result["eff_alpha"] >= 2.65, \
+        assert result["eff_alpha"] >= 2.65, (
             f"eff_alpha at 90d = {result['eff_alpha']} < 2.65"
+        )
 
     def test_alpha_at_duration_function(self):
         """Test alpha_at_duration function returns consistent values."""
@@ -77,8 +80,9 @@ class TestRetentionCurveShape:
 
         # Check monotonically decreasing
         for i in range(1, len(retentions)):
-            assert retentions[i] <= retentions[i-1], \
-                f"Retention increased at day {43 + i}: {retentions[i-1]} -> {retentions[i]}"
+            assert retentions[i] <= retentions[i - 1], (
+                f"Retention increased at day {43 + i}: {retentions[i - 1]} -> {retentions[i]}"
+            )
 
     def test_no_cliff_behavior(self):
         """No cliff behavior - max single-day drop < 0.02."""
@@ -88,24 +92,27 @@ class TestRetentionCurveShape:
 
         max_drop = 0.0
         for i in range(1, len(retentions)):
-            drop = retentions[i-1] - retentions[i]
+            drop = retentions[i - 1] - retentions[i]
             max_drop = max(max_drop, drop)
 
-        assert max_drop < 0.02, \
+        assert max_drop < 0.02, (
             f"Cliff behavior detected: max single-day drop = {max_drop} >= 0.02"
+        )
 
     def test_retention_at_43d(self):
         """retention_factor ≈ 1.4 at baseline."""
         result = retention_curve(43)
-        assert abs(result["retention_factor"] - 1.4) < 0.01, \
+        assert abs(result["retention_factor"] - 1.4) < 0.01, (
             f"retention at 43d = {result['retention_factor']} != ~1.4"
+        )
 
     def test_retention_at_90d(self):
         """retention_factor ≈ 1.25 at extreme (allowing small floating point tolerance)."""
         result = retention_curve(90)
         # Allow small tolerance for floating point precision (1.2496 is effectively 1.25)
-        assert result["retention_factor"] >= 1.249, \
+        assert result["retention_factor"] >= 1.249, (
             f"retention at 90d = {result['retention_factor']} < 1.249"
+        )
 
     def test_degradation_formula(self):
         """Test GNN nonlinear retention curve at 90d.
@@ -115,8 +122,9 @@ class TestRetentionCurveShape:
         """
         result = retention_curve(90)
         # GNN nonlinear model gives retention ~1.38 at 90d (not linear 1.25)
-        assert 1.35 <= result["retention_factor"] <= 1.42, \
+        assert 1.35 <= result["retention_factor"] <= 1.42, (
             f"Retention {result['retention_factor']} not in expected GNN range [1.35, 1.42]"
+        )
 
 
 class TestSweep1000Iterations:
@@ -124,25 +132,20 @@ class TestSweep1000Iterations:
 
     def test_sweep_1000_iterations(self):
         """Run 1000 sweeps across 43-90d, verify all above floor."""
-        results = extended_blackout_sweep(
-            day_range=(43, 90),
-            iterations=1000,
-            seed=42
-        )
+        results = extended_blackout_sweep(day_range=(43, 90), iterations=1000, seed=42)
 
         # All above floor
         assert len(results) == 1000, f"Expected 1000 results, got {len(results)}"
 
         failures = [r for r in results if r["eff_alpha"] < 2.65]
-        assert len(failures) == 0, \
-            f"{len(failures)} iterations had alpha < 2.65"
+        assert len(failures) == 0, f"{len(failures)} iterations had alpha < 2.65"
 
     def test_sweep_receipts_populated(self):
         """Verify receipts are populated for sweep."""
         results = extended_blackout_sweep(
             day_range=(43, 90),
             iterations=100,  # Smaller for speed
-            seed=42
+            seed=42,
         )
 
         assert len(results) == 100
@@ -160,13 +163,15 @@ class TestSweep1000Iterations:
 
         # Both should be monotonically non-increasing (allow equal values)
         for i in range(1, len(retentions)):
-            assert retentions[i] <= retentions[i-1] + 0.001, \
-                f"Retention not monotonic at day {43+i}: {retentions[i]} > {retentions[i-1]}"
+            assert retentions[i] <= retentions[i - 1] + 0.001, (
+                f"Retention not monotonic at day {43 + i}: {retentions[i]} > {retentions[i - 1]}"
+            )
         # Alpha asymptotes near e, so may slightly increase as it approaches
         # Just verify no sudden jumps
         for i in range(1, len(alphas)):
-            assert abs(alphas[i] - alphas[i-1]) < 0.02, \
-                f"Alpha jumped at day {43+i}: {alphas[i]} vs {alphas[i-1]}"
+            assert abs(alphas[i] - alphas[i - 1]) < 0.02, (
+                f"Alpha jumped at day {43 + i}: {alphas[i]} vs {alphas[i - 1]}"
+            )
 
 
 class TestStaticPartitionRemoved:
@@ -178,16 +183,15 @@ class TestStaticPartitionRemoved:
             warnings.simplefilter("always")
 
             # Call with reroute_enabled=False (deprecated)
-            result = partition_sim(
-                nodes_total=5,
-                loss_pct=0.2,
-                reroute_enabled=False
-            )
+            result = partition_sim(nodes_total=5, loss_pct=0.2, reroute_enabled=False)
 
             # Check that deprecation warning was raised
-            deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
-            assert len(deprecation_warnings) >= 1, \
+            deprecation_warnings = [
+                x for x in w if issubclass(x.category, DeprecationWarning)
+            ]
+            assert len(deprecation_warnings) >= 1, (
                 "Expected DeprecationWarning for reroute_enabled=False"
+            )
 
             # Verify message mentions static partition
             assert any("DEPRECATED" in str(dw.message) for dw in deprecation_warnings)
@@ -200,9 +204,12 @@ class TestStaticPartitionRemoved:
 
             result = partition_sim(nodes_total=5, loss_pct=0.2)
 
-            deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
-            assert len(deprecation_warnings) == 0, \
+            deprecation_warnings = [
+                x for x in w if issubclass(x.category, DeprecationWarning)
+            ]
+            assert len(deprecation_warnings) == 0, (
                 "Default partition_sim should not emit deprecation warning"
+            )
 
 
 class TestGNNStub:
@@ -210,15 +217,13 @@ class TestGNNStub:
 
     def test_gnn_stub_returns_not_implemented(self):
         """GNN sensitivity stub returns status='stub_only'."""
-        param_config = {
-            "model_size": "1K",
-            "complexity": "low"
-        }
+        param_config = {"model_size": "1K", "complexity": "low"}
 
         result = gnn_sensitivity_stub(param_config)
 
-        assert result["status"] == "stub_only", \
+        assert result["status"] == "stub_only", (
             f"Expected status='stub_only', got {result['status']}"
+        )
         assert result["not_implemented"] is True
         assert "param_config" in result
         assert result["param_config"] == param_config
@@ -266,11 +271,7 @@ class TestFloorFinding:
 
     def test_find_retention_floor(self):
         """find_retention_floor identifies worst case."""
-        results = extended_blackout_sweep(
-            day_range=(43, 90),
-            iterations=100,
-            seed=42
-        )
+        results = extended_blackout_sweep(day_range=(43, 90), iterations=100, seed=42)
 
         floor = find_retention_floor(results)
 

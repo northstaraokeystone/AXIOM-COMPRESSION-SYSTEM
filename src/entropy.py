@@ -89,6 +89,7 @@ ISS_O2_CLOSURE = 0.875
 
 # === DATACLASSES ===
 
+
 @dataclass
 class ColonyState:
     """State of a Mars colony for entropy calculation.
@@ -100,6 +101,7 @@ class ColonyState:
         active_systems: Number of operational systems
         decision_rate_bps: Decision rate in bits per second
     """
+
     crew_count: int = 6
     isolation_days: int = 0
     stress_level: float = 0.0
@@ -109,9 +111,9 @@ class ColonyState:
 
 # === LANDAUER MASS EQUIVALENT (v2 FIX: WITH UNCERTAINTY) ===
 
+
 def landauer_mass_equivalent(
-    bits_per_sec: float,
-    include_uncertainty: bool = True
+    bits_per_sec: float, include_uncertainty: bool = True
 ) -> Dict:
     """Convert decision capacity to kg-equivalent WITH UNCERTAINTY BOUNDS.
 
@@ -177,31 +179,37 @@ def landauer_mass_equivalent(
         ci_lower = kg_equivalent * (1 - uncertainty_pct)
         ci_upper = kg_equivalent * (1 + uncertainty_pct)
 
-        result.update({
-            "uncertainty_pct": uncertainty_pct,
-            "confidence_interval_lower": ci_lower,
-            "confidence_interval_upper": ci_upper,
-            "calibration_source": "MOXIE_2025_PDS14",
-        })
+        result.update(
+            {
+                "uncertainty_pct": uncertainty_pct,
+                "confidence_interval_lower": ci_lower,
+                "confidence_interval_upper": ci_upper,
+                "calibration_source": "MOXIE_2025_PDS14",
+            }
+        )
 
     # Emit landauer receipt (v2 WITH UNCERTAINTY)
-    emit_receipt("landauer", {
-        "tenant_id": TENANT_ID,
-        "bits_per_sec": bits_per_sec,
-        "kg_equivalent": kg_equivalent,
-        "uncertainty_pct": result.get("uncertainty_pct", 0),
-        "confidence_interval_lower": result.get("confidence_interval_lower", kg_equivalent),
-        "confidence_interval_upper": result.get("confidence_interval_upper", kg_equivalent),
-        "calibration_source": result.get("calibration_source", "none"),
-    })
+    emit_receipt(
+        "landauer",
+        {
+            "tenant_id": TENANT_ID,
+            "bits_per_sec": bits_per_sec,
+            "kg_equivalent": kg_equivalent,
+            "uncertainty_pct": result.get("uncertainty_pct", 0),
+            "confidence_interval_lower": result.get(
+                "confidence_interval_lower", kg_equivalent
+            ),
+            "confidence_interval_upper": result.get(
+                "confidence_interval_upper", kg_equivalent
+            ),
+            "calibration_source": result.get("calibration_source", "none"),
+        },
+    )
 
     return result
 
 
-def crew_psychology_entropy(
-    stress_level: float,
-    isolation_days: int
-) -> float:
+def crew_psychology_entropy(stress_level: float, isolation_days: int) -> float:
     """Compute H_psychology - entropy from crew psychological state.
 
     The psychology entropy captures decision quality degradation
@@ -270,22 +278,26 @@ def total_colony_entropy(state: ColonyState) -> float:
     total = h_thermal + h_information + h_operational + h_communication + h_psychology
 
     # Emit entropy receipt
-    emit_receipt("colony_entropy", {
-        "tenant_id": TENANT_ID,
-        "h_thermal": h_thermal,
-        "h_information": h_information,
-        "h_operational": h_operational,
-        "h_communication": h_communication,
-        "h_psychology": h_psychology,
-        "total": total,
-        "crew_count": state.crew_count,
-        "isolation_days": state.isolation_days,
-    })
+    emit_receipt(
+        "colony_entropy",
+        {
+            "tenant_id": TENANT_ID,
+            "h_thermal": h_thermal,
+            "h_information": h_information,
+            "h_operational": h_operational,
+            "h_communication": h_communication,
+            "h_psychology": h_psychology,
+            "total": total,
+            "crew_count": state.crew_count,
+            "isolation_days": state.isolation_days,
+        },
+    )
 
     return total
 
 
 # === VALIDATION FUNCTIONS ===
+
 
 def validate_landauer_calibration() -> Dict:
     """Validate that landauer_mass_equivalent is properly calibrated.
@@ -301,7 +313,7 @@ def validate_landauer_calibration() -> Dict:
     result = landauer_mass_equivalent(1e6)
 
     ci_lower = result.get("confidence_interval_lower", 0)
-    ci_upper = result.get("confidence_interval_upper", float('inf'))
+    ci_upper = result.get("confidence_interval_upper", float("inf"))
     uncertainty_pct = result.get("uncertainty_pct", 0)
 
     baseline_in_ci = ci_lower < BASELINE_MASS_KG < ci_upper

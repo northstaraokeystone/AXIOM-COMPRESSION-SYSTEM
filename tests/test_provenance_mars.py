@@ -16,6 +16,7 @@ Tests:
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.provenance_mars import (
@@ -44,7 +45,7 @@ class TestEmitMarsReceipt:
         decision = {
             "decision_id": "test_001",
             "decision_type": "navigation",
-            "cycle": 1
+            "cycle": 1,
         }
 
         state = emit_mars_receipt(decision, state)
@@ -229,7 +230,7 @@ class TestComputeIntegrity:
             decisions_total=100,
             pending_receipts=[],
             merkle_batches=[],
-            integrity=0.0
+            integrity=0.0,
         )
 
         integrity = compute_integrity(state)
@@ -243,7 +244,7 @@ class TestComputeIntegrity:
             decisions_total=100,
             pending_receipts=[],
             merkle_batches=[],
-            integrity=0.0
+            integrity=0.0,
         )
 
         integrity = compute_integrity(state)

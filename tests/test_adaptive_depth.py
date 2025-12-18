@@ -48,6 +48,7 @@ def suppress_receipts():
 @pytest.fixture
 def capture_receipts():
     """Capture receipts emitted during tests."""
+
     class ReceiptCapture:
         def __init__(self):
             self.output = io.StringIO()
@@ -63,7 +64,7 @@ def capture_receipts():
 
         @property
         def receipts(self):
-            lines = self.output.getvalue().strip().split('\n')
+            lines = self.output.getvalue().strip().split("\n")
             receipts = []
             for line in lines:
                 if line:
@@ -81,6 +82,7 @@ def clear_cache():
     """Clear cached spec before each test."""
     from src.adaptive_depth import clear_spec_cache
     from src.gnn_cache import reset_gnn_layer_state
+
     clear_spec_cache()
     reset_gnn_layer_state()
     yield
@@ -103,16 +105,22 @@ class TestSpecLoads:
     def test_spec_loads_valid_json(self, suppress_receipts, clear_cache):
         """Verify spec loads as valid JSON."""
         from src.adaptive_depth import load_depth_spec
+
         spec = load_depth_spec()
         assert isinstance(spec, dict), "Spec should be a dict"
 
     def test_spec_contains_required_fields(self, suppress_receipts, clear_cache):
         """Verify spec contains all required fields."""
         from src.adaptive_depth import load_depth_spec
+
         spec = load_depth_spec()
         required_fields = [
-            "base_layers", "scale_factor", "baseline_n",
-            "max_layers", "sweep_limit", "quick_target"
+            "base_layers",
+            "scale_factor",
+            "baseline_n",
+            "max_layers",
+            "sweep_limit",
+            "quick_target",
         ]
         for field in required_fields:
             assert field in spec, f"Missing required field: {field}"
@@ -138,7 +146,9 @@ class TestSpecHasDualHash:
 
         receipt = spec_receipts[0]
         assert "payload_hash" in receipt, "Receipt missing payload_hash"
-        assert ":" in receipt["payload_hash"], "payload_hash should be dual format (sha256:blake3)"
+        assert ":" in receipt["payload_hash"], (
+            "payload_hash should be dual format (sha256:blake3)"
+        )
 
     def test_spec_hash_has_colon_format(self, capture_receipts, clear_cache):
         """Verify payload_hash is in sha256:blake3 format."""
@@ -168,8 +178,11 @@ class TestBaseLayersValue:
     def test_base_layers_equals_4(self, suppress_receipts, clear_cache):
         """Verify base_layers is exactly 4."""
         from src.adaptive_depth import load_depth_spec
+
         spec = load_depth_spec()
-        assert spec["base_layers"] == 4, f"base_layers should be 4, got {spec['base_layers']}"
+        assert spec["base_layers"] == 4, (
+            f"base_layers should be 4, got {spec['base_layers']}"
+        )
 
 
 # === TEST 4: SCALE FACTOR RANGE ===
@@ -181,10 +194,12 @@ class TestScaleFactorRange:
     def test_scale_factor_in_range(self, suppress_receipts, clear_cache):
         """Verify scale_factor is within valid range."""
         from src.adaptive_depth import load_depth_spec
+
         spec = load_depth_spec()
         scale_factor = spec["scale_factor"]
-        assert 0.5 <= scale_factor <= 0.8, \
+        assert 0.5 <= scale_factor <= 0.8, (
             f"scale_factor should be in [0.5, 0.8], got {scale_factor}"
+        )
 
 
 # === TEST 5: MAX LAYERS CAP ===
@@ -196,8 +211,11 @@ class TestMaxLayersCap:
     def test_max_layers_equals_12(self, suppress_receipts, clear_cache):
         """Verify max_layers is exactly 12."""
         from src.adaptive_depth import load_depth_spec
+
         spec = load_depth_spec()
-        assert spec["max_layers"] == 12, f"max_layers should be 12, got {spec['max_layers']}"
+        assert spec["max_layers"] == 12, (
+            f"max_layers should be 12, got {spec['max_layers']}"
+        )
 
 
 # === TEST 6: SMALL TREE DEPTH ===
@@ -209,12 +227,14 @@ class TestComputeDepthSmallTree:
     def test_small_tree_uses_base(self, suppress_receipts, clear_cache):
         """Small tree should use base_layers (4)."""
         from src.adaptive_depth import compute_depth
+
         depth = compute_depth(10**4, 0.5)
         assert depth == 4, f"Small tree (n=10^4) should have depth=4, got {depth}"
 
     def test_baseline_tree_uses_base(self, suppress_receipts, clear_cache):
         """Baseline tree (n=10^6) should use base_layers."""
         from src.adaptive_depth import compute_depth
+
         depth = compute_depth(10**6, 0.5)
         assert depth == 4, f"Baseline tree (n=10^6) should have depth=4, got {depth}"
 
@@ -228,16 +248,21 @@ class TestComputeDepthLargeTree:
     def test_large_tree_scales_up(self, suppress_receipts, clear_cache):
         """Large tree should scale up from base."""
         from src.adaptive_depth import compute_depth
+
         depth = compute_depth(10**9, 0.5)
-        assert 5 <= depth <= 8, f"Large tree (n=10^9) should have depth in [5,8], got {depth}"
+        assert 5 <= depth <= 8, (
+            f"Large tree (n=10^9) should have depth in [5,8], got {depth}"
+        )
 
     def test_large_tree_greater_than_base(self, suppress_receipts, clear_cache):
         """Large tree depth should be greater than small tree."""
         from src.adaptive_depth import compute_depth
+
         small_depth = compute_depth(10**4, 0.5)
         large_depth = compute_depth(10**9, 0.5)
-        assert large_depth > small_depth, \
+        assert large_depth > small_depth, (
             f"Large tree depth ({large_depth}) should be > small tree depth ({small_depth})"
+        )
 
 
 # === TEST 8: HUGE TREE CAP ===
@@ -249,14 +274,18 @@ class TestComputeDepthHugeTree:
     def test_huge_tree_capped(self, suppress_receipts, clear_cache):
         """Huge tree should be capped at max_layers."""
         from src.adaptive_depth import compute_depth
+
         depth = compute_depth(10**12, 0.5)
         assert depth <= 12, f"Huge tree (n=10^12) should be capped at 12, got {depth}"
 
     def test_extreme_tree_capped(self, suppress_receipts, clear_cache):
         """Extreme tree (n=10^15) should also be capped."""
         from src.adaptive_depth import compute_depth
+
         depth = compute_depth(10**15, 0.5)
-        assert depth <= 12, f"Extreme tree (n=10^15) should be capped at 12, got {depth}"
+        assert depth <= 12, (
+            f"Extreme tree (n=10^15) should be capped at 12, got {depth}"
+        )
 
 
 # === TEST 9: DEPTH DETERMINISM ===
@@ -275,8 +304,9 @@ class TestDepthDeterminism:
             depth = compute_depth(10**8, 0.5)
             results.append(depth)
 
-        assert len(set(results)) == 1, \
+        assert len(set(results)) == 1, (
             f"Depth should be deterministic, got varying results: {set(results)}"
+        )
 
     def test_depth_varies_with_entropy(self, suppress_receipts, clear_cache):
         """Different entropy should potentially produce different depth."""
@@ -300,16 +330,20 @@ class TestRetentionQuickWin:
     def test_50_run_sweep_minimum_retention(self, suppress_receipts, clear_cache):
         """50 runs should achieve at least 1.01 retention."""
         from src.rl_tune import run_sweep
+
         result = run_sweep(runs=50, adaptive_depth=True, seed=42)
-        assert result["retention"] >= 1.01, \
+        assert result["retention"] >= 1.01, (
             f"50 runs should achieve retention >= 1.01, got {result['retention']}"
+        )
 
     def test_500_run_sweep_early_convergence(self, suppress_receipts, clear_cache):
         """500 runs should achieve retention >= 1.03."""
         from src.rl_tune import run_sweep
+
         result = run_sweep(runs=500, adaptive_depth=True, early_stopping=False, seed=42)
-        assert result["best_retention"] >= 1.03, \
+        assert result["best_retention"] >= 1.03, (
             f"500 runs should achieve retention >= 1.03, got {result['best_retention']}"
+        )
 
 
 # === TEST 11: FULL SWEEP TARGET ===
@@ -321,11 +355,13 @@ class TestFullSweepTarget:
     def test_500_run_achieves_target(self, suppress_receipts, clear_cache):
         """500 runs should achieve quick win target (1.05)."""
         from src.rl_tune import run_sweep, RETENTION_QUICK_WIN_TARGET
+
         result = run_sweep(runs=500, adaptive_depth=True, early_stopping=False, seed=42)
 
         # May not always hit exactly 1.05 due to randomness, but should be close
-        assert result["best_retention"] >= RETENTION_QUICK_WIN_TARGET - 0.02, \
+        assert result["best_retention"] >= RETENTION_QUICK_WIN_TARGET - 0.02, (
             f"500 runs should approach target {RETENTION_QUICK_WIN_TARGET}, got {result['best_retention']}"
+        )
 
 
 # === TEST 12: EFFICIENCY VS BLIND ===
@@ -344,7 +380,7 @@ class TestEfficiencyVsBlind:
             tree_size=int(1e8),
             adaptive_depth=True,
             early_stopping=False,
-            seed=42
+            seed=42,
         )
 
         # Run blind sweep (without adaptive depth)
@@ -353,7 +389,7 @@ class TestEfficiencyVsBlind:
             tree_size=int(1e8),
             adaptive_depth=False,
             early_stopping=False,
-            seed=43  # Different seed
+            seed=43,  # Different seed
         )
 
         # Informed should be better or at least equal
@@ -362,8 +398,9 @@ class TestEfficiencyVsBlind:
         blind_score = blind["best_retention"]
 
         # At minimum, informed should not be significantly worse
-        assert informed_score >= blind_score - 0.01, \
+        assert informed_score >= blind_score - 0.01, (
             f"Informed ({informed_score}) should be >= blind ({blind_score}) - 0.01"
+        )
 
 
 # === INTEGRATION TESTS ===
@@ -377,7 +414,7 @@ class TestAdaptiveDepthIntegration:
         from src.gnn_cache import (
             set_adaptive_depth_enabled,
             query_adaptive_depth,
-            reset_gnn_layer_state
+            reset_gnn_layer_state,
         )
 
         reset_gnn_layer_state()
@@ -392,7 +429,7 @@ class TestAdaptiveDepthIntegration:
         from src.gnn_cache import (
             set_adaptive_depth_enabled,
             check_gnn_rebuild_needed,
-            reset_gnn_layer_state
+            reset_gnn_layer_state,
         )
 
         reset_gnn_layer_state()
@@ -409,6 +446,7 @@ class TestAdaptiveDepthIntegration:
     def test_depth_info_function(self, suppress_receipts, clear_cache):
         """get_depth_scaling_info should return valid config."""
         from src.adaptive_depth import get_depth_scaling_info
+
         info = get_depth_scaling_info()
 
         assert "base_layers" in info
@@ -427,12 +465,14 @@ class TestBoundaryConditions:
     def test_zero_tree_size(self, suppress_receipts, clear_cache):
         """Zero tree size should return base depth."""
         from src.adaptive_depth import compute_depth
+
         depth = compute_depth(0, 0.5)
         assert depth == 4, f"Zero tree should use base depth 4, got {depth}"
 
     def test_negative_tree_size(self, suppress_receipts, clear_cache):
         """Negative tree size should return base depth."""
         from src.adaptive_depth import compute_depth
+
         depth = compute_depth(-100, 0.5)
         assert depth == 4, f"Negative tree should use base depth 4, got {depth}"
 
@@ -447,6 +487,7 @@ class TestBoundaryConditions:
     def test_very_high_entropy(self, suppress_receipts, clear_cache):
         """Very high entropy should still return valid depth."""
         from src.adaptive_depth import compute_depth
+
         depth = compute_depth(10**9, 1.0)
         assert 4 <= depth <= 12, f"High entropy depth should be valid: {depth}"
 

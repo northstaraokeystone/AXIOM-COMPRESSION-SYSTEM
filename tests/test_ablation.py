@@ -39,22 +39,16 @@ from src.alpha_compute import (
     ALPHA_CEILING_TARGET,
     RETENTION_FACTOR_GNN_RANGE,
     RETENTION_FACTOR_PRUNE_RANGE,
-    ABLATION_MODES
+    ABLATION_MODES,
 )
 from src.gnn_cache import (
     nonlinear_retention_with_pruning,
     get_retention_factor_gnn_isolated,
     CACHE_DEPTH_BASELINE,
-    ENTROPY_ASYMPTOTE_E
+    ENTROPY_ASYMPTOTE_E,
 )
-from src.pruning import (
-    generate_sample_merkle_tree,
-    get_retention_factor_prune_isolated
-)
-from src.reasoning import (
-    ablation_sweep,
-    get_layer_contributions
-)
+from src.pruning import generate_sample_merkle_tree, get_retention_factor_prune_isolated
+from src.reasoning import ablation_sweep, get_layer_contributions
 from src.core import StopRule
 
 
@@ -65,28 +59,30 @@ class TestAlphaFormulaCorrectness:
         """alpha_calc(2.7185, 1.0, 1.01) ≈ 2.745 within 0.001"""
         result = alpha_calc(2.7185, 1.0, 1.01)
         expected = 2.7185 * 1.01
-        assert abs(result["computed_alpha"] - expected) < 0.001, \
+        assert abs(result["computed_alpha"] - expected) < 0.001, (
             f"Expected {expected}, got {result['computed_alpha']}"
+        )
 
     def test_formula_identity_at_baseline(self):
         """alpha_calc(e, 1.0, 1.0) == e (identity at baseline)"""
         result = alpha_calc(math.e, 1.0, 1.0)
-        assert abs(result["computed_alpha"] - math.e) < 0.0001, \
+        assert abs(result["computed_alpha"] - math.e) < 0.0001, (
             f"Expected {math.e}, got {result['computed_alpha']}"
+        )
 
     def test_formula_ceiling_case(self):
         """alpha_calc(e, 1.0, 1.10) ≈ 3.0 (ceiling case)"""
         result = alpha_calc(math.e, 1.0, 1.10, validate=False)
         expected = math.e * 1.10
-        assert abs(result["computed_alpha"] - expected) < 0.01, \
+        assert abs(result["computed_alpha"] - expected) < 0.01, (
             f"Expected {expected}, got {result['computed_alpha']}"
+        )
 
     def test_compound_retention_multiplicative(self):
         """compound_retention([1.01, 1.02]) ≈ 1.0302"""
         result = compound_retention([1.01, 1.02])
         expected = 1.01 * 1.02
-        assert abs(result - expected) < 0.0001, \
-            f"Expected {expected}, got {result}"
+        assert abs(result - expected) < 0.0001, f"Expected {expected}, got {result}"
 
     def test_compound_retention_empty(self):
         """compound_retention([]) == 1.0"""
@@ -106,8 +102,9 @@ class TestCeilingGap:
         """ceiling_gap(2.74, 3.0).gap_pct ≈ 8.7%"""
         result = ceiling_gap(2.74, 3.0)
         expected_gap_pct = (3.0 - 2.74) / 3.0 * 100
-        assert abs(result["gap_pct"] - expected_gap_pct) < 0.1, \
+        assert abs(result["gap_pct"] - expected_gap_pct) < 0.1, (
             f"Expected {expected_gap_pct}%, got {result['gap_pct']}%"
+        )
 
     def test_ceiling_gap_at_ceiling(self):
         """ceiling_gap(3.0, 3.0).gap_pct == 0"""
@@ -129,22 +126,20 @@ class TestAblationModeBaseline:
     def test_ablation_baseline_alpha_range(self):
         """Mode 'baseline' → α ∈ [2.71, 2.72]"""
         result = nonlinear_retention_with_pruning(
-            150, CACHE_DEPTH_BASELINE,
-            pruning_enabled=False,
-            ablation_mode="baseline"
+            150, CACHE_DEPTH_BASELINE, pruning_enabled=False, ablation_mode="baseline"
         )
-        assert 2.71 <= result["eff_alpha"] <= 2.72, \
+        assert 2.71 <= result["eff_alpha"] <= 2.72, (
             f"Baseline alpha {result['eff_alpha']} not in [2.71, 2.72]"
+        )
 
     def test_ablation_baseline_is_shannon_floor(self):
         """Baseline α ≈ e (Shannon floor)"""
         result = nonlinear_retention_with_pruning(
-            150, CACHE_DEPTH_BASELINE,
-            pruning_enabled=False,
-            ablation_mode="baseline"
+            150, CACHE_DEPTH_BASELINE, pruning_enabled=False, ablation_mode="baseline"
         )
-        assert abs(result["eff_alpha"] - ENTROPY_ASYMPTOTE_E) < 0.01, \
+        assert abs(result["eff_alpha"] - ENTROPY_ASYMPTOTE_E) < 0.01, (
             f"Baseline alpha {result['eff_alpha']} not ≈ e ({ENTROPY_ASYMPTOTE_E})"
+        )
 
 
 class TestAblationModeNoPrune:
@@ -153,13 +148,12 @@ class TestAblationModeNoPrune:
     def test_ablation_no_prune_alpha_range(self):
         """Mode 'no_prune' → α ∈ [2.72, 2.74]"""
         result = nonlinear_retention_with_pruning(
-            150, CACHE_DEPTH_BASELINE,
-            pruning_enabled=False,
-            ablation_mode="no_prune"
+            150, CACHE_DEPTH_BASELINE, pruning_enabled=False, ablation_mode="no_prune"
         )
         # GNN only should give slight uplift from baseline
-        assert result["eff_alpha"] >= ENTROPY_ASYMPTOTE_E, \
+        assert result["eff_alpha"] >= ENTROPY_ASYMPTOTE_E, (
             f"no_prune alpha {result['eff_alpha']} below baseline"
+        )
 
 
 class TestAblationModeNoCache:
@@ -168,14 +162,16 @@ class TestAblationModeNoCache:
     def test_ablation_no_cache_alpha_range(self):
         """Mode 'no_cache' → pruning only"""
         result = nonlinear_retention_with_pruning(
-            150, CACHE_DEPTH_BASELINE,
+            150,
+            CACHE_DEPTH_BASELINE,
             pruning_enabled=True,
             trim_factor=0.3,
-            ablation_mode="no_cache"
+            ablation_mode="no_cache",
         )
         # With pruning, should have higher alpha than baseline
-        assert result["eff_alpha"] >= ENTROPY_ASYMPTOTE_E, \
+        assert result["eff_alpha"] >= ENTROPY_ASYMPTOTE_E, (
             f"no_cache alpha {result['eff_alpha']} below baseline"
+        )
 
 
 class TestAblationModeFull:
@@ -184,18 +180,18 @@ class TestAblationModeFull:
     def test_ablation_full_alpha_above_partial(self):
         """Mode 'full' → α >= all partial modes"""
         result_full = nonlinear_retention_with_pruning(
-            150, CACHE_DEPTH_BASELINE,
+            150,
+            CACHE_DEPTH_BASELINE,
             pruning_enabled=True,
             trim_factor=0.3,
-            ablation_mode="full"
+            ablation_mode="full",
         )
         result_baseline = nonlinear_retention_with_pruning(
-            150, CACHE_DEPTH_BASELINE,
-            pruning_enabled=False,
-            ablation_mode="baseline"
+            150, CACHE_DEPTH_BASELINE, pruning_enabled=False, ablation_mode="baseline"
         )
-        assert result_full["eff_alpha"] >= result_baseline["eff_alpha"], \
+        assert result_full["eff_alpha"] >= result_baseline["eff_alpha"], (
             f"Full {result_full['eff_alpha']} not >= baseline {result_baseline['eff_alpha']}"
+        )
 
 
 class TestAblationOrdering:
@@ -206,16 +202,18 @@ class TestAblationOrdering:
         results = {}
         for mode in ["baseline", "no_prune", "no_cache", "full"]:
             result = nonlinear_retention_with_pruning(
-                150, CACHE_DEPTH_BASELINE,
+                150,
+                CACHE_DEPTH_BASELINE,
                 pruning_enabled=(mode != "baseline" and mode != "no_prune"),
                 trim_factor=0.3,
-                ablation_mode=mode
+                ablation_mode=mode,
             )
             results[mode] = result["eff_alpha"]
 
         # Baseline should be lowest (Shannon floor)
-        assert results["baseline"] <= results["full"], \
+        assert results["baseline"] <= results["full"], (
             f"baseline ({results['baseline']}) not <= full ({results['full']})"
+        )
 
 
 class TestLayerContributions:
@@ -225,16 +223,18 @@ class TestLayerContributions:
         """GNN retention factor ∈ [1.008, 1.015]"""
         result = get_retention_factor_gnn_isolated(150)
         min_expected, max_expected = RETENTION_FACTOR_GNN_RANGE
-        assert min_expected <= result["retention_factor_gnn"] <= max_expected, \
+        assert min_expected <= result["retention_factor_gnn"] <= max_expected, (
             f"GNN factor {result['retention_factor_gnn']} not in [{min_expected}, {max_expected}]"
+        )
 
     def test_prune_contribution_in_range(self):
         """Prune retention factor ∈ [1.008, 1.015]"""
         tree = generate_sample_merkle_tree(n_leaves=100, duplicate_ratio=0.2)
         result = get_retention_factor_prune_isolated(tree, 0.3)
         min_expected, max_expected = RETENTION_FACTOR_PRUNE_RANGE
-        assert min_expected <= result["retention_factor_prune"] <= max_expected, \
+        assert min_expected <= result["retention_factor_prune"] <= max_expected, (
             f"Prune factor {result['retention_factor_prune']} not in [{min_expected}, {max_expected}]"
+        )
 
     def test_contributions_compound(self):
         """gnn_factor * prune_factor ≈ full_factor"""
@@ -242,11 +242,12 @@ class TestLayerContributions:
         gnn = get_retention_factor_gnn_isolated(150)
         prune = get_retention_factor_prune_isolated(tree, 0.3)
 
-        expected_compound = gnn["retention_factor_gnn"] * prune["retention_factor_prune"]
-        actual_compound = compound_retention([
-            gnn["retention_factor_gnn"],
-            prune["retention_factor_prune"]
-        ])
+        expected_compound = (
+            gnn["retention_factor_gnn"] * prune["retention_factor_prune"]
+        )
+        actual_compound = compound_retention(
+            [gnn["retention_factor_gnn"], prune["retention_factor_prune"]]
+        )
 
         assert abs(actual_compound - expected_compound) < 0.0001
 
@@ -276,10 +277,7 @@ class TestAblationSweep:
     def test_ablation_sweep_all_modes(self):
         """Ablation sweep runs all 4 modes"""
         result = ablation_sweep(
-            modes=ABLATION_MODES,
-            blackout_days=150,
-            iterations=10,
-            seed=42
+            modes=ABLATION_MODES, blackout_days=150, iterations=10, seed=42
         )
         assert len(result["results_by_mode"]) == 4
         for mode in ABLATION_MODES:
@@ -288,10 +286,7 @@ class TestAblationSweep:
     def test_ablation_sweep_ordering_validation(self):
         """Ablation sweep validates ordering"""
         result = ablation_sweep(
-            modes=ABLATION_MODES,
-            blackout_days=150,
-            iterations=10,
-            seed=42
+            modes=ABLATION_MODES, blackout_days=150, iterations=10, seed=42
         )
         # Ordering should be valid
         assert "ordering_valid" in result
@@ -339,7 +334,7 @@ class TestComputeAlphaFromLayers:
             gnn_retention=1.01,
             prune_retention=1.01,
             base_min_eff=SHANNON_FLOOR_ALPHA,
-            ablation_mode="full"
+            ablation_mode="full",
         )
         # With 1.01 * 1.01 = 1.0201 retention
         expected = SHANNON_FLOOR_ALPHA * 1.01 * 1.01
@@ -351,7 +346,7 @@ class TestComputeAlphaFromLayers:
             gnn_retention=1.01,
             prune_retention=1.01,
             base_min_eff=SHANNON_FLOOR_ALPHA,
-            ablation_mode="baseline"
+            ablation_mode="baseline",
         )
         # Baseline ignores retention factors
         assert abs(result["computed_alpha"] - SHANNON_FLOOR_ALPHA) < 0.01
@@ -399,10 +394,7 @@ class Test1000RunAblationSweep:
     def test_1000_run_ablation_sweep(self):
         """1000 iterations across all 4 modes pass"""
         result = ablation_sweep(
-            modes=ABLATION_MODES,
-            blackout_days=150,
-            iterations=1000,
-            seed=42
+            modes=ABLATION_MODES, blackout_days=150, iterations=1000, seed=42
         )
 
         # Check all modes completed
@@ -413,8 +405,9 @@ class Test1000RunAblationSweep:
 
         # Baseline mode should have highest success rate
         baseline_success = result["results_by_mode"]["baseline"]["successful"]
-        assert baseline_success == 1000, \
+        assert baseline_success == 1000, (
             f"Baseline mode had {baseline_success}/1000 successes, expected 1000"
+        )
 
 
 class TestIsolateLayerContribution:

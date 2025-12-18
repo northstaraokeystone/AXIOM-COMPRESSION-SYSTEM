@@ -79,8 +79,10 @@ TENANT_ID = "axiom-autonomy"
 
 # === ENUMS ===
 
+
 class Scenario(Enum):
     """Simulation scenarios."""
+
     SCENARIO_BASELINE = "baseline"
     SCENARIO_HELPER = "helper"
     SCENARIO_SUPPORT = "support"
@@ -100,6 +102,7 @@ class Scenario(Enum):
 
 # === DATACLASSES ===
 
+
 @dataclass
 class SimConfig:
     """Configuration for simulation.
@@ -117,12 +120,15 @@ class SimConfig:
         sync_frequency: Cycles between provenance batch syncs (default 10, ~4h windows)
         enable_provenance: Whether to emit provenance receipts (default False)
     """
+
     max_cycles: int = 1000
     harvest_frequency: int = 30
     support_check_frequency: int = 10
     optimization_config: OptimizationConfig = field(default_factory=OptimizationConfig)
     helper_config: HelperConfig = field(default_factory=HelperConfig)
-    patterns: List[str] = field(default_factory=lambda: ["pattern_a", "pattern_b", "pattern_c"])
+    patterns: List[str] = field(
+        default_factory=lambda: ["pattern_a", "pattern_b", "pattern_c"]
+    )
     strategies_enabled: List[Strategy] = field(default_factory=lambda: list(Strategy))
     roi_config: ROIConfig = field(default_factory=ROIConfig)
     provenance_config: ProvenanceConfig = field(default_factory=ProvenanceConfig)
@@ -144,17 +150,23 @@ class SimState:
         provenance_state: ProvenanceState for Mars receipt tracking
         receipt_integrity_trace: List of receipt integrity values over time
     """
+
     cycle: int = 0
     helpers_active: List[HelperBlueprint] = field(default_factory=list)
     optimization_state: OptimizationState = field(default_factory=init_optimize_state)
-    support_coverage: Dict[SupportLevel, SupportCoverage] = field(default_factory=initialize_coverage)
+    support_coverage: Dict[SupportLevel, SupportCoverage] = field(
+        default_factory=initialize_coverage
+    )
     receipts: List[Dict] = field(default_factory=list)
     gaps_injected: List[Dict] = field(default_factory=list)
-    provenance_state: ProvenanceState = field(default_factory=initialize_provenance_state)
+    provenance_state: ProvenanceState = field(
+        default_factory=initialize_provenance_state
+    )
     receipt_integrity_trace: List[float] = field(default_factory=list)
 
 
 # === SIMULATION FUNCTIONS ===
+
 
 def initialize_sim(config: SimConfig = None) -> SimState:
     """Initialize simulation state.
@@ -176,7 +188,7 @@ def initialize_sim(config: SimConfig = None) -> SimState:
         receipts=[],
         gaps_injected=[],
         provenance_state=initialize_provenance_state(),
-        receipt_integrity_trace=[]
+        receipt_integrity_trace=[],
     )
 
     # Initialize pattern fitness
@@ -186,10 +198,7 @@ def initialize_sim(config: SimConfig = None) -> SimState:
     return state
 
 
-def simulate_cycle(
-    state: SimState,
-    config: SimConfig = None
-) -> SimState:
+def simulate_cycle(state: SimState, config: SimConfig = None) -> SimState:
     """Run one simulation cycle.
 
     Each cycle:
@@ -220,6 +229,7 @@ def simulate_cycle(
         # Simulate outcome for top pattern
         top_pattern = selected[0]
         import random
+
         outcome = random.random() * 0.6 + 0.4  # Outcome 0.4-1.0
 
         state.optimization_state = update_fitness(
@@ -282,25 +292,28 @@ def simulate_cycle(
         check_disparity(state.provenance_state, config.provenance_config)
 
     # 6. Emit cycle receipt
-    cycle_receipt = emit_receipt("simulation_cycle", {
-        "tenant_id": TENANT_ID,
-        "cycle": state.cycle,
-        "patterns_selected": len(selected) if selected else 0,
-        "helpers_active": len(get_active_helpers(state.helpers_active)),
-        "improvement_vs_random": round(measure_improvement(state.optimization_state), 4),
-        "support_complete": check_completeness(state.support_coverage),
-        "receipt_integrity": state.provenance_state.integrity if config.enable_provenance else None,
-    })
+    cycle_receipt = emit_receipt(
+        "simulation_cycle",
+        {
+            "tenant_id": TENANT_ID,
+            "cycle": state.cycle,
+            "patterns_selected": len(selected) if selected else 0,
+            "helpers_active": len(get_active_helpers(state.helpers_active)),
+            "improvement_vs_random": round(
+                measure_improvement(state.optimization_state), 4
+            ),
+            "support_complete": check_completeness(state.support_coverage),
+            "receipt_integrity": state.provenance_state.integrity
+            if config.enable_provenance
+            else None,
+        },
+    )
     state.receipts.append(cycle_receipt)
 
     return state
 
 
-def inject_gap(
-    state: SimState,
-    problem_type: str,
-    count: int = 1
-) -> SimState:
+def inject_gap(state: SimState, problem_type: str, count: int = 1) -> SimState:
     """Inject gap receipts for testing helper spawning.
 
     Args:
@@ -319,10 +332,7 @@ def inject_gap(
     return state
 
 
-def run_scenario(
-    scenario: Scenario,
-    config: SimConfig = None
-) -> SimState:
+def run_scenario(scenario: Scenario, config: SimConfig = None) -> SimState:
     """Run a specific scenario.
 
     Args:
@@ -351,27 +361,57 @@ def run_scenario(
         for cycle in range(config.max_cycles):
             # Inject telemetry receipts (L0)
             if cycle % 5 == 0:
-                state.receipts.append(emit_receipt("autonomy_state", {"tenant_id": TENANT_ID, "state": "active"}))
-                state.receipts.append(emit_receipt("propulsion_state", {"tenant_id": TENANT_ID, "state": "nominal"}))
-                state.receipts.append(emit_receipt("latency", {"tenant_id": TENANT_ID, "ms": 22 * 60 * 1000}))
+                state.receipts.append(
+                    emit_receipt(
+                        "autonomy_state", {"tenant_id": TENANT_ID, "state": "active"}
+                    )
+                )
+                state.receipts.append(
+                    emit_receipt(
+                        "propulsion_state", {"tenant_id": TENANT_ID, "state": "nominal"}
+                    )
+                )
+                state.receipts.append(
+                    emit_receipt(
+                        "latency", {"tenant_id": TENANT_ID, "ms": 22 * 60 * 1000}
+                    )
+                )
 
             # Inject decision receipts (L1)
             if cycle % 10 == 0:
-                state.receipts.append(emit_receipt("decision", {"tenant_id": TENANT_ID, "decision": "proceed"}))
-                state.receipts.append(emit_receipt("gate_decision", {"tenant_id": TENANT_ID, "decision": "approve"}))
+                state.receipts.append(
+                    emit_receipt(
+                        "decision", {"tenant_id": TENANT_ID, "decision": "proceed"}
+                    )
+                )
+                state.receipts.append(
+                    emit_receipt(
+                        "gate_decision", {"tenant_id": TENANT_ID, "decision": "approve"}
+                    )
+                )
 
             # Inject change receipts (L2)
             if cycle % 20 == 0:
-                state.receipts.append(emit_receipt("config_change", {"tenant_id": TENANT_ID, "key": "sample_rate"}))
+                state.receipts.append(
+                    emit_receipt(
+                        "config_change", {"tenant_id": TENANT_ID, "key": "sample_rate"}
+                    )
+                )
 
             # Inject quality receipts (L3)
             if cycle % 15 == 0:
-                state.receipts.append(emit_receipt("validation", {"tenant_id": TENANT_ID, "passed": True}))
-                state.receipts.append(emit_receipt("chain", {"tenant_id": TENANT_ID, "n_receipts": cycle}))
+                state.receipts.append(
+                    emit_receipt("validation", {"tenant_id": TENANT_ID, "passed": True})
+                )
+                state.receipts.append(
+                    emit_receipt("chain", {"tenant_id": TENANT_ID, "n_receipts": cycle})
+                )
 
             # Inject meta receipts (L4)
             if cycle % 25 == 0:
-                state.receipts.append(emit_receipt("coverage", {"tenant_id": TENANT_ID, "ratio": 0.9}))
+                state.receipts.append(
+                    emit_receipt("coverage", {"tenant_id": TENANT_ID, "ratio": 0.9})
+                )
 
             state = simulate_cycle(state, config)
 
@@ -391,7 +431,11 @@ def run_scenario(
 
             # Add telemetry
             if cycle % 3 == 0:
-                state.receipts.append(emit_receipt("autonomy_state", {"tenant_id": TENANT_ID, "state": "active"}))
+                state.receipts.append(
+                    emit_receipt(
+                        "autonomy_state", {"tenant_id": TENANT_ID, "state": "active"}
+                    )
+                )
 
             state = simulate_cycle(state, config)
 
@@ -406,30 +450,37 @@ def run_scenario(
 
         for size in swarm_sizes:
             strategy_config = StrategyConfig(
-                strategy=Strategy.RELAY_SWARM,
-                relay_swarm_size=size
+                strategy=Strategy.RELAY_SWARM, relay_swarm_size=size
             )
             result = apply_strategy(1200, 1.69, strategy_config)
             results.append(result)
 
-            emit_receipt("relay_comparison", {
-                "tenant_id": TENANT_ID,
-                "swarm_size": size,
-                "effective_tau": result.effective_tau,
-                "cycles_to_10k": result.cycles_to_10k,
-                "p_cost": result.p_cost,
-            })
+            emit_receipt(
+                "relay_comparison",
+                {
+                    "tenant_id": TENANT_ID,
+                    "swarm_size": size,
+                    "effective_tau": result.effective_tau,
+                    "cycles_to_10k": result.cycles_to_10k,
+                    "p_cost": result.p_cost,
+                },
+            )
 
         # Store results for validation
-        state.receipts.append(emit_receipt("relay_comparison_summary", {
-            "tenant_id": TENANT_ID,
-            "swarm_sizes_tested": swarm_sizes,
-            "optimal_size": RELAY_SWARM_OPTIMAL,
-            "results": [
-                {"size": s, "cycles": r.cycles_to_10k, "p_cost": r.p_cost}
-                for s, r in zip(swarm_sizes, results)
-            ],
-        }))
+        state.receipts.append(
+            emit_receipt(
+                "relay_comparison_summary",
+                {
+                    "tenant_id": TENANT_ID,
+                    "swarm_sizes_tested": swarm_sizes,
+                    "optimal_size": RELAY_SWARM_OPTIMAL,
+                    "results": [
+                        {"size": s, "cycles": r.cycles_to_10k, "p_cost": r.p_cost}
+                        for s, r in zip(swarm_sizes, results)
+                    ],
+                },
+            )
+        )
 
     elif scenario == Scenario.SCENARIO_STRATEGY_RANKING:
         # SCENARIO_STRATEGY_RANKING: Compare all 4 strategies
@@ -441,7 +492,9 @@ def run_scenario(
         results = compare_strategies(configs, baseline)
 
         # Compute ROI for each
-        baseline_result = results[0]  # BASELINE is first after sorting? No, sorted by cycles
+        baseline_result = results[
+            0
+        ]  # BASELINE is first after sorting? No, sorted by cycles
         # Find actual baseline
         for r in results:
             if r.strategy == Strategy.BASELINE:
@@ -450,14 +503,17 @@ def run_scenario(
 
         ranked = rank_by_roi(results, baseline_result, config.roi_config)
 
-        emit_receipt("strategy_ranking_summary", {
-            "tenant_id": TENANT_ID,
-            "strategies_compared": len(results),
-            "best_cycles": results[0].strategy.value if results else None,
-            "best_roi": ranked[0][0].strategy.value if ranked else None,
-            "ranking_by_cycles": [r.strategy.value for r in results],
-            "ranking_by_roi": [r[0].strategy.value for r in ranked],
-        })
+        emit_receipt(
+            "strategy_ranking_summary",
+            {
+                "tenant_id": TENANT_ID,
+                "strategies_compared": len(results),
+                "best_cycles": results[0].strategy.value if results else None,
+                "best_roi": ranked[0][0].strategy.value if ranked else None,
+                "ranking_by_cycles": [r.strategy.value for r in results],
+                "ranking_by_roi": [r[0].strategy.value for r in ranked],
+            },
+        )
 
     elif scenario == Scenario.SCENARIO_ROI_GATE:
         # SCENARIO_ROI_GATE: Test ROI gate decisions
@@ -485,20 +541,29 @@ def run_scenario(
                 continue
             roi = compute_roi(result, baseline_result, config.roi_config)
             decision = roi_gate(roi, config.roi_config)
-            gate_decisions.append({
-                "strategy": result.strategy.value,
-                "roi": roi,
-                "decision": decision,
-            })
+            gate_decisions.append(
+                {
+                    "strategy": result.strategy.value,
+                    "roi": roi,
+                    "decision": decision,
+                }
+            )
 
-        emit_receipt("roi_gate_summary", {
-            "tenant_id": TENANT_ID,
-            "strategies_evaluated": len(gate_decisions),
-            "decisions": gate_decisions,
-            "deploy_count": sum(1 for d in gate_decisions if d["decision"] == "deploy"),
-            "shadow_count": sum(1 for d in gate_decisions if d["decision"] == "shadow"),
-            "kill_count": sum(1 for d in gate_decisions if d["decision"] == "kill"),
-        })
+        emit_receipt(
+            "roi_gate_summary",
+            {
+                "tenant_id": TENANT_ID,
+                "strategies_evaluated": len(gate_decisions),
+                "decisions": gate_decisions,
+                "deploy_count": sum(
+                    1 for d in gate_decisions if d["decision"] == "deploy"
+                ),
+                "shadow_count": sum(
+                    1 for d in gate_decisions if d["decision"] == "shadow"
+                ),
+                "kill_count": sum(1 for d in gate_decisions if d["decision"] == "kill"),
+            },
+        )
 
     elif scenario == Scenario.SCENARIO_RECEIPT_MITIGATION:
         # SCENARIO_RECEIPT_MITIGATION: Run with receipt_integrity=0.9, verify delay drops ~70%
@@ -531,7 +596,9 @@ def run_scenario(
         # We need to manually increment decisions_total without receipts
         # to exceed the 0.5% threshold
         for _ in range(10):
-            state.provenance_state = register_decision_without_receipt(state.provenance_state)
+            state.provenance_state = register_decision_without_receipt(
+                state.provenance_state
+            )
 
         # This should trigger StopRule on next disparity check
         # The test should catch this with pytest.raises(StopRule)
@@ -555,24 +622,30 @@ def run_scenario(
             state = simulate_cycle(state, config)
 
             # Emit radiation event receipt
-            emit_receipt("radiation_event", {
-                "tenant_id": TENANT_ID,
-                "cycle": state.cycle,
-                "dose_rate_sv_per_hour": dose_rate_sv_per_hour,
-                "cumulative_dose_sv": dose_rate_sv_per_hour * (cycle + 1),
-                "decision_degradation": degradation_factor,
-            })
+            emit_receipt(
+                "radiation_event",
+                {
+                    "tenant_id": TENANT_ID,
+                    "cycle": state.cycle,
+                    "dose_rate_sv_per_hour": dose_rate_sv_per_hour,
+                    "cumulative_dose_sv": dose_rate_sv_per_hour * (cycle + 1),
+                    "decision_degradation": degradation_factor,
+                },
+            )
 
         # Verify survival
         lethal_threshold_sv = 2.0
         survived = total_dose_sv < lethal_threshold_sv
 
-        emit_receipt("radiation_scenario_complete", {
-            "tenant_id": TENANT_ID,
-            "total_dose_sv": total_dose_sv,
-            "lethal_threshold_sv": lethal_threshold_sv,
-            "survived": survived,
-        })
+        emit_receipt(
+            "radiation_scenario_complete",
+            {
+                "tenant_id": TENANT_ID,
+                "total_dose_sv": total_dose_sv,
+                "lethal_threshold_sv": lethal_threshold_sv,
+                "survived": survived,
+            },
+        )
 
     elif scenario == Scenario.SCENARIO_BLACKOUT:
         # SCENARIO_BLACKOUT: 43-day Mars conjunction comms loss
@@ -589,24 +662,30 @@ def run_scenario(
             state = simulate_cycle(state, config)
 
             # Track sovereignty during blackout
-            emit_receipt("blackout_day", {
-                "tenant_id": TENANT_ID,
-                "day": day + 1,
-                "blackout_days": blackout_days,
-                "earth_input_rate": earth_input_rate,
-                "cycle": state.cycle,
-            })
+            emit_receipt(
+                "blackout_day",
+                {
+                    "tenant_id": TENANT_ID,
+                    "day": day + 1,
+                    "blackout_days": blackout_days,
+                    "earth_input_rate": earth_input_rate,
+                    "cycle": state.cycle,
+                },
+            )
 
         # Verify sovereignty achieved
         internal_rate = 1.0  # Placeholder - would be computed from state
         sovereignty_achieved = internal_rate > 0
 
-        emit_receipt("blackout_scenario_complete", {
-            "tenant_id": TENANT_ID,
-            "blackout_days": blackout_days,
-            "sovereignty_achieved": sovereignty_achieved,
-            "internal_rate": internal_rate,
-        })
+        emit_receipt(
+            "blackout_scenario_complete",
+            {
+                "tenant_id": TENANT_ID,
+                "blackout_days": blackout_days,
+                "sovereignty_achieved": sovereignty_achieved,
+                "internal_rate": internal_rate,
+            },
+        )
 
     elif scenario == Scenario.SCENARIO_PSYCHOLOGY:
         # SCENARIO_PSYCHOLOGY: Crew stress entropy accumulation
@@ -634,27 +713,34 @@ def run_scenario(
             entropy_history.append(h_psychology)
 
             if day % 30 == 0 or is_crisis:
-                emit_receipt("psychology_update", {
-                    "tenant_id": TENANT_ID,
-                    "day": day,
-                    "stress_level": stress_level,
-                    "h_psychology": h_psychology,
-                    "is_crisis": is_crisis,
-                })
+                emit_receipt(
+                    "psychology_update",
+                    {
+                        "tenant_id": TENANT_ID,
+                        "day": day,
+                        "stress_level": stress_level,
+                        "h_psychology": h_psychology,
+                        "is_crisis": is_crisis,
+                    },
+                )
 
         # Verify entropy stability
         import numpy as np
+
         entropy_trend = np.polyfit(range(len(entropy_history)), entropy_history, 1)[0]
         entropy_stable = bool(entropy_trend < 0.01)  # Low slope = stable
 
-        emit_receipt("psychology_scenario_complete", {
-            "tenant_id": TENANT_ID,
-            "isolation_days": isolation_days,
-            "crisis_count": crisis_count,
-            "final_entropy": float(entropy_history[-1]),
-            "entropy_trend": float(entropy_trend),
-            "entropy_stable": entropy_stable,
-        })
+        emit_receipt(
+            "psychology_scenario_complete",
+            {
+                "tenant_id": TENANT_ID,
+                "isolation_days": isolation_days,
+                "crisis_count": crisis_count,
+                "final_entropy": float(entropy_history[-1]),
+                "entropy_trend": float(entropy_trend),
+                "entropy_stable": entropy_stable,
+            },
+        )
 
     elif scenario == Scenario.SCENARIO_REALDATA:
         # SCENARIO_REALDATA: Validate on real SPARC/MOXIE data
@@ -678,37 +764,51 @@ def run_scenario(
                 compressions.append(result["compression"])
                 r_squareds.append(result["r_squared"])
 
-                emit_receipt("realdata_galaxy", {
-                    "tenant_id": TENANT_ID,
-                    "galaxy_id": galaxy.get("id", "unknown"),
-                    "compression": result["compression"],
-                    "r_squared": result["r_squared"],
-                })
+                emit_receipt(
+                    "realdata_galaxy",
+                    {
+                        "tenant_id": TENANT_ID,
+                        "galaxy_id": galaxy.get("id", "unknown"),
+                        "compression": result["compression"],
+                        "r_squared": result["r_squared"],
+                    },
+                )
 
             import numpy as np
+
             mean_compression = float(np.mean(compressions))
             mean_r_squared = float(np.mean(r_squareds))
 
             # Check success criteria
-            compression_pass = bool(mean_compression >= 0.88)  # Relaxed from 0.92 for initial validation
-            r_squared_pass = bool(mean_r_squared >= 0.95)  # Relaxed from 0.98 for initial validation
+            compression_pass = bool(
+                mean_compression >= 0.88
+            )  # Relaxed from 0.92 for initial validation
+            r_squared_pass = bool(
+                mean_r_squared >= 0.95
+            )  # Relaxed from 0.98 for initial validation
 
-            emit_receipt("realdata_scenario_complete", {
-                "tenant_id": TENANT_ID,
-                "n_galaxies": len(galaxies),
-                "mean_compression": mean_compression,
-                "mean_r_squared": mean_r_squared,
-                "compression_pass": compression_pass,
-                "r_squared_pass": r_squared_pass,
-                "all_pass": compression_pass and r_squared_pass,
-            })
+            emit_receipt(
+                "realdata_scenario_complete",
+                {
+                    "tenant_id": TENANT_ID,
+                    "n_galaxies": len(galaxies),
+                    "mean_compression": mean_compression,
+                    "mean_r_squared": mean_r_squared,
+                    "compression_pass": compression_pass,
+                    "r_squared_pass": r_squared_pass,
+                    "all_pass": compression_pass and r_squared_pass,
+                },
+            )
 
         except ImportError as e:
-            emit_receipt("realdata_scenario_error", {
-                "tenant_id": TENANT_ID,
-                "error": str(e),
-                "message": "real_data or benchmarks module not available",
-            })
+            emit_receipt(
+                "realdata_scenario_error",
+                {
+                    "tenant_id": TENANT_ID,
+                    "error": str(e),
+                    "message": "real_data or benchmarks module not available",
+                },
+            )
 
     else:  # SCENARIO_BASELINE
         for _ in range(100):
@@ -742,8 +842,7 @@ def validate_constraints(state: SimState) -> Dict:
     results["support_complete"] = check_completeness(state.support_coverage)
     results["support_gaps"] = detect_gaps(state.support_coverage)
     results["coverage_by_level"] = {
-        level.value: cov.coverage_ratio
-        for level, cov in state.support_coverage.items()
+        level.value: cov.coverage_ratio for level, cov in state.support_coverage.items()
     }
 
     # Optimization improvement check
@@ -754,9 +853,7 @@ def validate_constraints(state: SimState) -> Dict:
     # Overall validation
     results["all_slos_met"] = (
         results["support_complete"] or state.cycle < 100  # Allow ramp-up
-    ) and (
-        results["optimization_effective"] or state.cycle < 100
-    )
+    ) and (results["optimization_effective"] or state.cycle < 100)
 
     return results
 
@@ -772,15 +869,18 @@ def emit_simulation_summary(state: SimState) -> Dict:
     """
     validation = validate_constraints(state)
 
-    return emit_receipt("simulation_summary", {
-        "tenant_id": TENANT_ID,
-        "total_cycles": state.cycle,
-        "receipts_generated": len(state.receipts),
-        "helpers_active": len(get_active_helpers(state.helpers_active)),
-        "helpers_total": len(state.helpers_active),
-        "gaps_injected": len(state.gaps_injected),
-        "improvement_vs_random": validation["improvement_vs_random"],
-        "support_complete": validation["support_complete"],
-        "all_slos_met": validation["all_slos_met"],
-        "coverage_by_level": validation["coverage_by_level"],
-    })
+    return emit_receipt(
+        "simulation_summary",
+        {
+            "tenant_id": TENANT_ID,
+            "total_cycles": state.cycle,
+            "receipts_generated": len(state.receipts),
+            "helpers_active": len(get_active_helpers(state.helpers_active)),
+            "helpers_total": len(state.helpers_active),
+            "gaps_injected": len(state.gaps_injected),
+            "improvement_vs_random": validation["improvement_vs_random"],
+            "support_complete": validation["support_complete"],
+            "all_slos_met": validation["all_slos_met"],
+            "coverage_by_level": validation["coverage_by_level"],
+        },
+    )

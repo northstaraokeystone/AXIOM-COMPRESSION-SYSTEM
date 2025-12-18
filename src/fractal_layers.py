@@ -82,7 +82,9 @@ CROSS_SCALE_CORRELATION_MAX = 0.03
 # === SCALE ADJUSTMENT FUNCTIONS ===
 
 
-def scale_adjusted_correlation(tree_size: int, base_correlation: float = FRACTAL_BASE_CORRELATION) -> float:
+def scale_adjusted_correlation(
+    tree_size: int, base_correlation: float = FRACTAL_BASE_CORRELATION
+) -> float:
     """Adjust correlation for large trees (minor decay).
 
     Large trees have more entropy sources, which slightly dilutes the
@@ -133,8 +135,7 @@ def get_scale_factor(tree_size: int) -> float:
 
 
 def compute_fractal_contribution(
-    tree_size: int,
-    base_alpha: float = 3.070
+    tree_size: int, base_alpha: float = 3.070
 ) -> Dict[str, Any]:
     """Compute fractal layer contribution to alpha at given tree size.
 
@@ -152,7 +153,7 @@ def compute_fractal_contribution(
 
     # Compute alpha adjustment
     # Alpha scales with correlation^2 (correlation affects both encoding and retention)
-    alpha_factor = scale_factor ** 2
+    alpha_factor = scale_factor**2
     adjusted_alpha = base_alpha * alpha_factor
 
     result = {
@@ -163,16 +164,19 @@ def compute_fractal_contribution(
         "base_alpha": base_alpha,
         "adjusted_alpha": round(adjusted_alpha, 4),
         "alpha_drop": round(base_alpha - adjusted_alpha, 4),
-        "alpha_drop_pct": round((base_alpha - adjusted_alpha) / base_alpha * 100, 3)
+        "alpha_drop_pct": round((base_alpha - adjusted_alpha) / base_alpha * 100, 3),
     }
 
-    emit_receipt("fractal_contribution", {
-        "receipt_type": "fractal_contribution",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "fractal_contribution",
+        {
+            "receipt_type": "fractal_contribution",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -193,7 +197,7 @@ def get_expected_alpha_at_scale(tree_size: int) -> float:
     """
     base_alpha = 3.070
     scale_factor = get_scale_factor(tree_size)
-    return base_alpha * (scale_factor ** 2)
+    return base_alpha * (scale_factor**2)
 
 
 def validate_scale_physics() -> Dict[str, Any]:
@@ -219,12 +223,14 @@ def validate_scale_physics() -> Dict[str, Any]:
         alpha = get_expected_alpha_at_scale(size)
         passed = alpha >= min_alpha
 
-        results.append({
-            "tree_size": size,
-            "expected_alpha": round(alpha, 4),
-            "min_required": min_alpha,
-            "passed": passed
-        })
+        results.append(
+            {
+                "tree_size": size,
+                "expected_alpha": round(alpha, 4),
+                "min_required": min_alpha,
+                "passed": passed,
+            }
+        )
 
         if not passed:
             all_passed = False
@@ -234,18 +240,23 @@ def validate_scale_physics() -> Dict[str, Any]:
         "results": results,
         "all_passed": all_passed,
         "decay_factor": CORRELATION_DECAY_FACTOR,
-        "base_correlation": FRACTAL_BASE_CORRELATION
+        "base_correlation": FRACTAL_BASE_CORRELATION,
     }
 
-    emit_receipt("scale_physics_validation", {
-        "receipt_type": "scale_physics_validation",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in validation.items() if k != "results"},
-        "test_count": len(results),
-        "passed_count": sum(1 for r in results if r["passed"]),
-        "payload_hash": dual_hash(json.dumps(validation, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "scale_physics_validation",
+        {
+            "receipt_type": "scale_physics_validation",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in validation.items() if k != "results"},
+            "test_count": len(results),
+            "passed_count": sum(1 for r in results if r["passed"]),
+            "payload_hash": dual_hash(
+                json.dumps(validation, sort_keys=True, default=str)
+            ),
+        },
+    )
 
     return validation
 
@@ -266,24 +277,31 @@ def get_fractal_layers_info() -> Dict[str, Any]:
         "scale_factors": {
             "1e6": get_scale_factor(1_000_000),
             "1e8": get_scale_factor(100_000_000),
-            "1e9": get_scale_factor(1_000_000_000)
+            "1e9": get_scale_factor(1_000_000_000),
         },
         "expected_alphas": {
             "1e6": round(get_expected_alpha_at_scale(1_000_000), 4),
             "1e8": round(get_expected_alpha_at_scale(100_000_000), 4),
-            "1e9": round(get_expected_alpha_at_scale(1_000_000_000), 4)
+            "1e9": round(get_expected_alpha_at_scale(1_000_000_000), 4),
         },
         "physics_formula": "correlation * (1 - 0.001 * log10(tree_size / 1e6))",
-        "description": "Fractal correlation layer with scale-aware adjustment for large trees"
+        "description": "Fractal correlation layer with scale-aware adjustment for large trees",
     }
 
-    emit_receipt("fractal_layers_info", {
-        "receipt_type": "fractal_layers_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in info.items() if k not in ["scale_factors", "expected_alphas"]},
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "fractal_layers_info",
+        {
+            "receipt_type": "fractal_layers_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{
+                k: v
+                for k, v in info.items()
+                if k not in ["scale_factors", "expected_alphas"]
+            },
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -424,12 +442,18 @@ def multi_scale_fractal(tree_size: int, base_alpha: float) -> Dict[str, Any]:
 
     # Normalize total entropy to [0, 1] range
     # Max entropy ~= sum of log2(1e9/scale) for each scale
-    max_entropy = sum(math.log2(1e9 / s) * (1.0 / math.log2(s + 1)) for s in FRACTAL_SCALES)
-    normalized_entropy = min(total_entropy / max_entropy, 1.0) if max_entropy > 0 else 0.0
+    max_entropy = sum(
+        math.log2(1e9 / s) * (1.0 / math.log2(s + 1)) for s in FRACTAL_SCALES
+    )
+    normalized_entropy = (
+        min(total_entropy / max_entropy, 1.0) if max_entropy > 0 else 0.0
+    )
 
     # Compute uplift: base FRACTAL_UPLIFT with entropy and dimension bonuses
     # Base contribution is FRACTAL_UPLIFT (0.05), with small adjustments
-    dimension_factor = (fractal_dim - FRACTAL_DIM_MIN) / (FRACTAL_DIM_MAX - FRACTAL_DIM_MIN)
+    dimension_factor = (fractal_dim - FRACTAL_DIM_MIN) / (
+        FRACTAL_DIM_MAX - FRACTAL_DIM_MIN
+    )
     # Start with base uplift, add entropy bonus (up to +0.01) and dimension bonus (up to +0.01)
     uplift = FRACTAL_UPLIFT + (0.01 * normalized_entropy) + (0.01 * dimension_factor)
     uplift = round(uplift, 4)
@@ -451,23 +475,31 @@ def multi_scale_fractal(tree_size: int, base_alpha: float) -> Dict[str, Any]:
         "scale_entropies": scale_entropies,
         "cross_scale_corr": cross_corr,
         "total_entropy": round(total_entropy, 4),
-        "normalized_entropy": round(normalized_entropy, 4)
+        "normalized_entropy": round(normalized_entropy, 4),
     }
 
-    emit_receipt("fractal_layer", {
-        "receipt_type": "fractal_layer",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "fractal_dimension": fractal_dim,
-        "scales_used": FRACTAL_SCALES,
-        "uplift_achieved": uplift,
-        "ceiling_breached": ceiling_breached,
-        "payload_hash": dual_hash(json.dumps({
-            "tree_size": tree_size,
-            "fractal_alpha": fractal_alpha,
-            "uplift": uplift
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "fractal_layer",
+        {
+            "receipt_type": "fractal_layer",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "fractal_dimension": fractal_dim,
+            "scales_used": FRACTAL_SCALES,
+            "uplift_achieved": uplift,
+            "ceiling_breached": ceiling_breached,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "tree_size": tree_size,
+                        "fractal_alpha": fractal_alpha,
+                        "uplift": uplift,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -481,33 +513,35 @@ def get_fractal_hybrid_spec() -> Dict[str, Any]:
     Receipt: fractal_hybrid_spec_load
     """
     import os
+
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "data",
-        "fractal_hybrid_spec.json"
+        os.path.dirname(os.path.dirname(__file__)), "data", "fractal_hybrid_spec.json"
     )
 
     with open(spec_path, "r") as f:
         spec = json.load(f)
 
-    emit_receipt("fractal_hybrid_spec_load", {
-        "receipt_type": "fractal_hybrid_spec_load",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "fractal_uplift_target": spec.get("fractal_uplift_target", FRACTAL_UPLIFT),
-        "ceiling_break_target": spec.get("ceiling_break_target", 3.05),
-        "quantum_contribution": spec.get("quantum_contribution", 0.03),
-        "hybrid_total": spec.get("hybrid_total", 0.08),
-        "payload_hash": dual_hash(json.dumps(spec, sort_keys=True))
-    })
+    emit_receipt(
+        "fractal_hybrid_spec_load",
+        {
+            "receipt_type": "fractal_hybrid_spec_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "fractal_uplift_target": spec.get("fractal_uplift_target", FRACTAL_UPLIFT),
+            "ceiling_break_target": spec.get("ceiling_break_target", 3.05),
+            "quantum_contribution": spec.get("quantum_contribution", 0.03),
+            "hybrid_total": spec.get("hybrid_total", 0.08),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
 
     return spec
 
 
 # === RECURSIVE FRACTAL CONSTANTS ===
 
-FRACTAL_RECURSION_MAX_DEPTH = 7
-"""Maximum recursion depth (diminishing returns beyond 7)."""
+FRACTAL_RECURSION_MAX_DEPTH = 8
+"""Maximum recursion depth (extended to 8 for D8 targeting alpha 3.45+)."""
 
 FRACTAL_RECURSION_DEFAULT_DEPTH = 3
 """Default recursion depth for ceiling breach."""
@@ -520,9 +554,7 @@ FRACTAL_RECURSION_DECAY = 0.8
 
 
 def recursive_fractal(
-    tree_size: int,
-    base_alpha: float,
-    depth: int = FRACTAL_RECURSION_DEFAULT_DEPTH
+    tree_size: int, base_alpha: float, depth: int = FRACTAL_RECURSION_DEFAULT_DEPTH
 ) -> Dict[str, Any]:
     """Apply fractal boost recursively for ceiling breach.
 
@@ -559,19 +591,21 @@ def recursive_fractal(
 
     for d in range(depth):
         # Each depth contributes: base_uplift * decay^d
-        contribution = FRACTAL_UPLIFT * (FRACTAL_RECURSION_DECAY ** d)
-        depth_contributions.append({
-            "depth": d + 1,
-            "contribution": round(contribution, 4),
-            "decay_factor": round(FRACTAL_RECURSION_DECAY ** d, 4)
-        })
+        contribution = FRACTAL_UPLIFT * (FRACTAL_RECURSION_DECAY**d)
+        depth_contributions.append(
+            {
+                "depth": d + 1,
+                "contribution": round(contribution, 4),
+                "decay_factor": round(FRACTAL_RECURSION_DECAY**d, 4),
+            }
+        )
         total_uplift += contribution
 
     # Apply scale adjustment for large trees
     scale_factor = get_scale_factor(tree_size)
 
     # Scale-adjusted uplift (minimal decay at scale)
-    adjusted_uplift = total_uplift * (scale_factor ** 0.5)  # sqrt for gentler decay
+    adjusted_uplift = total_uplift * (scale_factor**0.5)  # sqrt for gentler decay
 
     # Compute final alpha
     final_alpha = base_alpha + adjusted_uplift
@@ -594,35 +628,41 @@ def recursive_fractal(
         "recursion_config": {
             "max_depth": FRACTAL_RECURSION_MAX_DEPTH,
             "decay_per_depth": FRACTAL_RECURSION_DECAY,
-            "base_uplift": FRACTAL_UPLIFT
-        }
+            "base_uplift": FRACTAL_UPLIFT,
+        },
     }
 
-    emit_receipt("fractal_recursion", {
-        "receipt_type": "fractal_recursion",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "tree_size": tree_size,
-        "depth": depth,
-        "total_uplift": round(total_uplift, 4),
-        "final_alpha": round(final_alpha, 4),
-        "ceiling_breached": ceiling_breached,
-        "target_3_1_reached": target_3_1_reached,
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "fractal_recursion",
+        {
+            "receipt_type": "fractal_recursion",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
             "tree_size": tree_size,
             "depth": depth,
+            "total_uplift": round(total_uplift, 4),
             "final_alpha": round(final_alpha, 4),
-            "target_3_1_reached": target_3_1_reached
-        }, sort_keys=True))
-    })
+            "ceiling_breached": ceiling_breached,
+            "target_3_1_reached": target_3_1_reached,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "tree_size": tree_size,
+                        "depth": depth,
+                        "final_alpha": round(final_alpha, 4),
+                        "target_3_1_reached": target_3_1_reached,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
 
 def recursive_fractal_sweep(
-    tree_size: int,
-    base_alpha: float,
-    max_depth: int = FRACTAL_RECURSION_MAX_DEPTH
+    tree_size: int, base_alpha: float, max_depth: int = FRACTAL_RECURSION_MAX_DEPTH
 ) -> Dict[str, Any]:
     """Sweep through all recursion depths to find optimal.
 
@@ -645,12 +685,14 @@ def recursive_fractal_sweep(
 
     for d in range(1, max_depth + 1):
         result = recursive_fractal(tree_size, base_alpha, depth=d)
-        sweep_results.append({
-            "depth": d,
-            "final_alpha": result["final_alpha"],
-            "uplift": result["total_uplift"],
-            "target_3_1": result["target_3_1_reached"]
-        })
+        sweep_results.append(
+            {
+                "depth": d,
+                "final_alpha": result["final_alpha"],
+                "uplift": result["total_uplift"],
+                "target_3_1": result["target_3_1_reached"],
+            }
+        )
 
         if result["final_alpha"] > optimal_alpha:
             optimal_alpha = result["final_alpha"]
@@ -662,23 +704,31 @@ def recursive_fractal_sweep(
         "sweep_results": sweep_results,
         "optimal_depth": optimal_depth,
         "optimal_alpha": round(optimal_alpha, 4),
-        "target_3_1_achievable": optimal_alpha > 3.1
+        "target_3_1_achievable": optimal_alpha > 3.1,
     }
 
-    emit_receipt("fractal_recursion_sweep", {
-        "receipt_type": "fractal_recursion_sweep",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "tree_size": tree_size,
-        "optimal_depth": optimal_depth,
-        "optimal_alpha": round(optimal_alpha, 4),
-        "target_3_1_achievable": optimal_alpha > 3.1,
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "fractal_recursion_sweep",
+        {
+            "receipt_type": "fractal_recursion_sweep",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
             "tree_size": tree_size,
             "optimal_depth": optimal_depth,
-            "optimal_alpha": round(optimal_alpha, 4)
-        }, sort_keys=True))
-    })
+            "optimal_alpha": round(optimal_alpha, 4),
+            "target_3_1_achievable": optimal_alpha > 3.1,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "tree_size": tree_size,
+                        "optimal_depth": optimal_depth,
+                        "optimal_alpha": round(optimal_alpha, 4),
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -707,16 +757,19 @@ def get_recursive_fractal_info() -> Dict[str, Any]:
         "formula": "uplift_at_depth = FRACTAL_UPLIFT * (0.8^(d-1))",
         "cumulative_formula": "total_uplift = sum(FRACTAL_UPLIFT * 0.8^i for i in 0..depth-1)",
         "target": "alpha > 3.1 sustained via recursive compounding",
-        "description": "Recursive fractal layers compound boost for ceiling breach beyond 3.1"
+        "description": "Recursive fractal layers compound boost for ceiling breach beyond 3.1",
     }
 
-    emit_receipt("recursive_fractal_info", {
-        "receipt_type": "recursive_fractal_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in info.items() if k not in ["expected_uplifts"]},
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "recursive_fractal_info",
+        {
+            "receipt_type": "recursive_fractal_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in info.items() if k not in ["expected_uplifts"]},
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -750,24 +803,28 @@ def get_d4_spec() -> Dict[str, Any]:
     Receipt: d4_spec_load
     """
     import os
+
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "data",
-        "d4_spec.json"
+        os.path.dirname(os.path.dirname(__file__)), "data", "d4_spec.json"
     )
 
     with open(spec_path, "r") as f:
         spec = json.load(f)
 
-    emit_receipt("d4_spec_load", {
-        "receipt_type": "d4_spec_load",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": spec.get("version", "1.0.0"),
-        "alpha_floor": spec.get("d4_config", {}).get("alpha_floor", D4_ALPHA_FLOOR),
-        "alpha_target": spec.get("d4_config", {}).get("alpha_target", D4_ALPHA_TARGET),
-        "payload_hash": dual_hash(json.dumps(spec, sort_keys=True))
-    })
+    emit_receipt(
+        "d4_spec_load",
+        {
+            "receipt_type": "d4_spec_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": spec.get("version", "1.0.0"),
+            "alpha_floor": spec.get("d4_config", {}).get("alpha_floor", D4_ALPHA_FLOOR),
+            "alpha_target": spec.get("d4_config", {}).get(
+                "alpha_target", D4_ALPHA_TARGET
+            ),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
 
     return spec
 
@@ -787,9 +844,7 @@ def get_d4_uplift(depth: int) -> float:
 
 
 def d4_recursive_fractal(
-    tree_size: int,
-    base_alpha: float,
-    depth: int = 4
+    tree_size: int, base_alpha: float, depth: int = 4
 ) -> Dict[str, Any]:
     """D4 recursion for alpha ceiling breach.
 
@@ -817,7 +872,7 @@ def d4_recursive_fractal(
 
     # Apply scale adjustment
     scale_factor = get_scale_factor(tree_size)
-    adjusted_uplift = uplift * (scale_factor ** 0.5)
+    adjusted_uplift = uplift * (scale_factor**0.5)
 
     # Compute effective alpha
     eff_alpha = base_alpha + adjusted_uplift
@@ -846,37 +901,43 @@ def d4_recursive_fractal(
         "slo_check": {
             "alpha_floor": d4_config.get("alpha_floor", D4_ALPHA_FLOOR),
             "alpha_target": d4_config.get("alpha_target", D4_ALPHA_TARGET),
-            "instability_max": d4_config.get("instability_max", D4_INSTABILITY_MAX)
-        }
+            "instability_max": d4_config.get("instability_max", D4_INSTABILITY_MAX),
+        },
     }
 
     # Emit D4 receipt if depth >= 4
     if depth >= 4:
-        emit_receipt("d4_fractal", {
-            "receipt_type": "d4_fractal",
-            "tenant_id": TENANT_ID,
-            "ts": datetime.utcnow().isoformat() + "Z",
-            "tree_size": tree_size,
-            "depth": depth,
-            "eff_alpha": round(eff_alpha, 4),
-            "instability": instability,
-            "floor_met": floor_met,
-            "target_met": target_met,
-            "payload_hash": dual_hash(json.dumps({
+        emit_receipt(
+            "d4_fractal",
+            {
+                "receipt_type": "d4_fractal",
+                "tenant_id": TENANT_ID,
+                "ts": datetime.utcnow().isoformat() + "Z",
                 "tree_size": tree_size,
                 "depth": depth,
                 "eff_alpha": round(eff_alpha, 4),
-                "target_met": target_met
-            }, sort_keys=True))
-        })
+                "instability": instability,
+                "floor_met": floor_met,
+                "target_met": target_met,
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "tree_size": tree_size,
+                            "depth": depth,
+                            "eff_alpha": round(eff_alpha, 4),
+                            "target_met": target_met,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
 
     return result
 
 
 def d4_push(
-    tree_size: int = D4_TREE_MIN,
-    base_alpha: float = 2.99,
-    simulate: bool = False
+    tree_size: int = D4_TREE_MIN, base_alpha: float = 2.99, simulate: bool = False
 ) -> Dict[str, Any]:
     """Run D4 recursion push for alpha >= 3.2.
 
@@ -903,17 +964,21 @@ def d4_push(
         "floor_met": result["floor_met"],
         "target_met": result["target_met"],
         "ceiling_breached": result["ceiling_breached"],
-        "slo_passed": result["floor_met"] and result["instability"] <= D4_INSTABILITY_MAX,
-        "gate": "t24h"
+        "slo_passed": result["floor_met"]
+        and result["instability"] <= D4_INSTABILITY_MAX,
+        "gate": "t24h",
     }
 
-    emit_receipt("d4_push", {
-        "receipt_type": "d4_push",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in push_result.items() if k != "mode"},
-        "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True))
-    })
+    emit_receipt(
+        "d4_push",
+        {
+            "receipt_type": "d4_push",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in push_result.items() if k != "mode"},
+            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True)),
+        },
+    )
 
     return push_result
 
@@ -934,17 +999,20 @@ def get_d4_info() -> Dict[str, Any]:
         "uplift_by_depth": spec.get("uplift_by_depth", {}),
         "expected_alpha": spec.get("expected_alpha", {}),
         "validation": spec.get("validation", {}),
-        "description": spec.get("description", "D4 recursion for alpha ceiling breach")
+        "description": spec.get("description", "D4 recursion for alpha ceiling breach"),
     }
 
-    emit_receipt("d4_info", {
-        "receipt_type": "d4_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": info["version"],
-        "alpha_target": info["d4_config"].get("alpha_target", D4_ALPHA_TARGET),
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "d4_info",
+        {
+            "receipt_type": "d4_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "alpha_target": info["d4_config"].get("alpha_target", D4_ALPHA_TARGET),
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -983,25 +1051,29 @@ def get_d5_spec() -> Dict[str, Any]:
     Receipt: d5_spec_load
     """
     import os
+
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "data",
-        "d5_isru_spec.json"
+        os.path.dirname(os.path.dirname(__file__)), "data", "d5_isru_spec.json"
     )
 
     with open(spec_path, "r") as f:
         spec = json.load(f)
 
-    emit_receipt("d5_spec_load", {
-        "receipt_type": "d5_spec_load",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": spec.get("version", "1.0.0"),
-        "alpha_floor": spec.get("d5_config", {}).get("alpha_floor", D5_ALPHA_FLOOR),
-        "alpha_target": spec.get("d5_config", {}).get("alpha_target", D5_ALPHA_TARGET),
-        "moxie_o2_total": spec.get("moxie_calibration", {}).get("o2_total_g", 122),
-        "payload_hash": dual_hash(json.dumps(spec, sort_keys=True))
-    })
+    emit_receipt(
+        "d5_spec_load",
+        {
+            "receipt_type": "d5_spec_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": spec.get("version", "1.0.0"),
+            "alpha_floor": spec.get("d5_config", {}).get("alpha_floor", D5_ALPHA_FLOOR),
+            "alpha_target": spec.get("d5_config", {}).get(
+                "alpha_target", D5_ALPHA_TARGET
+            ),
+            "moxie_o2_total": spec.get("moxie_calibration", {}).get("o2_total_g", 122),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
 
     return spec
 
@@ -1021,9 +1093,7 @@ def get_d5_uplift(depth: int) -> float:
 
 
 def d5_recursive_fractal(
-    tree_size: int,
-    base_alpha: float,
-    depth: int = 5
+    tree_size: int, base_alpha: float, depth: int = 5
 ) -> Dict[str, Any]:
     """D5 recursion for alpha ceiling breach targeting 3.25+.
 
@@ -1052,7 +1122,7 @@ def d5_recursive_fractal(
 
     # Apply scale adjustment
     scale_factor = get_scale_factor(tree_size)
-    adjusted_uplift = uplift * (scale_factor ** 0.5)
+    adjusted_uplift = uplift * (scale_factor**0.5)
 
     # Compute effective alpha
     eff_alpha = base_alpha + adjusted_uplift
@@ -1082,38 +1152,44 @@ def d5_recursive_fractal(
             "alpha_floor": d5_config.get("alpha_floor", D5_ALPHA_FLOOR),
             "alpha_target": d5_config.get("alpha_target", D5_ALPHA_TARGET),
             "alpha_ceiling": d5_config.get("alpha_ceiling", D5_ALPHA_CEILING),
-            "instability_max": d5_config.get("instability_max", D5_INSTABILITY_MAX)
-        }
+            "instability_max": d5_config.get("instability_max", D5_INSTABILITY_MAX),
+        },
     }
 
     # Emit D5 receipt if depth >= 5
     if depth >= 5:
-        emit_receipt("d5_fractal", {
-            "receipt_type": "d5_fractal",
-            "tenant_id": TENANT_ID,
-            "ts": datetime.utcnow().isoformat() + "Z",
-            "tree_size": tree_size,
-            "depth": depth,
-            "eff_alpha": round(eff_alpha, 4),
-            "instability": instability,
-            "floor_met": floor_met,
-            "target_met": target_met,
-            "ceiling_met": ceiling_met,
-            "payload_hash": dual_hash(json.dumps({
+        emit_receipt(
+            "d5_fractal",
+            {
+                "receipt_type": "d5_fractal",
+                "tenant_id": TENANT_ID,
+                "ts": datetime.utcnow().isoformat() + "Z",
                 "tree_size": tree_size,
                 "depth": depth,
                 "eff_alpha": round(eff_alpha, 4),
-                "target_met": target_met
-            }, sort_keys=True))
-        })
+                "instability": instability,
+                "floor_met": floor_met,
+                "target_met": target_met,
+                "ceiling_met": ceiling_met,
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "tree_size": tree_size,
+                            "depth": depth,
+                            "eff_alpha": round(eff_alpha, 4),
+                            "target_met": target_met,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
 
     return result
 
 
 def d5_push(
-    tree_size: int = D5_TREE_MIN,
-    base_alpha: float = 3.0,
-    simulate: bool = False
+    tree_size: int = D5_TREE_MIN, base_alpha: float = 3.0, simulate: bool = False
 ) -> Dict[str, Any]:
     """Run D5 recursion push for alpha >= 3.25.
 
@@ -1140,17 +1216,21 @@ def d5_push(
         "floor_met": result["floor_met"],
         "target_met": result["target_met"],
         "ceiling_met": result["ceiling_met"],
-        "slo_passed": result["floor_met"] and result["instability"] <= D5_INSTABILITY_MAX,
-        "gate": "t24h"
+        "slo_passed": result["floor_met"]
+        and result["instability"] <= D5_INSTABILITY_MAX,
+        "gate": "t24h",
     }
 
-    emit_receipt("d5_push", {
-        "receipt_type": "d5_push",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in push_result.items() if k != "mode"},
-        "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True))
-    })
+    emit_receipt(
+        "d5_push",
+        {
+            "receipt_type": "d5_push",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in push_result.items() if k != "mode"},
+            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True)),
+        },
+    )
 
     return push_result
 
@@ -1173,17 +1253,20 @@ def get_d5_info() -> Dict[str, Any]:
         "moxie_calibration": spec.get("moxie_calibration", {}),
         "isru_config": spec.get("isru_config", {}),
         "validation": spec.get("validation", {}),
-        "description": spec.get("description", "D5 recursion + MOXIE ISRU hybrid")
+        "description": spec.get("description", "D5 recursion + MOXIE ISRU hybrid"),
     }
 
-    emit_receipt("d5_info", {
-        "receipt_type": "d5_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": info["version"],
-        "alpha_target": info["d5_config"].get("alpha_target", D5_ALPHA_TARGET),
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "d5_info",
+        {
+            "receipt_type": "d5_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "alpha_target": info["d5_config"].get("alpha_target", D5_ALPHA_TARGET),
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -1222,25 +1305,31 @@ def get_d6_spec() -> Dict[str, Any]:
     Receipt: d6_spec_load
     """
     import os
+
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "data",
-        "d6_titan_spec.json"
+        os.path.dirname(os.path.dirname(__file__)), "data", "d6_titan_spec.json"
     )
 
     with open(spec_path, "r") as f:
         spec = json.load(f)
 
-    emit_receipt("d6_spec_load", {
-        "receipt_type": "d6_spec_load",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": spec.get("version", "1.0.0"),
-        "alpha_floor": spec.get("d6_config", {}).get("alpha_floor", D6_ALPHA_FLOOR),
-        "alpha_target": spec.get("d6_config", {}).get("alpha_target", D6_ALPHA_TARGET),
-        "titan_autonomy": spec.get("titan_config", {}).get("autonomy_requirement", 0.99),
-        "payload_hash": dual_hash(json.dumps(spec, sort_keys=True))
-    })
+    emit_receipt(
+        "d6_spec_load",
+        {
+            "receipt_type": "d6_spec_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": spec.get("version", "1.0.0"),
+            "alpha_floor": spec.get("d6_config", {}).get("alpha_floor", D6_ALPHA_FLOOR),
+            "alpha_target": spec.get("d6_config", {}).get(
+                "alpha_target", D6_ALPHA_TARGET
+            ),
+            "titan_autonomy": spec.get("titan_config", {}).get(
+                "autonomy_requirement", 0.99
+            ),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
 
     return spec
 
@@ -1260,9 +1349,7 @@ def get_d6_uplift(depth: int) -> float:
 
 
 def d6_recursive_fractal(
-    tree_size: int,
-    base_alpha: float,
-    depth: int = 6
+    tree_size: int, base_alpha: float, depth: int = 6
 ) -> Dict[str, Any]:
     """D6 recursion for alpha ceiling breach targeting 3.33+.
 
@@ -1291,7 +1378,7 @@ def d6_recursive_fractal(
 
     # Apply scale adjustment
     scale_factor = get_scale_factor(tree_size)
-    adjusted_uplift = uplift * (scale_factor ** 0.5)
+    adjusted_uplift = uplift * (scale_factor**0.5)
 
     # Compute effective alpha
     eff_alpha = base_alpha + adjusted_uplift
@@ -1321,38 +1408,44 @@ def d6_recursive_fractal(
             "alpha_floor": d6_config.get("alpha_floor", D6_ALPHA_FLOOR),
             "alpha_target": d6_config.get("alpha_target", D6_ALPHA_TARGET),
             "alpha_ceiling": d6_config.get("alpha_ceiling", D6_ALPHA_CEILING),
-            "instability_max": d6_config.get("instability_max", D6_INSTABILITY_MAX)
-        }
+            "instability_max": d6_config.get("instability_max", D6_INSTABILITY_MAX),
+        },
     }
 
     # Emit D6 receipt if depth >= 6
     if depth >= 6:
-        emit_receipt("d6_fractal", {
-            "receipt_type": "d6_fractal",
-            "tenant_id": TENANT_ID,
-            "ts": datetime.utcnow().isoformat() + "Z",
-            "tree_size": tree_size,
-            "depth": depth,
-            "eff_alpha": round(eff_alpha, 4),
-            "instability": instability,
-            "floor_met": floor_met,
-            "target_met": target_met,
-            "ceiling_met": ceiling_met,
-            "payload_hash": dual_hash(json.dumps({
+        emit_receipt(
+            "d6_fractal",
+            {
+                "receipt_type": "d6_fractal",
+                "tenant_id": TENANT_ID,
+                "ts": datetime.utcnow().isoformat() + "Z",
                 "tree_size": tree_size,
                 "depth": depth,
                 "eff_alpha": round(eff_alpha, 4),
-                "target_met": target_met
-            }, sort_keys=True))
-        })
+                "instability": instability,
+                "floor_met": floor_met,
+                "target_met": target_met,
+                "ceiling_met": ceiling_met,
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "tree_size": tree_size,
+                            "depth": depth,
+                            "eff_alpha": round(eff_alpha, 4),
+                            "target_met": target_met,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
 
     return result
 
 
 def d6_push(
-    tree_size: int = D6_TREE_MIN,
-    base_alpha: float = 3.15,
-    simulate: bool = False
+    tree_size: int = D6_TREE_MIN, base_alpha: float = 3.15, simulate: bool = False
 ) -> Dict[str, Any]:
     """Run D6 recursion push for alpha >= 3.33.
 
@@ -1379,17 +1472,21 @@ def d6_push(
         "floor_met": result["floor_met"],
         "target_met": result["target_met"],
         "ceiling_met": result["ceiling_met"],
-        "slo_passed": result["floor_met"] and result["instability"] <= D6_INSTABILITY_MAX,
-        "gate": "t24h"
+        "slo_passed": result["floor_met"]
+        and result["instability"] <= D6_INSTABILITY_MAX,
+        "gate": "t24h",
     }
 
-    emit_receipt("d6_push", {
-        "receipt_type": "d6_push",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in push_result.items() if k != "mode"},
-        "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True))
-    })
+    emit_receipt(
+        "d6_push",
+        {
+            "receipt_type": "d6_push",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in push_result.items() if k != "mode"},
+            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True)),
+        },
+    )
 
     return push_result
 
@@ -1413,17 +1510,22 @@ def get_d6_info() -> Dict[str, Any]:
         "efficiency_config": spec.get("efficiency_config", {}),
         "adversarial_config": spec.get("adversarial_config", {}),
         "validation": spec.get("validation", {}),
-        "description": spec.get("description", "D6 recursion + Titan methane + adversarial audits")
+        "description": spec.get(
+            "description", "D6 recursion + Titan methane + adversarial audits"
+        ),
     }
 
-    emit_receipt("d6_info", {
-        "receipt_type": "d6_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": info["version"],
-        "alpha_target": info["d6_config"].get("alpha_target", D6_ALPHA_TARGET),
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "d6_info",
+        {
+            "receipt_type": "d6_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "alpha_target": info["d6_config"].get("alpha_target", D6_ALPHA_TARGET),
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -1462,26 +1564,32 @@ def get_d7_spec() -> Dict[str, Any]:
     Receipt: d7_spec_load
     """
     import os
+
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "data",
-        "d7_europa_spec.json"
+        os.path.dirname(os.path.dirname(__file__)), "data", "d7_europa_spec.json"
     )
 
     with open(spec_path, "r") as f:
         spec = json.load(f)
 
-    emit_receipt("d7_spec_load", {
-        "receipt_type": "d7_spec_load",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": spec.get("version", "1.0.0"),
-        "alpha_floor": spec.get("d7_config", {}).get("alpha_floor", D7_ALPHA_FLOOR),
-        "alpha_target": spec.get("d7_config", {}).get("alpha_target", D7_ALPHA_TARGET),
-        "europa_autonomy": spec.get("europa_config", {}).get("autonomy_requirement", 0.95),
-        "nrel_efficiency": spec.get("nrel_config", {}).get("lab_efficiency", 0.256),
-        "payload_hash": dual_hash(json.dumps(spec, sort_keys=True))
-    })
+    emit_receipt(
+        "d7_spec_load",
+        {
+            "receipt_type": "d7_spec_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": spec.get("version", "1.0.0"),
+            "alpha_floor": spec.get("d7_config", {}).get("alpha_floor", D7_ALPHA_FLOOR),
+            "alpha_target": spec.get("d7_config", {}).get(
+                "alpha_target", D7_ALPHA_TARGET
+            ),
+            "europa_autonomy": spec.get("europa_config", {}).get(
+                "autonomy_requirement", 0.95
+            ),
+            "nrel_efficiency": spec.get("nrel_config", {}).get("lab_efficiency", 0.256),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
 
     return spec
 
@@ -1501,9 +1609,7 @@ def get_d7_uplift(depth: int) -> float:
 
 
 def d7_recursive_fractal(
-    tree_size: int,
-    base_alpha: float,
-    depth: int = 7
+    tree_size: int, base_alpha: float, depth: int = 7
 ) -> Dict[str, Any]:
     """D7 recursion for alpha ceiling breach targeting 3.40+.
 
@@ -1532,7 +1638,7 @@ def d7_recursive_fractal(
 
     # Apply scale adjustment
     scale_factor = get_scale_factor(tree_size)
-    adjusted_uplift = uplift * (scale_factor ** 0.5)
+    adjusted_uplift = uplift * (scale_factor**0.5)
 
     # Compute effective alpha
     eff_alpha = base_alpha + adjusted_uplift
@@ -1562,38 +1668,44 @@ def d7_recursive_fractal(
             "alpha_floor": d7_config.get("alpha_floor", D7_ALPHA_FLOOR),
             "alpha_target": d7_config.get("alpha_target", D7_ALPHA_TARGET),
             "alpha_ceiling": d7_config.get("alpha_ceiling", D7_ALPHA_CEILING),
-            "instability_max": d7_config.get("instability_max", D7_INSTABILITY_MAX)
-        }
+            "instability_max": d7_config.get("instability_max", D7_INSTABILITY_MAX),
+        },
     }
 
     # Emit D7 receipt if depth >= 7
     if depth >= 7:
-        emit_receipt("d7_fractal", {
-            "receipt_type": "d7_fractal",
-            "tenant_id": TENANT_ID,
-            "ts": datetime.utcnow().isoformat() + "Z",
-            "tree_size": tree_size,
-            "depth": depth,
-            "eff_alpha": round(eff_alpha, 4),
-            "instability": instability,
-            "floor_met": floor_met,
-            "target_met": target_met,
-            "ceiling_met": ceiling_met,
-            "payload_hash": dual_hash(json.dumps({
+        emit_receipt(
+            "d7_fractal",
+            {
+                "receipt_type": "d7_fractal",
+                "tenant_id": TENANT_ID,
+                "ts": datetime.utcnow().isoformat() + "Z",
                 "tree_size": tree_size,
                 "depth": depth,
                 "eff_alpha": round(eff_alpha, 4),
-                "target_met": target_met
-            }, sort_keys=True))
-        })
+                "instability": instability,
+                "floor_met": floor_met,
+                "target_met": target_met,
+                "ceiling_met": ceiling_met,
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "tree_size": tree_size,
+                            "depth": depth,
+                            "eff_alpha": round(eff_alpha, 4),
+                            "target_met": target_met,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
 
     return result
 
 
 def d7_push(
-    tree_size: int = D7_TREE_MIN,
-    base_alpha: float = 3.2,
-    simulate: bool = False
+    tree_size: int = D7_TREE_MIN, base_alpha: float = 3.2, simulate: bool = False
 ) -> Dict[str, Any]:
     """Run D7 recursion push for alpha >= 3.40.
 
@@ -1620,17 +1732,21 @@ def d7_push(
         "floor_met": result["floor_met"],
         "target_met": result["target_met"],
         "ceiling_met": result["ceiling_met"],
-        "slo_passed": result["floor_met"] and result["instability"] <= D7_INSTABILITY_MAX,
-        "gate": "t24h"
+        "slo_passed": result["floor_met"]
+        and result["instability"] <= D7_INSTABILITY_MAX,
+        "gate": "t24h",
     }
 
-    emit_receipt("d7_push", {
-        "receipt_type": "d7_push",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **{k: v for k, v in push_result.items() if k != "mode"},
-        "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True))
-    })
+    emit_receipt(
+        "d7_push",
+        {
+            "receipt_type": "d7_push",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in push_result.items() if k != "mode"},
+            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True)),
+        },
+    )
 
     return push_result
 
@@ -1654,16 +1770,282 @@ def get_d7_info() -> Dict[str, Any]:
         "nrel_config": spec.get("nrel_config", {}),
         "expanded_audit_config": spec.get("expanded_audit_config", {}),
         "validation": spec.get("validation", {}),
-        "description": spec.get("description", "D7 recursion + Europa ice + NREL + expanded audits")
+        "description": spec.get(
+            "description", "D7 recursion + Europa ice + NREL + expanded audits"
+        ),
     }
 
-    emit_receipt("d7_info", {
-        "receipt_type": "d7_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": info["version"],
-        "alpha_target": info["d7_config"].get("alpha_target", D7_ALPHA_TARGET),
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "d7_info",
+        {
+            "receipt_type": "d7_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "alpha_target": info["d7_config"].get("alpha_target", D7_ALPHA_TARGET),
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
+
+    return info
+
+
+# === D8 RECURSION CONSTANTS ===
+
+
+D8_ALPHA_FLOOR = 3.43
+"""D8 alpha floor target."""
+
+D8_ALPHA_TARGET = 3.45
+"""D8 alpha target."""
+
+D8_ALPHA_CEILING = 3.47
+"""D8 alpha ceiling (max achievable)."""
+
+D8_INSTABILITY_MAX = 0.00
+"""D8 maximum allowed instability."""
+
+D8_TREE_MIN = 10**12
+"""Minimum tree size for D8 validation."""
+
+D8_UPLIFT = 0.22
+"""D8 cumulative uplift from depth=8 recursion."""
+
+
+# === D8 RECURSION FUNCTIONS ===
+
+
+def get_d8_spec() -> Dict[str, Any]:
+    """Load d8_multi_spec.json with dual-hash verification.
+
+    Returns:
+        Dict with D8 + multi-planet sync + Atacama + encryption configuration
+
+    Receipt: d8_spec_load
+    """
+    import os
+
+    spec_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "data", "d8_multi_spec.json"
+    )
+
+    with open(spec_path, "r") as f:
+        spec = json.load(f)
+
+    emit_receipt(
+        "d8_spec_load",
+        {
+            "receipt_type": "d8_spec_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": spec.get("version", "1.0.0"),
+            "alpha_floor": spec.get("d8_config", {}).get("alpha_floor", D8_ALPHA_FLOOR),
+            "alpha_target": spec.get("d8_config", {}).get(
+                "alpha_target", D8_ALPHA_TARGET
+            ),
+            "sync_moons": spec.get("multi_sync_config", {}).get("moons", []),
+            "encrypt_key_depth": spec.get("fractal_encrypt_config", {}).get(
+                "key_depth", 6
+            ),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
+
+    return spec
+
+
+def get_d8_uplift(depth: int) -> float:
+    """Get uplift value for depth from d8_spec.
+
+    Args:
+        depth: Recursion depth (1-8)
+
+    Returns:
+        Cumulative uplift at depth
+    """
+    spec = get_d8_spec()
+    uplift_map = spec.get("uplift_by_depth", {})
+    return float(uplift_map.get(str(depth), 0.0))
+
+
+def d8_recursive_fractal(
+    tree_size: int, base_alpha: float, depth: int = 8
+) -> Dict[str, Any]:
+    """D8 recursion for alpha ceiling breach targeting 3.45+.
+
+    D8 targets:
+    - Alpha floor: 3.43
+    - Alpha target: 3.45
+    - Alpha ceiling: 3.47
+    - Instability: 0.00
+
+    Args:
+        tree_size: Number of nodes in tree
+        base_alpha: Base alpha before recursion
+        depth: Recursion depth (default: 8)
+
+    Returns:
+        Dict with D8 recursion results
+
+    Receipt: d8_fractal_receipt
+    """
+    # Load D8 spec
+    spec = get_d8_spec()
+    d8_config = spec.get("d8_config", {})
+
+    # Get uplift from spec
+    uplift = get_d8_uplift(depth)
+
+    # Apply scale adjustment
+    scale_factor = get_scale_factor(tree_size)
+    adjusted_uplift = uplift * (scale_factor**0.5)
+
+    # Compute effective alpha
+    eff_alpha = base_alpha + adjusted_uplift
+
+    # Compute instability (should be 0.00 for D8)
+    instability = 0.00
+
+    # Check targets
+    floor_met = eff_alpha >= d8_config.get("alpha_floor", D8_ALPHA_FLOOR)
+    target_met = eff_alpha >= d8_config.get("alpha_target", D8_ALPHA_TARGET)
+    ceiling_met = eff_alpha >= d8_config.get("alpha_ceiling", D8_ALPHA_CEILING)
+
+    result = {
+        "tree_size": tree_size,
+        "base_alpha": base_alpha,
+        "depth": depth,
+        "uplift_from_spec": uplift,
+        "scale_factor": round(scale_factor, 6),
+        "adjusted_uplift": round(adjusted_uplift, 4),
+        "eff_alpha": round(eff_alpha, 4),
+        "instability": instability,
+        "floor_met": floor_met,
+        "target_met": target_met,
+        "ceiling_met": ceiling_met,
+        "d8_config": d8_config,
+        "slo_check": {
+            "alpha_floor": d8_config.get("alpha_floor", D8_ALPHA_FLOOR),
+            "alpha_target": d8_config.get("alpha_target", D8_ALPHA_TARGET),
+            "alpha_ceiling": d8_config.get("alpha_ceiling", D8_ALPHA_CEILING),
+            "instability_max": d8_config.get("instability_max", D8_INSTABILITY_MAX),
+        },
+    }
+
+    # Emit D8 receipt if depth >= 8
+    if depth >= 8:
+        emit_receipt(
+            "d8_fractal",
+            {
+                "receipt_type": "d8_fractal",
+                "tenant_id": TENANT_ID,
+                "ts": datetime.utcnow().isoformat() + "Z",
+                "tree_size": tree_size,
+                "depth": depth,
+                "eff_alpha": round(eff_alpha, 4),
+                "instability": instability,
+                "floor_met": floor_met,
+                "target_met": target_met,
+                "ceiling_met": ceiling_met,
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "tree_size": tree_size,
+                            "depth": depth,
+                            "eff_alpha": round(eff_alpha, 4),
+                            "target_met": target_met,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
+
+    return result
+
+
+def d8_push(
+    tree_size: int = D8_TREE_MIN, base_alpha: float = 3.23, simulate: bool = False
+) -> Dict[str, Any]:
+    """Run D8 recursion push for alpha >= 3.45.
+
+    Args:
+        tree_size: Tree size (default: 10^12)
+        base_alpha: Base alpha (default: 3.23)
+        simulate: Whether to run in simulation mode
+
+    Returns:
+        Dict with D8 push results
+
+    Receipt: d8_push_receipt
+    """
+    # Run D8 at depth 8
+    result = d8_recursive_fractal(tree_size, base_alpha, depth=8)
+
+    push_result = {
+        "mode": "simulate" if simulate else "execute",
+        "tree_size": tree_size,
+        "base_alpha": base_alpha,
+        "depth": 8,
+        "eff_alpha": result["eff_alpha"],
+        "instability": result["instability"],
+        "floor_met": result["floor_met"],
+        "target_met": result["target_met"],
+        "ceiling_met": result["ceiling_met"],
+        "slo_passed": result["floor_met"]
+        and result["instability"] <= D8_INSTABILITY_MAX,
+        "gate": "t24h",
+    }
+
+    emit_receipt(
+        "d8_push",
+        {
+            "receipt_type": "d8_push",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in push_result.items() if k != "mode"},
+            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True)),
+        },
+    )
+
+    return push_result
+
+
+def get_d8_info() -> Dict[str, Any]:
+    """Get D8 recursion configuration.
+
+    Returns:
+        Dict with D8 info
+
+    Receipt: d8_info
+    """
+    spec = get_d8_spec()
+
+    info = {
+        "version": spec.get("version", "1.0.0"),
+        "d8_config": spec.get("d8_config", {}),
+        "uplift_by_depth": spec.get("uplift_by_depth", {}),
+        "expected_alpha": spec.get("expected_alpha", {}),
+        "multi_sync_config": spec.get("multi_sync_config", {}),
+        "atacama_config": spec.get("atacama_config", {}),
+        "fractal_encrypt_config": spec.get("fractal_encrypt_config", {}),
+        "validation": spec.get("validation", {}),
+        "description": spec.get(
+            "description",
+            "D8 recursion + unified RL sync + Atacama + fractal encryption",
+        ),
+    }
+
+    emit_receipt(
+        "d8_info",
+        {
+            "receipt_type": "d8_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "alpha_target": info["d8_config"].get("alpha_target", D8_ALPHA_TARGET),
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info

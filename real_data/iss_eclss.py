@@ -21,6 +21,7 @@ try:
     from src.core import dual_hash, emit_receipt
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from src.core import dual_hash, emit_receipt
 
@@ -31,13 +32,16 @@ TENANT_ID = "axiom-real-data"
 
 # ISS ECLSS Validated Constants (from NASA reports)
 ISS_WATER_RECOVERY = 0.98  # 98% water recovery rate
-ISS_O2_CLOSURE = 0.875     # 87.5% O2 cycle closure
+ISS_O2_CLOSURE = 0.875  # 87.5% O2 cycle closure
 
 # Detailed ECLSS performance data
 ECLSS_PERFORMANCE = {
     "water_recovery_system": {
         "name": "Water Recovery System (WRS)",
-        "components": ["Urine Processor Assembly (UPA)", "Water Processor Assembly (WPA)"],
+        "components": [
+            "Urine Processor Assembly (UPA)",
+            "Water Processor Assembly (WPA)",
+        ],
         "recovery_rate": 0.98,
         "capacity_liters_per_day": 13.5,
         "crew_supported": 6,
@@ -123,14 +127,15 @@ ECLSS_EVOLUTION = [
 
 # Consumables requirements (kg per crew per day)
 CONSUMABLES = {
-    "o2": 0.84,      # kg O2 per person per day
-    "food": 1.77,    # kg food per person per day
-    "water": 2.5,    # kg water per person per day (drinking + hygiene)
+    "o2": 0.84,  # kg O2 per person per day
+    "food": 1.77,  # kg food per person per day
+    "water": 2.5,  # kg water per person per day (drinking + hygiene)
     "co2_produced": 1.0,  # kg CO2 produced per person per day
 }
 
 
 # === CORE FUNCTIONS ===
+
 
 def get_water_recovery() -> float:
     """Return measured water recovery rate.
@@ -172,12 +177,10 @@ def load_eclss() -> Dict:
             "o2_closure_rate": ISS_O2_CLOSURE,
             "crew_capacity": 6,
             "total_power_consumption_w": sum(
-                s.get("power_consumption_w", 0)
-                for s in ECLSS_PERFORMANCE.values()
+                s.get("power_consumption_w", 0) for s in ECLSS_PERFORMANCE.values()
             ),
             "total_mass_kg": sum(
-                s.get("mass_kg", 0)
-                for s in ECLSS_PERFORMANCE.values()
+                s.get("mass_kg", 0) for s in ECLSS_PERFORMANCE.values()
             ),
         },
         "source": "NASA_ECLSS_2023",
@@ -192,15 +195,18 @@ def load_eclss() -> Dict:
     ]
 
     # Emit receipt
-    emit_receipt("real_data", {
-        "tenant_id": TENANT_ID,
-        "dataset_id": "ISS_ECLSS",
-        "source_url": "https://ntrs.nasa.gov/citations/20205008865",
-        "download_hash": data_hash,
-        "n_records": len(ECLSS_PERFORMANCE),
-        "provenance_chain": provenance_chain,
-        "key_metrics": result["key_metrics"],
-    })
+    emit_receipt(
+        "real_data",
+        {
+            "tenant_id": TENANT_ID,
+            "dataset_id": "ISS_ECLSS",
+            "source_url": "https://ntrs.nasa.gov/citations/20205008865",
+            "download_hash": data_hash,
+            "n_records": len(ECLSS_PERFORMANCE),
+            "provenance_chain": provenance_chain,
+            "key_metrics": result["key_metrics"],
+        },
+    )
 
     return result
 
@@ -229,12 +235,15 @@ def validate_against_constants() -> Dict:
 
     all_match = all(v["match"] for v in validations.values())
 
-    emit_receipt("validation", {
-        "tenant_id": TENANT_ID,
-        "validation_type": "eclss_constants",
-        "validations": validations,
-        "all_match": all_match,
-    })
+    emit_receipt(
+        "validation",
+        {
+            "tenant_id": TENANT_ID,
+            "validation_type": "eclss_constants",
+            "validations": validations,
+            "all_match": all_match,
+        },
+    )
 
     return {
         "validations": validations,
@@ -260,10 +269,7 @@ def compute_mars_requirements(crew_size: int, mission_days: int) -> Dict:
     }
 
     # Total requirements without recycling
-    total_no_recycle = {
-        k: v * crew_size * mission_days
-        for k, v in base_daily.items()
-    }
+    total_no_recycle = {k: v * crew_size * mission_days for k, v in base_daily.items()}
 
     # With ISS-level recycling
     total_with_recycle = {
@@ -306,7 +312,7 @@ def compute_bits_per_kg_eclss() -> Dict:
     # Based on NASA documentation: ~50 parameters monitored continuously
     PARAMETERS_MONITORED = 50
     SAMPLES_PER_HOUR = 60  # 1 sample per minute per parameter
-    BITS_PER_SAMPLE = 16   # 16-bit resolution
+    BITS_PER_SAMPLE = 16  # 16-bit resolution
 
     # Control decisions
     CONTROL_DECISIONS_PER_HOUR = 20  # Valve adjustments, etc.
@@ -322,7 +328,11 @@ def compute_bits_per_kg_eclss() -> Dict:
     o2_produced_kg_per_hour = (CONSUMABLES["o2"] * 6) * ISS_O2_CLOSURE / 24
     total_produced_kg_per_hour = water_recovered_kg_per_hour + o2_produced_kg_per_hour
 
-    bits_per_kg = total_bits_per_hour / total_produced_kg_per_hour if total_produced_kg_per_hour > 0 else 0
+    bits_per_kg = (
+        total_bits_per_hour / total_produced_kg_per_hour
+        if total_produced_kg_per_hour > 0
+        else 0
+    )
 
     return {
         "monitoring_bits_per_hour": monitoring_bits_per_hour,

@@ -73,7 +73,10 @@ class TestRadiationScenario:
 
         captured = capsys.readouterr()
         # Total dose = 0.1 * 12 = 1.2 Sv, lethal threshold = 2.0 Sv
-        assert "survived" in captured.out.lower() or "radiation_scenario_complete" in captured.out
+        assert (
+            "survived" in captured.out.lower()
+            or "radiation_scenario_complete" in captured.out
+        )
 
 
 class TestBlackoutScenario:
@@ -154,19 +157,26 @@ class TestRealdataScenario:
         captured = capsys.readouterr()
         # Should mention galaxies or SPARC
         output_lower = captured.out.lower()
-        assert "galaxy" in output_lower or "sparc" in output_lower or "realdata_scenario" in output_lower
+        assert (
+            "galaxy" in output_lower
+            or "sparc" in output_lower
+            or "realdata_scenario" in output_lower
+        )
 
 
 class TestScenarioIntegration:
     """Integration tests for all scenarios."""
 
-    @pytest.mark.parametrize("scenario_name", [
-        "SCENARIO_BASELINE",
-        "SCENARIO_RADIATION",
-        "SCENARIO_BLACKOUT",
-        "SCENARIO_PSYCHOLOGY",
-        "SCENARIO_REALDATA",
-    ])
+    @pytest.mark.parametrize(
+        "scenario_name",
+        [
+            "SCENARIO_BASELINE",
+            "SCENARIO_RADIATION",
+            "SCENARIO_BLACKOUT",
+            "SCENARIO_PSYCHOLOGY",
+            "SCENARIO_REALDATA",
+        ],
+    )
     def test_scenario_completes(self, scenario_name):
         """Each scenario should complete without raising."""
         from src.sim import Scenario, run_scenario, SimConfig
@@ -195,5 +205,6 @@ class TestScenarioIntegration:
 
             captured = capsys.readouterr()
             # Should emit at least simulation_cycle receipts
-            assert "simulation_cycle" in captured.out or scenario.value in captured.out, \
-                f"Scenario {scenario.value} did not emit expected receipts"
+            assert (
+                "simulation_cycle" in captured.out or scenario.value in captured.out
+            ), f"Scenario {scenario.value} did not emit expected receipts"

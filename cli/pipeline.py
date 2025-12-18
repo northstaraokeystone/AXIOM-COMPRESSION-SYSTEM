@@ -35,11 +35,11 @@ def cmd_lr_pilot(runs: int, tree_size: int, simulate: bool, show_bounds: bool):
         spec = load_pilot_spec()
         print("\nSpec loaded:")
         print(f"  pilot_runs: {spec.get('pilot_runs', PILOT_LR_RUNS)}")
-        lr_min = spec.get('initial_lr_min', INITIAL_LR_RANGE[0])
-        lr_max = spec.get('initial_lr_max', INITIAL_LR_RANGE[1])
+        lr_min = spec.get("initial_lr_min", INITIAL_LR_RANGE[0])
+        lr_max = spec.get("initial_lr_max", INITIAL_LR_RANGE[1])
         print(f"  initial_lr_range: ({lr_min}, {lr_max})")
-        target_min = spec.get('target_narrow_min', TARGET_NARROWED_LR[0])
-        target_max = spec.get('target_narrow_max', TARGET_NARROWED_LR[1])
+        target_min = spec.get("target_narrow_min", TARGET_NARROWED_LR[0])
+        target_max = spec.get("target_narrow_max", TARGET_NARROWED_LR[1])
         print(f"  target_narrowed_lr: ({target_min}, {target_max})")
         print(f"  full_tuned_runs: {spec.get('full_tuned_runs', FULL_TUNED_RUNS)}")
     except FileNotFoundError:
@@ -53,21 +53,23 @@ def cmd_lr_pilot(runs: int, tree_size: int, simulate: bool, show_bounds: bool):
 
     print("\nRunning LR pilot narrowing...")
 
-    result = pilot_lr_narrow(
-        runs=runs,
-        tree_size=tree_size,
-        seed=42
-    )
+    result = pilot_lr_narrow(runs=runs, tree_size=tree_size, seed=42)
 
     print("\nRESULTS:")
-    print(f"  Runs completed: {result.get('runs_completed', result.get('pilot_runs', 'N/A'))}")
-    print(f"  Best LR found: {result.get('best_lr', result.get('optimal_lr_found', 0)):.6f}")
-    print(f"  Best retention: {result.get('best_retention', result.get('reward_improvement_pct', 0) / 100 + 1):.5f}")
+    print(
+        f"  Runs completed: {result.get('runs_completed', result.get('pilot_runs', 'N/A'))}"
+    )
+    print(
+        f"  Best LR found: {result.get('best_lr', result.get('optimal_lr_found', 0)):.6f}"
+    )
+    print(
+        f"  Best retention: {result.get('best_retention', result.get('reward_improvement_pct', 0) / 100 + 1):.5f}"
+    )
     print(f"  Narrowed range: {result.get('narrowed_range', 'N/A')}")
-    range_reduction = result.get('range_reduction_pct', 0)
-    if not range_reduction and 'narrowed_range' in result:
+    range_reduction = result.get("range_reduction_pct", 0)
+    if not range_reduction and "narrowed_range" in result:
         initial_span = INITIAL_LR_RANGE[1] - INITIAL_LR_RANGE[0]
-        narrowed = result['narrowed_range']
+        narrowed = result["narrowed_range"]
         if isinstance(narrowed, (list, tuple)) and len(narrowed) == 2:
             narrowed_span = narrowed[1] - narrowed[0]
             range_reduction = (1 - narrowed_span / initial_span) * 100
@@ -78,12 +80,17 @@ def cmd_lr_pilot(runs: int, tree_size: int, simulate: bool, show_bounds: bool):
         print(f"  Initial: {INITIAL_LR_RANGE}")
         print(f"  Narrowed: {result['narrowed_range']}")
         print(f"  Target: {TARGET_NARROWED_LR}")
-        target_met = result['narrowed_range'][1] - result['narrowed_range'][0] <= TARGET_NARROWED_LR
+        target_met = (
+            result["narrowed_range"][1] - result["narrowed_range"][0]
+            <= TARGET_NARROWED_LR
+        )
         print(f"  Target met: {'PASS' if target_met else 'PENDING'}")
 
     print("\nSLO VALIDATION:")
-    ret_ok = result['best_retention'] >= 1.0
-    print(f"  Retention >= 1.0: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})")
+    ret_ok = result["best_retention"] >= 1.0
+    print(
+        f"  Retention >= 1.0: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})"
+    )
 
     if simulate:
         print("\n[lr_pilot_receipt emitted above]")
@@ -107,11 +114,7 @@ def cmd_post_tune_execute(tree_size: int, simulate: bool):
 
     print("\nRunning tuned sweep...")
 
-    result = run_tuned_sweep(
-        runs=FULL_TUNED_RUNS,
-        tree_size=tree_size,
-        seed=42
-    )
+    result = run_tuned_sweep(runs=FULL_TUNED_RUNS, tree_size=tree_size, seed=42)
 
     print("\nRESULTS:")
     print(f"  Runs completed: {result['runs_completed']}")
@@ -120,12 +123,14 @@ def cmd_post_tune_execute(tree_size: int, simulate: bool):
     print(f"  LR used: {result['lr_used']:.6f}")
     print(f"  Target achieved: {'PASS' if result['target_achieved'] else 'PENDING'}")
 
-    if result.get('convergence_run'):
+    if result.get("convergence_run"):
         print(f"  Convergence run: {result['convergence_run']}")
 
     print("\nSLO VALIDATION:")
-    ret_ok = result['best_retention'] >= RETENTION_TARGET
-    print(f"  Retention >= {RETENTION_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})")
+    ret_ok = result["best_retention"] >= RETENTION_TARGET
+    print(
+        f"  Retention >= {RETENTION_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})"
+    )
 
     if simulate:
         print("\n[post_tune_receipt emitted above]")
@@ -133,7 +138,9 @@ def cmd_post_tune_execute(tree_size: int, simulate: bool):
     print("=" * 60)
 
 
-def cmd_full_pipeline(pilot_runs: int, quantum_runs: int, sweep_runs: int, tree_size: int, simulate: bool):
+def cmd_full_pipeline(
+    pilot_runs: int, quantum_runs: int, sweep_runs: int, tree_size: int, simulate: bool
+):
     """Run complete pilot -> quantum -> sweep chain.
 
     Args:
@@ -161,24 +168,24 @@ def cmd_full_pipeline(pilot_runs: int, quantum_runs: int, sweep_runs: int, tree_
         quantum_runs=quantum_runs,
         sweep_runs=sweep_runs,
         tree_size=tree_size,
-        seed=42
+        seed=42,
     )
 
     print("\nPIPELINE RESULTS:")
 
     print("\n  [Phase 1] LR Pilot:")
-    pilot = result['pilot_phase']
+    pilot = result["pilot_phase"]
     print(f"    Best LR: {pilot['best_lr']:.6f}")
     print(f"    Narrowed range: {pilot['narrowed_range']}")
     print(f"    Best retention: {pilot['best_retention']:.5f}")
 
     print("\n  [Phase 2] Quantum Sim:")
-    quantum = result['quantum_phase']
+    quantum = result["quantum_phase"]
     print(f"    Avg retention: {quantum['avg_retention']:.5f}")
     print(f"    Quantum boost: {quantum['quantum_boost_applied']}")
 
     print("\n  [Phase 3] Tuned Sweep:")
-    sweep = result['sweep_phase']
+    sweep = result["sweep_phase"]
     print(f"    Final retention: {sweep['final_retention']:.5f}")
     print(f"    Best retention: {sweep['best_retention']:.5f}")
     print(f"    Target achieved: {'PASS' if sweep['target_achieved'] else 'PENDING'}")
@@ -189,8 +196,10 @@ def cmd_full_pipeline(pilot_runs: int, quantum_runs: int, sweep_runs: int, tree_
     print(f"  SLO met: {result['slo_met']}")
 
     print("\nSLO VALIDATION:")
-    ret_ok = result['final_retention'] >= RETENTION_TARGET
-    print(f"  Retention >= {RETENTION_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['final_retention']:.5f})")
+    ret_ok = result["final_retention"] >= RETENTION_TARGET
+    print(
+        f"  Retention >= {RETENTION_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['final_retention']:.5f})"
+    )
 
     if simulate:
         print("\n[full_pipeline_receipt emitted above]")
@@ -212,12 +221,18 @@ def cmd_pilot_info():
 
     print("\nStrategy:")
     print(f"  Method: {info.get('narrowing_strategy', 'top_percentile_reward')}")
-    print(f"  Expected improvement: {info.get('expected_improvement', '~10% faster convergence')}")
+    print(
+        f"  Expected improvement: {info.get('expected_improvement', '~10% faster convergence')}"
+    )
 
     print("\nExpected Behavior:")
-    if 'expected_results' in info:
-        print(f"  Narrowed range: {info['expected_results'].get('narrowed_range', 'N/A')}")
-        print(f"  Final retention: {info['expected_results'].get('final_retention', 'N/A')}")
+    if "expected_results" in info:
+        print(
+            f"  Narrowed range: {info['expected_results'].get('narrowed_range', 'N/A')}"
+        )
+        print(
+            f"  Final retention: {info['expected_results'].get('final_retention', 'N/A')}"
+        )
 
     print(f"\nDescription: {info['description']}")
 
@@ -238,14 +253,20 @@ def cmd_pipeline_info():
 
     print("\nDefaults:")
     print(f"  Pilot runs: {info.get('default_pilot_runs', info.get('pilot_runs', 50))}")
-    print(f"  Quantum runs: {info.get('default_quantum_runs', info.get('quantum_runs', 10))}")
-    print(f"  Sweep runs: {info.get('default_sweep_runs', info.get('sweep_runs', 500))}")
+    print(
+        f"  Quantum runs: {info.get('default_quantum_runs', info.get('quantum_runs', 10))}"
+    )
+    print(
+        f"  Sweep runs: {info.get('default_sweep_runs', info.get('sweep_runs', 500))}"
+    )
 
     print("\nTarget:")
     print(f"  Retention target: {info.get('retention_target', 1.05)}")
     print(f"  Alpha target: {info.get('alpha_target', 2.86)}")
 
-    print(f"\nDescription: {info.get('description', 'Full pipeline: pilot -> quantum -> sweep')}")
+    print(
+        f"\nDescription: {info.get('description', 'Full pipeline: pilot -> quantum -> sweep')}"
+    )
 
     print("\n[pipeline_info receipt emitted above]")
     print("=" * 60)

@@ -41,6 +41,7 @@ ROI_GATE_SHADOW = 0.1
 
 # === DATACLASS ===
 
+
 @dataclass
 class ROIConfig:
     """Configuration for ROI computation.
@@ -51,6 +52,7 @@ class ROIConfig:
         penalty_per_c_reduction: Penalty weight for c factor reduction
         min_viable_roi: Minimum ROI to keep strategy alive
     """
+
     reward_per_cycle_saved: float = DEFAULT_REWARD_PER_CYCLE
     penalty_per_p_cost: float = DEFAULT_PENALTY_PER_P_COST
     penalty_per_c_reduction: float = DEFAULT_PENALTY_PER_C_REDUCTION
@@ -58,6 +60,7 @@ class ROIConfig:
 
 
 # === FUNCTIONS ===
+
 
 def reward(cycles_saved: int, config: ROIConfig = None) -> float:
     """Compute reward for cycles saved.
@@ -76,12 +79,15 @@ def reward(cycles_saved: int, config: ROIConfig = None) -> float:
 
     reward_value = cycles_saved * config.reward_per_cycle_saved
 
-    emit_receipt("roi_reward", {
-        "tenant_id": "axiom-autonomy",
-        "cycles_saved": cycles_saved,
-        "reward_per_cycle": config.reward_per_cycle_saved,
-        "reward_value": reward_value,
-    })
+    emit_receipt(
+        "roi_reward",
+        {
+            "tenant_id": "axiom-autonomy",
+            "cycles_saved": cycles_saved,
+            "reward_per_cycle": config.reward_per_cycle_saved,
+            "reward_value": reward_value,
+        },
+    )
 
     return reward_value
 
@@ -108,22 +114,23 @@ def penalty(p_cost: float, c_reduction: float, config: ROIConfig = None) -> floa
     c_penalty = c_reduction * config.penalty_per_c_reduction
     penalty_value = p_penalty + c_penalty
 
-    emit_receipt("roi_penalty", {
-        "tenant_id": "axiom-autonomy",
-        "p_cost": p_cost,
-        "c_reduction": c_reduction,
-        "p_penalty": p_penalty,
-        "c_penalty": c_penalty,
-        "penalty_value": penalty_value,
-    })
+    emit_receipt(
+        "roi_penalty",
+        {
+            "tenant_id": "axiom-autonomy",
+            "p_cost": p_cost,
+            "c_reduction": c_reduction,
+            "p_penalty": p_penalty,
+            "c_penalty": c_penalty,
+            "penalty_value": penalty_value,
+        },
+    )
 
     return penalty_value
 
 
 def compute_roi(
-    result: "StrategyResult",
-    baseline: "StrategyResult",
-    config: ROIConfig = None
+    result: "StrategyResult", baseline: "StrategyResult", config: ROIConfig = None
 ) -> float:
     """Compute ROI for a strategy vs baseline.
 
@@ -155,18 +162,21 @@ def compute_roi(
 
     roi_score = reward_value - penalty_value
 
-    emit_receipt("roi_computation", {
-        "tenant_id": "axiom-autonomy",
-        "strategy": result.strategy.value,
-        "baseline_cycles": baseline.cycles_to_10k,
-        "result_cycles": result.cycles_to_10k,
-        "cycles_saved": cycles_saved,
-        "p_cost": p_cost,
-        "c_reduction": c_reduction,
-        "reward_value": reward_value,
-        "penalty_value": penalty_value,
-        "roi_score": roi_score,
-    })
+    emit_receipt(
+        "roi_computation",
+        {
+            "tenant_id": "axiom-autonomy",
+            "strategy": result.strategy.value,
+            "baseline_cycles": baseline.cycles_to_10k,
+            "result_cycles": result.cycles_to_10k,
+            "cycles_saved": cycles_saved,
+            "p_cost": p_cost,
+            "c_reduction": c_reduction,
+            "reward_value": reward_value,
+            "penalty_value": penalty_value,
+            "roi_score": roi_score,
+        },
+    )
 
     return roi_score
 
@@ -198,13 +208,16 @@ def roi_gate(roi_score: float, config: ROIConfig = None) -> str:
     else:
         decision = "kill"
 
-    emit_receipt("roi_gate", {
-        "tenant_id": "axiom-autonomy",
-        "roi_score": roi_score,
-        "decision": decision,
-        "threshold_deploy": ROI_GATE_DEPLOY,
-        "threshold_shadow": ROI_GATE_SHADOW,
-    })
+    emit_receipt(
+        "roi_gate",
+        {
+            "tenant_id": "axiom-autonomy",
+            "roi_score": roi_score,
+            "decision": decision,
+            "threshold_deploy": ROI_GATE_DEPLOY,
+            "threshold_shadow": ROI_GATE_SHADOW,
+        },
+    )
 
     return decision
 
@@ -212,7 +225,7 @@ def roi_gate(roi_score: float, config: ROIConfig = None) -> str:
 def rank_by_roi(
     results: List["StrategyResult"],
     baseline: "StrategyResult",
-    config: ROIConfig = None
+    config: ROIConfig = None,
 ) -> List[Tuple["StrategyResult", float]]:
     """Rank strategies by ROI.
 
@@ -238,24 +251,22 @@ def rank_by_roi(
     # Sort by ROI descending
     ranked.sort(key=lambda x: x[1], reverse=True)
 
-    emit_receipt("roi_ranking", {
-        "tenant_id": "axiom-autonomy",
-        "strategies_ranked": len(ranked),
-        "top_strategy": ranked[0][0].strategy.value if ranked else None,
-        "top_roi": ranked[0][1] if ranked else None,
-        "ranking": [
-            {"strategy": r[0].strategy.value, "roi": r[1]}
-            for r in ranked
-        ],
-    })
+    emit_receipt(
+        "roi_ranking",
+        {
+            "tenant_id": "axiom-autonomy",
+            "strategies_ranked": len(ranked),
+            "top_strategy": ranked[0][0].strategy.value if ranked else None,
+            "top_roi": ranked[0][1] if ranked else None,
+            "ranking": [{"strategy": r[0].strategy.value, "roi": r[1]} for r in ranked],
+        },
+    )
 
     return ranked
 
 
 def update_result_roi(
-    result: "StrategyResult",
-    baseline: "StrategyResult",
-    config: ROIConfig = None
+    result: "StrategyResult", baseline: "StrategyResult", config: ROIConfig = None
 ) -> "StrategyResult":
     """Update StrategyResult with computed ROI.
 
@@ -278,14 +289,12 @@ def update_result_roi(
         c_factor=result.c_factor,
         p_cost=result.p_cost,
         cycles_to_10k=result.cycles_to_10k,
-        roi_score=roi
+        roi_score=roi,
     )
 
 
 def evaluate_strategy_roi(
-    result: "StrategyResult",
-    baseline: "StrategyResult",
-    config: ROIConfig = None
+    result: "StrategyResult", baseline: "StrategyResult", config: ROIConfig = None
 ) -> dict:
     """Full ROI evaluation with gate decision.
 

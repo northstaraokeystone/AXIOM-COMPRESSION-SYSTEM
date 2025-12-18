@@ -102,22 +102,25 @@ def load_depth_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, ADAPTIVE_DEPTH_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("depth_spec", {
-        "receipt_type": "depth_spec",
-        "tenant_id": "axiom-colony",
-        "base_layers": data["base_layers"],
-        "scale_factor": data["scale_factor"],
-        "baseline_n": data["baseline_n"],
-        "max_layers": data["max_layers"],
-        "sweep_limit": data["sweep_limit"],
-        "spec_hash": content_hash,
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "depth_spec",
+        {
+            "receipt_type": "depth_spec",
+            "tenant_id": "axiom-colony",
+            "base_layers": data["base_layers"],
+            "scale_factor": data["scale_factor"],
+            "baseline_n": data["baseline_n"],
+            "max_layers": data["max_layers"],
+            "sweep_limit": data["sweep_limit"],
+            "spec_hash": content_hash,
+            "payload_hash": content_hash,
+        },
+    )
 
     _cached_spec = data
     return data
@@ -134,6 +137,7 @@ def _get_spec_value(key: str, default: Any = None) -> Any:
 
 # === STOPRULES ===
 
+
 def stoprule_invalid_depth(layers: int) -> None:
     """StopRule if computed depth is invalid.
 
@@ -147,14 +151,17 @@ def stoprule_invalid_depth(layers: int) -> None:
     min_l = _get_spec_value("min_layers", MIN_LAYERS)
 
     if layers < 1 or layers > max_l:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-colony",
-            "metric": "invalid_depth",
-            "baseline": f"[{min_l}, {max_l}]",
-            "delta": layers,
-            "classification": "violation",
-            "action": "halt"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-colony",
+                "metric": "invalid_depth",
+                "baseline": f"[{min_l}, {max_l}]",
+                "delta": layers,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
         raise StopRule(f"Invalid depth: {layers} not in [{min_l}, {max_l}]")
 
 
@@ -168,18 +175,22 @@ def stoprule_negative_entropy(entropy_h: float) -> None:
         StopRule: If entropy_h < 0
     """
     if entropy_h < 0:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-colony",
-            "metric": "negative_entropy",
-            "baseline": 0.0,
-            "delta": entropy_h,
-            "classification": "violation",
-            "action": "halt"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-colony",
+                "metric": "negative_entropy",
+                "baseline": 0.0,
+                "delta": entropy_h,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
         raise StopRule(f"Negative entropy: {entropy_h}")
 
 
 # === CORE FUNCTIONS ===
+
 
 def compute_depth(tree_size_n: int, entropy_h: float = 0.5) -> int:
     """Compute adaptive GNN layer count from tree size and entropy.
@@ -243,15 +254,18 @@ def compute_depth(tree_size_n: int, entropy_h: float = 0.5) -> int:
         "scaling_formula": "base + scale * log(n/baseline)",
         "base_layers": base_layers,
         "scale_factor": scale_factor,
-        "baseline_n": baseline_n
+        "baseline_n": baseline_n,
     }
 
-    emit_receipt("adaptive_depth", {
-        "receipt_type": "adaptive_depth",
-        "tenant_id": "axiom-colony",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "adaptive_depth",
+        {
+            "receipt_type": "adaptive_depth",
+            "tenant_id": "axiom-colony",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return layers
 
@@ -279,10 +293,7 @@ def validate_depth(layers: int) -> bool:
 
 
 def get_depth_for_sweep_run(
-    tree_size_n: int,
-    entropy_h: float,
-    run_number: int,
-    total_runs: int = 500
+    tree_size_n: int, entropy_h: float, run_number: int, total_runs: int = 500
 ) -> int:
     """Get depth with sweep progress context.
 
@@ -301,18 +312,21 @@ def get_depth_for_sweep_run(
 
     # Log progress at milestones
     if run_number in [1, 50, 100, 250, 500] or run_number == total_runs:
-        emit_receipt("depth_sweep_milestone", {
-            "receipt_type": "depth_sweep_milestone",
-            "tenant_id": "axiom-colony",
-            "run_number": run_number,
-            "total_runs": total_runs,
-            "tree_size_n": tree_size_n,
-            "computed_depth": depth,
-            "progress_pct": round(run_number / total_runs * 100, 1),
-            "payload_hash": dual_hash(json.dumps({
-                "run": run_number, "depth": depth
-            }, sort_keys=True))
-        })
+        emit_receipt(
+            "depth_sweep_milestone",
+            {
+                "receipt_type": "depth_sweep_milestone",
+                "tenant_id": "axiom-colony",
+                "run_number": run_number,
+                "total_runs": total_runs,
+                "tree_size_n": tree_size_n,
+                "computed_depth": depth,
+                "progress_pct": round(run_number / total_runs * 100, 1),
+                "payload_hash": dual_hash(
+                    json.dumps({"run": run_number, "depth": depth}, sort_keys=True)
+                ),
+            },
+        )
 
     return depth
 
@@ -330,7 +344,7 @@ def get_depth_scaling_info() -> Dict[str, Any]:
     # Compute example depths
     examples = {}
     for n_exp in [4, 6, 8, 9, 12, 15]:
-        n = 10 ** n_exp
+        n = 10**n_exp
         depth = compute_depth(n, 0.5)
         examples[f"n_1e{n_exp}"] = depth
 
@@ -345,15 +359,18 @@ def get_depth_scaling_info() -> Dict[str, Any]:
         "formula": spec["scaling_formula"]["formula"],
         "example_depths": examples,
         "description": "Dynamic n-based GNN layer scaling. "
-                       "Tree size correlates with buffered decisions. "
-                       "Kill static layers - go dynamic."
+        "Tree size correlates with buffered decisions. "
+        "Kill static layers - go dynamic.",
     }
 
-    emit_receipt("depth_scaling_info", {
-        "tenant_id": "axiom-colony",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "depth_scaling_info",
+        {
+            "tenant_id": "axiom-colony",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
+        },
+    )
 
     return info
 

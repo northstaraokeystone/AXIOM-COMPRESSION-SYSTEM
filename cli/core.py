@@ -5,8 +5,18 @@ Baseline commands: baseline, bootstrap, curve, full
 
 import os
 
-from src.validate import test_null_hypothesis, test_baseline, bootstrap_threshold, generate_falsifiable_prediction
-from src.plot_curve import generate_curve_data, find_knee, plot_sovereignty_curve, format_finding
+from src.validate import (
+    test_null_hypothesis,
+    test_baseline,
+    bootstrap_threshold,
+    generate_falsifiable_prediction,
+)
+from src.plot_curve import (
+    generate_curve_data,
+    find_knee,
+    plot_sovereignty_curve,
+    format_finding,
+)
 
 from cli.base import print_header
 
@@ -48,11 +58,11 @@ def cmd_curve():
 
     # Parameters
     bandwidth = 4.0  # Expected Mbps
-    delay = 480.0    # 8 min average
+    delay = 480.0  # 8 min average
 
     print("\nConfiguration:")
     print(f"  Bandwidth: {bandwidth} Mbps")
-    print(f"  Delay: {delay} seconds ({delay/60:.0f} minutes)")
+    print(f"  Delay: {delay} seconds ({delay / 60:.0f} minutes)")
 
     # Generate curve
     data = generate_curve_data((10, 100), bandwidth, delay)
@@ -65,7 +75,9 @@ def cmd_curve():
     print(f"\nTHRESHOLD: {knee} +/- {uncertainty:.0f} crew")
 
     # Plot
-    output_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "outputs", "sovereignty_curve.png")
+    output_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "outputs", "sovereignty_curve.png"
+    )
     plot_sovereignty_curve(data, knee, output_path, uncertainty=uncertainty)
     print(f"\nCurve saved to: {output_path}")
 
@@ -106,7 +118,9 @@ def cmd_full():
     print(f"    Knee at: {knee} crew")
 
     # Generate plot
-    output_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "outputs", "sovereignty_curve.png")
+    output_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "outputs", "sovereignty_curve.png"
+    )
     plot_sovereignty_curve(data, knee, output_path, uncertainty=bootstrap["std"])
     print(f"    Saved: {output_path}")
 
@@ -114,12 +128,14 @@ def cmd_full():
     print("\n" + "=" * 60)
     print("THE FINDING:")
     print("=" * 60)
-    print(format_finding(
-        knee=int(bootstrap["mean"]),
-        bandwidth=4.0,
-        delay=8.0,  # minutes
-        uncertainty=bootstrap["std"]
-    ))
+    print(
+        format_finding(
+            knee=int(bootstrap["mean"]),
+            bandwidth=4.0,
+            delay=8.0,  # minutes
+            uncertainty=bootstrap["std"],
+        )
+    )
 
     # 6. Falsifiable prediction
     print("\n" + "-" * 60)

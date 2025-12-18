@@ -1,0 +1,127 @@
+{
+  "version": "1.0.0",
+  "description": "D8 recursion + unified RL sync + Atacama validation + fractal encryption configuration",
+  "d8_config": {
+    "recursion_depth": 8,
+    "alpha_floor": 3.43,
+    "alpha_target": 3.45,
+    "alpha_ceiling": 3.47,
+    "instability_max": 0.00,
+    "tree_min": 1000000000000,
+    "uplift": 0.22
+  },
+  "uplift_by_depth": {
+    "1": 0.05,
+    "2": 0.09,
+    "3": 0.122,
+    "4": 0.148,
+    "5": 0.168,
+    "6": 0.185,
+    "7": 0.20,
+    "8": 0.22
+  },
+  "depth_contributions": {
+    "1": {
+      "contribution": 0.05,
+      "decay_factor": 1.0,
+      "cumulative": 0.05
+    },
+    "2": {
+      "contribution": 0.04,
+      "decay_factor": 0.8,
+      "cumulative": 0.09
+    },
+    "3": {
+      "contribution": 0.032,
+      "decay_factor": 0.64,
+      "cumulative": 0.122
+    },
+    "4": {
+      "contribution": 0.0256,
+      "decay_factor": 0.512,
+      "cumulative": 0.148
+    },
+    "5": {
+      "contribution": 0.02048,
+      "decay_factor": 0.4096,
+      "cumulative": 0.168
+    },
+    "6": {
+      "contribution": 0.01638,
+      "decay_factor": 0.3277,
+      "cumulative": 0.185
+    },
+    "7": {
+      "contribution": 0.01311,
+      "decay_factor": 0.2621,
+      "cumulative": 0.20
+    },
+    "8": {
+      "contribution": 0.01049,
+      "decay_factor": 0.2097,
+      "cumulative": 0.22
+    }
+  },
+  "expected_alpha": {
+    "depth_1": 3.04,
+    "depth_2": 3.08,
+    "depth_3": 3.12,
+    "depth_4": 3.148,
+    "depth_5": 3.168,
+    "depth_6": 3.185,
+    "depth_7": 3.20,
+    "depth_8": 3.22
+  },
+  "multi_sync_config": {
+    "moons": ["titan", "europa"],
+    "titan": {
+      "resource": "methane",
+      "density_kg_m3": 1.5,
+      "latency_min": [70, 90],
+      "autonomy": 0.99
+    },
+    "europa": {
+      "resource": "water_ice",
+      "ice_thickness_km": 15,
+      "latency_min": [33, 53],
+      "autonomy": 0.95
+    },
+    "unified_rl": {
+      "learning_rate": 0.001,
+      "share_efficiency": 0.85,
+      "sync_interval_hrs": 24
+    }
+  },
+  "atacama_config": {
+    "source": "Atacama Desert Mars Analog Studies",
+    "dust_similarity": 0.92,
+    "solar_flux_w_m2": 1000,
+    "mars_solar_flux_w_m2": 590,
+    "perovskite_efficiency": 0.256
+  },
+  "fractal_encrypt_config": {
+    "key_depth": 6,
+    "side_channel_resilience": 0.95,
+    "model_inversion_resilience": 0.95,
+    "timing_attack_defense": true,
+    "power_attack_defense": true,
+    "defense_mechanisms": ["fractal_key_rotation", "timing_jitter", "power_noise"]
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min_d8": 3.43,
+    "sync_efficiency_min": 0.85,
+    "atacama_dust_similarity_min": 0.92,
+    "encrypt_resilience_min": 0.95,
+    "scale_decay_threshold": 0.02,
+    "receipt_required": "d8_fractal_receipt",
+    "sync_receipt_required": "multi_planet_sync_receipt",
+    "atacama_receipt_required": "atacama_validation_receipt",
+    "encrypt_receipt_required": "fractal_encrypt_receipt"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM D8 recursion + unified RL sync + Atacama + fractal encryption - alpha 3.45+ target"
+}

@@ -46,6 +46,7 @@ DOME_RESOURCES = ["water", "o2", "power", "food"]
 
 # === STUB STATUS ===
 
+
 def stub_status() -> Dict[str, Any]:
     """Return current stub status.
 
@@ -64,14 +65,11 @@ def stub_status() -> Dict[str, Any]:
         "current_capabilities": [
             "stub_status",
             "compute_isru_closure",
-            "compute_sovereignty"
+            "compute_sovereignty",
         ],
-        "pending_capabilities": [
-            "simulate_dome",
-            "optimize_resources"
-        ],
+        "pending_capabilities": ["simulate_dome", "optimize_resources"],
         "config": spec.get("config", {}),
-        "tenant_id": MARS_TENANT_ID
+        "tenant_id": MARS_TENANT_ID,
     }
 
     emit_path_receipt("mars", "status", status)
@@ -80,10 +78,11 @@ def stub_status() -> Dict[str, Any]:
 
 # === DOME SIMULATION (STUB) ===
 
+
 def simulate_dome(
     crew: int = DEFAULT_CREW,
     duration_days: int = 365,
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Dome simulation placeholder.
 
@@ -129,21 +128,21 @@ def simulate_dome(
             "water_liters": round(total_water, 1),
             "o2_kg": round(total_o2, 1),
             "power_kwh": round(total_power, 1),
-            "food_kg": round(total_food, 1)
+            "food_kg": round(total_food, 1),
         },
         "isru_projected": {
             "water_liters": round(isru_water, 1),
             "o2_kg": round(isru_o2, 1),
             "power_kwh": round(isru_power, 1),
-            "food_kg": round(isru_food, 1)
+            "food_kg": round(isru_food, 1),
         },
         "isru_closure_projected": round(
-            (isru_water + isru_o2 + isru_power + isru_food) /
-            (total_water + total_o2 + total_power + total_food),
-            3
+            (isru_water + isru_o2 + isru_power + isru_food)
+            / (total_water + total_o2 + total_power + total_food),
+            3,
         ),
         "next_stage": "Full fractal optimization integration",
-        "tenant_id": MARS_TENANT_ID
+        "tenant_id": MARS_TENANT_ID,
     }
 
     emit_path_receipt("mars", "dome", result)
@@ -151,6 +150,7 @@ def simulate_dome(
 
 
 # === ISRU COMPUTATION ===
+
 
 def compute_isru_closure(resources: Dict[str, float]) -> float:
     """Compute ISRU closure ratio.
@@ -193,7 +193,7 @@ def compute_isru_closure(resources: Dict[str, float]) -> float:
         "gap": round(ISRU_CLOSURE_TARGET - closure, 4),
         "target_met": closure >= ISRU_CLOSURE_TARGET,
         "uplift_required": round(1.0 - closure, 4),
-        "tenant_id": MARS_TENANT_ID
+        "tenant_id": MARS_TENANT_ID,
     }
 
     emit_path_receipt("mars", "isru", result)
@@ -202,10 +202,9 @@ def compute_isru_closure(resources: Dict[str, float]) -> float:
 
 # === SOVEREIGNTY COMPUTATION ===
 
+
 def compute_sovereignty(
-    crew: int,
-    bandwidth_mbps: float = 100.0,
-    latency_s: float = 1200.0
+    crew: int, bandwidth_mbps: float = 100.0, latency_s: float = 1200.0
 ) -> bool:
     """Computational sovereignty check.
 
@@ -247,10 +246,11 @@ def compute_sovereignty(
         "is_sovereign": is_sovereign,
         "advantage_ratio": round(
             internal_rate_bps / effective_bandwidth_bps
-            if effective_bandwidth_bps > 0 else float("inf"),
-            3
+            if effective_bandwidth_bps > 0
+            else float("inf"),
+            3,
         ),
-        "tenant_id": MARS_TENANT_ID
+        "tenant_id": MARS_TENANT_ID,
     }
 
     emit_path_receipt("mars", "sovereignty", result)
@@ -258,6 +258,7 @@ def compute_sovereignty(
 
 
 # === OPTIMIZATION (STUB) ===
+
 
 def optimize_resources(dome_state: Dict[str, Any]) -> Dict[str, Any]:
     """RL optimization placeholder.
@@ -277,13 +278,17 @@ def optimize_resources(dome_state: Dict[str, Any]) -> Dict[str, Any]:
         "stub_mode": True,
         "current_state": dome_state,
         "suggestions": [
-            {"resource": "water", "action": "increase_recycling", "projected_gain": 0.05},
+            {
+                "resource": "water",
+                "action": "increase_recycling",
+                "projected_gain": 0.05,
+            },
             {"resource": "food", "action": "expand_greenhouse", "projected_gain": 0.10},
-            {"resource": "power", "action": "add_solar_panels", "projected_gain": 0.02}
+            {"resource": "power", "action": "add_solar_panels", "projected_gain": 0.02},
         ],
         "optimization_ready": False,
         "next_stage": "RL integration with fractal_layers",
-        "tenant_id": MARS_TENANT_ID
+        "tenant_id": MARS_TENANT_ID,
     }
 
     emit_path_receipt("mars", "optimize", result)
@@ -291,6 +296,7 @@ def optimize_resources(dome_state: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # === PATH INFO ===
+
 
 def get_mars_info() -> Dict[str, Any]:
     """Get Mars path configuration and status.
@@ -311,7 +317,7 @@ def get_mars_info() -> Dict[str, Any]:
         "dependencies": spec.get("dependencies", []),
         "receipts": spec.get("receipts", []),
         "evolution": spec.get("evolution", {}),
-        "tenant_id": MARS_TENANT_ID
+        "tenant_id": MARS_TENANT_ID,
     }
 
     emit_path_receipt("mars", "info", info)
@@ -348,6 +354,7 @@ def integrate_moxie(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     # Load MOXIE calibration from isru_hybrid module
     try:
         from ...isru_hybrid import load_moxie_calibration, MOXIE_O2_TOTAL_G as TOTAL
+
         calibration = load_moxie_calibration()
     except ImportError:
         # Fallback to local constants
@@ -356,7 +363,7 @@ def integrate_moxie(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
             "o2_peak_g_hr": MOXIE_O2_PEAK_G_HR,
             "o2_avg_g_hr": MOXIE_O2_AVG_G_HR,
             "source": "NASA Perseverance MOXIE",
-            "date": "2025-12"
+            "date": "2025-12",
         }
 
     result = {
@@ -365,19 +372,18 @@ def integrate_moxie(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         "production_scaled": {
             "single_unit_g_hr": calibration.get("o2_avg_g_hr", MOXIE_O2_AVG_G_HR),
             "ten_units_g_hr": calibration.get("o2_avg_g_hr", MOXIE_O2_AVG_G_HR) * 10,
-            "hundred_units_kg_hr": calibration.get("o2_avg_g_hr", MOXIE_O2_AVG_G_HR) * 100 / 1000
+            "hundred_units_kg_hr": calibration.get("o2_avg_g_hr", MOXIE_O2_AVG_G_HR)
+            * 100
+            / 1000,
         },
-        "tenant_id": MARS_TENANT_ID
+        "tenant_id": MARS_TENANT_ID,
     }
 
     emit_path_receipt("mars", "moxie_integration", result)
     return result
 
 
-def compute_o2_autonomy(
-    production_rate_kg_hr: float,
-    crew: int
-) -> float:
+def compute_o2_autonomy(production_rate_kg_hr: float, crew: int) -> float:
     """Compute O2 self-sufficiency ratio.
 
     Autonomy = production_rate / consumption_rate
@@ -411,7 +417,7 @@ def compute_o2_autonomy(
         "autonomy_ratio": round(autonomy, 4),
         "crew": crew,
         "self_sufficient": autonomy >= 1.0,
-        "tenant_id": MARS_TENANT_ID
+        "tenant_id": MARS_TENANT_ID,
     }
 
     emit_path_receipt("mars", "o2_autonomy", result)
@@ -422,7 +428,7 @@ def simulate_dome_moxie(
     crew: int = DEFAULT_CREW,
     duration_days: int = 365,
     moxie_units: int = 100,
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Dome simulation with MOXIE-calibrated O2 production.
 
@@ -459,7 +465,11 @@ def simulate_dome_moxie(
     total_consumption_kg = consumption_kg_day * duration_days
 
     # ISRU closure for O2
-    o2_closure = min(1.0, total_production_kg / total_consumption_kg) if total_consumption_kg > 0 else 0
+    o2_closure = (
+        min(1.0, total_production_kg / total_consumption_kg)
+        if total_consumption_kg > 0
+        else 0
+    )
 
     # Run base simulation for other resources
     base_result = simulate_dome(crew, duration_days, config)
@@ -473,18 +483,17 @@ def simulate_dome_moxie(
         "o2_production": {
             "rate_kg_day": round(production_kg_day, 4),
             "total_kg": round(total_production_kg, 2),
-            "moxie_avg_g_hr": avg_rate_g_hr
+            "moxie_avg_g_hr": avg_rate_g_hr,
         },
         "o2_consumption": {
             "rate_kg_day": round(consumption_kg_day, 4),
-            "total_kg": round(total_consumption_kg, 2)
+            "total_kg": round(total_consumption_kg, 2),
         },
         "o2_closure": round(o2_closure, 4),
         "o2_self_sufficient": o2_closure >= 1.0,
         "isru_closure_moxie_adjusted": round(
-            (base_result["isru_closure_projected"] * 0.75) + (o2_closure * 0.25),
-            4
-        )
+            (base_result["isru_closure_projected"] * 0.75) + (o2_closure * 0.25), 4
+        ),
     }
 
     emit_path_receipt("mars", "dome_moxie", result)

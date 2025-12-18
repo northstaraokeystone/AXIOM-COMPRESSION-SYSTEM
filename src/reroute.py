@@ -32,7 +32,9 @@ REROUTING_ALPHA_BOOST_LOCKED = 0.07
 """physics: LOCKED. Validated reroute boost. 2.656 + 0.07 = 2.726 → floor 2.70"""
 
 # Immutability assertion at module load
-assert REROUTING_ALPHA_BOOST_LOCKED == 0.07, "REROUTING_ALPHA_BOOST_LOCKED must remain 0.07"
+assert REROUTING_ALPHA_BOOST_LOCKED == 0.07, (
+    "REROUTING_ALPHA_BOOST_LOCKED must remain 0.07"
+)
 
 # Backward compatibility alias (to be deprecated)
 REROUTE_ALPHA_BOOST = REROUTING_ALPHA_BOOST_LOCKED
@@ -78,6 +80,7 @@ class RerouteResult:
         alpha_boost: Applied alpha boost
         quorum_preserved: Whether Merkle chain continuity maintained
     """
+
     recovery_factor: float
     new_paths: List[Dict[str, Any]]
     alpha_boost: float
@@ -95,6 +98,7 @@ class BlackoutResult:
         min_alpha_during: Minimum alpha during blackout
         max_alpha_drop: Maximum alpha drop during blackout
     """
+
     survival_status: bool
     alpha_trajectory: List[float]
     quorum_health: List[bool]
@@ -120,31 +124,32 @@ def load_reroute_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, REROUTE_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("reroute_spec_ingest", {
-        "tenant_id": "axiom-reroute",
-        "file_path": path,
-        "algo_type": data["algo_type"],
-        "blackout_base_days": data["blackout_base_days"],
-        "blackout_extended_days": data["blackout_extended_days"],
-        "reroute_alpha_boost": data["reroute_alpha_boost"],
-        "min_eff_alpha_floor": data["min_eff_alpha_floor"],
-        "cgr_baseline": data["cgr_baseline"],
-        "ml_model_type": data["ml_model_type"],
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "reroute_spec_ingest",
+        {
+            "tenant_id": "axiom-reroute",
+            "file_path": path,
+            "algo_type": data["algo_type"],
+            "blackout_base_days": data["blackout_base_days"],
+            "blackout_extended_days": data["blackout_extended_days"],
+            "reroute_alpha_boost": data["reroute_alpha_boost"],
+            "min_eff_alpha_floor": data["min_eff_alpha_floor"],
+            "cgr_baseline": data["cgr_baseline"],
+            "ml_model_type": data["ml_model_type"],
+            "payload_hash": content_hash,
+        },
+    )
 
     return data
 
 
 def compute_cgr_paths(
-    contact_graph: Dict[str, Any],
-    source: str,
-    targets: List[str]
+    contact_graph: Dict[str, Any], source: str, targets: List[str]
 ) -> List[Dict[str, Any]]:
     """Compute Contact Graph Routing paths.
 
@@ -168,36 +173,42 @@ def compute_cgr_paths(
     for target in targets:
         # Simplified CGR: find path via edges
         # In production, this would use proper Dijkstra on contact windows
-        path_edges = [e for e in edges if e.get("src") == source or e.get("dst") == target]
+        path_edges = [
+            e for e in edges if e.get("src") == source or e.get("dst") == target
+        ]
         hop_count = min(len(path_edges), 3) + 1  # Simplified: 1-4 hops typical
         latency_ms = hop_count * 50 + random.randint(10, 100)  # 50ms per hop + jitter
         reliability = max(0.9, 1.0 - (hop_count * 0.02))  # 2% drop per hop
 
-        paths.append({
-            "source": source,
-            "target": target,
-            "hop_count": hop_count,
-            "latency_ms": latency_ms,
-            "reliability": round(reliability, 4),
-            "algo": CGR_BASELINE
-        })
+        paths.append(
+            {
+                "source": source,
+                "target": target,
+                "hop_count": hop_count,
+                "latency_ms": latency_ms,
+                "reliability": round(reliability, 4),
+                "algo": CGR_BASELINE,
+            }
+        )
 
-    emit_receipt("cgr_paths", {
-        "tenant_id": "axiom-reroute",
-        "source": source,
-        "targets": targets,
-        "paths_computed": len(paths),
-        "avg_hops": sum(p["hop_count"] for p in paths) / max(1, len(paths)),
-        "avg_latency_ms": sum(p["latency_ms"] for p in paths) / max(1, len(paths)),
-        "algo": CGR_BASELINE
-    })
+    emit_receipt(
+        "cgr_paths",
+        {
+            "tenant_id": "axiom-reroute",
+            "source": source,
+            "targets": targets,
+            "paths_computed": len(paths),
+            "avg_hops": sum(p["hop_count"] for p in paths) / max(1, len(paths)),
+            "avg_latency_ms": sum(p["latency_ms"] for p in paths) / max(1, len(paths)),
+            "algo": CGR_BASELINE,
+        },
+    )
 
     return paths
 
 
 def predict_degradation(
-    historical_anomalies: List[Dict[str, Any]],
-    current_state: Dict[str, Any]
+    historical_anomalies: List[Dict[str, Any]], current_state: Dict[str, Any]
 ) -> Tuple[float, List[str]]:
     """Predict contact degradation using ML model.
 
@@ -233,24 +244,25 @@ def predict_degradation(
     affected_count = max(1, int(len(all_edges) * degradation_prob))
     affected_edges = all_edges[:affected_count]
 
-    emit_receipt("ml_prediction", {
-        "tenant_id": "axiom-reroute",
-        "model_type": ML_MODEL_TYPE,
-        "historical_anomaly_count": anomaly_count,
-        "blackout_active": blackout_active,
-        "partition_pct": partition_pct,
-        "degradation_probability": round(degradation_prob, 4),
-        "affected_edges_count": len(affected_edges),
-        "model_status": "stub_conservative"
-    })
+    emit_receipt(
+        "ml_prediction",
+        {
+            "tenant_id": "axiom-reroute",
+            "model_type": ML_MODEL_TYPE,
+            "historical_anomaly_count": anomaly_count,
+            "blackout_active": blackout_active,
+            "partition_pct": partition_pct,
+            "degradation_probability": round(degradation_prob, 4),
+            "affected_edges_count": len(affected_edges),
+            "model_status": "stub_conservative",
+        },
+    )
 
     return round(degradation_prob, 4), affected_edges
 
 
 def apply_reroute_boost(
-    base_alpha: float,
-    reroute_active: bool,
-    blackout_days: int = 0
+    base_alpha: float, reroute_active: bool, blackout_days: int = 0
 ) -> float:
     """Apply reroute boost to effective alpha.
 
@@ -268,14 +280,17 @@ def apply_reroute_boost(
     Receipt: reroute_boost_applied
     """
     if not reroute_active:
-        emit_receipt("reroute_boost_applied", {
-            "tenant_id": "axiom-reroute",
-            "base_alpha": base_alpha,
-            "reroute_active": False,
-            "boost_applied": 0.0,
-            "boosted_alpha": base_alpha,
-            "blackout_days": blackout_days
-        })
+        emit_receipt(
+            "reroute_boost_applied",
+            {
+                "tenant_id": "axiom-reroute",
+                "base_alpha": base_alpha,
+                "reroute_active": False,
+                "boost_applied": 0.0,
+                "boosted_alpha": base_alpha,
+                "blackout_days": blackout_days,
+            },
+        )
         return base_alpha
 
     # Retention scale: degrades gracefully beyond base blackout
@@ -291,23 +306,24 @@ def apply_reroute_boost(
     boost_applied = REROUTE_ALPHA_BOOST * retention_scale
     boosted_alpha = base_alpha + boost_applied
 
-    emit_receipt("reroute_boost_applied", {
-        "tenant_id": "axiom-reroute",
-        "base_alpha": base_alpha,
-        "reroute_active": True,
-        "blackout_days": blackout_days,
-        "retention_scale": round(retention_scale, 4),
-        "boost_applied": round(boost_applied, 4),
-        "boosted_alpha": round(boosted_alpha, 4)
-    })
+    emit_receipt(
+        "reroute_boost_applied",
+        {
+            "tenant_id": "axiom-reroute",
+            "base_alpha": base_alpha,
+            "reroute_active": True,
+            "blackout_days": blackout_days,
+            "retention_scale": round(retention_scale, 4),
+            "boost_applied": round(boost_applied, 4),
+            "boosted_alpha": round(boosted_alpha, 4),
+        },
+    )
 
     return round(boosted_alpha, 4)
 
 
 def adaptive_reroute(
-    graph_state: Dict[str, Any],
-    partition_pct: float,
-    blackout_days: int = 0
+    graph_state: Dict[str, Any], partition_pct: float, blackout_days: int = 0
 ) -> Dict[str, Any]:
     """Execute adaptive rerouting for path recovery.
 
@@ -347,32 +363,41 @@ def adaptive_reroute(
         potential_surviving = nodes_surviving + int(nodes_total * emergency_recovery)
 
         if potential_surviving < quorum_threshold:
-            emit_receipt("anomaly", {
-                "tenant_id": "axiom-reroute",
-                "metric": "reroute_failure",
-                "baseline": quorum_threshold,
-                "delta": nodes_surviving - quorum_threshold,
-                "classification": "violation",
-                "action": "halt",
-                "partition_pct": partition_pct,
-                "blackout_days": blackout_days,
-                "nodes_surviving": nodes_surviving
-            })
-            raise StopRule(f"Unrecoverable: {nodes_surviving} nodes < {quorum_threshold} quorum, no viable reroute")
+            emit_receipt(
+                "anomaly",
+                {
+                    "tenant_id": "axiom-reroute",
+                    "metric": "reroute_failure",
+                    "baseline": quorum_threshold,
+                    "delta": nodes_surviving - quorum_threshold,
+                    "classification": "violation",
+                    "action": "halt",
+                    "partition_pct": partition_pct,
+                    "blackout_days": blackout_days,
+                    "nodes_surviving": nodes_surviving,
+                },
+            )
+            raise StopRule(
+                f"Unrecoverable: {nodes_surviving} nodes < {quorum_threshold} quorum, no viable reroute"
+            )
 
     # Predict degradation using ML
     current_state = {
         "blackout_active": blackout_days > 0,
         "partition_pct": partition_pct,
-        "edges": [f"edge_{i}" for i in range(10)]
+        "edges": [f"edge_{i}" for i in range(10)],
     }
-    degradation_prob, affected_edges = predict_degradation(historical_anomalies, current_state)
+    degradation_prob, affected_edges = predict_degradation(
+        historical_anomalies, current_state
+    )
 
     # Compute CGR paths for recovery
     contact_graph = {
         "nodes": [f"node_{i}" for i in range(nodes_surviving)],
-        "edges": [{"src": f"node_{i}", "dst": f"node_{(i+1) % nodes_surviving}"}
-                  for i in range(nodes_surviving)]
+        "edges": [
+            {"src": f"node_{i}", "dst": f"node_{(i + 1) % nodes_surviving}"}
+            for i in range(nodes_surviving)
+        ],
     }
 
     if nodes_surviving > 1:
@@ -407,13 +432,10 @@ def adaptive_reroute(
         "partition_pct": partition_pct,
         "blackout_days": blackout_days,
         "degradation_prob": degradation_prob,
-        "algo_type": ALGO_TYPE
+        "algo_type": ALGO_TYPE,
     }
 
-    emit_receipt("adaptive_reroute", {
-        "tenant_id": "axiom-reroute",
-        **result
-    })
+    emit_receipt("adaptive_reroute", {"tenant_id": "axiom-reroute", **result})
 
     return result
 
@@ -423,7 +445,7 @@ def blackout_sim(
     blackout_days: int = 43,
     reroute_enabled: bool = True,
     base_alpha: float = 2.63,
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Run full blackout simulation with daily state updates.
 
@@ -456,7 +478,9 @@ def blackout_sim(
         # Partition stress increases mid-blackout, peaks around day 20-25
         blackout_progress = day / blackout_days
         stress_curve = 4 * blackout_progress * (1 - blackout_progress)  # Parabolic peak
-        daily_partition_pct = min(0.35, stress_curve * 0.35 + random.uniform(-0.05, 0.05))
+        daily_partition_pct = min(
+            0.35, stress_curve * 0.35 + random.uniform(-0.05, 0.05)
+        )
 
         # Calculate nodes surviving
         nodes_lost = max(0, int(nodes * daily_partition_pct))
@@ -493,7 +517,9 @@ def blackout_sim(
 
     # Determine survival
     min_alpha_during = min(alpha_trajectory) if alpha_trajectory else 0.0
-    survival_status = (quorum_failures == 0) or (reroute_enabled and min_alpha_during > 0)
+    survival_status = (quorum_failures == 0) or (
+        reroute_enabled and min_alpha_during > 0
+    )
 
     # Extended survival check for 60d+
     if blackout_days > BLACKOUT_BASE_DAYS and reroute_enabled:
@@ -510,20 +536,23 @@ def blackout_sim(
         "reroute_enabled": reroute_enabled,
         "base_alpha": base_alpha,
         "nodes": nodes,
-        "quorum_failures": quorum_failures
+        "quorum_failures": quorum_failures,
     }
 
-    emit_receipt("blackout_sim", {
-        "tenant_id": "axiom-reroute",
-        "blackout_days": blackout_days,
-        "reroute_enabled": reroute_enabled,
-        "survival_status": survival_status,
-        "min_alpha_during": round(min_alpha_during, 4),
-        "max_alpha_drop": round(max_alpha_drop, 4),
-        "quorum_failures": quorum_failures,
-        "nodes": nodes,
-        "base_alpha": base_alpha
-    })
+    emit_receipt(
+        "blackout_sim",
+        {
+            "tenant_id": "axiom-reroute",
+            "blackout_days": blackout_days,
+            "reroute_enabled": reroute_enabled,
+            "survival_status": survival_status,
+            "min_alpha_during": round(min_alpha_during, 4),
+            "max_alpha_drop": round(max_alpha_drop, 4),
+            "quorum_failures": quorum_failures,
+            "nodes": nodes,
+            "base_alpha": base_alpha,
+        },
+    )
 
     return result
 
@@ -534,7 +563,7 @@ def blackout_stress_sweep(
     n_iterations: int = 1000,
     reroute_enabled: bool = True,
     base_alpha: float = 2.63,
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Run blackout stress sweep across duration range.
 
@@ -573,7 +602,7 @@ def blackout_stress_sweep(
             blackout_days=blackout_days,
             reroute_enabled=reroute_enabled,
             base_alpha=base_alpha,
-            seed=iter_seed
+            seed=iter_seed,
         )
 
         results.append(sim_result)
@@ -599,13 +628,10 @@ def blackout_stress_sweep(
         "failures": failures,
         "avg_min_alpha": round(avg_min_alpha, 4),
         "avg_max_drop": round(avg_max_drop, 4),
-        "all_survived": failures == 0
+        "all_survived": failures == 0,
     }
 
-    emit_receipt("blackout_stress_sweep", {
-        "tenant_id": "axiom-reroute",
-        **report
-    })
+    emit_receipt("blackout_stress_sweep", {"tenant_id": "axiom-reroute", **report})
 
     return report
 
@@ -627,12 +653,9 @@ def get_reroute_algo_info() -> Dict[str, Any]:
         "blackout_extended_days": BLACKOUT_EXTENDED_DAYS,
         "retention_factor": REROUTE_RETENTION_FACTOR,
         "min_eff_alpha_floor": MIN_EFF_ALPHA_FLOOR,
-        "description": "Hybrid ephemeris-ML algorithm (CGR + lightweight GNN)"
+        "description": "Hybrid ephemeris-ML algorithm (CGR + lightweight GNN)",
     }
 
-    emit_receipt("reroute_algo_info", {
-        "tenant_id": "axiom-reroute",
-        **info
-    })
+    emit_receipt("reroute_algo_info", {"tenant_id": "axiom-reroute", **info})
 
     return info

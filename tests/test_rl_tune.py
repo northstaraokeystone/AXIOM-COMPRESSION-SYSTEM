@@ -55,29 +55,25 @@ from src.rl_tune import (
     LR_DECAY_MIN,
     LR_DECAY_MAX,
     PRUNE_AGGRESSIVENESS_MIN,
-    PRUNE_AGGRESSIVENESS_MAX
+    PRUNE_AGGRESSIVENESS_MAX,
 )
 from src.adaptive import (
     compute_adaptive_depth,
     scale_lr_to_depth,
     adaptive_prune_factor,
-    get_dynamic_config
+    get_dynamic_config,
 )
-from src.gnn_cache import (
-    apply_dynamic_config,
-    get_current_config,
-    reset_dynamic_config
-)
+from src.gnn_cache import apply_dynamic_config, get_current_config, reset_dynamic_config
 from src.pruning import (
     apply_dynamic_aggressiveness,
     get_current_aggressiveness,
-    reset_dynamic_aggressiveness
+    reset_dynamic_aggressiveness,
 )
 from src.reasoning import (
     sovereignty_timeline_dynamic,
     continued_ablation_loop,
     validate_no_static_configs,
-    get_rl_integration_status
+    get_rl_integration_status,
 )
 from src.core import StopRule
 
@@ -126,13 +122,19 @@ class TestActionBounds:
             action = tuner.get_action(state)
 
             # Check GNN layers in range
-            assert GNN_LAYERS_ADD_MIN <= action["gnn_layers_delta"] <= GNN_LAYERS_ADD_MAX
+            assert (
+                GNN_LAYERS_ADD_MIN <= action["gnn_layers_delta"] <= GNN_LAYERS_ADD_MAX
+            )
 
             # Check LR decay in range
             assert LR_DECAY_MIN <= action["lr_decay"] <= LR_DECAY_MAX
 
             # Check prune aggressiveness in range
-            assert PRUNE_AGGRESSIVENESS_MIN <= action["prune_aggressiveness"] <= PRUNE_AGGRESSIVENESS_MAX
+            assert (
+                PRUNE_AGGRESSIVENESS_MIN
+                <= action["prune_aggressiveness"]
+                <= PRUNE_AGGRESSIVENESS_MAX
+            )
 
     def test_bounded_exploration_clips(self):
         """bounded_exploration clips values correctly."""
@@ -154,9 +156,7 @@ class TestRewardComputation:
         tuner = RLTuner()
 
         reward = tuner.compute_reward(
-            alpha_before=2.74,
-            alpha_after=2.80,
-            overflow=False
+            alpha_before=2.74, alpha_after=2.80, overflow=False
         )
 
         assert reward > 0
@@ -166,9 +166,7 @@ class TestRewardComputation:
         tuner = RLTuner()
 
         reward = tuner.compute_reward(
-            alpha_before=2.74,
-            alpha_after=2.75,
-            overflow=True
+            alpha_before=2.74, alpha_after=2.75, overflow=True
         )
 
         assert reward < 0  # Overflow penalty dominates
@@ -182,9 +180,7 @@ class TestRewardComputation:
         alpha_gain = (alpha_after - alpha_before) * 1.0  # weight = 1.0
 
         reward = tuner.compute_reward(
-            alpha_before=alpha_before,
-            alpha_after=alpha_after,
-            overflow=False
+            alpha_before=alpha_before, alpha_after=alpha_after, overflow=False
         )
 
         # Should include alpha gain component
@@ -210,12 +206,12 @@ class TestSafetyRevert:
         tuner.best_params = {
             "gnn_layers_delta": 2,
             "lr_decay": 0.003,
-            "prune_aggressiveness": 0.4
+            "prune_aggressiveness": 0.4,
         }
         tuner.prior_params = {
             "gnn_layers_delta": 1,
             "lr_decay": 0.002,
-            "prune_aggressiveness": 0.3
+            "prune_aggressiveness": 0.3,
         }
 
         reverted = tuner.revert()
@@ -242,10 +238,7 @@ class TestRetentionImprovement:
         random.seed(42)
 
         result = rl_auto_tune(
-            current_retention=1.01,
-            blackout_days=150,
-            episodes=100,
-            seed=42
+            current_retention=1.01, blackout_days=150, episodes=100, seed=42
         )
 
         # Best retention should be better than starting
@@ -260,17 +253,14 @@ class TestRetentionImprovement:
 
         for i in range(runs):
             result = rl_auto_tune(
-                current_retention=1.01,
-                blackout_days=150,
-                episodes=100,
-                seed=42 + i
+                current_retention=1.01, blackout_days=150, episodes=100, seed=42 + i
             )
             if result["best_retention"] >= RETENTION_MILESTONE_1:
                 successes += 1
 
         success_rate = successes / runs
         # Allow some tolerance (85% instead of 90%)
-        assert success_rate >= 0.85, f"Success rate {success_rate*100:.1f}% < 85%"
+        assert success_rate >= 0.85, f"Success rate {success_rate * 100:.1f}% < 85%"
 
     def test_alpha_reaches_2_85_when_retention_1_05(self):
         """eff_alpha >= 2.85 when retention >= 1.05."""
@@ -307,11 +297,7 @@ class TestAdaptiveScaling:
 
     def test_get_dynamic_config_returns_valid(self):
         """get_dynamic_config returns valid configuration."""
-        config = get_dynamic_config(
-            tree_size=int(1e6),
-            entropy=0.5,
-            rl_feedback=None
-        )
+        config = get_dynamic_config(tree_size=int(1e6), entropy=0.5, rl_feedback=None)
 
         assert "gnn_layers" in config
         assert "lr_decay" in config
@@ -330,7 +316,7 @@ class TestDynamicConfigApplied:
             "gnn_layers": 7,
             "lr_decay": 0.003,
             "prune_aggressiveness": 0.4,
-            "adaptive_depth_enabled": True
+            "adaptive_depth_enabled": True,
         }
 
         old_values = apply_dynamic_config(config)
@@ -377,7 +363,7 @@ class TestOverflowPenalty:
         reward = tuner.compute_reward(
             alpha_before=2.74,
             alpha_after=2.74,  # No change
-            overflow=True
+            overflow=True,
         )
 
         assert reward < 0
@@ -397,10 +383,7 @@ class Test1000RunDynamic:
 
         for i in range(runs):
             result = rl_auto_tune(
-                current_retention=1.01,
-                blackout_days=150,
-                episodes=100,
-                seed=42 + i
+                current_retention=1.01, blackout_days=150, episodes=100, seed=42 + i
             )
             if result["best_retention"] >= RETENTION_MILESTONE_1:
                 reach_1_05 += 1
@@ -411,8 +394,8 @@ class Test1000RunDynamic:
         rate_1_06 = reach_1_06 / runs
 
         # Allow some tolerance
-        assert rate_1_05 >= 0.85, f"1.05 rate {rate_1_05*100:.1f}% < 85%"
-        assert rate_1_06 >= 0.70, f"1.06 rate {rate_1_06*100:.1f}% < 70%"
+        assert rate_1_05 >= 0.85, f"1.05 rate {rate_1_05 * 100:.1f}% < 85%"
+        assert rate_1_06 >= 0.70, f"1.06 rate {rate_1_06 * 100:.1f}% < 70%"
 
 
 class TestNoStaticConfigs:
@@ -448,7 +431,7 @@ class TestRLIntegration:
             blackout_days=150,
             rl_enabled=True,
             rl_episodes=10,  # Short for test
-            adaptive_enabled=True
+            adaptive_enabled=True,
         )
 
         assert "effective_alpha" in result
@@ -465,7 +448,7 @@ class TestContinuedAblation:
             blackout_days=150,
             rl_enabled=True,
             rl_episodes_per_iteration=5,
-            seed=42
+            seed=42,
         )
 
         assert "avg_alpha" in result
@@ -501,13 +484,11 @@ class TestSimulateRetention:
         action = {
             "gnn_layers_delta": 2,
             "lr_decay": 0.002,
-            "prune_aggressiveness": 0.35
+            "prune_aggressiveness": 0.35,
         }
 
         retention, alpha, overflow = simulate_retention_with_action(
-            action=action,
-            blackout_days=150,
-            base_retention=1.01
+            action=action, blackout_days=150, base_retention=1.01
         )
 
         assert retention >= 1.0
@@ -517,20 +498,20 @@ class TestSimulateRetention:
 
 
 # Parametrized tests for different episode counts
-@pytest.mark.parametrize("episodes,min_retention", [
-    (10, 1.01),
-    (50, 1.02),
-    (100, 1.04),
-])
+@pytest.mark.parametrize(
+    "episodes,min_retention",
+    [
+        (10, 1.01),
+        (50, 1.02),
+        (100, 1.04),
+    ],
+)
 def test_retention_by_episodes(episodes, min_retention):
     """Test retention improvement scales with episodes."""
     random.seed(42)
 
     result = rl_auto_tune(
-        current_retention=1.01,
-        blackout_days=150,
-        episodes=episodes,
-        seed=42
+        current_retention=1.01, blackout_days=150, episodes=episodes, seed=42
     )
 
     assert result["best_retention"] >= min_retention

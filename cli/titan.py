@@ -36,10 +36,7 @@ def cmd_d6_push(tree_size: int, base_alpha: float, simulate: bool):
 
 
 def cmd_d6_titan_hybrid(
-    tree_size: int,
-    base_alpha: float,
-    duration_days: int,
-    simulate: bool
+    tree_size: int, base_alpha: float, duration_days: int, simulate: bool
 ):
     """Run integrated D6 + Titan hybrid."""
     result = d6_titan_hybrid(tree_size, base_alpha, duration_days)

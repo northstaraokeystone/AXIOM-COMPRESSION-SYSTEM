@@ -110,13 +110,16 @@ def load_titan_config() -> Dict[str, Any]:
         ),
     }
 
-    emit_receipt("titan_config", {
-        "receipt_type": "titan_config",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "titan_config",
+        {
+            "receipt_type": "titan_config",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -127,7 +130,7 @@ def load_titan_config() -> Dict[str, Any]:
 def simulate_harvest(
     duration_days: int = 30,
     extraction_rate_kg_hr: float = METHANE_EXTRACTION_RATE_KG_HR,
-    efficiency: float = METHANE_PROCESSING_EFFICIENCY
+    efficiency: float = METHANE_PROCESSING_EFFICIENCY,
 ) -> Dict[str, Any]:
     """Simulate methane harvesting on Titan.
 
@@ -171,30 +174,30 @@ def simulate_harvest(
         "energy_kwh": round(energy_kwh, 2),
         "earth_queries_budget": int(earth_queries_budget),
         "local_decisions": int(local_decisions),
-        "autonomy_achieved": round(
-            local_decisions / earth_queries_possible, 4
-        ) if earth_queries_possible > 0 else 1.0,
+        "autonomy_achieved": round(local_decisions / earth_queries_possible, 4)
+        if earth_queries_possible > 0
+        else 1.0,
         "config": config,
     }
 
-    emit_receipt("titan_harvest", {
-        "receipt_type": "titan_harvest",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "duration_days": duration_days,
-        "processed_kg": result["processed_kg"],
-        "energy_kwh": result["energy_kwh"],
-        "autonomy_achieved": result["autonomy_achieved"],
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "titan_harvest",
+        {
+            "receipt_type": "titan_harvest",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "duration_days": duration_days,
+            "processed_kg": result["processed_kg"],
+            "energy_kwh": result["energy_kwh"],
+            "autonomy_achieved": result["autonomy_achieved"],
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
 
-def compute_autonomy(
-    harvest_rate: float,
-    consumption_rate: float
-) -> float:
+def compute_autonomy(harvest_rate: float, consumption_rate: float) -> float:
     """Compute self-sufficiency ratio for Titan operations.
 
     Args:
@@ -219,13 +222,16 @@ def compute_autonomy(
         "autonomy_requirement": TITAN_AUTONOMY_REQUIREMENT,
     }
 
-    emit_receipt("titan_autonomy", {
-        "receipt_type": "titan_autonomy",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "titan_autonomy",
+        {
+            "receipt_type": "titan_autonomy",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return autonomy
 
@@ -281,7 +287,7 @@ def d6_titan_hybrid(
     tree_size: int = D6_TREE_MIN,
     base_alpha: float = 3.15,
     duration_days: int = 30,
-    extraction_rate_kg_hr: float = METHANE_EXTRACTION_RATE_KG_HR
+    extraction_rate_kg_hr: float = METHANE_EXTRACTION_RATE_KG_HR,
 ) -> Dict[str, Any]:
     """Integrated D6 fractal + Titan methane hybrid run.
 
@@ -316,8 +322,8 @@ def d6_titan_hybrid(
         "autonomy_achieved": titan_result["autonomy_achieved"],
         "autonomy_met": titan_result["autonomy_achieved"] >= TITAN_AUTONOMY_REQUIREMENT,
         "all_targets_met": (
-            d6_result["floor_met"] and
-            titan_result["autonomy_achieved"] >= TITAN_AUTONOMY_REQUIREMENT
+            d6_result["floor_met"]
+            and titan_result["autonomy_achieved"] >= TITAN_AUTONOMY_REQUIREMENT
         ),
     }
 
@@ -341,16 +347,19 @@ def d6_titan_hybrid(
         "gate": "t24h",
     }
 
-    emit_receipt("d6_titan_hybrid", {
-        "receipt_type": "d6_titan_hybrid",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "tree_size": tree_size,
-        "eff_alpha": d6_result["eff_alpha"],
-        "autonomy_achieved": titan_result["autonomy_achieved"],
-        "all_targets_met": combined_slo["all_targets_met"],
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "d6_titan_hybrid",
+        {
+            "receipt_type": "d6_titan_hybrid",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "tree_size": tree_size,
+            "eff_alpha": d6_result["eff_alpha"],
+            "autonomy_achieved": titan_result["autonomy_achieved"],
+            "all_targets_met": combined_slo["all_targets_met"],
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -389,13 +398,16 @@ def get_titan_info() -> Dict[str, Any]:
         "description": "Titan methane harvesting ISRU simulation with D6 integration",
     }
 
-    emit_receipt("titan_info", {
-        "receipt_type": "titan_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": info["version"],
-        "autonomy_requirement": TITAN_AUTONOMY_REQUIREMENT,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "titan_info",
+        {
+            "receipt_type": "titan_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "autonomy_requirement": TITAN_AUTONOMY_REQUIREMENT,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info

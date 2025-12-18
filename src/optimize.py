@@ -24,6 +24,7 @@ TENANT_ID = "axiom-autonomy"
 
 # === DATACLASSES ===
 
+
 @dataclass
 class OptimizationConfig:
     """Configuration for optimization agent.
@@ -33,6 +34,7 @@ class OptimizationConfig:
         exploration_bonus: Bonus for high-variance patterns (default 0.1)
         fitness_decay: Decay factor for old fitness values (default 0.95)
     """
+
     sample_count: int = 100
     exploration_bonus: float = 0.1
     fitness_decay: float = 0.95
@@ -47,12 +49,14 @@ class OptimizationState:
         selection_history: List of selected pattern IDs
         improvement_trace: List of improvement values over time
     """
+
     pattern_fitness: Dict[str, Tuple[float, float]] = field(default_factory=dict)
     selection_history: List[str] = field(default_factory=list)
     improvement_trace: List[float] = field(default_factory=list)
 
 
 # === FUNCTIONS ===
+
 
 def sample_thompson(mean: float, variance: float, n_samples: int = 100) -> float:
     """Draw from beta distribution approximation, return expected value.
@@ -87,7 +91,7 @@ def sample_thompson(mean: float, variance: float, n_samples: int = 100) -> float
 def selection_pressure(
     patterns: List[str],
     fitness_scores: Dict[str, Tuple[float, float]],
-    config: OptimizationConfig = None
+    config: OptimizationConfig = None,
 ) -> List[str]:
     """Select patterns via Thompson sampling.
 
@@ -137,20 +141,27 @@ def selection_pressure(
     exploration_ratio = exploration_count / len(patterns) if patterns else 0.0
 
     # Compute improvement vs random baseline
-    random_expected = sum(fitness_scores.get(p, (0.5, 0.25))[0] for p in patterns) / len(patterns) if patterns else 0.5
+    random_expected = (
+        sum(fitness_scores.get(p, (0.5, 0.25))[0] for p in patterns) / len(patterns)
+        if patterns
+        else 0.5
+    )
     top_mean = fitness_scores.get(top_pattern, (0.5, 0.25))[0] if top_pattern else 0.5
     improvement = top_mean / random_expected if random_expected > 0 else 1.0
 
     # Emit receipt
-    emit_receipt("optimization", {
-        "tenant_id": TENANT_ID,
-        "cycle": len(sampled_values),
-        "patterns_evaluated": len(patterns),
-        "patterns_selected": len(selected),
-        "top_pattern": top_pattern,
-        "improvement_vs_random": round(improvement, 4),
-        "exploration_ratio": round(exploration_ratio, 4),
-    })
+    emit_receipt(
+        "optimization",
+        {
+            "tenant_id": TENANT_ID,
+            "cycle": len(sampled_values),
+            "patterns_evaluated": len(patterns),
+            "patterns_selected": len(selected),
+            "top_pattern": top_pattern,
+            "improvement_vs_random": round(improvement, 4),
+            "exploration_ratio": round(exploration_ratio, 4),
+        },
+    )
 
     return selected
 
@@ -159,7 +170,7 @@ def update_fitness(
     pattern_id: str,
     outcome: float,
     state: OptimizationState,
-    config: OptimizationConfig = None
+    config: OptimizationConfig = None,
 ) -> OptimizationState:
     """Update mean/variance for pattern using Bayesian update.
 
@@ -190,7 +201,9 @@ def update_fitness(
     new_n = n_observations + 1
 
     new_mean = (decayed_mean * n_observations + outcome) / new_n
-    new_variance = max(0.01, (decayed_variance * n_observations + (outcome - new_mean) ** 2) / new_n)
+    new_variance = max(
+        0.01, (decayed_variance * n_observations + (outcome - new_mean) ** 2) / new_n
+    )
 
     # Update state
     new_pattern_fitness = dict(state.pattern_fitness)
@@ -202,7 +215,7 @@ def update_fitness(
     return OptimizationState(
         pattern_fitness=new_pattern_fitness,
         selection_history=new_selection_history,
-        improvement_trace=list(state.improvement_trace)
+        improvement_trace=list(state.improvement_trace),
     )
 
 
@@ -249,9 +262,7 @@ def initialize_state() -> OptimizationState:
         New OptimizationState with empty fitness dict
     """
     return OptimizationState(
-        pattern_fitness={},
-        selection_history=[],
-        improvement_trace=[]
+        pattern_fitness={}, selection_history=[], improvement_trace=[]
     )
 
 
@@ -282,8 +293,7 @@ def get_exploration_exploitation_ratio(state: OptimizationState) -> Tuple[float,
 
 
 def integrate_roi(
-    pattern_fitness: Dict[str, Tuple[float, float]],
-    roi_scores: Dict[str, float]
+    pattern_fitness: Dict[str, Tuple[float, float]], roi_scores: Dict[str, float]
 ) -> Dict[str, Tuple[float, float]]:
     """Weight pattern fitness by ROI scores.
 
@@ -319,11 +329,16 @@ def integrate_roi(
 
         weighted[pattern_id] = (weighted_mean, weighted_variance)
 
-    emit_receipt("roi_integration", {
-        "tenant_id": TENANT_ID,
-        "patterns_weighted": len(weighted),
-        "avg_roi_bonus": sum(roi_scores.values()) / len(roi_scores) if roi_scores else 0,
-        "patterns_with_roi": len(roi_scores),
-    })
+    emit_receipt(
+        "roi_integration",
+        {
+            "tenant_id": TENANT_ID,
+            "patterns_weighted": len(weighted),
+            "avg_roi_bonus": sum(roi_scores.values()) / len(roi_scores)
+            if roi_scores
+            else 0,
+            "patterns_with_roi": len(roi_scores),
+        },
+    )
 
     return weighted

@@ -26,8 +26,7 @@ def compute_subtree_hash(node: Dict[str, Any]) -> str:
     """
     # Serialize node without volatile fields
     stable_content = {
-        k: v for k, v in node.items()
-        if k not in ("ts", "timestamp", "created_at")
+        k: v for k, v in node.items() if k not in ("ts", "timestamp", "created_at")
     }
     return hashlib.sha256(
         json.dumps(stable_content, sort_keys=True).encode()
@@ -55,13 +54,16 @@ def dedup_prune(merkle_tree: Dict[str, Any]) -> Dict[str, Any]:
             "pruned_tree": merkle_tree,
             "duplicates_found": 0,
             "duplicates_removed": 0,
-            "space_saved_pct": 0.0
+            "space_saved_pct": 0.0,
         }
-        emit_receipt("dedup_prune", {
-            "tenant_id": "axiom-pruning",
-            **result,
-            "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-        })
+        emit_receipt(
+            "dedup_prune",
+            {
+                "tenant_id": "axiom-pruning",
+                **result,
+                "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+            },
+        )
         return result
 
     # Find duplicates by content hash
@@ -78,7 +80,9 @@ def dedup_prune(merkle_tree: Dict[str, Any]) -> Dict[str, Any]:
             duplicates_found += 1
 
     duplicates_removed = duplicates_found
-    space_saved_pct = round(duplicates_removed / original_count, 4) if original_count > 0 else 0.0
+    space_saved_pct = (
+        round(duplicates_removed / original_count, 4) if original_count > 0 else 0.0
+    )
 
     # Create pruned tree
     pruned_tree = {
@@ -86,26 +90,34 @@ def dedup_prune(merkle_tree: Dict[str, Any]) -> Dict[str, Any]:
         "leaves": unique_leaves,
         "pruning_phase": "dedup",
         "original_leaf_count": original_count,
-        "pruned_leaf_count": len(unique_leaves)
+        "pruned_leaf_count": len(unique_leaves),
     }
 
     result = {
         "pruned_tree": pruned_tree,
         "duplicates_found": duplicates_found,
         "duplicates_removed": duplicates_removed,
-        "space_saved_pct": space_saved_pct
+        "space_saved_pct": space_saved_pct,
     }
 
-    emit_receipt("dedup_prune", {
-        "tenant_id": "axiom-pruning",
-        "duplicates_found": duplicates_found,
-        "duplicates_removed": duplicates_removed,
-        "space_saved_pct": space_saved_pct,
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "dedup_prune",
+        {
+            "tenant_id": "axiom-pruning",
             "duplicates_found": duplicates_found,
             "duplicates_removed": duplicates_removed,
-            "space_saved_pct": space_saved_pct
-        }, sort_keys=True))
-    })
+            "space_saved_pct": space_saved_pct,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "duplicates_found": duplicates_found,
+                        "duplicates_removed": duplicates_removed,
+                        "space_saved_pct": space_saved_pct,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result

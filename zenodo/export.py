@@ -75,7 +75,7 @@ def freeze_receipts(receipts_path: str = "receipts.jsonl") -> str:
     receipts = []
 
     if os.path.exists(receipts_path):
-        with open(receipts_path, 'r') as f:
+        with open(receipts_path, "r") as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -88,12 +88,15 @@ def freeze_receipts(receipts_path: str = "receipts.jsonl") -> str:
     root = merkle(receipts)
 
     # Emit freeze receipt
-    emit_receipt("receipts_freeze", {
-        "tenant_id": TENANT_ID,
-        "n_receipts": len(receipts),
-        "merkle_root": root,
-        "frozen_at": datetime.utcnow().isoformat() + "Z",
-    })
+    emit_receipt(
+        "receipts_freeze",
+        {
+            "tenant_id": TENANT_ID,
+            "n_receipts": len(receipts),
+            "merkle_root": root,
+            "frozen_at": datetime.utcnow().isoformat() + "Z",
+        },
+    )
 
     return root
 
@@ -102,7 +105,7 @@ def generate_metadata(
     version: str,
     title: str = "AXIOM Compression System",
     description: str = None,
-    creators: List[Dict] = None
+    creators: List[Dict] = None,
 ) -> Dict:
     """Generate Zenodo metadata JSON.
 
@@ -131,9 +134,7 @@ for full reproducibility of all claims.
 """
 
     if creators is None:
-        creators = [
-            {"name": "AXIOM Contributors", "affiliation": "AXIOM Project"}
-        ]
+        creators = [{"name": "AXIOM Contributors", "affiliation": "AXIOM Project"}]
 
     metadata = {
         "upload_type": "software",
@@ -156,7 +157,7 @@ for full reproducibility of all claims.
             {
                 "identifier": "https://github.com/axiom-project/axiom",
                 "relation": "isSupplementTo",
-                "scheme": "url"
+                "scheme": "url",
             }
         ],
         "version": version,
@@ -169,7 +170,7 @@ def create_archive(
     version: str,
     output_path: str = None,
     include_receipts: bool = True,
-    include_synthetic: bool = True
+    include_synthetic: bool = True,
 ) -> str:
     """Bundle code + receipts + seeded runs for Zenodo.
 
@@ -217,7 +218,7 @@ def create_archive(
                     shutil.copytree(
                         src_path,
                         dst_path,
-                        ignore=shutil.ignore_patterns(*ARCHIVE_EXCLUDE)
+                        ignore=shutil.ignore_patterns(*ARCHIVE_EXCLUDE),
                     )
                 else:
                     dst_path.parent.mkdir(parents=True, exist_ok=True)
@@ -247,7 +248,7 @@ def create_archive(
                 np.random.seed(42)  # Deterministic seed
                 galaxies = generate_synthetic_dataset(n_galaxies=10, seed=42)
 
-                with open(synthetic_dir / "galaxies_seed42.json", 'w') as f:
+                with open(synthetic_dir / "galaxies_seed42.json", "w") as f:
                     # Convert numpy arrays to lists for JSON
                     galaxies_json = []
                     for g in galaxies:
@@ -287,25 +288,28 @@ def create_archive(
                 "source": "NASA Technical Reports Server",
                 "water_recovery": 0.98,
                 "o2_closure": 0.875,
-            }
+            },
         }
 
-        with open(real_hashes_dir / "data_sources.json", 'w') as f:
+        with open(real_hashes_dir / "data_sources.json", "w") as f:
             json.dump(real_data_hashes, f, indent=2)
         files_included.append("data/real/data_sources.json")
 
         # Generate metadata
         metadata = generate_metadata(version)
-        with open(archive_root / "zenodo.json", 'w') as f:
+        with open(archive_root / "zenodo.json", "w") as f:
             json.dump(metadata, f, indent=2)
         files_included.append("zenodo.json")
 
         # Compute archive hash
-        archive_content = json.dumps({
-            "version": version,
-            "files": files_included,
-            "merkle_root": merkle_root,
-        }, sort_keys=True)
+        archive_content = json.dumps(
+            {
+                "version": version,
+                "files": files_included,
+                "merkle_root": merkle_root,
+            },
+            sort_keys=True,
+        )
         archive_hash = dual_hash(archive_content)
 
         # Create tarball
@@ -313,14 +317,17 @@ def create_archive(
             tar.add(archive_root, arcname=f"axiom-{version}")
 
         # Emit zenodo receipt
-        emit_receipt("zenodo", {
-            "tenant_id": TENANT_ID,
-            "doi": "10.5281/zenodo.XXXXXXX",  # Placeholder until assigned
-            "archive_hash": archive_hash,
-            "files_included": files_included,
-            "version": version,
-            "merkle_root": merkle_root,
-        })
+        emit_receipt(
+            "zenodo",
+            {
+                "tenant_id": TENANT_ID,
+                "doi": "10.5281/zenodo.XXXXXXX",  # Placeholder until assigned
+                "archive_hash": archive_hash,
+                "files_included": files_included,
+                "version": version,
+                "merkle_root": merkle_root,
+            },
+        )
 
     finally:
         # Cleanup staging directory
@@ -373,35 +380,22 @@ def validate_archive(archive_path: str) -> Dict:
 
 # === CLI ENTRY POINT ===
 
+
 def main():
     """CLI entry point for archive creation."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Create AXIOM Zenodo archive"
+    parser = argparse.ArgumentParser(description="Create AXIOM Zenodo archive")
+    parser.add_argument("version", help="Semantic version (e.g., 1.1.0)")
+    parser.add_argument("--output", "-o", help="Output file path")
+    parser.add_argument(
+        "--no-receipts", action="store_true", help="Exclude receipts.jsonl"
     )
     parser.add_argument(
-        "version",
-        help="Semantic version (e.g., 1.1.0)"
+        "--no-synthetic", action="store_true", help="Exclude synthetic data"
     )
     parser.add_argument(
-        "--output", "-o",
-        help="Output file path"
-    )
-    parser.add_argument(
-        "--no-receipts",
-        action="store_true",
-        help="Exclude receipts.jsonl"
-    )
-    parser.add_argument(
-        "--no-synthetic",
-        action="store_true",
-        help="Exclude synthetic data"
-    )
-    parser.add_argument(
-        "--validate", "-v",
-        action="store_true",
-        help="Validate archive after creation"
+        "--validate", "-v", action="store_true", help="Validate archive after creation"
     )
 
     args = parser.parse_args()

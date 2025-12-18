@@ -56,10 +56,7 @@ TENANT_ID = "axiom-colony"
 # === STUB FUNCTIONS ===
 
 
-def quantum_entropy_boost(
-    current_retention: float,
-    execute: bool = False
-) -> float:
+def quantum_entropy_boost(current_retention: float, execute: bool = False) -> float:
     """Return estimated retention with quantum boost.
 
     Stub function for post-RL quantum entropy harvesting.
@@ -79,8 +76,7 @@ def quantum_entropy_boost(
     """
     if execute:
         _emit_quantum_stub_receipt(
-            current_retention=current_retention,
-            status="execute_requested_but_stub"
+            current_retention=current_retention, status="execute_requested_but_stub"
         )
         raise NotImplementedError(
             "Quantum entropy boost not yet implemented. "
@@ -93,7 +89,7 @@ def quantum_entropy_boost(
         current_retention=current_retention,
         estimated_boost=QUANTUM_BOOST_ESTIMATE,
         boosted_retention=boosted,
-        status="stub_only"
+        status="stub_only",
     )
 
     return round(boosted, 5)
@@ -107,10 +103,7 @@ def is_implemented() -> bool:
 
     Receipt: quantum_stub_receipt
     """
-    _emit_quantum_stub_receipt(
-        current_retention=None,
-        status="implementation_check"
-    )
+    _emit_quantum_stub_receipt(current_retention=None, status="implementation_check")
     return QUANTUM_IMPLEMENTED
 
 
@@ -122,10 +115,7 @@ def get_boost_estimate() -> float:
 
     Receipt: quantum_stub_receipt
     """
-    _emit_quantum_stub_receipt(
-        current_retention=None,
-        status="boost_estimate_query"
-    )
+    _emit_quantum_stub_receipt(current_retention=None, status="boost_estimate_query")
     return QUANTUM_BOOST_ESTIMATE
 
 
@@ -146,31 +136,33 @@ def get_quantum_stub_info() -> Dict[str, Any]:
             "step_2": "adaptive depth",
             "step_3": "500-sweep RL (1.05)",
             "step_4": "quantum boost (1.07+)",
-            "step_5": "optimization (1.10 ceiling)"
+            "step_5": "optimization (1.10 ceiling)",
         },
         "why_stub_now": [
             "Sequences correctly (RL first, quantum after)",
             "Placeholder for hybrid entropy module",
             "Emits receipts for planning/tracking",
-            "Does not block 1.05 quick win"
+            "Does not block 1.05 quick win",
         ],
         "description": "Post-RL quantum entropy boost stub. "
-                       "Returns estimates for planning while implementation pending."
+        "Returns estimates for planning while implementation pending.",
     }
 
-    emit_receipt("quantum_stub_info", {
-        "receipt_type": "quantum_stub_info",
-        "tenant_id": TENANT_ID,
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "quantum_stub_info",
+        {
+            "receipt_type": "quantum_stub_info",
+            "tenant_id": TENANT_ID,
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
+        },
+    )
 
     return info
 
 
 def project_with_quantum(
-    current_retention: float,
-    include_quantum: bool = True
+    current_retention: float, include_quantum: bool = True
 ) -> Dict[str, Any]:
     """Project retention with and without quantum boost.
 
@@ -191,15 +183,18 @@ def project_with_quantum(
         "quantum_boost": QUANTUM_BOOST_ESTIMATE if include_quantum else 0.0,
         "projected_retention": round(with_quantum, 5),
         "implemented": QUANTUM_IMPLEMENTED,
-        "note": "Estimate only - quantum not yet implemented"
+        "note": "Estimate only - quantum not yet implemented",
     }
 
-    emit_receipt("quantum_projection", {
-        "receipt_type": "quantum_projection",
-        "tenant_id": TENANT_ID,
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "quantum_projection",
+        {
+            "receipt_type": "quantum_projection",
+            "tenant_id": TENANT_ID,
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -211,7 +206,7 @@ def _emit_quantum_stub_receipt(
     current_retention: float = None,
     estimated_boost: float = QUANTUM_BOOST_ESTIMATE,
     boosted_retention: float = None,
-    status: str = "stub_only"
+    status: str = "stub_only",
 ) -> None:
     """Emit quantum_stub_receipt for audit trail.
 
@@ -228,13 +223,16 @@ def _emit_quantum_stub_receipt(
         "estimated_boost": estimated_boost,
         "boosted_retention": boosted_retention,
         "implemented": QUANTUM_IMPLEMENTED,
-        "status": status
+        "status": status,
     }
 
     # Filter None values for cleaner receipt
     filtered_data = {k: v for k, v in receipt_data.items() if v is not None}
 
-    emit_receipt("quantum_stub", {
-        **filtered_data,
-        "payload_hash": dual_hash(json.dumps(filtered_data, sort_keys=True))
-    })
+    emit_receipt(
+        "quantum_stub",
+        {
+            **filtered_data,
+            "payload_hash": dual_hash(json.dumps(filtered_data, sort_keys=True)),
+        },
+    )

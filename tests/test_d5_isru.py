@@ -102,13 +102,17 @@ def test_d5_alpha_floor():
     """
     # D5 provides +0.168 uplift, so need base >= 3.07 for floor 3.23
     result = d5_recursive_fractal(D5_TREE_MIN, 3.07, depth=5)
-    assert result["eff_alpha"] >= D5_ALPHA_FLOOR, f"Expected >= {D5_ALPHA_FLOOR}, got {result['eff_alpha']}"
+    assert result["eff_alpha"] >= D5_ALPHA_FLOOR, (
+        f"Expected >= {D5_ALPHA_FLOOR}, got {result['eff_alpha']}"
+    )
 
 
 def test_d5_alpha_target():
     """Test that D5 can achieve alpha target (3.25) at depth=5."""
     result = d5_recursive_fractal(D5_TREE_MIN, 3.1, depth=5)
-    assert result["eff_alpha"] >= D5_ALPHA_TARGET, f"Expected >= {D5_ALPHA_TARGET}, got {result['eff_alpha']}"
+    assert result["eff_alpha"] >= D5_ALPHA_TARGET, (
+        f"Expected >= {D5_ALPHA_TARGET}, got {result['eff_alpha']}"
+    )
 
 
 def test_d5_uplift_value():
@@ -406,7 +410,9 @@ def test_recursive_fractal_uplift_progression():
     prev_alpha = base_alpha
     for depth in range(1, 6):
         result = recursive_fractal(tree_size, base_alpha, depth=depth)
-        assert result["final_alpha"] > prev_alpha, f"Depth {depth} should increase alpha"
+        assert result["final_alpha"] > prev_alpha, (
+            f"Depth {depth} should increase alpha"
+        )
         prev_alpha = result["final_alpha"]
 
 
@@ -430,7 +436,9 @@ def test_simulate_o2_production_scaling():
     result_20 = simulate_o2_production(24, 4, 20)
 
     # Double units should double production
-    assert result_20["production_kg"] == pytest.approx(result_10["production_kg"] * 2, rel=0.01)
+    assert result_20["production_kg"] == pytest.approx(
+        result_10["production_kg"] * 2, rel=0.01
+    )
 
 
 def test_simulate_o2_consumption_scaling():
@@ -439,4 +447,6 @@ def test_simulate_o2_consumption_scaling():
     result_8 = simulate_o2_production(24, 8, 10)
 
     # Double crew should double consumption
-    assert result_8["consumption_kg"] == pytest.approx(result_4["consumption_kg"] * 2, rel=0.01)
+    assert result_8["consumption_kg"] == pytest.approx(
+        result_4["consumption_kg"] * 2, rel=0.01
+    )

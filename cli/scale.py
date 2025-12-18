@@ -55,8 +55,10 @@ def cmd_multi_scale_sweep(sweep_type: str, simulate: bool):
         instability = data["instability"]
         scale_factor = data.get("scale_factor", 1.0)
         status = "PASS" if alpha >= SCALABILITY_GATE_THRESHOLD else "FAIL"
-        print(f"  {scale_key}: alpha={alpha:.4f}, instability={instability:.2f}, "
-              f"scale_factor={scale_factor:.6f} [{status}]")
+        print(
+            f"  {scale_key}: alpha={alpha:.4f}, instability={instability:.2f}, "
+            f"scale_factor={scale_factor:.6f} [{status}]"
+        )
 
     if sweep_type.lower() != "1e9":
         # Check degradation
@@ -65,7 +67,9 @@ def cmd_multi_scale_sweep(sweep_type: str, simulate: bool):
         print(f"  Baseline alpha: {degradation['baseline_alpha']:.4f}")
         print(f"  Target alpha (10^9): {degradation['target_alpha']:.4f}")
         print(f"  Degradation: {degradation['degradation_pct'] * 100:.2f}%")
-        print(f"  Acceptable: {'YES' if degradation['degradation_acceptable'] else 'NO'}")
+        print(
+            f"  Acceptable: {'YES' if degradation['degradation_acceptable'] else 'NO'}"
+        )
 
     # Run gate check
     gate = scalability_gate(results)
@@ -100,7 +104,9 @@ def cmd_scalability_gate_test():
     print(f"  Alpha at 10^9: {results['alpha_at_10e9']:.4f}")
     print(f"  Instability at 10^9: {results['instability_at_10e9']:.2f}")
     print(f"  Degradation: {results['degradation_pct'] * 100:.2f}%")
-    print(f"  Degradation acceptable: {'YES' if results['degradation_acceptable'] else 'NO'}")
+    print(
+        f"  Degradation acceptable: {'YES' if results['degradation_acceptable'] else 'NO'}"
+    )
 
     print("\nGATE STATUS:")
     print(f"  Scalability valid: {'YES' if results['scalability_valid'] else 'NO'}")
@@ -140,7 +146,9 @@ def cmd_scale_info():
 
     print("\nExpected Results:")
     for scale_key, data in info["expected_results"].items():
-        print(f"  {scale_key}: alpha={data['alpha']:.3f}, instability={data['instability']:.2f}")
+        print(
+            f"  {scale_key}: alpha={data['alpha']:.3f}, instability={data['instability']:.2f}"
+        )
 
     print("\nStoprules:")
     for stoprule in info["stoprules"]:
@@ -169,8 +177,10 @@ def cmd_scale_info():
     physics = validate_scale_physics()
     for result in physics["results"]:
         status = "PASS" if result["passed"] else "FAIL"
-        print(f"  {result['tree_size']:.0e}: alpha={result['expected_alpha']:.4f} "
-              f">= {result['min_required']:.3f} [{status}]")
+        print(
+            f"  {result['tree_size']:.0e}: alpha={result['expected_alpha']:.4f} "
+            f">= {result['min_required']:.3f} [{status}]"
+        )
 
     print(f"\n  ALL PASSED: {'YES' if physics['all_passed'] else 'NO'}")
 

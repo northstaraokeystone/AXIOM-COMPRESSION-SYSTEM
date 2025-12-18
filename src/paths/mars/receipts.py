@@ -17,6 +17,7 @@ from ..base import emit_path_receipt
 
 # === RECEIPT EMISSION HELPERS ===
 
+
 def emit_mars_status(status: Dict[str, Any]) -> Dict[str, Any]:
     """Emit Mars status receipt.
 
@@ -26,10 +27,7 @@ def emit_mars_status(status: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("mars", "status", {
-        **status,
-        "receipt_subtype": "status"
-    })
+    return emit_path_receipt("mars", "status", {**status, "receipt_subtype": "status"})
 
 
 def emit_mars_dome(dome_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -41,10 +39,9 @@ def emit_mars_dome(dome_result: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("mars", "dome", {
-        **dome_result,
-        "receipt_subtype": "dome_simulation"
-    })
+    return emit_path_receipt(
+        "mars", "dome", {**dome_result, "receipt_subtype": "dome_simulation"}
+    )
 
 
 def emit_mars_isru(isru_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -56,10 +53,9 @@ def emit_mars_isru(isru_result: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("mars", "isru", {
-        **isru_result,
-        "receipt_subtype": "isru_closure"
-    })
+    return emit_path_receipt(
+        "mars", "isru", {**isru_result, "receipt_subtype": "isru_closure"}
+    )
 
 
 def emit_mars_sovereignty(sovereignty_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -71,10 +67,11 @@ def emit_mars_sovereignty(sovereignty_result: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("mars", "sovereignty", {
-        **sovereignty_result,
-        "receipt_subtype": "sovereignty_check"
-    })
+    return emit_path_receipt(
+        "mars",
+        "sovereignty",
+        {**sovereignty_result, "receipt_subtype": "sovereignty_check"},
+    )
 
 
 def emit_mars_optimize(optimize_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -86,7 +83,8 @@ def emit_mars_optimize(optimize_result: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Complete receipt
     """
-    return emit_path_receipt("mars", "optimize", {
-        **optimize_result,
-        "receipt_subtype": "resource_optimization"
-    })
+    return emit_path_receipt(
+        "mars",
+        "optimize",
+        {**optimize_result, "receipt_subtype": "resource_optimization"},
+    )

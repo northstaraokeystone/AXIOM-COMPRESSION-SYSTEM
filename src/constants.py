@@ -167,7 +167,7 @@ MIN_PROOF_PATHS_RETAINED = 3
 MIN_CONFIDENCE_THRESHOLD = 0.7
 """physics: StopRule on predictive phase if GNN confidence < 0.7."""
 
-MIN_QUORUM_FRACTION = 2/3
+MIN_QUORUM_FRACTION = 2 / 3
 """physics: Quorum must be maintained at >= 2/3 nodes after pruning."""
 
 DEDUP_RATIO_EXPECTED = 0.15

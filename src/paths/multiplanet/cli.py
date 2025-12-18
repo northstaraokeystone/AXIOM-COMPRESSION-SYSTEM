@@ -98,12 +98,16 @@ def cmd_multiplanet_body(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any
     print(f"{body.upper()} BODY CONFIGURATION")
     print("=" * 60)
     print(f"Sequence position: {config['sequence_position']}")
-    print(f"Latency: {config['latency_min_min']}-{config['latency_max_min']} min (one-way)")
+    print(
+        f"Latency: {config['latency_min_min']}-{config['latency_max_min']} min (one-way)"
+    )
     print(f"Autonomy required: {config['autonomy_requirement']:.0%}")
     print(f"Bandwidth budget: {config['bandwidth_budget_mbps']} Mbps")
     print(f"Compression target: {config['compression_target']:.0%}")
     print(f"\nPrerequisites: {config['prerequisites'] or 'None'}")
-    print(f"\nDecision window: {latency['decision_window_min']}-{latency['decision_window_max']} min")
+    print(
+        f"\nDecision window: {latency['decision_window_min']}-{latency['decision_window_max']} min"
+    )
 
     return config
 
@@ -162,7 +166,9 @@ def cmd_multiplanet_telemetry(args: Optional[Dict[str, Any]] = None) -> Dict[str
     print(f"Bandwidth budget: {result['bandwidth_budget_mbps']} Mbps")
     print(f"Compression needed: {result['compression_needed']:.1f}x")
     print(f"Effective compression: {result['effective_compression']:.1%}")
-    print(f"Target ({result['compression_target']:.0%}): {'MET' if result['target_met'] else 'NOT MET'}")
+    print(
+        f"Target ({result['compression_target']:.0%}): {'MET' if result['target_met'] else 'NOT MET'}"
+    )
 
     return result
 

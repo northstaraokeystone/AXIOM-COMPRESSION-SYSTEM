@@ -11,6 +11,7 @@ Validates ProofPack v3 §3 LOOP patterns:
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.helper import (
@@ -35,6 +36,7 @@ class TestHarvest:
     def _current_ts():
         """Get current timestamp for tests."""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"
 
     def test_harvest_finds_patterns(self, capsys):
@@ -44,8 +46,7 @@ class TestHarvest:
 
         # Create 6 gap receipts of same type with current timestamp
         gaps = [
-            {"receipt_type": "gap", "type": "config_error", "ts": ts}
-            for _ in range(6)
+            {"receipt_type": "gap", "type": "config_error", "ts": ts} for _ in range(6)
         ]
 
         patterns = harvest(gaps, config)
@@ -64,8 +65,7 @@ class TestHarvest:
 
         # Create only 3 gap receipts
         gaps = [
-            {"receipt_type": "gap", "type": "config_error", "ts": ts}
-            for _ in range(3)
+            {"receipt_type": "gap", "type": "config_error", "ts": ts} for _ in range(3)
         ]
 
         patterns = harvest(gaps, config)
@@ -116,12 +116,14 @@ class TestHypothesize:
 
     def test_hypothesize_creates_blueprint(self, capsys):
         """Pattern should generate blueprint with backtest stats."""
-        patterns = [{
-            "problem_type": "config_error",
-            "count": 8,
-            "gap_ids": ["gap1", "gap2", "gap3"],
-            "sample_gap": {"type": "config_error"}
-        }]
+        patterns = [
+            {
+                "problem_type": "config_error",
+                "count": 8,
+                "gap_ids": ["gap1", "gap2", "gap3"],
+                "sample_gap": {"type": "config_error"},
+            }
+        ]
 
         blueprints = hypothesize(patterns)
 
@@ -142,13 +144,20 @@ class TestHypothesize:
 
     def test_higher_count_yields_higher_confidence(self):
         """More gap occurrences should yield higher backtest success rate."""
-        low_count = [{"problem_type": "error", "count": 5, "gap_ids": [], "sample_gap": {}}]
-        high_count = [{"problem_type": "error", "count": 15, "gap_ids": [], "sample_gap": {}}]
+        low_count = [
+            {"problem_type": "error", "count": 5, "gap_ids": [], "sample_gap": {}}
+        ]
+        high_count = [
+            {"problem_type": "error", "count": 15, "gap_ids": [], "sample_gap": {}}
+        ]
 
         bp_low = hypothesize(low_count)[0]
         bp_high = hypothesize(high_count)[0]
 
-        assert bp_high.validation_stats["backtest_success_rate"] >= bp_low.validation_stats["backtest_success_rate"]
+        assert (
+            bp_high.validation_stats["backtest_success_rate"]
+            >= bp_low.validation_stats["backtest_success_rate"]
+        )
         assert bp_high.risk_score <= bp_low.risk_score
 
 
@@ -163,7 +172,7 @@ class TestGate:
             pattern={"trigger": "test", "action": "test"},
             validation_stats={"backtest_success_rate": 0.95},
             risk_score=0.1,  # Low risk
-            status="proposed"
+            status="proposed",
         )
 
         config = HelperConfig(auto_approve_confidence=0.9)
@@ -184,7 +193,7 @@ class TestGate:
             pattern={"trigger": "test", "action": "test"},
             validation_stats={"backtest_success_rate": 0.95},
             risk_score=0.5,  # High risk
-            status="proposed"
+            status="proposed",
         )
 
         decision = gate(bp, HelperConfig())
@@ -200,7 +209,7 @@ class TestGate:
             pattern={"trigger": "test", "action": "test"},
             validation_stats={"backtest_success_rate": 0.7},  # Below threshold
             risk_score=0.1,
-            status="proposed"
+            status="proposed",
         )
 
         decision = gate(bp, HelperConfig(auto_approve_confidence=0.9))
@@ -219,7 +228,7 @@ class TestActuate:
             pattern={"trigger": "gap.type == 'error'", "action": "auto_fix"},
             validation_stats={"backtest_success_rate": 0.95},
             risk_score=0.1,
-            status="approved"
+            status="approved",
         )
 
         result = actuate(bp)
@@ -237,7 +246,7 @@ class TestActuate:
             pattern={},
             validation_stats={},
             risk_score=0.1,
-            status="retired"
+            status="retired",
         )
 
         result = actuate(bp)
@@ -256,7 +265,7 @@ class TestMeasureEffectiveness:
             pattern={},
             validation_stats={},
             risk_score=0.1,
-            status="active"
+            status="active",
         )
 
         # Simulate receipts showing this helper took action
@@ -281,7 +290,7 @@ class TestMeasureEffectiveness:
             pattern={},
             validation_stats={},
             risk_score=0.1,
-            status="proposed"  # Not active
+            status="proposed",  # Not active
         )
 
         effectiveness = measure_effectiveness(helper, [])
@@ -302,7 +311,7 @@ class TestRetire:
             risk_score=0.1,
             status="active",
             actions_taken=50,
-            effectiveness_sum=0.1
+            effectiveness_sum=0.1,
         )
 
         result = retire(helper, "low_effectiveness")
@@ -328,7 +337,7 @@ class TestCheckRetirementCandidates:
                 risk_score=0.1,
                 status="active",
                 actions_taken=20,
-                effectiveness_sum=5.0  # 0.25 avg - good
+                effectiveness_sum=5.0,  # 0.25 avg - good
             ),
             HelperBlueprint(
                 id="bad",
@@ -338,7 +347,7 @@ class TestCheckRetirementCandidates:
                 risk_score=0.1,
                 status="active",
                 actions_taken=20,
-                effectiveness_sum=0.001  # ~0 avg - bad
+                effectiveness_sum=0.001,  # ~0 avg - bad
             ),
         ]
 
@@ -358,7 +367,7 @@ class TestCheckRetirementCandidates:
                 risk_score=0.1,
                 status="active",
                 actions_taken=5,  # Below min_actions threshold
-                effectiveness_sum=0.0
+                effectiveness_sum=0.0,
             ),
         ]
 
@@ -373,10 +382,38 @@ class TestGetActiveHelpers:
     def test_filters_to_active_only(self):
         """Should return only active helpers."""
         helpers = [
-            HelperBlueprint(id="1", origin_gaps=[], pattern={}, validation_stats={}, risk_score=0.1, status="active"),
-            HelperBlueprint(id="2", origin_gaps=[], pattern={}, validation_stats={}, risk_score=0.1, status="proposed"),
-            HelperBlueprint(id="3", origin_gaps=[], pattern={}, validation_stats={}, risk_score=0.1, status="retired"),
-            HelperBlueprint(id="4", origin_gaps=[], pattern={}, validation_stats={}, risk_score=0.1, status="active"),
+            HelperBlueprint(
+                id="1",
+                origin_gaps=[],
+                pattern={},
+                validation_stats={},
+                risk_score=0.1,
+                status="active",
+            ),
+            HelperBlueprint(
+                id="2",
+                origin_gaps=[],
+                pattern={},
+                validation_stats={},
+                risk_score=0.1,
+                status="proposed",
+            ),
+            HelperBlueprint(
+                id="3",
+                origin_gaps=[],
+                pattern={},
+                validation_stats={},
+                risk_score=0.1,
+                status="retired",
+            ),
+            HelperBlueprint(
+                id="4",
+                origin_gaps=[],
+                pattern={},
+                validation_stats={},
+                risk_score=0.1,
+                status="active",
+            ),
         ]
 
         active = get_active_helpers(helpers)

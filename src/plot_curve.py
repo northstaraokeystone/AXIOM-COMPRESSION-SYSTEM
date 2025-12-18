@@ -15,9 +15,7 @@ from .sovereignty import SovereigntyConfig, compute_sovereignty
 
 
 def generate_curve_data(
-    crew_range: Tuple[int, int],
-    bandwidth_mbps: float = 4.0,
-    delay_s: float = 480.0
+    crew_range: Tuple[int, int], bandwidth_mbps: float = 4.0, delay_s: float = 480.0
 ) -> List[Tuple[int, float]]:
     """Generate (crew, advantage) pairs for sovereignty curve.
 
@@ -37,10 +35,7 @@ def generate_curve_data(
 
     for crew in range(min_crew, max_crew + 1):
         config = SovereigntyConfig(
-            crew=crew,
-            compute_flops=0.0,
-            bandwidth_mbps=bandwidth_mbps,
-            delay_s=delay_s
+            crew=crew, compute_flops=0.0, bandwidth_mbps=bandwidth_mbps, delay_s=delay_s
         )
         result = compute_sovereignty(config)
         data.append((crew, result.advantage))
@@ -78,7 +73,7 @@ def plot_sovereignty_curve(
     knee: int,
     output_path: str,
     title: str = "SOVEREIGNTY CURVE: Mars Colony",
-    uncertainty: Optional[float] = None
+    uncertainty: Optional[float] = None,
 ) -> None:
     """Generate matplotlib plot with annotations.
 
@@ -102,7 +97,8 @@ def plot_sovereignty_curve(
     try:
         import matplotlib.pyplot as plt
         import matplotlib
-        matplotlib.use('Agg')  # Non-interactive backend
+
+        matplotlib.use("Agg")  # Non-interactive backend
     except ImportError:
         # Fallback: create a text file describing the plot
         _plot_text_fallback(curve_data, knee, output_path, uncertainty)
@@ -116,50 +112,62 @@ def plot_sovereignty_curve(
     fig, ax = plt.subplots(figsize=(10, 6))
 
     # Plot the curve
-    ax.plot(crews, advantages, 'b-', linewidth=2, label='Sovereignty Advantage')
+    ax.plot(crews, advantages, "b-", linewidth=2, label="Sovereignty Advantage")
 
     # Horizontal line at y=0
-    ax.axhline(y=0, color='gray', linestyle='--', linewidth=1, label='Threshold')
+    ax.axhline(y=0, color="gray", linestyle="--", linewidth=1, label="Threshold")
 
     # Vertical line at knee
-    ax.axvline(x=knee, color='red', linestyle='--', linewidth=1.5)
+    ax.axvline(x=knee, color="red", linestyle="--", linewidth=1.5)
 
     # Shade regions
-    ax.fill_between(crews, advantages, 0,
-                    where=[a > 0 for a in advantages],
-                    alpha=0.3, color='green', label='SOVEREIGN')
-    ax.fill_between(crews, advantages, 0,
-                    where=[a <= 0 for a in advantages],
-                    alpha=0.3, color='red', label='DEPENDENT')
+    ax.fill_between(
+        crews,
+        advantages,
+        0,
+        where=[a > 0 for a in advantages],
+        alpha=0.3,
+        color="green",
+        label="SOVEREIGN",
+    )
+    ax.fill_between(
+        crews,
+        advantages,
+        0,
+        where=[a <= 0 for a in advantages],
+        alpha=0.3,
+        color="red",
+        label="DEPENDENT",
+    )
 
     # Annotate threshold
     uncertainty_str = f" +/- {uncertainty:.0f}" if uncertainty else ""
     ax.annotate(
-        f'THRESHOLD: {knee}{uncertainty_str} crew',
+        f"THRESHOLD: {knee}{uncertainty_str} crew",
         xy=(knee, 0),
         xytext=(knee + 10, max(advantages) * 0.3),
         fontsize=12,
-        fontweight='bold',
-        arrowprops=dict(arrowstyle='->', color='red')
+        fontweight="bold",
+        arrowprops=dict(arrowstyle="->", color="red"),
     )
 
     # Labels and title
-    ax.set_xlabel('Crew Count', fontsize=12)
-    ax.set_ylabel('Sovereignty Advantage (bits/sec)', fontsize=12)
-    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.set_xlabel("Crew Count", fontsize=12)
+    ax.set_ylabel("Sovereignty Advantage (bits/sec)", fontsize=12)
+    ax.set_title(title, fontsize=14, fontweight="bold")
 
     # Legend
-    ax.legend(loc='upper left')
+    ax.legend(loc="upper left")
 
     # Grid
     ax.grid(True, alpha=0.3)
 
     # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     # Save
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -167,11 +175,11 @@ def _plot_text_fallback(
     curve_data: List[Tuple[int, float]],
     knee: int,
     output_path: str,
-    uncertainty: Optional[float] = None
+    uncertainty: Optional[float] = None,
 ) -> None:
     """Create text representation when matplotlib unavailable."""
     # Change extension to .txt
-    txt_path = output_path.replace('.png', '.txt')
+    txt_path = output_path.replace(".png", ".txt")
 
     uncertainty_str = f" +/- {uncertainty:.0f}" if uncertainty else ""
 
@@ -180,7 +188,7 @@ def _plot_text_fallback(
         "=" * 40,
         "",
         "Crew    Advantage    Status",
-        "-" * 40
+        "-" * 40,
     ]
 
     for crew, advantage in curve_data:
@@ -188,25 +196,17 @@ def _plot_text_fallback(
         marker = " <-- THRESHOLD" if crew == knee else ""
         lines.append(f"{crew:4d}    {advantage:+10.2f}    {status}{marker}")
 
-    lines.extend([
-        "",
-        "-" * 40,
-        f"THRESHOLD: {knee}{uncertainty_str} crew",
-        "=" * 40
-    ])
+    lines.extend(["", "-" * 40, f"THRESHOLD: {knee}{uncertainty_str} crew", "=" * 40])
 
     # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
-    with open(txt_path, 'w') as f:
-        f.write('\n'.join(lines))
+    with open(txt_path, "w") as f:
+        f.write("\n".join(lines))
 
 
 def format_finding(
-    knee: int,
-    bandwidth: float,
-    delay: float,
-    uncertainty: float
+    knee: int, bandwidth: float, delay: float, uncertainty: float
 ) -> str:
     """Format THE finding as human-readable text.
 
@@ -239,20 +239,24 @@ def emit_curve_receipt(knee: int, uncertainty: float, output_path: str) -> dict:
 
     MUST emit receipt per CLAUDEME.
     """
-    return emit_receipt("sovereignty_curve", {
-        "tenant_id": "axiom-core",
-        "threshold_crew": knee,
-        "uncertainty": uncertainty,
-        "output_path": output_path
-    })
+    return emit_receipt(
+        "sovereignty_curve",
+        {
+            "tenant_id": "axiom-core",
+            "threshold_crew": knee,
+            "uncertainty": uncertainty,
+            "output_path": output_path,
+        },
+    )
 
 
 # === SENSITIVITY HEATMAP (v1.1 - Grok feedback Dec 16, 2025) ===
 
+
 def generate_threshold_surface(
     bandwidth_range: Tuple[float, float] = (2.0, 10.0),
     delay_range: Tuple[float, float] = (180.0, 1320.0),
-    steps: int = 20
+    steps: int = 20,
 ) -> Tuple[List[float], List[float], List[List[int]]]:
     """Generate 2D threshold surface for heatmap.
 
@@ -273,7 +277,9 @@ def generate_threshold_surface(
     delay_min, delay_max = delay_range
 
     bandwidths = [bw_min + (bw_max - bw_min) * i / (steps - 1) for i in range(steps)]
-    delays = [delay_min + (delay_max - delay_min) * i / (steps - 1) for i in range(steps)]
+    delays = [
+        delay_min + (delay_max - delay_min) * i / (steps - 1) for i in range(steps)
+    ]
 
     thresholds = []
     for bw in bandwidths:
@@ -287,8 +293,7 @@ def generate_threshold_surface(
 
 
 def plot_sensitivity_heatmap(
-    output_path: str,
-    title: str = "SOVEREIGNTY THRESHOLD SURFACE: Bandwidth vs Delay"
+    output_path: str, title: str = "SOVEREIGNTY THRESHOLD SURFACE: Bandwidth vs Delay"
 ) -> None:
     """Generate 2D heatmap of threshold surface.
 
@@ -307,7 +312,8 @@ def plot_sensitivity_heatmap(
         import matplotlib.pyplot as plt
         import matplotlib
         import numpy as np
-        matplotlib.use('Agg')
+
+        matplotlib.use("Agg")
     except ImportError:
         _heatmap_text_fallback(bandwidths, delays, thresholds, output_path)
         return
@@ -323,52 +329,58 @@ def plot_sensitivity_heatmap(
     # Create heatmap
     im = ax.imshow(
         threshold_arr,
-        aspect='auto',
-        origin='lower',
+        aspect="auto",
+        origin="lower",
         extent=[delay_arr[0], delay_arr[-1], bw_arr[0], bw_arr[-1]],
-        cmap='RdYlGn_r'  # Red = high threshold (harder), Green = low (easier)
+        cmap="RdYlGn_r",  # Red = high threshold (harder), Green = low (easier)
     )
 
     # Colorbar
     cbar = plt.colorbar(im, ax=ax)
-    cbar.set_label('Sovereignty Threshold (crew)', fontsize=12)
+    cbar.set_label("Sovereignty Threshold (crew)", fontsize=12)
 
     # Labels
-    ax.set_xlabel('Light Delay (minutes)', fontsize=12)
-    ax.set_ylabel('Bandwidth (Mbps)', fontsize=12)
-    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.set_xlabel("Light Delay (minutes)", fontsize=12)
+    ax.set_ylabel("Bandwidth (Mbps)", fontsize=12)
+    ax.set_title(title, fontsize=14, fontweight="bold")
 
     # Add contour lines
     X, Y = np.meshgrid(delay_arr, bw_arr)
-    contours = ax.contour(X, Y, threshold_arr, colors='black', alpha=0.5, linewidths=0.5)
-    ax.clabel(contours, inline=True, fontsize=8, fmt='%d')
+    contours = ax.contour(
+        X, Y, threshold_arr, colors="black", alpha=0.5, linewidths=0.5
+    )
+    ax.clabel(contours, inline=True, fontsize=8, fmt="%d")
 
     # Mark key scenarios
     # Opposition: 3 min, varies bandwidth
-    ax.axvline(x=3, color='blue', linestyle='--', linewidth=1.5, label='Opposition (3 min)')
+    ax.axvline(
+        x=3, color="blue", linestyle="--", linewidth=1.5, label="Opposition (3 min)"
+    )
     # Conjunction: 22 min, varies bandwidth
-    ax.axvline(x=22, color='red', linestyle='--', linewidth=1.5, label='Conjunction (22 min)')
+    ax.axvline(
+        x=22, color="red", linestyle="--", linewidth=1.5, label="Conjunction (22 min)"
+    )
 
     # Add annotation for latency dominance
     ax.annotate(
-        'LATENCY\nDOMINATES',
+        "LATENCY\nDOMINATES",
         xy=(18, 8),
         fontsize=10,
-        fontweight='bold',
-        color='white',
-        ha='center',
-        bbox=dict(boxstyle='round', facecolor='red', alpha=0.7)
+        fontweight="bold",
+        color="white",
+        ha="center",
+        bbox=dict(boxstyle="round", facecolor="red", alpha=0.7),
     )
 
     # Legend
-    ax.legend(loc='upper left')
+    ax.legend(loc="upper left")
 
     # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     # Save
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -376,10 +388,10 @@ def _heatmap_text_fallback(
     bandwidths: List[float],
     delays: List[float],
     thresholds: List[List[int]],
-    output_path: str
+    output_path: str,
 ) -> None:
     """Create text representation when matplotlib unavailable."""
-    txt_path = output_path.replace('.png', '.txt')
+    txt_path = output_path.replace(".png", ".txt")
 
     lines = [
         "SOVEREIGNTY THRESHOLD SURFACE",
@@ -396,7 +408,7 @@ def _heatmap_text_fallback(
     # Header row with delays
     header = "BW\\Delay  "
     for delay in delays[::4]:  # Every 4th for readability
-        header += f"{delay/60:5.1f}m "
+        header += f"{delay / 60:5.1f}m "
     lines.append(header)
     lines.append("-" * 60)
 
@@ -409,24 +421,26 @@ def _heatmap_text_fallback(
                     row += f"{thresholds[i][j]:6d} "
             lines.append(row)
 
-    lines.extend([
-        "-" * 60,
-        "",
-        "FINDING: Threshold increases more along delay axis (horizontal)",
-        "than along bandwidth axis (vertical), confirming latency dominance.",
-        "=" * 60,
-    ])
+    lines.extend(
+        [
+            "-" * 60,
+            "",
+            "FINDING: Threshold increases more along delay axis (horizontal)",
+            "than along bandwidth axis (vertical), confirming latency dominance.",
+            "=" * 60,
+        ]
+    )
 
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
-    with open(txt_path, 'w') as f:
-        f.write('\n'.join(lines))
+    with open(txt_path, "w") as f:
+        f.write("\n".join(lines))
 
 
 def plot_model_comparison(
     output_path: str,
     bandwidth_mbps: float = 4.0,
-    title: str = "MODEL COMPARISON: Linear vs Exponential Decay"
+    title: str = "MODEL COMPARISON: Linear vs Exponential Decay",
 ) -> None:
     """Plot linear vs exponential decay models side by side.
 
@@ -446,15 +460,21 @@ def plot_model_comparison(
         import matplotlib.pyplot as plt
         import matplotlib
         import numpy as np
-        matplotlib.use('Agg')
+
+        matplotlib.use("Agg")
     except ImportError:
         return  # Skip if matplotlib unavailable
 
     # Generate data
     delays = np.linspace(180, 1320, 50)  # 3 to 22 minutes
 
-    thresholds_lin = [find_threshold(bandwidth_mbps=bandwidth_mbps, delay_s=d) for d in delays]
-    thresholds_exp = [find_threshold_exponential(bandwidth_mbps=bandwidth_mbps, delay_s=d) for d in delays]
+    thresholds_lin = [
+        find_threshold(bandwidth_mbps=bandwidth_mbps, delay_s=d) for d in delays
+    ]
+    thresholds_exp = [
+        find_threshold_exponential(bandwidth_mbps=bandwidth_mbps, delay_s=d)
+        for d in delays
+    ]
 
     rates_lin = [external_rate(bandwidth_mbps, d) for d in delays]
     rates_exp = [external_rate_exponential(bandwidth_mbps, d) for d in delays]
@@ -463,37 +483,43 @@ def plot_model_comparison(
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
 
     # Plot 1: Thresholds
-    ax1.plot(delays/60, thresholds_lin, 'b-', linewidth=2, label='Linear Model')
-    ax1.plot(delays/60, thresholds_exp, 'r--', linewidth=2, label='Exponential Decay')
-    ax1.set_xlabel('Light Delay (minutes)', fontsize=12)
-    ax1.set_ylabel('Sovereignty Threshold (crew)', fontsize=12)
-    ax1.set_title('Threshold Comparison', fontsize=12, fontweight='bold')
+    ax1.plot(delays / 60, thresholds_lin, "b-", linewidth=2, label="Linear Model")
+    ax1.plot(delays / 60, thresholds_exp, "r--", linewidth=2, label="Exponential Decay")
+    ax1.set_xlabel("Light Delay (minutes)", fontsize=12)
+    ax1.set_ylabel("Sovereignty Threshold (crew)", fontsize=12)
+    ax1.set_title("Threshold Comparison", fontsize=12, fontweight="bold")
     ax1.legend()
     ax1.grid(True, alpha=0.3)
 
     # Mark key points
-    ax1.axvline(x=3, color='green', linestyle=':', alpha=0.7, label='Opposition')
-    ax1.axvline(x=22, color='orange', linestyle=':', alpha=0.7, label='Conjunction')
+    ax1.axvline(x=3, color="green", linestyle=":", alpha=0.7, label="Opposition")
+    ax1.axvline(x=22, color="orange", linestyle=":", alpha=0.7, label="Conjunction")
 
     # Plot 2: External rates
-    ax2.plot(delays/60, rates_lin, 'b-', linewidth=2, label='Linear: bw/(2*delay)')
-    ax2.plot(delays/60, rates_exp, 'r--', linewidth=2, label='Exponential: bw*exp(-delay/tau)')
-    ax2.set_xlabel('Light Delay (minutes)', fontsize=12)
-    ax2.set_ylabel('External Decision Rate', fontsize=12)
-    ax2.set_title('External Rate Comparison', fontsize=12, fontweight='bold')
+    ax2.plot(delays / 60, rates_lin, "b-", linewidth=2, label="Linear: bw/(2*delay)")
+    ax2.plot(
+        delays / 60,
+        rates_exp,
+        "r--",
+        linewidth=2,
+        label="Exponential: bw*exp(-delay/tau)",
+    )
+    ax2.set_xlabel("Light Delay (minutes)", fontsize=12)
+    ax2.set_ylabel("External Decision Rate", fontsize=12)
+    ax2.set_title("External Rate Comparison", fontsize=12, fontweight="bold")
     ax2.legend()
     ax2.grid(True, alpha=0.3)
-    ax2.set_yscale('log')
+    ax2.set_yscale("log")
 
     # Overall title
-    fig.suptitle(title, fontsize=14, fontweight='bold', y=1.02)
+    fig.suptitle(title, fontsize=14, fontweight="bold", y=1.02)
 
     # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     # Save
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -502,24 +528,28 @@ def emit_heatmap_receipt(output_path: str) -> dict:
 
     MUST emit receipt per CLAUDEME.
     """
-    return emit_receipt("sensitivity_heatmap", {
-        "tenant_id": "axiom-core",
-        "output_path": output_path,
-        "bandwidth_range_mbps": [2.0, 10.0],
-        "delay_range_s": [180, 1320],
-        "finding": "latency_dominates"
-    })
+    return emit_receipt(
+        "sensitivity_heatmap",
+        {
+            "tenant_id": "axiom-core",
+            "output_path": output_path,
+            "bandwidth_range_mbps": [2.0, 10.0],
+            "delay_range_s": [180, 1320],
+            "finding": "latency_dominates",
+        },
+    )
 
 
 # === ROI COMPARISON VISUALIZATION (v1.2 - Grok feedback Dec 16, 2025) ===
 # Source: "Investing in τ yields higher ROI"
+
 
 def plot_roi_comparison(
     investment_range: List[float],
     bw_base: float,
     tau_base: float,
     delays: List[float],
-    output_path: str
+    output_path: str,
 ) -> None:
     """Generate ROI comparison plot: τ vs bandwidth at multiple delays.
 
@@ -541,13 +571,14 @@ def plot_roi_comparison(
     from .sovereignty import (
         roi_tau_investment,
         roi_bandwidth_investment,
-        find_breakeven_delay
+        find_breakeven_delay,
     )
 
     try:
         import matplotlib.pyplot as plt
         import matplotlib
-        matplotlib.use('Agg')
+
+        matplotlib.use("Agg")
     except ImportError:
         _roi_text_fallback(investment_range, bw_base, tau_base, delays, output_path)
         return
@@ -557,59 +588,88 @@ def plot_roi_comparison(
     axes = axes.flatten()
 
     # Colors for consistent styling
-    colors = {'tau': '#2ecc71', 'bw': '#e74c3c'}
+    colors = {"tau": "#2ecc71", "bw": "#e74c3c"}
 
     for idx, delay_s in enumerate(delays[:4]):  # Max 4 subplots
         ax = axes[idx]
         delay_min = delay_s / 60
 
         # Calculate ROIs for each investment level
-        roi_taus = [roi_tau_investment(inv, tau_base, bw_base, delay_s)
-                    for inv in investment_range]
-        roi_bws = [roi_bandwidth_investment(inv, bw_base, tau_base, delay_s)
-                   for inv in investment_range]
+        roi_taus = [
+            roi_tau_investment(inv, tau_base, bw_base, delay_s)
+            for inv in investment_range
+        ]
+        roi_bws = [
+            roi_bandwidth_investment(inv, bw_base, tau_base, delay_s)
+            for inv in investment_range
+        ]
 
         # Plot
-        ax.plot(investment_range, roi_taus, color=colors['tau'],
-                linewidth=2.5, marker='o', label='τ-reduction (Autonomy)')
-        ax.plot(investment_range, roi_bws, color=colors['bw'],
-                linewidth=2.5, marker='s', label='Bandwidth Upgrade')
+        ax.plot(
+            investment_range,
+            roi_taus,
+            color=colors["tau"],
+            linewidth=2.5,
+            marker="o",
+            label="τ-reduction (Autonomy)",
+        )
+        ax.plot(
+            investment_range,
+            roi_bws,
+            color=colors["bw"],
+            linewidth=2.5,
+            marker="s",
+            label="Bandwidth Upgrade",
+        )
 
         # Fill between to highlight winner
-        ax.fill_between(investment_range, roi_taus, roi_bws,
-                        where=[t > b for t, b in zip(roi_taus, roi_bws)],
-                        alpha=0.2, color=colors['tau'])
+        ax.fill_between(
+            investment_range,
+            roi_taus,
+            roi_bws,
+            where=[t > b for t, b in zip(roi_taus, roi_bws)],
+            alpha=0.2,
+            color=colors["tau"],
+        )
 
         # Labels
-        ax.set_xlabel('Investment ($M)', fontsize=10)
-        ax.set_ylabel('ROI (rate gain per $M)', fontsize=10)
-        ax.set_title(f'Delay: {delay_min:.0f} min', fontsize=12, fontweight='bold')
-        ax.legend(loc='upper right', fontsize=9)
+        ax.set_xlabel("Investment ($M)", fontsize=10)
+        ax.set_ylabel("ROI (rate gain per $M)", fontsize=10)
+        ax.set_title(f"Delay: {delay_min:.0f} min", fontsize=12, fontweight="bold")
+        ax.legend(loc="upper right", fontsize=9)
         ax.grid(True, alpha=0.3)
         ax.set_xlim(min(investment_range), max(investment_range))
 
         # Add winner annotation
-        winner = 'AUTONOMY' if roi_taus[-1] > roi_bws[-1] else 'BANDWIDTH'
-        ratio = max(roi_taus[-1], roi_bws[-1]) / max(0.001, min(roi_taus[-1], roi_bws[-1]))
-        ax.annotate(f'{winner}\n({ratio:.1f}x better)',
-                    xy=(0.7, 0.85), xycoords='axes fraction',
-                    fontsize=10, fontweight='bold',
-                    color=colors['tau'] if winner == 'AUTONOMY' else colors['bw'],
-                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+        winner = "AUTONOMY" if roi_taus[-1] > roi_bws[-1] else "BANDWIDTH"
+        ratio = max(roi_taus[-1], roi_bws[-1]) / max(
+            0.001, min(roi_taus[-1], roi_bws[-1])
+        )
+        ax.annotate(
+            f"{winner}\n({ratio:.1f}x better)",
+            xy=(0.7, 0.85),
+            xycoords="axes fraction",
+            fontsize=10,
+            fontweight="bold",
+            color=colors["tau"] if winner == "AUTONOMY" else colors["bw"],
+            bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
+        )
 
     # Add breakeven delay info to suptitle
     breakeven = find_breakeven_delay(bw_base, tau_base)
     fig.suptitle(
-        f'ROI COMPARISON: τ-Reduction vs Bandwidth Upgrade\n'
-        f'(Breakeven at {breakeven/60:.1f} min - Mars is ALWAYS above this)',
-        fontsize=14, fontweight='bold', y=1.02
+        f"ROI COMPARISON: τ-Reduction vs Bandwidth Upgrade\n"
+        f"(Breakeven at {breakeven / 60:.1f} min - Mars is ALWAYS above this)",
+        fontsize=14,
+        fontweight="bold",
+        y=1.02,
     )
 
     # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -618,12 +678,12 @@ def _roi_text_fallback(
     bw_base: float,
     tau_base: float,
     delays: List[float],
-    output_path: str
+    output_path: str,
 ) -> None:
     """Text fallback for ROI comparison when matplotlib unavailable."""
     from .sovereignty import roi_tau_investment, roi_bandwidth_investment
 
-    txt_path = output_path.replace('.png', '.txt')
+    txt_path = output_path.replace(".png", ".txt")
     lines = [
         "ROI COMPARISON: τ-Reduction vs Bandwidth Upgrade",
         "=" * 60,
@@ -643,16 +703,13 @@ def _roi_text_fallback(
             lines.append(f"${inv:>6.0f}M    {roi_t:>8.2f}  {roi_b:>8.2f}     {winner}")
         lines.append("")
 
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
-    with open(txt_path, 'w') as f:
-        f.write('\n'.join(lines))
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    with open(txt_path, "w") as f:
+        f.write("\n".join(lines))
 
 
 def plot_crew_vs_tau(
-    tau_range: Tuple[float, float],
-    bw_mbps: float,
-    delay_s: float,
-    output_path: str
+    tau_range: Tuple[float, float], bw_mbps: float, delay_s: float, output_path: str
 ) -> None:
     """Generate crew threshold vs τ plot.
 
@@ -674,7 +731,8 @@ def plot_crew_vs_tau(
         import matplotlib.pyplot as plt
         import matplotlib
         import numpy as np
-        matplotlib.use('Agg')
+
+        matplotlib.use("Agg")
     except ImportError:
         _crew_text_fallback(tau_range, bw_mbps, delay_s, output_path)
         return
@@ -691,22 +749,24 @@ def plot_crew_vs_tau(
     ax2 = ax1.twinx()
 
     # Plot threshold (left axis)
-    line1 = ax1.plot(tau_values, thresholds, 'b-', linewidth=2.5,
-                     label='Crew Threshold')
-    ax1.set_xlabel('τ (Decision Latency, seconds)', fontsize=12)
-    ax1.set_ylabel('Crew Threshold', fontsize=12, color='blue')
-    ax1.tick_params(axis='y', labelcolor='blue')
+    line1 = ax1.plot(
+        tau_values, thresholds, "b-", linewidth=2.5, label="Crew Threshold"
+    )
+    ax1.set_xlabel("τ (Decision Latency, seconds)", fontsize=12)
+    ax1.set_ylabel("Crew Threshold", fontsize=12, color="blue")
+    ax1.tick_params(axis="y", labelcolor="blue")
 
     # Plot cost (right axis)
-    line2 = ax2.plot(tau_values, costs, 'r--', linewidth=2,
-                     label='Investment Cost ($M)')
-    ax2.set_ylabel('Investment Cost ($M)', fontsize=12, color='red')
-    ax2.tick_params(axis='y', labelcolor='red')
+    line2 = ax2.plot(
+        tau_values, costs, "r--", linewidth=2, label="Investment Cost ($M)"
+    )
+    ax2.set_ylabel("Investment Cost ($M)", fontsize=12, color="red")
+    ax2.tick_params(axis="y", labelcolor="red")
 
     # Combine legends
     lines = line1 + line2
     labels = [line.get_label() for line in lines]
-    ax1.legend(lines, labels, loc='upper right')
+    ax1.legend(lines, labels, loc="upper right")
 
     # Add key points
     key_taus = [300, 100, 30]
@@ -714,49 +774,51 @@ def plot_crew_vs_tau(
         if tau_min <= tau <= tau_max:
             t = threshold_from_tau(tau, bw_mbps, delay_s)
             c = tau_cost(tau, TAU_BASE_CURRENT_S)
-            ax1.axvline(x=tau, color='gray', linestyle=':', alpha=0.5)
-            ax1.annotate(f'τ={tau}s\n{t} crew\n${c:.0f}M',
-                         xy=(tau, t), xytext=(tau + 20, t + 50),
-                         fontsize=9, ha='left',
-                         arrowprops=dict(arrowstyle='->', color='gray', alpha=0.7))
+            ax1.axvline(x=tau, color="gray", linestyle=":", alpha=0.5)
+            ax1.annotate(
+                f"τ={tau}s\n{t} crew\n${c:.0f}M",
+                xy=(tau, t),
+                xytext=(tau + 20, t + 50),
+                fontsize=9,
+                ha="left",
+                arrowprops=dict(arrowstyle="->", color="gray", alpha=0.7),
+            )
 
     ax1.set_title(
-        f'CREW THRESHOLD vs DECISION LATENCY τ\n'
-        f'(Delay: {delay_s/60:.0f} min, Bandwidth: {bw_mbps} Mbps)',
-        fontsize=14, fontweight='bold'
+        f"CREW THRESHOLD vs DECISION LATENCY τ\n"
+        f"(Delay: {delay_s / 60:.0f} min, Bandwidth: {bw_mbps} Mbps)",
+        fontsize=14,
+        fontweight="bold",
     )
 
     ax1.grid(True, alpha=0.3)
     ax1.invert_xaxis()  # Lower τ (better) on the right
 
     # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
 
 
 def _crew_text_fallback(
-    tau_range: Tuple[float, float],
-    bw_mbps: float,
-    delay_s: float,
-    output_path: str
+    tau_range: Tuple[float, float], bw_mbps: float, delay_s: float, output_path: str
 ) -> None:
     """Text fallback for crew vs tau plot."""
     from .sovereignty import threshold_from_tau
     from .entropy_shannon import tau_cost, TAU_BASE_CURRENT_S
 
-    txt_path = output_path.replace('.png', '.txt')
+    txt_path = output_path.replace(".png", ".txt")
     tau_min, tau_max = tau_range
 
     lines = [
         "CREW THRESHOLD vs DECISION LATENCY τ",
-        f"Delay: {delay_s/60:.0f} min, Bandwidth: {bw_mbps} Mbps",
+        f"Delay: {delay_s / 60:.0f} min, Bandwidth: {bw_mbps} Mbps",
         "=" * 50,
         "",
         "τ (s)    Threshold    Cost ($M)",
-        "-" * 50
+        "-" * 50,
     ]
 
     for tau in [tau_max, 200, 150, 100, 75, 50, tau_min]:
@@ -765,17 +827,13 @@ def _crew_text_fallback(
             c = tau_cost(tau, TAU_BASE_CURRENT_S)
             lines.append(f"{tau:>6.0f}    {t:>8d}    {c:>10.0f}")
 
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
-    with open(txt_path, 'w') as f:
-        f.write('\n'.join(lines))
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    with open(txt_path, "w") as f:
+        f.write("\n".join(lines))
 
 
 def plot_investment_decision(
-    budget_m: float,
-    bw_base: float,
-    tau_base: float,
-    delay_s: float,
-    output_path: str
+    budget_m: float, bw_base: float, tau_base: float, delay_s: float, output_path: str
 ) -> None:
     """Generate investment decision quadrant chart.
 
@@ -794,15 +852,17 @@ def plot_investment_decision(
     from .sovereignty import (
         compare_investment_roi,
         find_breakeven_delay,
-        crew_reduction_from_autonomy
+        crew_reduction_from_autonomy,
     )
+
     pass  # Imports removed - unused
 
     try:
         import matplotlib.pyplot as plt
         import matplotlib
         import numpy as np
-        matplotlib.use('Agg')
+
+        matplotlib.use("Agg")
     except ImportError:
         return  # Skip if matplotlib unavailable
 
@@ -821,62 +881,84 @@ def plot_investment_decision(
     roi_ratios = []
     for d in delays:
         comp = compare_investment_roi(budget_m, bw_base, tau_base, d)
-        if comp['roi_bw'] > 0:
-            ratio = comp['roi_tau'] / comp['roi_bw']
+        if comp["roi_bw"] > 0:
+            ratio = comp["roi_tau"] / comp["roi_bw"]
         else:
             ratio = 100  # Very high if bandwidth ROI is 0
         roi_ratios.append(ratio)
 
     # Plot
-    ax.fill_between(delays/60, 1, roi_ratios, where=[r > 1 for r in roi_ratios],
-                    alpha=0.3, color='green', label='Invest in AUTONOMY (τ)')
-    ax.fill_between(delays/60, roi_ratios, 1, where=[r <= 1 for r in roi_ratios],
-                    alpha=0.3, color='red', label='Invest in BANDWIDTH')
-    ax.plot(delays/60, roi_ratios, 'b-', linewidth=2)
-    ax.axhline(y=1, color='gray', linestyle='--', linewidth=1.5, label='Breakeven')
-    ax.axvline(x=breakeven/60, color='orange', linestyle=':', linewidth=2)
+    ax.fill_between(
+        delays / 60,
+        1,
+        roi_ratios,
+        where=[r > 1 for r in roi_ratios],
+        alpha=0.3,
+        color="green",
+        label="Invest in AUTONOMY (τ)",
+    )
+    ax.fill_between(
+        delays / 60,
+        roi_ratios,
+        1,
+        where=[r <= 1 for r in roi_ratios],
+        alpha=0.3,
+        color="red",
+        label="Invest in BANDWIDTH",
+    )
+    ax.plot(delays / 60, roi_ratios, "b-", linewidth=2)
+    ax.axhline(y=1, color="gray", linestyle="--", linewidth=1.5, label="Breakeven")
+    ax.axvline(x=breakeven / 60, color="orange", linestyle=":", linewidth=2)
 
     # Add Mars range annotation
-    ax.axvspan(3, 22, alpha=0.1, color='purple', label='Mars Range (3-22 min)')
+    ax.axvspan(3, 22, alpha=0.1, color="purple", label="Mars Range (3-22 min)")
 
     # Annotate breakeven
-    ax.annotate(f'BREAKEVEN\n{breakeven/60:.1f} min',
-                xy=(breakeven/60, 1), xytext=(breakeven/60 + 2, 3),
-                fontsize=11, fontweight='bold', color='orange',
-                arrowprops=dict(arrowstyle='->', color='orange'),
-                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    ax.annotate(
+        f"BREAKEVEN\n{breakeven / 60:.1f} min",
+        xy=(breakeven / 60, 1),
+        xytext=(breakeven / 60 + 2, 3),
+        fontsize=11,
+        fontweight="bold",
+        color="orange",
+        arrowprops=dict(arrowstyle="->", color="orange"),
+        bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
+    )
 
     # Add current scenario annotation
     ax.annotate(
-        f'At {delay_s/60:.0f} min delay:\n'
-        f'τ ROI = {comparison["roi_tau"]:.1f}\n'
-        f'BW ROI = {comparison["roi_bw"]:.1f}\n'
-        f'→ {comparison["winner"].upper()} wins\n'
-        f'Crew: {crew_impact["before"]}→{crew_impact["after"]}',
-        xy=(delay_s/60, comparison['ratio']),
-        xytext=(0.02, 0.98), textcoords='axes fraction',
-        fontsize=10, va='top',
-        bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.9)
+        f"At {delay_s / 60:.0f} min delay:\n"
+        f"τ ROI = {comparison['roi_tau']:.1f}\n"
+        f"BW ROI = {comparison['roi_bw']:.1f}\n"
+        f"→ {comparison['winner'].upper()} wins\n"
+        f"Crew: {crew_impact['before']}→{crew_impact['after']}",
+        xy=(delay_s / 60, comparison["ratio"]),
+        xytext=(0.02, 0.98),
+        textcoords="axes fraction",
+        fontsize=10,
+        va="top",
+        bbox=dict(boxstyle="round", facecolor="lightyellow", alpha=0.9),
     )
 
-    ax.set_xlabel('Light Delay (minutes)', fontsize=12)
-    ax.set_ylabel('τ-ROI / Bandwidth-ROI Ratio', fontsize=12)
+    ax.set_xlabel("Light Delay (minutes)", fontsize=12)
+    ax.set_ylabel("τ-ROI / Bandwidth-ROI Ratio", fontsize=12)
     ax.set_title(
-        f'INVESTMENT DECISION: Budget ${budget_m:.0f}M\n'
+        f"INVESTMENT DECISION: Budget ${budget_m:.0f}M\n"
         f'"Don\'t buy more bandwidth for Mars. Buy better decisions."',
-        fontsize=14, fontweight='bold'
+        fontsize=14,
+        fontweight="bold",
     )
-    ax.set_yscale('log')
+    ax.set_yscale("log")
     ax.set_ylim(0.1, 100)
     ax.set_xlim(0, 30)
-    ax.legend(loc='upper left')
+    ax.legend(loc="upper left")
     ax.grid(True, alpha=0.3)
 
     # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -887,12 +969,14 @@ def annotate_breakeven(ax, breakeven_delay: float) -> None:
         ax: Matplotlib axis object
         breakeven_delay: Breakeven delay in seconds
     """
-    ax.axvline(x=breakeven_delay/60, color='orange', linestyle='--', linewidth=2)
+    ax.axvline(x=breakeven_delay / 60, color="orange", linestyle="--", linewidth=2)
     ax.annotate(
-        f'BREAKEVEN: {breakeven_delay/60:.1f} min',
-        xy=(breakeven_delay/60, ax.get_ylim()[1] * 0.9),
-        fontsize=10, fontweight='bold', color='orange',
-        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8)
+        f"BREAKEVEN: {breakeven_delay / 60:.1f} min",
+        xy=(breakeven_delay / 60, ax.get_ylim()[1] * 0.9),
+        fontsize=10,
+        fontweight="bold",
+        color="orange",
+        bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
     )
 
 
@@ -901,8 +985,11 @@ def emit_roi_visualization_receipt(output_path: str) -> dict:
 
     MUST emit receipt per CLAUDEME.
     """
-    return emit_receipt("roi_visualization", {
-        "tenant_id": "axiom-core",
-        "output_path": output_path,
-        "finding": "autonomy_roi_dominates_at_mars"
-    })
+    return emit_receipt(
+        "roi_visualization",
+        {
+            "tenant_id": "axiom-core",
+            "output_path": output_path,
+            "finding": "autonomy_roi_dominates_at_mars",
+        },
+    )

@@ -91,7 +91,7 @@ class TestScaleDecay:
         result = validate_scale_decay(
             baseline_alpha=ALPHA_10E12_TARGET,
             scaled_alpha=3.065,
-            max_decay=SCALE_DECAY_MAX
+            max_decay=SCALE_DECAY_MAX,
         )
         assert result["valid"] is True
 
@@ -100,16 +100,14 @@ class TestScaleDecay:
         result = validate_scale_decay(
             baseline_alpha=ALPHA_10E12_TARGET,
             scaled_alpha=3.0,  # 0.07 decay > 0.02
-            max_decay=SCALE_DECAY_MAX
+            max_decay=SCALE_DECAY_MAX,
         )
         assert result["valid"] is False
 
     def test_decay_percentage_correct(self):
         """Test decay percentage is computed correctly."""
         result = validate_scale_decay(
-            baseline_alpha=3.07,
-            scaled_alpha=3.05,
-            max_decay=0.05
+            baseline_alpha=3.07, scaled_alpha=3.05, max_decay=0.05
         )
         expected_decay = 0.02
         expected_pct = (0.02 / 3.07) * 100
@@ -205,7 +203,7 @@ class TestRecursionSweep:
         result = recursive_fractal_sweep(10**9, 2.99)
         alphas = [r["final_alpha"] for r in result["sweep_results"]]
         for i in range(1, len(alphas)):
-            assert alphas[i] >= alphas[i-1]
+            assert alphas[i] >= alphas[i - 1]
 
     def test_sweep_target_3_1_achievable(self):
         """Test 3.1 target achievability is detected."""
@@ -269,7 +267,7 @@ class TestSpecFile:
             "alpha_floor",
             "alpha_target",
             "scale_decay_max",
-            "dual_hash"
+            "dual_hash",
         ]
         for field in required:
             assert field in spec, f"Missing field: {field}"

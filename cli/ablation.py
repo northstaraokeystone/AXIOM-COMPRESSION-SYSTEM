@@ -50,7 +50,7 @@ def cmd_ablate(mode: str, blackout_days: int, simulate: bool):
             CACHE_DEPTH_BASELINE,
             pruning_enabled=(mode != "no_prune" and mode != "baseline"),
             trim_factor=0.3,
-            ablation_mode=mode
+            ablation_mode=mode,
         )
 
         print("\nRESULTS:")
@@ -61,11 +61,13 @@ def cmd_ablate(mode: str, blackout_days: int, simulate: bool):
         print(f"  Model: {result['model']}")
 
         # Validate against expected
-        alpha_min, alpha_max = expected['alpha_range']
-        alpha_ok = alpha_min <= result['eff_alpha'] <= alpha_max
+        alpha_min, alpha_max = expected["alpha_range"]
+        alpha_ok = alpha_min <= result["eff_alpha"] <= alpha_max
 
         print("\nVALIDATION:")
-        print(f"  Alpha in expected range: {'PASS' if alpha_ok else 'FAIL'} ({result['eff_alpha']} in {expected['alpha_range']})")
+        print(
+            f"  Alpha in expected range: {'PASS' if alpha_ok else 'FAIL'} ({result['eff_alpha']} in {expected['alpha_range']})"
+        )
 
         if simulate:
             print("\n[ablation_test receipt emitted above]")
@@ -97,20 +99,21 @@ def cmd_ablation_sweep(blackout_days: int, simulate: bool):
     print("\nRunning ablation sweep...")
 
     result = ablation_sweep(
-        modes=ABLATION_MODES,
-        blackout_days=blackout_days,
-        iterations=100,
-        seed=42
+        modes=ABLATION_MODES, blackout_days=blackout_days, iterations=100, seed=42
     )
 
     print("\nRESULTS BY MODE:")
-    print(f"  {'Mode':<12} | {'Avg Alpha':>10} | {'Min':>8} | {'Max':>8} | {'Success':>8}")
-    print(f"  {'-'*12}-+-{'-'*10}-+-{'-'*8}-+-{'-'*8}-+-{'-'*8}")
+    print(
+        f"  {'Mode':<12} | {'Avg Alpha':>10} | {'Min':>8} | {'Max':>8} | {'Success':>8}"
+    )
+    print(f"  {'-' * 12}-+-{'-' * 10}-+-{'-' * 8}-+-{'-' * 8}-+-{'-' * 8}")
 
     for mode in ["baseline", "no_prune", "no_cache", "full"]:
         if mode in result["results_by_mode"]:
             m = result["results_by_mode"][mode]
-            print(f"  {mode:<12} | {m['avg_alpha']:>10.4f} | {m['min_alpha']:>8.4f} | {m['max_alpha']:>8.4f} | {m['successful']:>8}")
+            print(
+                f"  {mode:<12} | {m['avg_alpha']:>10.4f} | {m['min_alpha']:>8.4f} | {m['max_alpha']:>8.4f} | {m['successful']:>8}"
+            )
 
     print("\nORDERING VALIDATION:")
     print("  Expected: baseline < no_prune < no_cache < full")
@@ -181,8 +184,12 @@ def cmd_formula_check():
     ]
 
     print("\nTest Cases:")
-    print(f"  {'min_eff':>10} | {'baseline':>10} | {'retention':>10} | {'expected':>10} | {'computed':>10} | {'status':>8}")
-    print(f"  {'-'*10}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}-+-{'-'*8}")
+    print(
+        f"  {'min_eff':>10} | {'baseline':>10} | {'retention':>10} | {'expected':>10} | {'computed':>10} | {'status':>8}"
+    )
+    print(
+        f"  {'-' * 10}-+-{'-' * 10}-+-{'-' * 10}-+-{'-' * 10}-+-{'-' * 10}-+-{'-' * 8}"
+    )
 
     all_pass = True
     for min_eff, baseline, retention, expected, description in test_cases:
@@ -191,9 +198,13 @@ def cmd_formula_check():
             computed = result["computed_alpha"]
             passed = abs(computed - expected) < 0.01
             all_pass = all_pass and passed
-            print(f"  {min_eff:>10.4f} | {baseline:>10.4f} | {retention:>10.4f} | {expected:>10.4f} | {computed:>10.4f} | {'PASS' if passed else 'FAIL':>8}")
+            print(
+                f"  {min_eff:>10.4f} | {baseline:>10.4f} | {retention:>10.4f} | {expected:>10.4f} | {computed:>10.4f} | {'PASS' if passed else 'FAIL':>8}"
+            )
         except Exception:
-            print(f"  {min_eff:>10.4f} | {baseline:>10.4f} | {retention:>10.4f} | {expected:>10.4f} | {'ERROR':>10} | {'FAIL':>8}")
+            print(
+                f"  {min_eff:>10.4f} | {baseline:>10.4f} | {retention:>10.4f} | {expected:>10.4f} | {'ERROR':>10} | {'FAIL':>8}"
+            )
             all_pass = False
 
     print(f"\nOVERALL: {'ALL TESTS PASS' if all_pass else 'SOME TESTS FAILED'}")

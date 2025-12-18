@@ -98,12 +98,10 @@ def cmd_mars_isru(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         args = {}
 
     # Default resource values (stub)
-    resources = args.get("resources", {
-        "water": (75, 100),
-        "o2": (90, 100),
-        "power": (95, 100),
-        "food": (30, 100)
-    })
+    resources = args.get(
+        "resources",
+        {"water": (75, 100), "o2": (90, 100), "power": (95, 100), "food": (30, 100)},
+    )
 
     closure = compute_isru_closure(resources)
 
@@ -146,9 +144,7 @@ def cmd_mars_sovereignty(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any
     latency = args.get("latency", 1200.0)
 
     is_sovereign = compute_sovereignty(
-        crew=crew,
-        bandwidth_mbps=bandwidth,
-        latency_s=latency
+        crew=crew, bandwidth_mbps=bandwidth, latency_s=latency
     )
 
     print("=" * 60)

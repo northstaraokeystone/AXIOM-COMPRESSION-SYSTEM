@@ -14,7 +14,6 @@ SLO Requirements:
 - Alignment classification accuracy
 """
 
-
 from src.adversarial_audit import (
     load_adversarial_config,
     inject_noise,
@@ -118,8 +117,10 @@ def test_denoise_smooths_data():
     denoised = denoise(noisy, window_size=3)
 
     # Denoised should have less variance
-    noisy_var = sum((x - sum(noisy)/len(noisy))**2 for x in noisy) / len(noisy)
-    denoised_var = sum((x - sum(denoised)/len(denoised))**2 for x in denoised) / len(denoised)
+    noisy_var = sum((x - sum(noisy) / len(noisy)) ** 2 for x in noisy) / len(noisy)
+    denoised_var = sum(
+        (x - sum(denoised) / len(denoised)) ** 2 for x in denoised
+    ) / len(denoised)
 
     assert denoised_var < noisy_var
 
@@ -209,7 +210,9 @@ def test_alignment_classification_boundary():
 
 def test_misalignment_detection():
     """Test that low recovery is classified as misaligned."""
-    classification = classify_misalignment(MISALIGNMENT_THRESHOLD - 0.1, RECOVERY_THRESHOLD)
+    classification = classify_misalignment(
+        MISALIGNMENT_THRESHOLD - 0.1, RECOVERY_THRESHOLD
+    )
     assert classification == "misaligned"
 
 
@@ -267,10 +270,7 @@ def test_recovery_threshold_met():
 
 def test_stress_test_structure():
     """Test that stress test returns proper structure."""
-    result = run_stress_test(
-        noise_levels=[0.01, 0.05, 0.10],
-        iterations_per_level=10
-    )
+    result = run_stress_test(noise_levels=[0.01, 0.05, 0.10], iterations_per_level=10)
 
     assert "noise_levels_tested" in result
     assert "results_by_level" in result
@@ -281,10 +281,7 @@ def test_stress_test_structure():
 def test_stress_test_results_by_level():
     """Test that stress test returns results for each level."""
     noise_levels = [0.01, 0.03, 0.05]
-    result = run_stress_test(
-        noise_levels=noise_levels,
-        iterations_per_level=10
-    )
+    result = run_stress_test(noise_levels=noise_levels, iterations_per_level=10)
 
     assert len(result["results_by_level"]) == len(noise_levels)
 
@@ -296,10 +293,7 @@ def test_stress_test_results_by_level():
 
 def test_stress_test_integration():
     """Test full stress test runs without error."""
-    result = run_stress_test(
-        noise_levels=[0.01, 0.03, 0.05],
-        iterations_per_level=10
-    )
+    result = run_stress_test(noise_levels=[0.01, 0.03, 0.05], iterations_per_level=10)
 
     assert result is not None
     assert isinstance(result["stress_passed"], bool)
@@ -322,4 +316,7 @@ def test_get_adversarial_info():
 def test_adversarial_key_insight():
     """Test that key insight is present."""
     info = get_adversarial_info()
-    assert "compression" in info["key_insight"].lower() or "alignment" in info["key_insight"].lower()
+    assert (
+        "compression" in info["key_insight"].lower()
+        or "alignment" in info["key_insight"].lower()
+    )

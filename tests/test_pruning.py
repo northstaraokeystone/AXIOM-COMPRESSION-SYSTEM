@@ -40,16 +40,10 @@ from src.pruning import (
     verify_quorum_maintained,
     stoprule_over_prune,
     load_entropy_pruning_spec,
-    get_pruning_info
+    get_pruning_info,
 )
-from src.gnn_cache import (
-    nonlinear_retention_with_pruning,
-    CACHE_DEPTH_BASELINE
-)
-from src.reasoning import (
-    extended_250d_sovereignty,
-    validate_pruning_slos
-)
+from src.gnn_cache import nonlinear_retention_with_pruning, CACHE_DEPTH_BASELINE
+from src.reasoning import extended_250d_sovereignty, validate_pruning_slos
 from src.core import StopRule
 
 
@@ -58,8 +52,9 @@ class TestPhysicsConstants:
 
     def test_entropy_asymptote_is_e(self):
         """ENTROPY_ASYMPTOTE_E should be approximately e (2.71828)."""
-        assert abs(ENTROPY_ASYMPTOTE_E - math.e) < 0.00001, \
+        assert abs(ENTROPY_ASYMPTOTE_E - math.e) < 0.00001, (
             f"ENTROPY_ASYMPTOTE_E = {ENTROPY_ASYMPTOTE_E}, expected {math.e}"
+        )
 
     def test_pruning_target_alpha(self):
         """PRUNING_TARGET_ALPHA should be 2.80."""
@@ -115,8 +110,9 @@ class TestDedupPrune:
         result = dedup_prune(tree)
 
         # Dedup should work without error, duplicates depend on data generation
-        assert result["duplicates_found"] >= 0, \
+        assert result["duplicates_found"] >= 0, (
             f"Dedup found {result['duplicates_found']} duplicates"
+        )
 
     def test_dedup_zero_risk(self):
         """Dedup should never break chain integrity."""
@@ -127,7 +123,9 @@ class TestDedupPrune:
             # Verify pruned tree still has valid structure
             pruned_tree = result["pruned_tree"]
             assert len(pruned_tree["leaves"]) > 0
-            assert pruned_tree["leaf_count"] == tree["leaf_count"]  # Original count preserved in metadata
+            assert (
+                pruned_tree["leaf_count"] == tree["leaf_count"]
+            )  # Original count preserved in metadata
 
     def test_dedup_space_saved(self):
         """Space saved should be non-negative."""
@@ -135,8 +133,9 @@ class TestDedupPrune:
         result = dedup_prune(tree)
 
         # Space saved depends on actual duplicate content
-        assert result["space_saved_pct"] >= 0.0, \
+        assert result["space_saved_pct"] >= 0.0, (
             f"Space saved = {result['space_saved_pct']:.2%}, expected >= 0%"
+        )
 
 
 class TestClassifyLeafEntropy:
@@ -160,8 +159,7 @@ class TestClassifyLeafEntropy:
 
         low_pct = result["low_entropy_count"] / result["total_leaves"]
         # Expect > 50% low entropy (based on 80/20 rule in generator)
-        assert low_pct >= 0.5, \
-            f"Low entropy = {low_pct:.2%}, expected >= 50%"
+        assert low_pct >= 0.5, f"Low entropy = {low_pct:.2%}, expected >= 50%"
 
 
 class TestPredictivePrune:
@@ -174,8 +172,9 @@ class TestPredictivePrune:
         predictions = generate_gnn_predictions(tree, entropy_class)
 
         avg_confidence = sum(p["confidence"] for p in predictions) / len(predictions)
-        assert avg_confidence >= 0.85, \
+        assert avg_confidence >= 0.85, (
             f"Avg confidence = {avg_confidence:.2f}, expected >= 0.85"
+        )
 
     def test_predictive_stoprule_low_confidence(self):
         """StopRule should be raised if confidence < 0.7."""
@@ -202,8 +201,9 @@ class TestHybridPrune:
         result = entropy_prune(tree, trim_factor=0.3, hybrid=True)
 
         # Alpha uplift should be measurable
-        assert result["alpha_uplift"] >= ENTROPY_ASYMPTOTE_E, \
+        assert result["alpha_uplift"] >= ENTROPY_ASYMPTOTE_E, (
             f"Alpha uplift = {result['alpha_uplift']}, expected >= {ENTROPY_ASYMPTOTE_E}"
+        )
 
     def test_hybrid_chain_integrity(self):
         """Chain integrity should be preserved after hybrid pruning."""
@@ -221,40 +221,34 @@ class TestAlphaTargets:
     def test_alpha_exceeds_2_80_at_250d(self):
         """eff_alpha(pruning=True, blackout=250) should exceed 2.80."""
         result = nonlinear_retention_with_pruning(
-            250,
-            CACHE_DEPTH_BASELINE,
-            pruning_enabled=True,
-            trim_factor=0.3
+            250, CACHE_DEPTH_BASELINE, pruning_enabled=True, trim_factor=0.3
         )
 
         # Allow small margin for numerical precision
-        assert result["eff_alpha"] >= PRUNING_TARGET_ALPHA * 0.95, \
+        assert result["eff_alpha"] >= PRUNING_TARGET_ALPHA * 0.95, (
             f"eff_alpha at 250d = {result['eff_alpha']}, expected >= {PRUNING_TARGET_ALPHA * 0.95}"
+        )
 
     def test_alpha_at_150d_with_pruning(self):
         """eff_alpha(pruning=True, blackout=150) should exceed 2.70."""
         result = nonlinear_retention_with_pruning(
-            150,
-            CACHE_DEPTH_BASELINE,
-            pruning_enabled=True,
-            trim_factor=0.3
+            150, CACHE_DEPTH_BASELINE, pruning_enabled=True, trim_factor=0.3
         )
 
-        assert result["eff_alpha"] >= 2.70, \
+        assert result["eff_alpha"] >= 2.70, (
             f"eff_alpha at 150d = {result['eff_alpha']}, expected >= 2.70"
+        )
 
     def test_alpha_at_200d_with_pruning(self):
         """eff_alpha(pruning=True, blackout=200) should exceed 2.73 (physics bound near e)."""
         result = nonlinear_retention_with_pruning(
-            200,
-            CACHE_DEPTH_BASELINE,
-            pruning_enabled=True,
-            trim_factor=0.3
+            200, CACHE_DEPTH_BASELINE, pruning_enabled=True, trim_factor=0.3
         )
 
         # Physics: alpha bounded near e (~2.72), with pruning boost can reach ~2.74
-        assert result["eff_alpha"] >= 2.73, \
+        assert result["eff_alpha"] >= 2.73, (
             f"eff_alpha at 200d = {result['eff_alpha']}, expected >= 2.73"
+        )
 
 
 class TestOverflowThreshold:
@@ -265,10 +259,7 @@ class TestOverflowThreshold:
         # Test at 290d - should NOT overflow
         try:
             result = nonlinear_retention_with_pruning(
-                290,
-                CACHE_DEPTH_BASELINE,
-                pruning_enabled=True,
-                trim_factor=0.3
+                290, CACHE_DEPTH_BASELINE, pruning_enabled=True, trim_factor=0.3
             )
             overflow_at_290d = False
         except StopRule:
@@ -279,10 +270,7 @@ class TestOverflowThreshold:
     def test_overflow_without_pruning_at_200d(self):
         """Without pruning, 200d+ should trigger overflow risk."""
         result = nonlinear_retention_with_pruning(
-            200,
-            CACHE_DEPTH_BASELINE,
-            pruning_enabled=False,
-            trim_factor=0.0
+            200, CACHE_DEPTH_BASELINE, pruning_enabled=False, trim_factor=0.0
         )
         # Should be close to overflow threshold without pruning
         assert result["overflow_threshold"] == 200
@@ -299,8 +287,9 @@ class TestChainIntegrity:
 
             original_root = tree["root"]
             pruned_root = result["merkle_root_after"]
-            proof_paths = [l for l in result["pruned_tree"]["leaves"]
-                         if l.get("is_proof_path")]
+            proof_paths = [
+                l for l in result["pruned_tree"]["leaves"] if l.get("is_proof_path")
+            ]
 
             # Should not raise
             assert verify_chain_integrity(original_root, pruned_root, proof_paths)
@@ -374,7 +363,11 @@ class TestEntropyReductionFormula:
         result = entropy_prune(tree, trim_factor=0.3, hybrid=True)
 
         # Verify reduction is computed correctly
-        expected_reduction = (result["entropy_before"] - result["entropy_after"]) / result["entropy_before"] * 100
+        expected_reduction = (
+            (result["entropy_before"] - result["entropy_after"])
+            / result["entropy_before"]
+            * 100
+        )
         assert abs(result["entropy_reduction_pct"] - expected_reduction) < 0.1
 
 
@@ -384,12 +377,13 @@ class TestExtended250dProjection:
     def test_extended_250d_sovereignty(self):
         """Extended 250d projection should achieve target alpha."""
         result = extended_250d_sovereignty(
-            pruning_enabled=True,
-            trim_factor=0.3,
-            blackout_days=250
+            pruning_enabled=True, trim_factor=0.3, blackout_days=250
         )
 
-        assert result["target_achieved"] or result["effective_alpha"] >= PRUNING_TARGET_ALPHA * 0.95
+        assert (
+            result["target_achieved"]
+            or result["effective_alpha"] >= PRUNING_TARGET_ALPHA * 0.95
+        )
 
 
 class TestSpecLoading:
@@ -440,7 +434,7 @@ class TestStressValidation:
                     blackout_days,
                     CACHE_DEPTH_BASELINE,
                     pruning_enabled=True,
-                    trim_factor=0.3
+                    trim_factor=0.3,
                 )
 
                 # Physics: alpha bounded near e (~2.72-2.75)
@@ -459,7 +453,9 @@ class TestStressValidation:
         # SLOs for this batch (physics-corrected)
         assert chain_breaks == 0, f"Seed {seed}: {chain_breaks} chain breaks"
         assert quorum_losses == 0, f"Seed {seed}: {quorum_losses} quorum losses"
-        assert success_count >= 90, f"Seed {seed}: {success_count}/100 passed alpha >= 2.70"
+        assert success_count >= 90, (
+            f"Seed {seed}: {success_count}/100 passed alpha >= 2.70"
+        )
         assert avg_alpha >= 2.70, f"Seed {seed}: avg_alpha = {avg_alpha:.4f}"
 
     def test_1000_run_stress(self):
@@ -479,7 +475,7 @@ class TestStressValidation:
                     blackout_days,
                     CACHE_DEPTH_BASELINE,
                     pruning_enabled=True,
-                    trim_factor=0.3
+                    trim_factor=0.3,
                 )
 
                 alpha_values.append(result["eff_alpha"])
@@ -500,8 +496,12 @@ class TestStressValidation:
         # Physics-corrected SLOs
         assert chain_breaks == 0, f"Chain breaks: {chain_breaks} (must be 0)"
         assert quorum_losses == 0, f"Quorum losses: {quorum_losses} (must be 0)"
-        assert overflow_count == 0, f"Overflow events < 250d: {overflow_count} (must be 0)"
-        assert success_count >= 900, f"Success rate: {success_count/10:.1f}% (must be >= 90%)"
+        assert overflow_count == 0, (
+            f"Overflow events < 250d: {overflow_count} (must be 0)"
+        )
+        assert success_count >= 900, (
+            f"Success rate: {success_count / 10:.1f}% (must be >= 90%)"
+        )
         assert avg_alpha >= 2.70, f"Avg alpha: {avg_alpha:.4f} (must be >= 2.70)"
         assert min_alpha >= 2.65, f"Min alpha: {min_alpha:.4f} (must be >= 2.65)"
 
@@ -514,12 +514,14 @@ class TestSLOValidation:
         # Generate sweep results that meet SLOs
         sweep_results = []
         for i in range(100):
-            sweep_results.append({
-                "blackout_days": 250 + random.randint(-5, 5),
-                "eff_alpha": 2.78 + random.uniform(0, 0.05),
-                "survival_status": True,
-                "confidence_score": 0.87 + random.uniform(0, 0.1)
-            })
+            sweep_results.append(
+                {
+                    "blackout_days": 250 + random.randint(-5, 5),
+                    "eff_alpha": 2.78 + random.uniform(0, 0.05),
+                    "survival_status": True,
+                    "confidence_score": 0.87 + random.uniform(0, 0.1),
+                }
+            )
 
         validation = validate_pruning_slos(sweep_results)
 

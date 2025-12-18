@@ -20,6 +20,7 @@ import os
 from typing import Dict, Any, List
 
 from .core import emit_receipt, dual_hash, StopRule
+
 # Import all constants for use AND for backward-compatible re-export
 from .constants import (
     ENTROPY_ASYMPTOTE_E,
@@ -138,28 +139,30 @@ def load_gnn_cache_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, GNN_CACHE_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("gnn_cache_spec_ingest", {
-        "tenant_id": "axiom-gnn-cache",
-        "file_path": path,
-        "asymptote_alpha": data["asymptote_alpha"],
-        "min_eff_alpha_validated": data["min_eff_alpha_validated"],
-        "cache_depth_baseline": data["cache_depth_baseline"],
-        "overflow_threshold_days": data["overflow_threshold_days"],
-        "curve_type": data["curve_type"],
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "gnn_cache_spec_ingest",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            "file_path": path,
+            "asymptote_alpha": data["asymptote_alpha"],
+            "min_eff_alpha_validated": data["min_eff_alpha_validated"],
+            "cache_depth_baseline": data["cache_depth_baseline"],
+            "overflow_threshold_days": data["overflow_threshold_days"],
+            "curve_type": data["curve_type"],
+            "payload_hash": content_hash,
+        },
+    )
 
     return data
 
 
 def nonlinear_retention(
-    blackout_days: int,
-    cache_depth: int = CACHE_DEPTH_BASELINE
+    blackout_days: int, cache_depth: int = CACHE_DEPTH_BASELINE
 ) -> Dict[str, Any]:
     """Compute nonlinear retention with GNN predictive caching.
 
@@ -182,21 +185,29 @@ def nonlinear_retention(
     overflow_result = predict_overflow(blackout_days, cache_depth)
 
     if blackout_days > CACHE_BREAK_DAYS and cache_depth <= CACHE_DEPTH_BASELINE:
-        emit_receipt("overflow_stoprule", {
-            "tenant_id": "axiom-gnn-cache",
-            "blackout_days": blackout_days,
-            "cache_depth": cache_depth,
-            "overflow_pct": overflow_result["overflow_risk"],
-            "action": "halt",
-            "payload_hash": dual_hash(json.dumps({
+        emit_receipt(
+            "overflow_stoprule",
+            {
+                "tenant_id": "axiom-gnn-cache",
                 "blackout_days": blackout_days,
                 "cache_depth": cache_depth,
-                "overflow_pct": overflow_result["overflow_risk"]
-            }, sort_keys=True))
-        })
+                "overflow_pct": overflow_result["overflow_risk"],
+                "action": "halt",
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "blackout_days": blackout_days,
+                            "cache_depth": cache_depth,
+                            "overflow_pct": overflow_result["overflow_risk"],
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
         raise StopRule(
             f"Cache overflow at {blackout_days}d: "
-            f"{overflow_result['overflow_risk']*100:.1f}% > {OVERFLOW_CAPACITY_PCT*100:.0f}%"
+            f"{overflow_result['overflow_risk'] * 100:.1f}% > {OVERFLOW_CAPACITY_PCT * 100:.0f}%"
         )
 
     if blackout_days <= BLACKOUT_BASE_DAYS:
@@ -204,8 +215,10 @@ def nonlinear_retention(
     else:
         excess_days = blackout_days - BLACKOUT_BASE_DAYS
         decay = math.exp(-DECAY_LAMBDA * excess_days)
-        retention_factor = NONLINEAR_RETENTION_FLOOR + \
-            (RETENTION_BASE_FACTOR - NONLINEAR_RETENTION_FLOOR) * decay
+        retention_factor = (
+            NONLINEAR_RETENTION_FLOOR
+            + (RETENTION_BASE_FACTOR - NONLINEAR_RETENTION_FLOOR) * decay
+        )
         retention_factor = max(NONLINEAR_RETENTION_FLOOR, retention_factor)
 
     retention_factor = round(retention_factor, 4)
@@ -222,14 +235,17 @@ def nonlinear_retention(
         "curve_type": CURVE_TYPE,
         "gnn_boost": gnn_boost,
         "asymptote_proximity": round(asymptote_proximity, 4),
-        "model": "gnn_nonlinear"
+        "model": "gnn_nonlinear",
     }
 
-    emit_receipt("gnn_nonlinear", {
-        "tenant_id": "axiom-gnn-cache",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_nonlinear",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -239,7 +255,7 @@ def nonlinear_retention_with_pruning(
     cache_depth: int = CACHE_DEPTH_BASELINE,
     pruning_enabled: bool = True,
     trim_factor: float = 0.3,
-    ablation_mode: str = "full"
+    ablation_mode: str = "full",
 ) -> Dict[str, Any]:
     """Compute nonlinear retention with GNN caching and entropy pruning.
 
@@ -279,13 +295,16 @@ def nonlinear_retention_with_pruning(
             "target_alpha": ENTROPY_ASYMPTOTE_E,
             "overflow_threshold": CACHE_BREAK_DAYS,
             "ablation_mode": "baseline",
-            "model": "baseline_no_engineering"
+            "model": "baseline_no_engineering",
         }
-        emit_receipt("gnn_nonlinear_pruned", {
-            "tenant_id": "axiom-gnn-cache",
-            **result,
-            "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-        })
+        emit_receipt(
+            "gnn_nonlinear_pruned",
+            {
+                "tenant_id": "axiom-gnn-cache",
+                **result,
+                "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+            },
+        )
         return result
 
     if ablation_mode == "no_cache":
@@ -297,7 +316,9 @@ def nonlinear_retention_with_pruning(
     else:
         gnn_active = True
 
-    overflow_threshold = OVERFLOW_THRESHOLD_DAYS_PRUNED if pruning_enabled else CACHE_BREAK_DAYS
+    overflow_threshold = (
+        OVERFLOW_THRESHOLD_DAYS_PRUNED if pruning_enabled else CACHE_BREAK_DAYS
+    )
 
     overflow_result = predict_overflow(blackout_days, cache_depth)
 
@@ -307,22 +328,30 @@ def nonlinear_retention_with_pruning(
         effective_usage = overflow_result["overflow_risk"]
 
     if blackout_days > overflow_threshold and effective_usage >= OVERFLOW_CAPACITY_PCT:
-        emit_receipt("overflow_stoprule", {
-            "tenant_id": "axiom-gnn-cache",
-            "blackout_days": blackout_days,
-            "cache_depth": cache_depth,
-            "overflow_pct": effective_usage,
-            "pruning_enabled": pruning_enabled,
-            "action": "halt",
-            "payload_hash": dual_hash(json.dumps({
+        emit_receipt(
+            "overflow_stoprule",
+            {
+                "tenant_id": "axiom-gnn-cache",
                 "blackout_days": blackout_days,
                 "cache_depth": cache_depth,
-                "pruning_enabled": pruning_enabled
-            }, sort_keys=True))
-        })
+                "overflow_pct": effective_usage,
+                "pruning_enabled": pruning_enabled,
+                "action": "halt",
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "blackout_days": blackout_days,
+                            "cache_depth": cache_depth,
+                            "pruning_enabled": pruning_enabled,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
         raise StopRule(
             f"Cache overflow at {blackout_days}d (pruning={pruning_enabled}): "
-            f"{effective_usage*100:.1f}% > {OVERFLOW_CAPACITY_PCT*100:.0f}%"
+            f"{effective_usage * 100:.1f}% > {OVERFLOW_CAPACITY_PCT * 100:.0f}%"
         )
 
     if blackout_days <= BLACKOUT_BASE_DAYS:
@@ -330,8 +359,10 @@ def nonlinear_retention_with_pruning(
     else:
         excess_days = blackout_days - BLACKOUT_BASE_DAYS
         decay = math.exp(-DECAY_LAMBDA * excess_days)
-        retention_factor = NONLINEAR_RETENTION_FLOOR + \
-            (RETENTION_BASE_FACTOR - NONLINEAR_RETENTION_FLOOR) * decay
+        retention_factor = (
+            NONLINEAR_RETENTION_FLOOR
+            + (RETENTION_BASE_FACTOR - NONLINEAR_RETENTION_FLOOR) * decay
+        )
         retention_factor = max(NONLINEAR_RETENTION_FLOOR, retention_factor)
 
     retention_factor = round(retention_factor, 4)
@@ -344,11 +375,15 @@ def nonlinear_retention_with_pruning(
         pruning_boost = 0.0
 
     if ablation_mode == "no_cache":
-        eff_alpha = compute_asymptote_with_pruning(blackout_days, pruning_uplift=pruning_boost)
+        eff_alpha = compute_asymptote_with_pruning(
+            blackout_days, pruning_uplift=pruning_boost
+        )
         gnn_boost = 0.0
         retention_factor_gnn = 1.0
     else:
-        eff_alpha = compute_asymptote_with_pruning(blackout_days, pruning_uplift=pruning_boost)
+        eff_alpha = compute_asymptote_with_pruning(
+            blackout_days, pruning_uplift=pruning_boost
+        )
         gnn_boost = gnn_boost_factor(blackout_days)
         gnn_isolated = get_retention_factor_gnn_isolated(blackout_days)
         retention_factor_gnn = gnn_isolated["retention_factor_gnn"]
@@ -371,19 +406,23 @@ def nonlinear_retention_with_pruning(
         "target_alpha": target,
         "overflow_threshold": overflow_threshold,
         "ablation_mode": ablation_mode,
-        "model": "gnn_nonlinear_pruned" if pruning_enabled else "gnn_nonlinear"
+        "model": "gnn_nonlinear_pruned" if pruning_enabled else "gnn_nonlinear",
     }
 
-    emit_receipt("gnn_nonlinear_pruned", {
-        "tenant_id": "axiom-gnn-cache",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_nonlinear_pruned",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
 
 # === INNOVATION STUBS ===
+
 
 def quantum_relay_stub() -> Dict[str, Any]:
     """Placeholder for quantum communication relay innovation."""
@@ -392,13 +431,16 @@ def quantum_relay_stub() -> Dict[str, Any]:
         "potential_boost": "unknown",
         "description": "Quantum communication relay for reduced latency and extended range",
         "gate": "future_innovation",
-        "requires": "external_physics_validation"
+        "requires": "external_physics_validation",
     }
-    emit_receipt("quantum_relay_stub", {
-        "tenant_id": "axiom-gnn-cache",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "quantum_relay_stub",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
     return result
 
 
@@ -409,13 +451,16 @@ def swarm_autorepair_stub() -> Dict[str, Any]:
         "potential_boost": "unknown",
         "description": "Swarm ML auto-repair for distributed self-healing node failures",
         "gate": "future_innovation",
-        "potential": "extend_quorum_tolerance_beyond_2_3"
+        "potential": "extend_quorum_tolerance_beyond_2_3",
     }
-    emit_receipt("swarm_autorepair_stub", {
-        "tenant_id": "axiom-gnn-cache",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "swarm_autorepair_stub",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
     return result
 
 
@@ -425,21 +470,28 @@ def cosmos_sim_stub() -> Dict[str, Any]:
         "status": "not_available",
         "reason": "no_public_api",
         "description": "xAI Cosmos Mars simulation integration",
-        "availability": "no_public_real_time_mars_sim_product_dec_2025"
+        "availability": "no_public_real_time_mars_sim_product_dec_2025",
     }
-    emit_receipt("cosmos_sim_stub", {
-        "tenant_id": "axiom-gnn-cache",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "cosmos_sim_stub",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
     return result
 
 
 def get_gnn_cache_info() -> Dict[str, Any]:
     """Get GNN cache configuration info."""
     from .constants import (
-        CACHE_DEPTH_MIN, CACHE_DEPTH_MAX, OVERFLOW_THRESHOLD_DAYS,
-        QUORUM_FAIL_DAYS, ENTRIES_PER_SOL, SATURATION_KAPPA
+        CACHE_DEPTH_MIN,
+        CACHE_DEPTH_MAX,
+        OVERFLOW_THRESHOLD_DAYS,
+        QUORUM_FAIL_DAYS,
+        ENTRIES_PER_SOL,
+        SATURATION_KAPPA,
     )
 
     info = {
@@ -457,21 +509,22 @@ def get_gnn_cache_info() -> Dict[str, Any]:
         "nonlinear_retention_floor": NONLINEAR_RETENTION_FLOOR,
         "decay_lambda": DECAY_LAMBDA,
         "saturation_kappa": SATURATION_KAPPA,
-        "description": "GNN predictive caching with nonlinear retention curve"
+        "description": "GNN predictive caching with nonlinear retention curve",
     }
 
-    emit_receipt("gnn_cache_info", {
-        "tenant_id": "axiom-gnn-cache",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_cache_info",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
 
-def validate_gnn_nonlinear_slos(
-    sweep_results: List[Dict[str, Any]]
-) -> Dict[str, Any]:
+def validate_gnn_nonlinear_slos(sweep_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Validate GNN nonlinear SLOs.
 
     SLOs:
@@ -493,10 +546,11 @@ def validate_gnn_nonlinear_slos(
 
     # SLO 1: Asymptote proximity at 150d
     results_150d = [r for r in sweep_results if r.get("blackout_days") == 150]
-    asymptote_ok = all(
-        r.get("asymptote_proximity", 1.0) <= 0.02
-        for r in results_150d
-    ) if results_150d else True
+    asymptote_ok = (
+        all(r.get("asymptote_proximity", 1.0) <= 0.02 for r in results_150d)
+        if results_150d
+        else True
+    )
 
     # SLO 2: Survival to 150d
     results_under_150d = [r for r in sweep_results if r.get("blackout_days", 0) <= 150]
@@ -504,17 +558,22 @@ def validate_gnn_nonlinear_slos(
 
     # SLO 3: Overflow detection at 200d+
     results_200d_plus = [r for r in sweep_results if r.get("blackout_days", 0) >= 200]
-    overflow_detected = any(r.get("overflow_triggered", False) for r in results_200d_plus)
+    overflow_detected = any(
+        r.get("overflow_triggered", False) for r in results_200d_plus
+    )
 
     # SLO 4: No cliff behavior (check smooth degradation)
-    eff_alphas = [(r.get("blackout_days", 0), r.get("eff_alpha", 0))
-                  for r in sweep_results if "eff_alpha" in r]
+    eff_alphas = [
+        (r.get("blackout_days", 0), r.get("eff_alpha", 0))
+        for r in sweep_results
+        if "eff_alpha" in r
+    ]
     eff_alphas.sort(key=lambda x: x[0])
 
     no_cliff = True
     for i in range(1, len(eff_alphas)):
-        if eff_alphas[i][0] - eff_alphas[i-1][0] == 1:  # Consecutive days
-            drop = eff_alphas[i-1][1] - eff_alphas[i][1]
+        if eff_alphas[i][0] - eff_alphas[i - 1][0] == 1:  # Consecutive days
+            drop = eff_alphas[i - 1][1] - eff_alphas[i][1]
             if drop > 0.01:  # Max single-day drop
                 no_cliff = False
                 break
@@ -524,14 +583,17 @@ def validate_gnn_nonlinear_slos(
         "survival_to_150d": survival_to_150d,
         "overflow_detected_at_200d": overflow_detected,
         "no_cliff_behavior": no_cliff,
-        "validated": asymptote_ok and survival_to_150d and no_cliff
+        "validated": asymptote_ok and survival_to_150d and no_cliff,
     }
 
-    emit_receipt("gnn_nonlinear_slo_validation", {
-        "tenant_id": "axiom-gnn-cache",
-        **validation,
-        "payload_hash": dual_hash(json.dumps(validation, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_nonlinear_slo_validation",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **validation,
+            "payload_hash": dual_hash(json.dumps(validation, sort_keys=True)),
+        },
+    )
 
     return validation
 
@@ -546,7 +608,7 @@ _dynamic_config = {
     "gnn_layers": None,  # None means use default
     "lr_decay": None,
     "prune_aggressiveness": None,
-    "adaptive_depth_enabled": False
+    "adaptive_depth_enabled": False,
 }
 
 
@@ -571,18 +633,28 @@ def apply_dynamic_config(config: Dict[str, Any]) -> Dict[str, Any]:
 
     old_values = _dynamic_config.copy()
 
-    for key in ["gnn_layers", "lr_decay", "prune_aggressiveness", "adaptive_depth_enabled"]:
+    for key in [
+        "gnn_layers",
+        "lr_decay",
+        "prune_aggressiveness",
+        "adaptive_depth_enabled",
+    ]:
         if key in config:
             _dynamic_config[key] = config[key]
 
-    emit_receipt("dynamic_config_applied", {
-        "receipt_type": "dynamic_config_applied",
-        "tenant_id": "axiom-gnn-cache",
-        "old_config": {k: v for k, v in old_values.items() if v is not None},
-        "new_config": {k: v for k, v in _dynamic_config.items() if v is not None},
-        "source": config.get("source", "unknown"),
-        "payload_hash": dual_hash(json.dumps(_dynamic_config, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "dynamic_config_applied",
+        {
+            "receipt_type": "dynamic_config_applied",
+            "tenant_id": "axiom-gnn-cache",
+            "old_config": {k: v for k, v in old_values.items() if v is not None},
+            "new_config": {k: v for k, v in _dynamic_config.items() if v is not None},
+            "source": config.get("source", "unknown"),
+            "payload_hash": dual_hash(
+                json.dumps(_dynamic_config, sort_keys=True, default=str)
+            ),
+        },
+    )
 
     return old_values
 
@@ -598,8 +670,11 @@ def get_current_config() -> Dict[str, Any]:
         "lr_decay": _dynamic_config["lr_decay"],
         "prune_aggressiveness": _dynamic_config["prune_aggressiveness"],
         "adaptive_depth_enabled": _dynamic_config["adaptive_depth_enabled"],
-        "using_defaults": all(v is None for k, v in _dynamic_config.items()
-                              if k != "adaptive_depth_enabled")
+        "using_defaults": all(
+            v is None
+            for k, v in _dynamic_config.items()
+            if k != "adaptive_depth_enabled"
+        ),
     }
 
 
@@ -614,21 +689,24 @@ def reset_dynamic_config() -> None:
         "gnn_layers": None,
         "lr_decay": None,
         "prune_aggressiveness": None,
-        "adaptive_depth_enabled": False
+        "adaptive_depth_enabled": False,
     }
 
-    emit_receipt("dynamic_config_reset", {
-        "receipt_type": "dynamic_config_reset",
-        "tenant_id": "axiom-gnn-cache",
-        "reason": "reset_to_static",
-        "payload_hash": dual_hash(json.dumps({"reset": True}))
-    })
+    emit_receipt(
+        "dynamic_config_reset",
+        {
+            "receipt_type": "dynamic_config_reset",
+            "tenant_id": "axiom-gnn-cache",
+            "reason": "reset_to_static",
+            "payload_hash": dual_hash(json.dumps({"reset": True})),
+        },
+    )
 
 
 def nonlinear_retention_dynamic(
     blackout_days: int,
     cache_depth: int = CACHE_DEPTH_BASELINE,
-    dynamic_config: Dict[str, Any] = None
+    dynamic_config: Dict[str, Any] = None,
 ) -> Dict[str, Any]:
     """GNN nonlinear retention with dynamic configuration support.
 
@@ -657,9 +735,10 @@ def nonlinear_retention_dynamic(
         if gnn_delta > 0:
             # Each additional layer contributes 1.008-1.015x
             for _ in range(gnn_delta):
-                layer_boost = (RETENTION_FACTOR_GNN_RANGE[0] +
-                               RETENTION_FACTOR_GNN_RANGE[1]) / 2 - 1.0  # ~0.0115
-                base_result["retention_factor"] *= (1.0 + layer_boost)
+                layer_boost = (
+                    RETENTION_FACTOR_GNN_RANGE[0] + RETENTION_FACTOR_GNN_RANGE[1]
+                ) / 2 - 1.0  # ~0.0115
+                base_result["retention_factor"] *= 1.0 + layer_boost
                 base_result["gnn_boost"] += layer_boost
 
         # LR decay affects stability (higher LR = more variance)
@@ -672,12 +751,11 @@ def nonlinear_retention_dynamic(
         if prune_aggr is not None:
             # Pruning adds ~0.8% per 0.1 factor
             prune_boost = (prune_aggr - 0.3) * 0.08
-            base_result["retention_factor"] *= (1.0 + prune_boost)
+            base_result["retention_factor"] *= 1.0 + prune_boost
 
         # Cap retention at ceiling
         base_result["retention_factor"] = min(
-            RETENTION_FACTOR_MAX,
-            base_result["retention_factor"]
+            RETENTION_FACTOR_MAX, base_result["retention_factor"]
         )
 
         # Recompute alpha
@@ -687,24 +765,32 @@ def nonlinear_retention_dynamic(
         base_result["dynamic_params"] = {
             "gnn_layers_delta": gnn_delta,
             "lr_decay": lr_decay,
-            "prune_aggressiveness": prune_aggr
+            "prune_aggressiveness": prune_aggr,
         }
     else:
         base_result["dynamic_config_applied"] = False
 
-    emit_receipt("gnn_nonlinear_dynamic", {
-        "receipt_type": "gnn_nonlinear_dynamic",
-        "tenant_id": "axiom-gnn-cache",
-        "blackout_days": blackout_days,
-        "retention_factor": base_result["retention_factor"],
-        "eff_alpha": base_result["eff_alpha"],
-        "dynamic_config_applied": base_result["dynamic_config_applied"],
-        "payload_hash": dual_hash(json.dumps({
-            "days": blackout_days,
-            "retention": base_result["retention_factor"],
-            "alpha": base_result["eff_alpha"]
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_nonlinear_dynamic",
+        {
+            "receipt_type": "gnn_nonlinear_dynamic",
+            "tenant_id": "axiom-gnn-cache",
+            "blackout_days": blackout_days,
+            "retention_factor": base_result["retention_factor"],
+            "eff_alpha": base_result["eff_alpha"],
+            "dynamic_config_applied": base_result["dynamic_config_applied"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "days": blackout_days,
+                        "retention": base_result["retention_factor"],
+                        "alpha": base_result["eff_alpha"],
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return base_result
 
@@ -727,17 +813,20 @@ def get_gnn_cache_dynamic_info() -> Dict[str, Any]:
         "kill_list": [
             "Hard-coded layer counts",
             "Fixed LR values",
-            "Static prune factors"
+            "Static prune factors",
         ],
         "description_dynamic": "GNN cache with dynamic config support. "
-                               "Kill static baselines - go dynamic."
+        "Kill static baselines - go dynamic.",
     }
 
-    emit_receipt("gnn_cache_dynamic_info", {
-        "tenant_id": "axiom-gnn-cache",
-        **{k: v for k, v in info.items() if k not in ["description", "kill_list"]},
-        "payload_hash": dual_hash(json.dumps(current_config, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_cache_dynamic_info",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **{k: v for k, v in info.items() if k not in ["description", "kill_list"]},
+            "payload_hash": dual_hash(json.dumps(current_config, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -770,6 +859,7 @@ def query_adaptive_depth(tree_size_n: int, entropy_h: float = 0.5) -> int:
 
     try:
         from .adaptive_depth import compute_depth
+
         return compute_depth(tree_size_n, entropy_h)
     except ImportError:
         # Fallback if module not available
@@ -788,8 +878,7 @@ def set_adaptive_depth_enabled(enabled: bool) -> None:
 
 
 def check_gnn_rebuild_needed(
-    tree_size_n: int,
-    entropy_h: float = 0.5
+    tree_size_n: int, entropy_h: float = 0.5
 ) -> Dict[str, Any]:
     """Check if GNN needs rebuild due to depth change.
 
@@ -815,7 +904,7 @@ def check_gnn_rebuild_needed(
         "new_layers": new_layers,
         "tree_size_n": tree_size_n,
         "entropy_h": entropy_h,
-        "reason": None
+        "reason": None,
     }
 
     if _current_gnn_layers is None:
@@ -830,20 +919,28 @@ def check_gnn_rebuild_needed(
         result["reason"] = f"depth_change_{_current_gnn_layers}_to_{new_layers}"
 
         # Emit rebuild receipt
-        emit_receipt("gnn_rebuild", {
-            "receipt_type": "gnn_rebuild",
-            "tenant_id": "axiom-gnn-cache",
-            "old_layers": _current_gnn_layers,
-            "new_layers": new_layers,
-            "tree_size_n": tree_size_n,
-            "entropy_h": entropy_h,
-            "trigger": "adaptive_depth_change",
-            "payload_hash": dual_hash(json.dumps({
-                "old": _current_gnn_layers,
-                "new": new_layers,
-                "n": tree_size_n
-            }, sort_keys=True))
-        })
+        emit_receipt(
+            "gnn_rebuild",
+            {
+                "receipt_type": "gnn_rebuild",
+                "tenant_id": "axiom-gnn-cache",
+                "old_layers": _current_gnn_layers,
+                "new_layers": new_layers,
+                "tree_size_n": tree_size_n,
+                "entropy_h": entropy_h,
+                "trigger": "adaptive_depth_change",
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "old": _current_gnn_layers,
+                            "new": new_layers,
+                            "n": tree_size_n,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
 
         # Update current
         _current_gnn_layers = new_layers
@@ -878,15 +975,18 @@ def rebuild_gnn_layers(new_depth: int) -> Dict[str, Any]:
         "old_depth": old_depth,
         "new_depth": new_depth,
         "rebuild_status": "complete",
-        "layers_delta": new_depth - old_depth
+        "layers_delta": new_depth - old_depth,
     }
 
-    emit_receipt("gnn_rebuild_complete", {
-        "receipt_type": "gnn_rebuild_complete",
-        "tenant_id": "axiom-gnn-cache",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_rebuild_complete",
+        {
+            "receipt_type": "gnn_rebuild_complete",
+            "tenant_id": "axiom-gnn-cache",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 

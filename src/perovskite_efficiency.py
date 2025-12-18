@@ -54,18 +54,23 @@ def load_efficiency_config() -> Dict[str, Any]:
 
     result = {
         "moxie_baseline": eff_config.get("moxie_baseline", MOXIE_EFFICIENCY),
-        "perovskite_target": eff_config.get("perovskite_target", PEROVSKITE_SOLAR_EFF_TARGET),
+        "perovskite_target": eff_config.get(
+            "perovskite_target", PEROVSKITE_SOLAR_EFF_TARGET
+        ),
         "scaling_factor": eff_config.get("scaling_factor", EFFICIENCY_SCALING_FACTOR),
         "timeline_years": eff_config.get("timeline_years", DEFAULT_TIMELINE_YEARS),
     }
 
-    emit_receipt("perovskite_config", {
-        "receipt_type": "perovskite_config",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "perovskite_config",
+        {
+            "receipt_type": "perovskite_config",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -88,10 +93,7 @@ def compute_scaling_factor(current: float, target: float) -> float:
     return target / current
 
 
-def project_efficiency(
-    years: int,
-    growth_rate: float = 0.10
-) -> Dict[str, Any]:
+def project_efficiency(years: int, growth_rate: float = 0.10) -> Dict[str, Any]:
     """Project efficiency improvement over time.
 
     Uses compound growth model: efficiency = baseline * (1 + rate)^years
@@ -115,13 +117,15 @@ def project_efficiency(
         efficiency = baseline * ((1 + growth_rate) ** year)
         efficiency = min(efficiency, target)  # Cap at target
 
-        projections.append({
-            "year": year,
-            "efficiency": round(efficiency, 4),
-            "efficiency_pct": round(efficiency * 100, 2),
-            "scaling_vs_baseline": round(efficiency / baseline, 2),
-            "target_reached": efficiency >= target,
-        })
+        projections.append(
+            {
+                "year": year,
+                "efficiency": round(efficiency, 4),
+                "efficiency_pct": round(efficiency * 100, 2),
+                "scaling_vs_baseline": round(efficiency / baseline, 2),
+                "target_reached": efficiency >= target,
+            }
+        )
 
         if efficiency >= target:
             break
@@ -143,16 +147,19 @@ def project_efficiency(
         "target_achievable": target_year is not None,
     }
 
-    emit_receipt("efficiency_scaling", {
-        "receipt_type": "efficiency_scaling",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "baseline_efficiency": baseline,
-        "target_efficiency": target,
-        "growth_rate": growth_rate,
-        "target_year": target_year,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "efficiency_scaling",
+        {
+            "receipt_type": "efficiency_scaling",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "baseline_efficiency": baseline,
+            "target_efficiency": target,
+            "growth_rate": growth_rate,
+            "target_year": target_year,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -204,14 +211,17 @@ def get_perovskite_info() -> Dict[str, Any]:
         "description": "Efficiency scaling from MOXIE 6% to perovskite 20% (stub)",
     }
 
-    emit_receipt("perovskite_info", {
-        "receipt_type": "perovskite_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": info["version"],
-        "stub_mode": info["stub_mode"],
-        "target_achievable": info["validation"]["target_achievable"],
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "perovskite_info",
+        {
+            "receipt_type": "perovskite_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "stub_mode": info["stub_mode"],
+            "target_achievable": info["validation"]["target_achievable"],
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info

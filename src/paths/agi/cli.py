@@ -113,7 +113,9 @@ def cmd_agi_ethics(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     for dim, score in result["dimension_scores"].items():
         print(f"  {dim}: {score:.2f}")
     print(f"\nAggregate score: {result['aggregate_score']:.2f}")
-    print(f"Passes threshold ({result['threshold']}): {'YES' if result['passes_threshold'] else 'NO'}")
+    print(
+        f"Passes threshold ({result['threshold']}): {'YES' if result['passes_threshold'] else 'NO'}"
+    )
     print("\n[STUB MODE - Full evaluation pending]")
 
     return result
@@ -133,11 +135,14 @@ def cmd_agi_alignment(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         args = {}
 
     # Default stub receipts
-    receipts = args.get("receipts", [
-        {"type": "action", "data": "test1"},
-        {"type": "action", "data": "test2"},
-        {"type": "decision", "data": "test3"}
-    ])
+    receipts = args.get(
+        "receipts",
+        [
+            {"type": "action", "data": "test1"},
+            {"type": "action", "data": "test2"},
+            {"type": "decision", "data": "test3"},
+        ],
+    )
 
     alignment = compute_alignment(receipts)
 

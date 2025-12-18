@@ -27,6 +27,7 @@ import random
 from typing import Dict, Any
 
 from .core import emit_receipt, dual_hash, StopRule
+
 # Import all constants for use AND for backward-compatible re-export
 from .constants import (
     ENTROPY_ASYMPTOTE_E,
@@ -115,29 +116,30 @@ def load_entropy_pruning_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, ENTROPY_PRUNING_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("entropy_pruning_spec_ingest", {
-        "tenant_id": "axiom-pruning",
-        "file_path": path,
-        "entropy_asymptote_e": data["entropy_asymptote_e"],
-        "pruning_target_alpha": data["pruning_target_alpha"],
-        "blackout_pruning_target_days": data["blackout_pruning_target_days"],
-        "overflow_threshold_pruned_days": data["overflow_threshold_pruned_days"],
-        "ln_n_trim_factor_base": data["ln_n_trim_factor_base"],
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "entropy_pruning_spec_ingest",
+        {
+            "tenant_id": "axiom-pruning",
+            "file_path": path,
+            "entropy_asymptote_e": data["entropy_asymptote_e"],
+            "pruning_target_alpha": data["pruning_target_alpha"],
+            "blackout_pruning_target_days": data["blackout_pruning_target_days"],
+            "overflow_threshold_pruned_days": data["overflow_threshold_pruned_days"],
+            "ln_n_trim_factor_base": data["ln_n_trim_factor_base"],
+            "payload_hash": content_hash,
+        },
+    )
 
     return data
 
 
 def compute_alpha_uplift(
-    entropy_before: float,
-    entropy_after: float,
-    base_alpha: float = ENTROPY_ASYMPTOTE_E
+    entropy_before: float, entropy_after: float, base_alpha: float = ENTROPY_ASYMPTOTE_E
 ) -> float:
     """Compute alpha uplift from entropy reduction.
 
@@ -172,20 +174,24 @@ def stoprule_over_prune(trim_factor: float) -> None:
         StopRule: If trim_factor > 0.6
     """
     if trim_factor > OVER_PRUNE_STOPRULE_THRESHOLD:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-pruning",
-            "metric": "trim_factor",
-            "baseline": OVER_PRUNE_STOPRULE_THRESHOLD,
-            "delta": trim_factor - OVER_PRUNE_STOPRULE_THRESHOLD,
-            "classification": "violation",
-            "action": "halt"
-        })
-        raise StopRule(f"Over-prune: trim_factor {trim_factor} > {OVER_PRUNE_STOPRULE_THRESHOLD} threshold")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-pruning",
+                "metric": "trim_factor",
+                "baseline": OVER_PRUNE_STOPRULE_THRESHOLD,
+                "delta": trim_factor - OVER_PRUNE_STOPRULE_THRESHOLD,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
+        raise StopRule(
+            f"Over-prune: trim_factor {trim_factor} > {OVER_PRUNE_STOPRULE_THRESHOLD} threshold"
+        )
 
 
 def get_retention_factor_prune_isolated(
-    merkle_tree: Dict[str, Any],
-    trim_factor: float = LN_N_TRIM_FACTOR_BASE
+    merkle_tree: Dict[str, Any], trim_factor: float = LN_N_TRIM_FACTOR_BASE
 ) -> Dict[str, Any]:
     """Get isolated pruning retention factor contribution.
 
@@ -210,8 +216,12 @@ def get_retention_factor_prune_isolated(
         size_factor = min(1.0, math.log(max(1, n_leaves)) / 10)
         trim_factor_normalized = trim_factor / LN_N_TRIM_FACTOR_MAX
 
-        retention_factor_prune = min_retention + (size_factor * trim_factor_normalized * retention_range)
-        retention_factor_prune = round(min(max_retention, max(min_retention, retention_factor_prune)), 4)
+        retention_factor_prune = min_retention + (
+            size_factor * trim_factor_normalized * retention_range
+        )
+        retention_factor_prune = round(
+            min(max_retention, max(min_retention, retention_factor_prune)), 4
+        )
 
     contribution_pct = round((retention_factor_prune - 1.0) * 100, 3)
 
@@ -221,14 +231,17 @@ def get_retention_factor_prune_isolated(
         "retention_factor_prune": retention_factor_prune,
         "contribution_pct": contribution_pct,
         "range_expected": RETENTION_FACTOR_PRUNE_RANGE,
-        "layer": "pruning"
+        "layer": "pruning",
     }
 
-    emit_receipt("retention_prune_isolated", {
-        "tenant_id": "axiom-pruning",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "retention_prune_isolated",
+        {
+            "tenant_id": "axiom-pruning",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -237,7 +250,7 @@ def entropy_prune(
     merkle_tree: Dict[str, Any],
     trim_factor: float = LN_N_TRIM_FACTOR_BASE,
     hybrid: bool = True,
-    ablation_mode: str = "full"
+    ablation_mode: str = "full",
 ) -> Dict[str, Any]:
     """Orchestrate two-phase entropy pruning.
 
@@ -260,7 +273,9 @@ def entropy_prune(
     """
     # Handle ablation modes
     if ablation_mode == "baseline" or ablation_mode == "no_prune":
-        original_root = merkle_tree.get("root", dual_hash(json.dumps(merkle_tree, sort_keys=True)))
+        original_root = merkle_tree.get(
+            "root", dual_hash(json.dumps(merkle_tree, sort_keys=True))
+        )
         result = {
             "pruned_tree": merkle_tree,
             "merkle_root_before": original_root[:32],
@@ -276,22 +291,30 @@ def entropy_prune(
             "predictive_pruned": 0,
             "confidence_score": 0.0,
             "retention_factor_prune": 1.0,
-            "ablation_mode": ablation_mode
+            "ablation_mode": ablation_mode,
         }
-        emit_receipt("entropy_pruning", {
-            "tenant_id": "axiom-pruning",
-            "receipt_type": "entropy_pruning",
-            **{k: v for k, v in result.items() if k != "pruned_tree"},
-            "payload_hash": dual_hash(
-                json.dumps({k: v for k, v in result.items() if k != "pruned_tree"}, sort_keys=True)
-            )
-        })
+        emit_receipt(
+            "entropy_pruning",
+            {
+                "tenant_id": "axiom-pruning",
+                "receipt_type": "entropy_pruning",
+                **{k: v for k, v in result.items() if k != "pruned_tree"},
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {k: v for k, v in result.items() if k != "pruned_tree"},
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
         return result
 
     # Validate trim factor
     stoprule_over_prune(trim_factor)
 
-    original_root = merkle_tree.get("root", dual_hash(json.dumps(merkle_tree, sort_keys=True)))
+    original_root = merkle_tree.get(
+        "root", dual_hash(json.dumps(merkle_tree, sort_keys=True))
+    )
     original_leaves = merkle_tree.get("leaves", [])
     original_count = len(original_leaves)
 
@@ -304,11 +327,15 @@ def entropy_prune(
 
     # Phase 2: Predictive pruning (if hybrid enabled)
     if hybrid:
-        entropy_class = classify_leaf_entropy(phase1_tree, ENTROPY_PRUNE_THRESHOLD * trim_factor)
+        entropy_class = classify_leaf_entropy(
+            phase1_tree, ENTROPY_PRUNE_THRESHOLD * trim_factor
+        )
         predictions = generate_gnn_predictions(phase1_tree, entropy_class)
 
         try:
-            pred_result = predictive_prune(phase1_tree, predictions, ENTROPY_PRUNE_THRESHOLD * trim_factor)
+            pred_result = predictive_prune(
+                phase1_tree, predictions, ENTROPY_PRUNE_THRESHOLD * trim_factor
+            )
             final_tree = pred_result["pruned_tree"]
             predictive_branches = pred_result["branches_pruned"]
             confidence_score = pred_result["confidence_score"]
@@ -322,13 +349,19 @@ def entropy_prune(
         confidence_score = 0.0
 
     # Compute final entropy
-    entropy_after = sum(compute_leaf_entropy(leaf) for leaf in final_tree.get("leaves", []))
+    entropy_after = sum(
+        compute_leaf_entropy(leaf) for leaf in final_tree.get("leaves", [])
+    )
 
     # Compute pruned root
     pruned_root = dual_hash(json.dumps(final_tree, sort_keys=True))
 
     # Verify integrity
-    proof_paths = [leaf for leaf in final_tree.get("leaves", []) if leaf.get("is_proof_path") or leaf.get("audit_path")]
+    proof_paths = [
+        leaf
+        for leaf in final_tree.get("leaves", [])
+        if leaf.get("is_proof_path") or leaf.get("audit_path")
+    ]
     if not proof_paths:
         proof_paths = final_tree.get("leaves", [])[:MIN_PROOF_PATHS_RETAINED]
 
@@ -340,7 +373,9 @@ def entropy_prune(
     prune_isolated = get_retention_factor_prune_isolated(merkle_tree, trim_factor)
     retention_factor_prune = prune_isolated["retention_factor_prune"]
     branches_pruned = original_count - len(final_tree.get("leaves", []))
-    entropy_reduction_pct = round((entropy_before - entropy_after) / max(0.001, entropy_before) * 100, 2)
+    entropy_reduction_pct = round(
+        (entropy_before - entropy_after) / max(0.001, entropy_before) * 100, 2
+    )
 
     result = {
         "pruned_tree": final_tree,
@@ -357,38 +392,45 @@ def entropy_prune(
         "predictive_pruned": predictive_branches,
         "confidence_score": confidence_score,
         "retention_factor_prune": retention_factor_prune,
-        "ablation_mode": ablation_mode
+        "ablation_mode": ablation_mode,
     }
 
-    emit_receipt("entropy_pruning", {
-        "tenant_id": "axiom-pruning",
-        "receipt_type": "entropy_pruning",
-        "merkle_root_before": original_root[:32],
-        "merkle_root_after": pruned_root[:32],
-        "branches_pruned": branches_pruned,
-        "entropy_before": round(entropy_before, 4),
-        "entropy_after": round(entropy_after, 4),
-        "entropy_reduction_pct": entropy_reduction_pct,
-        "alpha_uplift": alpha_uplift,
-        "trim_factor_used": trim_factor,
-        "hybrid_enabled": hybrid,
-        "retention_factor_prune": retention_factor_prune,
-        "ablation_mode": ablation_mode,
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "entropy_pruning",
+        {
+            "tenant_id": "axiom-pruning",
+            "receipt_type": "entropy_pruning",
             "merkle_root_before": original_root[:32],
             "merkle_root_after": pruned_root[:32],
             "branches_pruned": branches_pruned,
+            "entropy_before": round(entropy_before, 4),
+            "entropy_after": round(entropy_after, 4),
+            "entropy_reduction_pct": entropy_reduction_pct,
             "alpha_uplift": alpha_uplift,
-            "retention_factor_prune": retention_factor_prune
-        }, sort_keys=True))
-    })
+            "trim_factor_used": trim_factor,
+            "hybrid_enabled": hybrid,
+            "retention_factor_prune": retention_factor_prune,
+            "ablation_mode": ablation_mode,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "merkle_root_before": original_root[:32],
+                        "merkle_root_after": pruned_root[:32],
+                        "branches_pruned": branches_pruned,
+                        "alpha_uplift": alpha_uplift,
+                        "retention_factor_prune": retention_factor_prune,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
 
 def extended_250d_projection(
-    base_projection: Dict[str, Any],
-    pruning_result: Dict[str, Any]
+    base_projection: Dict[str, Any], pruning_result: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Project sovereignty timeline to 250d with pruning.
 
@@ -416,23 +458,28 @@ def extended_250d_projection(
         "blackout_days": BLACKOUT_PRUNING_TARGET_DAYS,
         "overflow_threshold": OVERFLOW_THRESHOLD_DAYS_PRUNED,
         "overflow_margin": overflow_margin,
-        "pruning_enabled": True
+        "pruning_enabled": True,
     }
 
-    emit_receipt("extended_250d", {
-        "tenant_id": "axiom-pruning",
-        "receipt_type": "extended_250d",
-        "blackout_days": BLACKOUT_PRUNING_TARGET_DAYS,
-        "eff_alpha": enhanced_alpha,
-        "pruning_enabled": True,
-        "overflow_margin": overflow_margin,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "extended_250d",
+        {
+            "tenant_id": "axiom-pruning",
+            "receipt_type": "extended_250d",
+            "blackout_days": BLACKOUT_PRUNING_TARGET_DAYS,
+            "eff_alpha": enhanced_alpha,
+            "pruning_enabled": True,
+            "overflow_margin": overflow_margin,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
 
-def generate_sample_merkle_tree(n_leaves: int = 100, duplicate_ratio: float = 0.2) -> Dict[str, Any]:
+def generate_sample_merkle_tree(
+    n_leaves: int = 100, duplicate_ratio: float = 0.2
+) -> Dict[str, Any]:
     """Generate a sample Merkle tree for testing.
 
     Args:
@@ -452,7 +499,7 @@ def generate_sample_merkle_tree(n_leaves: int = 100, duplicate_ratio: float = 0.
                 "id": f"leaf_{i}",
                 "type": "telemetry",
                 "data": {"metric": f"metric_{i % 10}", "value": i},
-                "is_proof_path": i < MIN_PROOF_PATHS_RETAINED
+                "is_proof_path": i < MIN_PROOF_PATHS_RETAINED,
             }
         else:
             leaf = {
@@ -461,9 +508,9 @@ def generate_sample_merkle_tree(n_leaves: int = 100, duplicate_ratio: float = 0.
                 "data": {
                     "decision_id": f"dec_{i}",
                     "payload": os.urandom(32).hex(),
-                    "timestamp": f"2025-01-{(i % 28) + 1:02d}T00:00:00Z"
+                    "timestamp": f"2025-01-{(i % 28) + 1:02d}T00:00:00Z",
                 },
-                "is_proof_path": i < MIN_PROOF_PATHS_RETAINED
+                "is_proof_path": i < MIN_PROOF_PATHS_RETAINED,
             }
         leaves.append(leaf)
 
@@ -481,7 +528,7 @@ def generate_sample_merkle_tree(n_leaves: int = 100, duplicate_ratio: float = 0.
         "root": dual_hash(json.dumps(leaves, sort_keys=True)),
         "leaves": leaves,
         "leaf_count": len(leaves),
-        "created_at": "2025-01-01T00:00:00Z"
+        "created_at": "2025-01-01T00:00:00Z",
     }
 
     return tree
@@ -504,14 +551,17 @@ def get_pruning_info() -> Dict[str, Any]:
         "ln_n_trim_factor_max": LN_N_TRIM_FACTOR_MAX,
         "entropy_prune_threshold": ENTROPY_PRUNE_THRESHOLD,
         "min_proof_paths_retained": MIN_PROOF_PATHS_RETAINED,
-        "description": "Two-phase Merkle entropy pruning: deterministic dedup + GNN-predicted trimming"
+        "description": "Two-phase Merkle entropy pruning: deterministic dedup + GNN-predicted trimming",
     }
 
-    emit_receipt("pruning_info", {
-        "tenant_id": "axiom-pruning",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "pruning_info",
+        {
+            "tenant_id": "axiom-pruning",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -545,18 +595,22 @@ def apply_dynamic_aggressiveness(aggr: float) -> float:
     old_value = _dynamic_aggressiveness
     _dynamic_aggressiveness = clamped
 
-    emit_receipt("dynamic_aggressiveness_applied", {
-        "receipt_type": "dynamic_aggressiveness_applied",
-        "tenant_id": "axiom-pruning",
-        "old_value": old_value if old_value is not None else LN_N_TRIM_FACTOR_BASE,
-        "new_value": clamped,
-        "clamped_from": aggr,
-        "source": "rl",
-        "payload_hash": dual_hash(json.dumps({
-            "old": old_value,
-            "new": clamped
-        }, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "dynamic_aggressiveness_applied",
+        {
+            "receipt_type": "dynamic_aggressiveness_applied",
+            "tenant_id": "axiom-pruning",
+            "old_value": old_value if old_value is not None else LN_N_TRIM_FACTOR_BASE,
+            "new_value": clamped,
+            "clamped_from": aggr,
+            "source": "rl",
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"old": old_value, "new": clamped}, sort_keys=True, default=str
+                )
+            ),
+        },
+    )
 
     return old_value if old_value is not None else LN_N_TRIM_FACTOR_BASE
 
@@ -580,20 +634,23 @@ def reset_dynamic_aggressiveness() -> None:
     global _dynamic_aggressiveness
     _dynamic_aggressiveness = None
 
-    emit_receipt("dynamic_aggressiveness_reset", {
-        "receipt_type": "dynamic_aggressiveness_reset",
-        "tenant_id": "axiom-pruning",
-        "reason": "reset_to_static",
-        "default_value": LN_N_TRIM_FACTOR_BASE,
-        "payload_hash": dual_hash(json.dumps({"reset": True}))
-    })
+    emit_receipt(
+        "dynamic_aggressiveness_reset",
+        {
+            "receipt_type": "dynamic_aggressiveness_reset",
+            "tenant_id": "axiom-pruning",
+            "reason": "reset_to_static",
+            "default_value": LN_N_TRIM_FACTOR_BASE,
+            "payload_hash": dual_hash(json.dumps({"reset": True})),
+        },
+    )
 
 
 def entropy_prune_dynamic(
     merkle_tree: Dict[str, Any],
     dynamic_config: Dict[str, Any] = None,
     hybrid: bool = True,
-    ablation_mode: str = "full"
+    ablation_mode: str = "full",
 ) -> Dict[str, Any]:
     """Entropy pruning with dynamic configuration support.
 
@@ -631,19 +688,27 @@ def entropy_prune_dynamic(
     result["dynamic_config_applied"] = dynamic_applied
     result["dynamic_trim_factor"] = trim_factor if dynamic_applied else None
 
-    emit_receipt("entropy_prune_dynamic", {
-        "receipt_type": "entropy_prune_dynamic",
-        "tenant_id": "axiom-pruning",
-        "trim_factor": trim_factor,
-        "dynamic_config_applied": dynamic_applied,
-        "branches_pruned": result["branches_pruned"],
-        "alpha_uplift": result["alpha_uplift"],
-        "payload_hash": dual_hash(json.dumps({
-            "trim": trim_factor,
-            "dynamic": dynamic_applied,
-            "pruned": result["branches_pruned"]
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "entropy_prune_dynamic",
+        {
+            "receipt_type": "entropy_prune_dynamic",
+            "tenant_id": "axiom-pruning",
+            "trim_factor": trim_factor,
+            "dynamic_config_applied": dynamic_applied,
+            "branches_pruned": result["branches_pruned"],
+            "alpha_uplift": result["alpha_uplift"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "trim": trim_factor,
+                        "dynamic": dynamic_applied,
+                        "pruned": result["branches_pruned"],
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
@@ -663,20 +728,26 @@ def get_pruning_dynamic_info() -> Dict[str, Any]:
         **base_info,
         "current_aggressiveness": current_aggr,
         "dynamic_mode": _dynamic_aggressiveness is not None,
-        "kill_list": [
-            "Fixed trim_factor defaults"
-        ],
+        "kill_list": ["Fixed trim_factor defaults"],
         "description_dynamic": "Entropy pruning with dynamic aggressiveness support. "
-                               "Kill static baselines - go dynamic."
+        "Kill static baselines - go dynamic.",
     }
 
-    emit_receipt("pruning_dynamic_info", {
-        "tenant_id": "axiom-pruning",
-        **{k: v for k, v in info.items() if k not in ["description", "kill_list"]},
-        "payload_hash": dual_hash(json.dumps({
-            "current_aggr": current_aggr,
-            "dynamic_mode": info["dynamic_mode"]
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "pruning_dynamic_info",
+        {
+            "tenant_id": "axiom-pruning",
+            **{k: v for k, v in info.items() if k not in ["description", "kill_list"]},
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "current_aggr": current_aggr,
+                        "dynamic_mode": info["dynamic_mode"],
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return info

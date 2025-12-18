@@ -30,6 +30,7 @@ REGISTRY_TENANT_ID = "axiom-registry"
 
 # === DISCOVERY FUNCTIONS ===
 
+
 def discover_paths() -> List[str]:
     """Auto-discover paths in src/paths/.
 
@@ -62,12 +63,15 @@ def discover_paths() -> List[str]:
         if has_init and has_spec and has_core:
             discovered.append(name)
 
-    emit_receipt("paths_discovered", {
-        "tenant_id": REGISTRY_TENANT_ID,
-        "discovered_paths": discovered,
-        "count": len(discovered),
-        "registered_paths": REGISTERED_PATHS
-    })
+    emit_receipt(
+        "paths_discovered",
+        {
+            "tenant_id": REGISTRY_TENANT_ID,
+            "discovered_paths": discovered,
+            "count": len(discovered),
+            "registered_paths": REGISTERED_PATHS,
+        },
+    )
 
     return discovered
 
@@ -91,7 +95,7 @@ def validate_registry() -> Dict[str, Any]:
         "missing": missing,
         "extra": extra,
         "valid": len(missing) == 0,
-        "tenant_id": REGISTRY_TENANT_ID
+        "tenant_id": REGISTRY_TENANT_ID,
     }
 
     emit_receipt("registry_validation", result)
@@ -100,10 +104,9 @@ def validate_registry() -> Dict[str, Any]:
 
 # === ROUTING FUNCTIONS ===
 
+
 def route_to_path(
-    path: str,
-    command: str,
-    args: Optional[Dict[str, Any]] = None
+    path: str, command: str, args: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Route CLI command to path module.
 
@@ -144,13 +147,16 @@ def route_to_path(
     handler = getattr(cli_module, cmd_name)
 
     # Execute command
-    emit_receipt("path_command_routed", {
-        "tenant_id": REGISTRY_TENANT_ID,
-        "path": path,
-        "command": command,
-        "args": args or {},
-        "handler": cmd_name
-    })
+    emit_receipt(
+        "path_command_routed",
+        {
+            "tenant_id": REGISTRY_TENANT_ID,
+            "path": path,
+            "command": command,
+            "args": args or {},
+            "handler": cmd_name,
+        },
+    )
 
     if args:
         return handler(args)
@@ -188,20 +194,24 @@ def get_path_commands(path: str) -> List[str]:
             # Extract command name
             cmd_name = name[4:]  # Remove "cmd_" prefix
             if cmd_name.startswith(f"{path}_"):
-                cmd_name = cmd_name[len(path) + 1:]  # Remove path prefix
+                cmd_name = cmd_name[len(path) + 1 :]  # Remove path prefix
             commands.append(cmd_name)
 
-    emit_receipt("path_commands_listed", {
-        "tenant_id": REGISTRY_TENANT_ID,
-        "path": path,
-        "commands": commands,
-        "count": len(commands)
-    })
+    emit_receipt(
+        "path_commands_listed",
+        {
+            "tenant_id": REGISTRY_TENANT_ID,
+            "path": path,
+            "commands": commands,
+            "count": len(commands),
+        },
+    )
 
     return commands
 
 
 # === RECEIPT AGGREGATION ===
+
 
 def aggregate_receipts(paths: Optional[List[str]] = None) -> Dict[str, Any]:
     """Collect receipts across paths.
@@ -234,7 +244,7 @@ def aggregate_receipts(paths: Optional[List[str]] = None) -> Dict[str, Any]:
         "paths_queried": paths,
         "receipts_by_path": receipts_by_path,
         "total_receipt_types": total_receipts,
-        "ts": datetime.utcnow().isoformat() + "Z"
+        "ts": datetime.utcnow().isoformat() + "Z",
     }
 
     emit_receipt("receipts_aggregated", result)
@@ -262,7 +272,7 @@ def get_registry_info() -> Dict[str, Any]:
         "path_statuses": {
             path: status.get("status", "unknown")
             for path, status in all_status.get("paths", {}).items()
-        }
+        },
     }
 
     emit_receipt("registry_info", info)

@@ -170,7 +170,11 @@ class TestCrossScaleCorrelation:
         """Test correlation is included in multi_scale_fractal result."""
         result = multi_scale_fractal(1_000_000, 2.99)
         assert "cross_scale_corr" in result
-        assert CROSS_SCALE_CORRELATION_MIN <= result["cross_scale_corr"] <= CROSS_SCALE_CORRELATION_MAX
+        assert (
+            CROSS_SCALE_CORRELATION_MIN
+            <= result["cross_scale_corr"]
+            <= CROSS_SCALE_CORRELATION_MAX
+        )
 
 
 # === HYBRID COMBINATION TESTS (5) ===
@@ -253,7 +257,7 @@ class TestReceipts:
         quantum_fractal_hybrid(state, fractal_result)
         captured = capsys.readouterr()
         # Parse the JSON receipt
-        receipt_str = captured.out.strip().split('\n')[-1]
+        receipt_str = captured.out.strip().split("\n")[-1]
         receipt = json.loads(receipt_str)
         assert receipt["receipt_type"] == "quantum_fractal_hybrid"
         assert "quantum_contribution" in receipt

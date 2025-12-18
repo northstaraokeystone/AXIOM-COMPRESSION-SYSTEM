@@ -48,6 +48,7 @@ class SovereigntyConfig:
         bandwidth_mbps: Communication bandwidth (default 2.0 Mbps minimum)
         delay_s: One-way light delay (default 480s = 8 min average)
     """
+
     crew: int
     compute_flops: float = 0.0
     bandwidth_mbps: float = 2.0
@@ -65,6 +66,7 @@ class SovereigntyResult:
         sovereign: True if advantage > 0
         threshold_crew: Crew where advantage crosses zero (if computed)
     """
+
     internal_rate: float
     external_rate: float
     advantage: float
@@ -95,10 +97,7 @@ def compute_sovereignty(config: SovereigntyConfig) -> SovereigntyResult:
     sov = is_sovereign(adv)
 
     return SovereigntyResult(
-        internal_rate=ir,
-        external_rate=er,
-        advantage=adv,
-        sovereign=sov
+        internal_rate=ir, external_rate=er, advantage=adv, sovereign=sov
     )
 
 
@@ -106,7 +105,7 @@ def find_threshold(
     bandwidth_mbps: float = 2.0,
     delay_s: float = 480.0,
     compute_flops: float = 0.0,
-    max_crew: int = 500
+    max_crew: int = 500,
 ) -> int:
     """Binary search for crew where sovereign=True.
 
@@ -128,7 +127,7 @@ def find_threshold(
         crew=max_crew,
         compute_flops=compute_flops,
         bandwidth_mbps=bandwidth_mbps,
-        delay_s=delay_s
+        delay_s=delay_s,
     )
     result = compute_sovereignty(config)
 
@@ -145,7 +144,7 @@ def find_threshold(
             crew=mid,
             compute_flops=compute_flops,
             bandwidth_mbps=bandwidth_mbps,
-            delay_s=delay_s
+            delay_s=delay_s,
         )
         result = compute_sovereignty(config)
 
@@ -163,7 +162,7 @@ def sensitivity_analysis(
     steps: int = 20,
     base_bandwidth: float = 2.0,
     base_delay: float = 480.0,
-    base_compute: float = 0.0
+    base_compute: float = 0.0,
 ) -> List[Tuple[float, int]]:
     """Vary one parameter, return (param_value, threshold) pairs.
 
@@ -192,21 +191,15 @@ def sensitivity_analysis(
 
         if param == "bandwidth":
             threshold = find_threshold(
-                bandwidth_mbps=val,
-                delay_s=base_delay,
-                compute_flops=base_compute
+                bandwidth_mbps=val, delay_s=base_delay, compute_flops=base_compute
             )
         elif param == "delay":
             threshold = find_threshold(
-                bandwidth_mbps=base_bandwidth,
-                delay_s=val,
-                compute_flops=base_compute
+                bandwidth_mbps=base_bandwidth, delay_s=val, compute_flops=base_compute
             )
         elif param == "compute":
             threshold = find_threshold(
-                bandwidth_mbps=base_bandwidth,
-                delay_s=base_delay,
-                compute_flops=val
+                bandwidth_mbps=base_bandwidth, delay_s=base_delay, compute_flops=val
             )
         else:
             raise ValueError(f"Unknown parameter: {param}")
@@ -223,20 +216,24 @@ def emit_sovereignty_receipt(config: SovereigntyConfig) -> dict:
     """
     result = compute_sovereignty(config)
 
-    return emit_receipt("sovereignty_calculation", {
-        "tenant_id": "axiom-core",
-        "crew": config.crew,
-        "compute_flops": config.compute_flops,
-        "bandwidth_mbps": config.bandwidth_mbps,
-        "delay_s": config.delay_s,
-        "internal_rate": result.internal_rate,
-        "external_rate": result.external_rate,
-        "advantage": result.advantage,
-        "sovereign": result.sovereign
-    })
+    return emit_receipt(
+        "sovereignty_calculation",
+        {
+            "tenant_id": "axiom-core",
+            "crew": config.crew,
+            "compute_flops": config.compute_flops,
+            "bandwidth_mbps": config.bandwidth_mbps,
+            "delay_s": config.delay_s,
+            "internal_rate": result.internal_rate,
+            "external_rate": result.external_rate,
+            "advantage": result.advantage,
+            "sovereign": result.sovereign,
+        },
+    )
 
 
 # === EXPONENTIAL DECAY MODEL (v1.1 - Grok feedback Dec 16, 2025) ===
+
 
 @dataclass
 class SovereigntyResultExp:
@@ -244,6 +241,7 @@ class SovereigntyResultExp:
 
     Extends SovereigntyResult with decay parameters.
     """
+
     internal_rate: float
     external_rate_linear: float
     external_rate_exp: float
@@ -257,8 +255,7 @@ class SovereigntyResultExp:
 
 
 def compute_sovereignty_exponential(
-    config: SovereigntyConfig,
-    tau_s: float = TAU_DECISION_DECAY_S
+    config: SovereigntyConfig, tau_s: float = TAU_DECISION_DECAY_S
 ) -> SovereigntyResultExp:
     """Compute sovereignty using BOTH linear and exponential decay models.
 
@@ -283,11 +280,7 @@ def compute_sovereignty_exponential(
     sov_linear = is_sovereign(adv_linear)
 
     # Exponential decay model (Grok suggestion)
-    er_exp = external_rate_exponential(
-        config.bandwidth_mbps,
-        config.delay_s,
-        tau_s
-    )
+    er_exp = external_rate_exponential(config.bandwidth_mbps, config.delay_s, tau_s)
     adv_exp = sovereignty_advantage(ir, er_exp)
     sov_exp = is_sovereign(adv_exp)
 
@@ -303,7 +296,7 @@ def compute_sovereignty_exponential(
         sovereign_linear=sov_linear,
         sovereign_exp=sov_exp,
         tau_s=tau_s,
-        decay_factor=decay_factor
+        decay_factor=decay_factor,
     )
 
 
@@ -312,7 +305,7 @@ def find_threshold_exponential(
     delay_s: float = 480.0,
     compute_flops: float = 0.0,
     tau_s: float = TAU_DECISION_DECAY_S,
-    max_crew: int = 500
+    max_crew: int = 500,
 ) -> int:
     """Binary search for crew threshold using exponential decay model.
 
@@ -331,7 +324,7 @@ def find_threshold_exponential(
         crew=max_crew,
         compute_flops=compute_flops,
         bandwidth_mbps=bandwidth_mbps,
-        delay_s=delay_s
+        delay_s=delay_s,
     )
     result = compute_sovereignty_exponential(config, tau_s)
 
@@ -347,7 +340,7 @@ def find_threshold_exponential(
             crew=mid,
             compute_flops=compute_flops,
             bandwidth_mbps=bandwidth_mbps,
-            delay_s=delay_s
+            delay_s=delay_s,
         )
         result = compute_sovereignty_exponential(config, tau_s)
 
@@ -361,11 +354,12 @@ def find_threshold_exponential(
 
 # === SENSITIVITY ANALYSIS (v1.1 - Grok: "latency-limited") ===
 
+
 def sensitivity_to_delay(
     base_bandwidth: float = 4.0,
     base_delay: float = 480.0,
     delta: float = 60.0,  # 1 minute change
-    compute_flops: float = 0.0
+    compute_flops: float = 0.0,
 ) -> Tuple[float, float]:
     """Compute sensitivity of threshold to delay changes.
 
@@ -384,27 +378,23 @@ def sensitivity_to_delay(
     """
     # Linear model sensitivity
     t_base_lin = find_threshold(
-        bandwidth_mbps=base_bandwidth,
-        delay_s=base_delay,
-        compute_flops=compute_flops
+        bandwidth_mbps=base_bandwidth, delay_s=base_delay, compute_flops=compute_flops
     )
     t_delta_lin = find_threshold(
         bandwidth_mbps=base_bandwidth,
         delay_s=base_delay + delta,
-        compute_flops=compute_flops
+        compute_flops=compute_flops,
     )
     sens_linear = (t_delta_lin - t_base_lin) / delta
 
     # Exponential model sensitivity
     t_base_exp = find_threshold_exponential(
-        bandwidth_mbps=base_bandwidth,
-        delay_s=base_delay,
-        compute_flops=compute_flops
+        bandwidth_mbps=base_bandwidth, delay_s=base_delay, compute_flops=compute_flops
     )
     t_delta_exp = find_threshold_exponential(
         bandwidth_mbps=base_bandwidth,
         delay_s=base_delay + delta,
-        compute_flops=compute_flops
+        compute_flops=compute_flops,
     )
     sens_exp = (t_delta_exp - t_base_exp) / delta
 
@@ -415,7 +405,7 @@ def sensitivity_to_bandwidth(
     base_bandwidth: float = 4.0,
     base_delay: float = 480.0,
     delta: float = 1.0,  # 1 Mbps change
-    compute_flops: float = 0.0
+    compute_flops: float = 0.0,
 ) -> Tuple[float, float]:
     """Compute sensitivity of threshold to bandwidth changes.
 
@@ -435,27 +425,23 @@ def sensitivity_to_bandwidth(
     """
     # Linear model sensitivity
     t_base_lin = find_threshold(
-        bandwidth_mbps=base_bandwidth,
-        delay_s=base_delay,
-        compute_flops=compute_flops
+        bandwidth_mbps=base_bandwidth, delay_s=base_delay, compute_flops=compute_flops
     )
     t_delta_lin = find_threshold(
         bandwidth_mbps=base_bandwidth + delta,
         delay_s=base_delay,
-        compute_flops=compute_flops
+        compute_flops=compute_flops,
     )
     sens_linear = (t_delta_lin - t_base_lin) / delta
 
     # Exponential model sensitivity
     t_base_exp = find_threshold_exponential(
-        bandwidth_mbps=base_bandwidth,
-        delay_s=base_delay,
-        compute_flops=compute_flops
+        bandwidth_mbps=base_bandwidth, delay_s=base_delay, compute_flops=compute_flops
     )
     t_delta_exp = find_threshold_exponential(
         bandwidth_mbps=base_bandwidth + delta,
         delay_s=base_delay,
-        compute_flops=compute_flops
+        compute_flops=compute_flops,
     )
     sens_exp = (t_delta_exp - t_base_exp) / delta
 
@@ -485,8 +471,10 @@ def compute_sensitivity_ratio() -> dict:
     bw_impact_exp = abs(sens_bw_exp) * 8
 
     # Ratio > 1 means delay dominates
-    ratio_linear = delay_impact_lin / bw_impact_lin if bw_impact_lin > 0 else float('inf')
-    ratio_exp = delay_impact_exp / bw_impact_exp if bw_impact_exp > 0 else float('inf')
+    ratio_linear = (
+        delay_impact_lin / bw_impact_lin if bw_impact_lin > 0 else float("inf")
+    )
+    ratio_exp = delay_impact_exp / bw_impact_exp if bw_impact_exp > 0 else float("inf")
 
     return {
         "sensitivity_delay_linear": sens_delay_lin,
@@ -502,7 +490,7 @@ def compute_sensitivity_ratio() -> dict:
         "latency_limited_linear": ratio_linear > 1,
         "latency_limited_exp": ratio_exp > 1,
         "delay_variance_ratio": DELAY_VARIANCE_RATIO,
-        "bandwidth_variance_ratio": BANDWIDTH_VARIANCE_RATIO
+        "bandwidth_variance_ratio": BANDWIDTH_VARIANCE_RATIO,
     }
 
 
@@ -521,7 +509,7 @@ def conjunction_vs_opposition() -> dict:
         crew=100,  # Reference crew
         compute_flops=0.0,
         bandwidth_mbps=2.0,
-        delay_s=180  # 3 min
+        delay_s=180,  # 3 min
     )
 
     # Conjunction: Mars farthest (22 min delay)
@@ -529,7 +517,7 @@ def conjunction_vs_opposition() -> dict:
         crew=100,
         compute_flops=0.0,
         bandwidth_mbps=100.0,  # Grok's high-bandwidth scenario
-        delay_s=1320  # 22 min
+        delay_s=1320,  # 22 min
     )
 
     opp_result = compute_sovereignty_exponential(opposition_config)
@@ -555,7 +543,7 @@ def conjunction_vs_opposition() -> dict:
             "external_rate_linear": opp_result.external_rate_linear,
             "external_rate_exp": opp_result.external_rate_exp,
             "threshold_linear": opp_threshold_lin,
-            "threshold_exp": opp_threshold_exp
+            "threshold_exp": opp_threshold_exp,
         },
         "conjunction": {
             "delay_s": 1320,
@@ -564,7 +552,7 @@ def conjunction_vs_opposition() -> dict:
             "external_rate_linear": conj_result.external_rate_linear,
             "external_rate_exp": conj_result.external_rate_exp,
             "threshold_linear": conj_threshold_lin,
-            "threshold_exp": conj_threshold_exp
+            "threshold_exp": conj_threshold_exp,
         },
         "grok_validation": {
             "grok_22min_100mbps": 38000,
@@ -575,8 +563,8 @@ def conjunction_vs_opposition() -> dict:
             "our_3min_2mbps_bps": round(grok_formula_3min_2mbps),
             "our_3min_2mbps_decisions": round(opp_result.external_rate_linear),
             "match_opposition": abs(grok_formula_3min_2mbps - 5500) < 500,
-            "note": "Grok uses bps formula, our external_rate uses decisions/sec"
-        }
+            "note": "Grok uses bps formula, our external_rate uses decisions/sec",
+        },
     }
 
 
@@ -588,22 +576,25 @@ def emit_sensitivity_receipt() -> dict:
     sensitivity = compute_sensitivity_ratio()
     scenarios = conjunction_vs_opposition()
 
-    return emit_receipt("sensitivity_analysis", {
-        "tenant_id": "axiom-core",
-        **sensitivity,
-        "conjunction_opposition": scenarios,
-        "finding": "latency_limited" if sensitivity["latency_limited_linear"] else "bandwidth_limited"
-    })
+    return emit_receipt(
+        "sensitivity_analysis",
+        {
+            "tenant_id": "axiom-core",
+            **sensitivity,
+            "conjunction_opposition": scenarios,
+            "finding": "latency_limited"
+            if sensitivity["latency_limited_linear"]
+            else "bandwidth_limited",
+        },
+    )
 
 
 # === ROI COMPARISON FUNCTIONS (v1.2 - Grok feedback Dec 16, 2025) ===
 # Source: "Investing in τ yields higher ROI"
 
+
 def effective_rate_gain_from_tau(
-    tau_old: float,
-    tau_new: float,
-    bw_mbps: float,
-    delay_s: float
+    tau_old: float, tau_new: float, bw_mbps: float, delay_s: float
 ) -> float:
     """Calculate delta in effective_rate from τ (decision latency) reduction.
 
@@ -638,10 +629,7 @@ def effective_rate_gain_from_tau(
 
 
 def effective_rate_gain_from_bw(
-    bw_old: float,
-    bw_new: float,
-    tau_s: float,
-    delay_s: float
+    bw_old: float, bw_new: float, tau_s: float, delay_s: float
 ) -> float:
     """Calculate delta in effective_rate from bandwidth increase.
 
@@ -660,10 +648,7 @@ def effective_rate_gain_from_bw(
 
 
 def roi_tau_investment(
-    investment_m: float,
-    tau_base: float,
-    bw_mbps: float,
-    delay_s: float
+    investment_m: float, tau_base: float, bw_mbps: float, delay_s: float
 ) -> float:
     """Calculate ROI for τ reduction investment.
 
@@ -690,10 +675,7 @@ def roi_tau_investment(
 
 
 def roi_bandwidth_investment(
-    investment_m: float,
-    bw_base: float,
-    tau_s: float,
-    delay_s: float
+    investment_m: float, bw_base: float, tau_s: float, delay_s: float
 ) -> float:
     """Calculate ROI for bandwidth investment.
 
@@ -721,10 +703,7 @@ def roi_bandwidth_investment(
 
 
 def compare_investment_roi(
-    investment_m: float,
-    bw_base: float,
-    tau_base: float,
-    delay_s: float
+    investment_m: float, bw_base: float, tau_base: float, delay_s: float
 ) -> dict:
     """Compare same $ spent on τ vs bandwidth.
 
@@ -748,10 +727,10 @@ def compare_investment_roi(
 
     if roi_tau > roi_bw:
         winner = "autonomy"
-        ratio = roi_tau / roi_bw if roi_bw > 0 else float('inf')
+        ratio = roi_tau / roi_bw if roi_bw > 0 else float("inf")
     else:
         winner = "bandwidth"
-        ratio = roi_bw / roi_tau if roi_tau > 0 else float('inf')
+        ratio = roi_bw / roi_tau if roi_tau > 0 else float("inf")
 
     return {
         "investment_m": investment_m,
@@ -760,14 +739,14 @@ def compare_investment_roi(
         "winner": winner,
         "ratio": ratio,
         "tau_new": tau_from_investment(investment_m, tau_base),
-        "bw_new": bw_base + bandwidth_from_investment(investment_m)
+        "bw_new": bw_base + bandwidth_from_investment(investment_m),
     }
 
 
 def find_breakeven_delay(
     bw_base: float = STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
     tau_base: float = TAU_BASE_CURRENT_S,
-    investment_m: float = 100.0
+    investment_m: float = 100.0,
 ) -> float:
     """Find delay at which τ investment ROI equals bandwidth investment ROI.
 
@@ -817,10 +796,7 @@ REQUIRED_RATE = 1000
 
 
 def threshold_from_tau(
-    tau_s: float,
-    bw_mbps: float,
-    delay_s: float,
-    compute_flops: float = 0.0
+    tau_s: float, bw_mbps: float, delay_s: float, compute_flops: float = 0.0
 ) -> int:
     """Calculate crew threshold at given decision latency τ.
 
@@ -873,10 +849,7 @@ def threshold_from_tau(
 
 
 def threshold_sensitivity_to_tau(
-    tau_range: Tuple[float, float],
-    bw_mbps: float,
-    delay_s: float,
-    steps: int = 10
+    tau_range: Tuple[float, float], bw_mbps: float, delay_s: float, steps: int = 10
 ) -> List[Tuple[float, int]]:
     """Generate (τ, threshold) pairs across τ range.
 
@@ -900,10 +873,7 @@ def threshold_sensitivity_to_tau(
     return results
 
 
-def min_viable_crew(
-    effective_rate: float,
-    mission_criticality: float = 1.0
-) -> int:
+def min_viable_crew(effective_rate: float, mission_criticality: float = 1.0) -> int:
     """Calculate minimum crew needed for given effective rate.
 
     Formula:
@@ -932,7 +902,7 @@ def crew_reduction_from_autonomy(
     investment_m: float,
     bw_mbps: float,
     delay_s: float,
-    tau_base: float = TAU_BASE_CURRENT_S
+    tau_base: float = TAU_BASE_CURRENT_S,
 ) -> dict:
     """Calculate crew threshold reduction from autonomy investment.
 
@@ -974,15 +944,12 @@ def crew_reduction_from_autonomy(
         "reduction": reduction,
         "reduction_pct": reduction_pct,
         "tau_before": tau_base,
-        "tau_after": tau_after
+        "tau_after": tau_after,
     }
 
 
 def emit_roi_receipt(
-    investment_m: float,
-    bw_base: float,
-    tau_base: float,
-    delay_s: float
+    investment_m: float, bw_base: float, tau_base: float, delay_s: float
 ) -> dict:
     """Emit receipt for ROI comparison.
 
@@ -992,24 +959,28 @@ def emit_roi_receipt(
     breakeven = find_breakeven_delay(bw_base, tau_base, investment_m)
     crew = crew_reduction_from_autonomy(investment_m, bw_base, delay_s, tau_base)
 
-    return emit_receipt("roi_comparison", {
-        "tenant_id": "axiom-core",
-        **comparison,
-        "breakeven_delay_s": breakeven,
-        "breakeven_delay_min": breakeven / 60,
-        "crew_before": crew["before"],
-        "crew_after": crew["after"],
-        "crew_reduction": crew["reduction"],
-        "crew_reduction_pct": crew["reduction_pct"],
-        "finding": (
-            f"τ-reduction ROI is {comparison['ratio']:.1f}x higher than bandwidth ROI "
-            f"at {delay_s/60:.0f} min delay"
-        )
-    })
+    return emit_receipt(
+        "roi_comparison",
+        {
+            "tenant_id": "axiom-core",
+            **comparison,
+            "breakeven_delay_s": breakeven,
+            "breakeven_delay_min": breakeven / 60,
+            "crew_before": crew["before"],
+            "crew_after": crew["after"],
+            "crew_reduction": crew["reduction"],
+            "crew_reduction_pct": crew["reduction_pct"],
+            "finding": (
+                f"τ-reduction ROI is {comparison['ratio']:.1f}x higher than bandwidth ROI "
+                f"at {delay_s / 60:.0f} min delay"
+            ),
+        },
+    )
 
 
 # === META-COMPRESSION FACTOR (v1.3 - Grok: "meta-loop is pure τ reduction") ===
 # Source: "AI→AI iteration compresses the question-to-shift path by 5-10x"
+
 
 def meta_compression_factor(iteration_mode: str = "ai") -> float:
     """Returns compression factor for R&D iteration mode.
@@ -1065,10 +1036,7 @@ def meta_boosted_roi(base_roi: float, iteration_mode: str = "ai") -> float:
 
 
 def compare_iteration_modes(
-    spend_m: float,
-    bw_mbps: float,
-    delay_s: float,
-    tau_base: float = TAU_BASE_CURRENT_S
+    spend_m: float, bw_mbps: float, delay_s: float, tau_base: float = TAU_BASE_CURRENT_S
 ) -> dict:
     """Side-by-side comparison: human-only vs AI-mediated outcomes.
 
@@ -1124,19 +1092,22 @@ def compare_iteration_modes(
         "base_roi": base_roi,
         "effective_roi_human": effective_roi_human,
         "effective_roi_ai": effective_roi_ai,
-        "roi_advantage": round(effective_roi_ai / effective_roi_human, 2) if effective_roi_human > 0 else float('inf'),
-        "meta_insight": "AI-mediated R&D reaches τ reduction 7.5x faster"
+        "roi_advantage": round(effective_roi_ai / effective_roi_human, 2)
+        if effective_roi_human > 0
+        else float("inf"),
+        "meta_insight": "AI-mediated R&D reaches τ reduction 7.5x faster",
     }
 
 
 # === COST FUNCTION SWEEP SIMULATION (v1.3 - Grok: "sim variable τ costs") ===
+
 
 def sweep_cost_functions(
     spend_range: Tuple[float, float],
     bw_mbps: float,
     delay_s: float,
     curve_types: List[str] = None,
-    steps: int = 20
+    steps: int = 20,
 ) -> dict:
     """Run simulation across all curve types.
 
@@ -1188,12 +1159,14 @@ def sweep_cost_functions(
             rate_gain = effective_rate - baseline_rate
             roi = rate_gain / spend if spend > 0 else 0
 
-            curve_results.append({
-                "spend_m": round(spend, 1),
-                "tau_s": round(tau, 1),
-                "effective_rate": round(effective_rate, 2),
-                "roi": round(roi, 6)
-            })
+            curve_results.append(
+                {
+                    "spend_m": round(spend, 1),
+                    "tau_s": round(tau, 1),
+                    "effective_rate": round(effective_rate, 2),
+                    "roi": round(roi, 6),
+                }
+            )
 
             # Track optimal
             if roi > peak_roi:
@@ -1208,18 +1181,15 @@ def sweep_cost_functions(
                 "spend_m": round(optimal_spend, 1),
                 "tau_s": round(optimal_tau, 1),
                 "effective_rate": round(optimal_rate, 2),
-                "peak_roi": round(peak_roi, 6)
-            }
+                "peak_roi": round(peak_roi, 6),
+            },
         }
 
     return results
 
 
 def find_optimal_spend(
-    curve_type: str,
-    bw_mbps: float,
-    delay_s: float,
-    budget_max: float = 1000
+    curve_type: str, bw_mbps: float, delay_s: float, budget_max: float = 1000
 ) -> dict:
     """Find spend that maximizes ROI for given curve.
 
@@ -1271,15 +1241,11 @@ def find_optimal_spend(
         "optimal_spend_m": round(optimal_spend, 1),
         "tau_achieved_s": round(optimal_tau, 1),
         "effective_rate": round(optimal_rate, 2),
-        "roi": round(optimal_roi, 6)
+        "roi": round(optimal_roi, 6),
     }
 
 
-def compare_curves_at_budget(
-    budget_m: float,
-    bw_mbps: float,
-    delay_s: float
-) -> dict:
+def compare_curves_at_budget(budget_m: float, bw_mbps: float, delay_s: float) -> dict:
     """Same budget, different curves → different outcomes.
 
     Compare what each cost curve achieves with the same investment.
@@ -1308,7 +1274,7 @@ def compare_curves_at_budget(
             "tau_achieved_s": round(tau, 1),
             "effective_rate": round(effective_rate, 2),
             "rate_gain": round(rate_gain, 2),
-            "roi": round(roi, 6)
+            "roi": round(roi, 6),
         }
 
     # Find best curve for this budget
@@ -1319,7 +1285,7 @@ def compare_curves_at_budget(
         "delay_s": delay_s,
         "curves": results,
         "best_curve": best_curve,
-        "best_roi": results[best_curve]["roi"]
+        "best_roi": results[best_curve]["roi"],
     }
 
 
@@ -1349,9 +1315,7 @@ def recommend_cost_function(observed_data: dict = None) -> str:
 
 
 def emit_sweep_receipt(
-    spend_range: Tuple[float, float],
-    bw_mbps: float,
-    delay_s: float
+    spend_range: Tuple[float, float], bw_mbps: float, delay_s: float
 ) -> dict:
     """Emit receipt for cost function sweep.
 
@@ -1363,17 +1327,20 @@ def emit_sweep_receipt(
     # Find best curve at typical spend
     budget_comparison = compare_curves_at_budget(400, bw_mbps, delay_s)
 
-    return emit_receipt("cost_function_sweep", {
-        "tenant_id": "axiom-core",
-        "spend_range_m": spend_range,
-        "bandwidth_mbps": bw_mbps,
-        "delay_s": delay_s,
-        "sweep_results": sweep_results,
-        "meta_comparison": comparison,
-        "recommended_curve": recommend_cost_function(),
-        "best_curve_at_400m": budget_comparison["best_curve"],
-        "finding": f"Logistic curve with $400M inflection. AI iteration = {comparison['speedup_factor']}x faster."
-    })
+    return emit_receipt(
+        "cost_function_sweep",
+        {
+            "tenant_id": "axiom-core",
+            "spend_range_m": spend_range,
+            "bandwidth_mbps": bw_mbps,
+            "delay_s": delay_s,
+            "sweep_results": sweep_results,
+            "meta_comparison": comparison,
+            "recommended_curve": recommend_cost_function(),
+            "best_curve_at_400m": budget_comparison["best_curve"],
+            "finding": f"Logistic curve with $400M inflection. AI iteration = {comparison['speedup_factor']}x faster.",
+        },
+    )
 
 
 # === PERSON-EQUIVALENT CAPABILITY (v2.0 - Grok Integration) ===
@@ -1392,9 +1359,7 @@ EXPERTISE_COVERAGE_BASE = 0.5
 
 
 def capability_to_person_equivalent(
-    decision_capacity_bps: float,
-    tau: float,
-    expertise_coverage: float
+    decision_capacity_bps: float, tau: float, expertise_coverage: float
 ) -> float:
     """Convert autonomy state to person-equivalent capability units.
 
@@ -1419,7 +1384,9 @@ def capability_to_person_equivalent(
     if tau <= 0:
         raise ValueError(f"tau must be positive, got {tau}")
     if expertise_coverage < 0 or expertise_coverage > 1:
-        raise ValueError(f"expertise_coverage must be in [0, 1], got {expertise_coverage}")
+        raise ValueError(
+            f"expertise_coverage must be in [0, 1], got {expertise_coverage}"
+        )
 
     # Base capacity normalized to human decision rate
     capacity_factor = decision_capacity_bps / DECISION_CAPACITY_PER_PERSON
@@ -1437,8 +1404,7 @@ def capability_to_person_equivalent(
 
 
 def check_sovereignty_threshold(
-    person_equivalent: float,
-    threshold: int = THRESHOLD_PERSON_EQUIVALENT
+    person_equivalent: float, threshold: int = THRESHOLD_PERSON_EQUIVALENT
 ) -> bool:
     """Check if person-equivalent capability meets sovereignty threshold.
 
@@ -1460,7 +1426,7 @@ def project_sovereignty_capability(
     current_tau: float,
     current_expertise: float,
     investment_m: float,
-    iteration_mode: str = "ai"
+    iteration_mode: str = "ai",
 ) -> dict:
     """Project person-equivalent capability after investment.
 
@@ -1491,7 +1457,9 @@ def project_sovereignty_capability(
 
     # Assume capacity improves with tau (faster decisions = higher throughput)
     capacity_multiplier = current_tau / projected_tau
-    projected_capacity = current_capacity_bps * min(capacity_multiplier, 5.0)  # Cap at 5x
+    projected_capacity = current_capacity_bps * min(
+        capacity_multiplier, 5.0
+    )  # Cap at 5x
 
     # Projected person-equivalent
     projected_pe = capability_to_person_equivalent(
@@ -1507,7 +1475,9 @@ def project_sovereignty_capability(
     return {
         "current_person_equivalent": current_pe,
         "projected_person_equivalent": projected_pe,
-        "improvement_factor": projected_pe / current_pe if current_pe > 0 else float('inf'),
+        "improvement_factor": projected_pe / current_pe
+        if current_pe > 0
+        else float("inf"),
         "current_tau_s": current_tau,
         "projected_tau_s": projected_tau,
         "current_expertise": current_expertise,
@@ -1522,10 +1492,7 @@ def project_sovereignty_capability(
 
 
 def emit_sovereignty_v2_receipt(
-    person_equivalent: float,
-    tau: float,
-    expertise: float,
-    decision_capacity_bps: float
+    person_equivalent: float, tau: float, expertise: float, decision_capacity_bps: float
 ) -> dict:
     """Emit receipt for v2 sovereignty calculation.
 
@@ -1540,13 +1507,16 @@ def emit_sovereignty_v2_receipt(
     Returns:
         Receipt dict
     """
-    return emit_receipt("sovereignty_v2", {
-        "tenant_id": "axiom-autonomy",
-        "person_equivalent": person_equivalent,
-        "threshold_person_equivalent": THRESHOLD_PERSON_EQUIVALENT,
-        "meets_threshold": check_sovereignty_threshold(person_equivalent),
-        "tau_s": tau,
-        "expertise_coverage": expertise,
-        "decision_capacity_bps": decision_capacity_bps,
-        "gap_to_threshold": THRESHOLD_PERSON_EQUIVALENT - person_equivalent,
-    })
+    return emit_receipt(
+        "sovereignty_v2",
+        {
+            "tenant_id": "axiom-autonomy",
+            "person_equivalent": person_equivalent,
+            "threshold_person_equivalent": THRESHOLD_PERSON_EQUIVALENT,
+            "meets_threshold": check_sovereignty_threshold(person_equivalent),
+            "tau_s": tau,
+            "expertise_coverage": expertise,
+            "decision_capacity_bps": decision_capacity_bps,
+            "gap_to_threshold": THRESHOLD_PERSON_EQUIVALENT - person_equivalent,
+        },
+    )

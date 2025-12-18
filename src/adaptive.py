@@ -62,7 +62,9 @@ PRUNE_FACTOR_MAX = 0.5
 """Maximum prune factor (aggressive)."""
 
 
-def compute_adaptive_depth(tree_size_n: int, base_depth: int = ADAPTIVE_DEPTH_BASE) -> int:
+def compute_adaptive_depth(
+    tree_size_n: int, base_depth: int = ADAPTIVE_DEPTH_BASE
+) -> int:
     """Compute adaptive depth based on tree size.
 
     Formula: adaptive_depth = base + floor(log2(n) / 10)
@@ -93,15 +95,20 @@ def compute_adaptive_depth(tree_size_n: int, base_depth: int = ADAPTIVE_DEPTH_BA
         "base_depth": base_depth,
         "computed_depth": adaptive_depth,
         "scaling_formula": ADAPTIVE_DEPTH_SCALING,
-        "log_factor": round(math.log2(max(1, tree_size_n)) / 10, 4) if tree_size_n > 0 else 0
+        "log_factor": round(math.log2(max(1, tree_size_n)) / 10, 4)
+        if tree_size_n > 0
+        else 0,
     }
 
-    emit_receipt("adaptive_depth", {
-        "receipt_type": "adaptive_depth",
-        "tenant_id": "axiom-adaptive",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "adaptive_depth",
+        {
+            "receipt_type": "adaptive_depth",
+            "tenant_id": "axiom-adaptive",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return adaptive_depth
 
@@ -132,8 +139,7 @@ def scale_lr_to_depth(depth: int, base_lr: float = LR_BASE) -> float:
 
 
 def adaptive_prune_factor(
-    entropy_level: float,
-    base_factor: float = ENTROPY_BASE
+    entropy_level: float, base_factor: float = ENTROPY_BASE
 ) -> float:
     """Compute adaptive pruning factor based on entropy level.
 
@@ -163,7 +169,7 @@ def get_dynamic_config(
     tree_size: int,
     entropy: float,
     rl_feedback: Optional[Dict[str, Any]] = None,
-    blackout_days: int = 0
+    blackout_days: int = 0,
 ) -> Dict[str, Any]:
     """Combine all adaptive signals into unified dynamic config.
 
@@ -203,14 +209,14 @@ def get_dynamic_config(
         "adaptive_depth_enabled": True,
         "tree_size": tree_size,
         "entropy_level": entropy,
-        "blackout_days": blackout_days
+        "blackout_days": blackout_days,
     }
 
     # Track sources
     sources = {
         "gnn_layers": "adaptive",
         "lr_decay": "adaptive",
-        "prune_aggressiveness": "adaptive"
+        "prune_aggressiveness": "adaptive",
     }
 
     # Apply RL feedback overrides if provided
@@ -218,49 +224,57 @@ def get_dynamic_config(
         # RL can override layer count
         if "gnn_layers_delta" in rl_feedback:
             delta = rl_feedback["gnn_layers_delta"]
-            config["gnn_layers"] = max(ADAPTIVE_DEPTH_MIN,
-                                       min(ADAPTIVE_DEPTH_MAX, adaptive_depth + delta))
+            config["gnn_layers"] = max(
+                ADAPTIVE_DEPTH_MIN, min(ADAPTIVE_DEPTH_MAX, adaptive_depth + delta)
+            )
             sources["gnn_layers"] = "rl"
 
         # RL can override LR
         if "lr_decay" in rl_feedback:
-            config["lr_decay"] = max(LR_MIN,
-                                     min(LR_MAX, rl_feedback["lr_decay"]))
+            config["lr_decay"] = max(LR_MIN, min(LR_MAX, rl_feedback["lr_decay"]))
             sources["lr_decay"] = "rl"
 
         # RL can override prune aggressiveness
         if "prune_aggressiveness" in rl_feedback:
-            config["prune_aggressiveness"] = max(PRUNE_FACTOR_MIN,
-                                                 min(PRUNE_FACTOR_MAX,
-                                                     rl_feedback["prune_aggressiveness"]))
+            config["prune_aggressiveness"] = max(
+                PRUNE_FACTOR_MIN,
+                min(PRUNE_FACTOR_MAX, rl_feedback["prune_aggressiveness"]),
+            )
             sources["prune_aggressiveness"] = "rl"
 
     config["sources"] = sources
 
-    emit_receipt("dynamic_config", {
-        "receipt_type": "dynamic_config",
-        "tenant_id": "axiom-adaptive",
-        "gnn_layers": config["gnn_layers"],
-        "lr_decay": config["lr_decay"],
-        "prune_aggressiveness": config["prune_aggressiveness"],
-        "adaptive_depth_enabled": config["adaptive_depth_enabled"],
-        "sources": sources,
-        "tree_size": tree_size,
-        "entropy_level": entropy,
-        "rl_feedback_applied": rl_feedback is not None,
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "dynamic_config",
+        {
+            "receipt_type": "dynamic_config",
+            "tenant_id": "axiom-adaptive",
             "gnn_layers": config["gnn_layers"],
             "lr_decay": config["lr_decay"],
-            "prune_aggressiveness": config["prune_aggressiveness"]
-        }, sort_keys=True))
-    })
+            "prune_aggressiveness": config["prune_aggressiveness"],
+            "adaptive_depth_enabled": config["adaptive_depth_enabled"],
+            "sources": sources,
+            "tree_size": tree_size,
+            "entropy_level": entropy,
+            "rl_feedback_applied": rl_feedback is not None,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "gnn_layers": config["gnn_layers"],
+                        "lr_decay": config["lr_decay"],
+                        "prune_aggressiveness": config["prune_aggressiveness"],
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return config
 
 
 def apply_config_delta(
-    current_config: Dict[str, Any],
-    delta_config: Dict[str, Any]
+    current_config: Dict[str, Any], delta_config: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Apply delta changes to current configuration.
 
@@ -282,29 +296,38 @@ def apply_config_delta(
             old_value = updated[key]
 
             if key == "gnn_layers":
-                new_value = max(ADAPTIVE_DEPTH_MIN,
-                                min(ADAPTIVE_DEPTH_MAX, int(old_value + delta)))
+                new_value = max(
+                    ADAPTIVE_DEPTH_MIN, min(ADAPTIVE_DEPTH_MAX, int(old_value + delta))
+                )
             elif key == "lr_decay":
                 new_value = max(LR_MIN, min(LR_MAX, old_value + delta))
             elif key == "prune_aggressiveness":
-                new_value = max(PRUNE_FACTOR_MIN, min(PRUNE_FACTOR_MAX, old_value + delta))
+                new_value = max(
+                    PRUNE_FACTOR_MIN, min(PRUNE_FACTOR_MAX, old_value + delta)
+                )
             else:
                 new_value = old_value + delta
 
             updated[key] = new_value
 
-            emit_receipt("config_delta", {
-                "receipt_type": "config_delta",
-                "tenant_id": "axiom-adaptive",
-                "param_name": key,
-                "old_value": old_value,
-                "delta": delta,
-                "new_value": new_value,
-                "source": "rl",
-                "payload_hash": dual_hash(json.dumps({
-                    "param": key, "old": old_value, "new": new_value
-                }, sort_keys=True))
-            })
+            emit_receipt(
+                "config_delta",
+                {
+                    "receipt_type": "config_delta",
+                    "tenant_id": "axiom-adaptive",
+                    "param_name": key,
+                    "old_value": old_value,
+                    "delta": delta,
+                    "new_value": new_value,
+                    "source": "rl",
+                    "payload_hash": dual_hash(
+                        json.dumps(
+                            {"param": key, "old": old_value, "new": new_value},
+                            sort_keys=True,
+                        )
+                    ),
+                },
+            )
 
     return updated
 
@@ -330,7 +353,9 @@ def validate_config_bounds(config: Dict[str, Any]) -> Dict[str, bool]:
 
     if "prune_aggressiveness" in config:
         val = config["prune_aggressiveness"]
-        validations["prune_aggressiveness"] = PRUNE_FACTOR_MIN <= val <= PRUNE_FACTOR_MAX
+        validations["prune_aggressiveness"] = (
+            PRUNE_FACTOR_MIN <= val <= PRUNE_FACTOR_MAX
+        )
 
     return validations
 
@@ -357,16 +382,19 @@ def get_adaptive_info() -> Dict[str, Any]:
         "formulas": {
             "depth": "base + floor(log2(n) / 10)",
             "lr": "base_lr / sqrt(depth)",
-            "prune": "base + (entropy * scaling_factor)"
+            "prune": "base + (entropy * scaling_factor)",
         },
         "description": "Runtime scaling logic for adaptive depth, LR, and pruning. "
-                       "Kill static configs - go dynamic."
+        "Kill static configs - go dynamic.",
     }
 
-    emit_receipt("adaptive_info", {
-        "tenant_id": "axiom-adaptive",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "adaptive_info",
+        {
+            "tenant_id": "axiom-adaptive",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info

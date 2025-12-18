@@ -34,7 +34,7 @@ def partition_config():
         "quorum_threshold": 3,
         "loss_range": (0.0, 0.40),
         "base_alpha": 2.68,
-        "iterations": 100
+        "iterations": 100,
     }
 
 
@@ -63,7 +63,8 @@ def capture_receipts():
         @property
         def receipts(self):
             import json
+
             output = self.buffer.getvalue()
-            return [json.loads(line) for line in output.strip().split('\n') if line]
+            return [json.loads(line) for line in output.strip().split("\n") if line]
 
     return ReceiptCapture

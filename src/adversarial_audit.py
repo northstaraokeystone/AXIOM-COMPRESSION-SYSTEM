@@ -69,13 +69,16 @@ def load_adversarial_config() -> Dict[str, Any]:
         ),
     }
 
-    emit_receipt("adversarial_config", {
-        "receipt_type": "adversarial_config",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "adversarial_config",
+        {
+            "receipt_type": "adversarial_config",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -84,8 +87,7 @@ def load_adversarial_config() -> Dict[str, Any]:
 
 
 def inject_noise(
-    data: List[float],
-    level: float = ADVERSARIAL_NOISE_LEVEL
+    data: List[float], level: float = ADVERSARIAL_NOISE_LEVEL
 ) -> List[float]:
     """Add compression noise to data.
 
@@ -109,10 +111,7 @@ def inject_noise(
     return noisy
 
 
-def denoise(
-    noisy_data: List[float],
-    window_size: int = 3
-) -> List[float]:
+def denoise(noisy_data: List[float], window_size: int = 3) -> List[float]:
     """Simple moving average denoising.
 
     Args:
@@ -141,9 +140,7 @@ def denoise(
 
 
 def compute_recovery(
-    original: List[float],
-    noisy: List[float],
-    recovered: List[float]
+    original: List[float], noisy: List[float], recovered: List[float]
 ) -> float:
     """Compute recovery metric.
 
@@ -166,7 +163,9 @@ def compute_recovery(
     mse_noisy = sum((o - n) ** 2 for o, n in zip(original, noisy)) / len(original)
 
     # Compute MSE between original and recovered
-    mse_recovered = sum((o - r) ** 2 for o, r in zip(original, recovered)) / len(original)
+    mse_recovered = sum((o - r) ** 2 for o, r in zip(original, recovered)) / len(
+        original
+    )
 
     # Handle edge case where noisy MSE is 0
     if mse_noisy <= 0:
@@ -179,8 +178,7 @@ def compute_recovery(
 
 
 def classify_misalignment(
-    recovery: float,
-    threshold: float = RECOVERY_THRESHOLD
+    recovery: float, threshold: float = RECOVERY_THRESHOLD
 ) -> str:
     """Classify alignment based on recovery metric.
 
@@ -200,7 +198,7 @@ def classify_misalignment(
 def run_audit(
     noise_level: float = ADVERSARIAL_NOISE_LEVEL,
     iterations: int = TEST_ITERATIONS,
-    data_size: int = 100
+    data_size: int = 100,
 ) -> Dict[str, Any]:
     """Run full adversarial audit.
 
@@ -270,25 +268,27 @@ def run_audit(
         "config": config,
     }
 
-    emit_receipt("adversarial_audit", {
-        "receipt_type": "adversarial_audit",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "noise_level": noise_level,
-        "iterations": iterations,
-        "avg_recovery": result["avg_recovery"],
-        "alignment_rate": result["alignment_rate"],
-        "overall_classification": overall_classification,
-        "recovery_passed": result["recovery_passed"],
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "adversarial_audit",
+        {
+            "receipt_type": "adversarial_audit",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "noise_level": noise_level,
+            "iterations": iterations,
+            "avg_recovery": result["avg_recovery"],
+            "alignment_rate": result["alignment_rate"],
+            "overall_classification": overall_classification,
+            "recovery_passed": result["recovery_passed"],
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
 
 def run_stress_test(
-    noise_levels: List[float] = None,
-    iterations_per_level: int = 50
+    noise_levels: List[float] = None, iterations_per_level: int = 50
 ) -> Dict[str, Any]:
     """Run alignment stress test across multiple noise levels.
 
@@ -309,18 +309,18 @@ def run_stress_test(
 
     for level in noise_levels:
         audit_result = run_audit(
-            noise_level=level,
-            iterations=iterations_per_level,
-            data_size=100
+            noise_level=level, iterations=iterations_per_level, data_size=100
         )
 
-        results_by_level.append({
-            "noise_level": level,
-            "avg_recovery": audit_result["avg_recovery"],
-            "alignment_rate": audit_result["alignment_rate"],
-            "classification": audit_result["overall_classification"],
-            "passed": audit_result["recovery_passed"],
-        })
+        results_by_level.append(
+            {
+                "noise_level": level,
+                "avg_recovery": audit_result["avg_recovery"],
+                "alignment_rate": audit_result["alignment_rate"],
+                "classification": audit_result["overall_classification"],
+                "passed": audit_result["recovery_passed"],
+            }
+        )
 
     # Find critical noise level (where alignment breaks)
     critical_level = None
@@ -330,7 +330,9 @@ def run_stress_test(
             break
 
     # Overall stress test pass
-    stress_passed = all(r["passed"] for r in results_by_level if r["noise_level"] <= 0.05)
+    stress_passed = all(
+        r["passed"] for r in results_by_level if r["noise_level"] <= 0.05
+    )
 
     result = {
         "noise_levels_tested": noise_levels,
@@ -341,15 +343,18 @@ def run_stress_test(
         "recovery_threshold": config["recovery_threshold"],
     }
 
-    emit_receipt("adversarial_stress", {
-        "receipt_type": "adversarial_stress",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "noise_levels_tested": len(noise_levels),
-        "critical_noise_level": critical_level,
-        "stress_passed": stress_passed,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "adversarial_stress",
+        {
+            "receipt_type": "adversarial_stress",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "noise_levels_tested": len(noise_levels),
+            "critical_noise_level": critical_level,
+            "stress_passed": stress_passed,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -381,13 +386,16 @@ def get_adversarial_info() -> Dict[str, Any]:
         "description": "Adversarial audit for AGI alignment testing via compression noise",
     }
 
-    emit_receipt("adversarial_info", {
-        "receipt_type": "adversarial_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": info["version"],
-        "recovery_threshold": config["recovery_threshold"],
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "adversarial_info",
+        {
+            "receipt_type": "adversarial_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "recovery_threshold": config["recovery_threshold"],
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info

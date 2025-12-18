@@ -47,8 +47,10 @@ PREDICTIVE_C_FACTOR = 0.8
 
 # === ENUMS ===
 
+
 class Strategy(Enum):
     """τ reduction strategies."""
+
     BASELINE = "baseline"
     ONBOARD_AI = "onboard_ai"
     PREDICTIVE = "predictive"
@@ -57,6 +59,7 @@ class Strategy(Enum):
 
 
 # === DATACLASSES ===
+
 
 @dataclass
 class StrategyConfig:
@@ -68,6 +71,7 @@ class StrategyConfig:
         onboard_ai_coverage: Fraction of decisions handled locally (default 0.8)
         predictive_enabled: Whether predictive sims are active
     """
+
     strategy: Strategy = Strategy.BASELINE
     relay_swarm_size: int = 0
     onboard_ai_coverage: float = ONBOARD_AI_LOCAL_PCT
@@ -98,6 +102,7 @@ class StrategyResult:
         cycles_to_10k: Cycles to reach 10³ person-eq milestone
         roi_score: Computed ROI (0 = baseline, higher = better)
     """
+
     strategy: Strategy
     effective_tau: float
     effective_alpha: float
@@ -108,6 +113,7 @@ class StrategyResult:
 
 
 # === CORE FUNCTIONS ===
+
 
 def compute_effective_tau(base_tau: float, config: StrategyConfig) -> float:
     """Apply τ reductions from strategy.
@@ -132,15 +138,13 @@ def compute_effective_tau(base_tau: float, config: StrategyConfig) -> float:
 
     # Apply predictive reduction (computational)
     if config.strategy == Strategy.PREDICTIVE or config.predictive_enabled:
-        effective_tau *= (1.0 - PREDICTIVE_TAU_REDUCTION)
+        effective_tau *= 1.0 - PREDICTIVE_TAU_REDUCTION
 
     return effective_tau
 
 
 def compute_effective_alpha(
-    base_alpha: float,
-    config: StrategyConfig,
-    effective_tau: float
+    base_alpha: float, config: StrategyConfig, effective_tau: float
 ) -> float:
     """Apply α modifications from strategy.
 
@@ -206,7 +210,7 @@ def estimate_cycles_to_10k(
     effective_alpha: float,
     c_factor: float = 1.0,
     c_base: float = 50.0,
-    p_factor: float = 1.8
+    p_factor: float = 1.8,
 ) -> int:
     """Estimate cycles to reach 10³ person-eq milestone.
 
@@ -242,9 +246,7 @@ def estimate_cycles_to_10k(
 
 
 def apply_strategy(
-    base_tau: float,
-    base_alpha: float,
-    config: StrategyConfig
+    base_tau: float, base_alpha: float, config: StrategyConfig
 ) -> StrategyResult:
     """Apply strategy and compute all metrics.
 
@@ -274,30 +276,32 @@ def apply_strategy(
         c_factor=c_factor,
         p_cost=p_cost,
         cycles_to_10k=cycles,
-        roi_score=0.0  # Computed separately by ROI module
+        roi_score=0.0,  # Computed separately by ROI module
     )
 
-    emit_receipt("strategy_application", {
-        "tenant_id": "axiom-autonomy",
-        "strategy": config.strategy.value,
-        "base_tau": base_tau,
-        "base_alpha": base_alpha,
-        "effective_tau": effective_tau,
-        "effective_alpha": effective_alpha,
-        "c_factor": c_factor,
-        "p_cost": p_cost,
-        "cycles_to_10k": cycles,
-        "relay_swarm_size": config.relay_swarm_size,
-        "predictive_enabled": config.predictive_enabled,
-        "onboard_ai_coverage": config.onboard_ai_coverage,
-    })
+    emit_receipt(
+        "strategy_application",
+        {
+            "tenant_id": "axiom-autonomy",
+            "strategy": config.strategy.value,
+            "base_tau": base_tau,
+            "base_alpha": base_alpha,
+            "effective_tau": effective_tau,
+            "effective_alpha": effective_alpha,
+            "c_factor": c_factor,
+            "p_cost": p_cost,
+            "cycles_to_10k": cycles,
+            "relay_swarm_size": config.relay_swarm_size,
+            "predictive_enabled": config.predictive_enabled,
+            "onboard_ai_coverage": config.onboard_ai_coverage,
+        },
+    )
 
     return result
 
 
 def compare_strategies(
-    strategies: List[StrategyConfig],
-    baseline: Dict[str, float]
+    strategies: List[StrategyConfig], baseline: Dict[str, float]
 ) -> List[StrategyResult]:
     """Compare multiple strategies and rank by ROI.
 
@@ -310,8 +314,8 @@ def compare_strategies(
 
     Receipt: strategy_comparison_receipt
     """
-    base_tau = baseline.get('tau', TAU_MARS_MAX)
-    base_alpha = baseline.get('alpha', 1.69)
+    base_tau = baseline.get("tau", TAU_MARS_MAX)
+    base_alpha = baseline.get("alpha", 1.69)
 
     results = []
     for config in strategies:
@@ -324,29 +328,31 @@ def compare_strategies(
     # Find best
     best_result = results[0] if results else None
 
-    emit_receipt("strategy_comparison", {
-        "tenant_id": "axiom-autonomy",
-        "strategies_evaluated": len(strategies),
-        "best_roi": best_result.strategy.value if best_result else None,
-        "best_cycles": best_result.cycles_to_10k if best_result else None,
-        "roi_ranking": [
-            {
-                "strategy": r.strategy.value,
-                "cycles": r.cycles_to_10k,
-                "effective_tau": r.effective_tau,
-                "effective_alpha": r.effective_alpha,
-                "p_cost": r.p_cost,
-            }
-            for r in results
-        ],
-    })
+    emit_receipt(
+        "strategy_comparison",
+        {
+            "tenant_id": "axiom-autonomy",
+            "strategies_evaluated": len(strategies),
+            "best_roi": best_result.strategy.value if best_result else None,
+            "best_cycles": best_result.cycles_to_10k if best_result else None,
+            "roi_ranking": [
+                {
+                    "strategy": r.strategy.value,
+                    "cycles": r.cycles_to_10k,
+                    "effective_tau": r.effective_tau,
+                    "effective_alpha": r.effective_alpha,
+                    "p_cost": r.p_cost,
+                }
+                for r in results
+            ],
+        },
+    )
 
     return results
 
 
 def recommend_strategy(
-    results: List[StrategyResult],
-    constraints: Dict[str, float] = None
+    results: List[StrategyResult], constraints: Dict[str, float] = None
 ) -> Optional[StrategyResult]:
     """Recommend highest ROI strategy within constraints.
 
@@ -362,37 +368,42 @@ def recommend_strategy(
     if constraints is None:
         constraints = {}
 
-    max_p_cost = constraints.get('max_p_cost', float('inf'))
-    min_c_factor = constraints.get('min_c_factor', 0.0)
+    max_p_cost = constraints.get("max_p_cost", float("inf"))
+    min_c_factor = constraints.get("min_c_factor", 0.0)
 
     # Filter by constraints
     valid = [
-        r for r in results
-        if r.p_cost <= max_p_cost and r.c_factor >= min_c_factor
+        r for r in results if r.p_cost <= max_p_cost and r.c_factor >= min_c_factor
     ]
 
     if not valid:
-        emit_receipt("strategy_recommendation", {
-            "tenant_id": "axiom-autonomy",
-            "recommended": None,
-            "reason": "no_valid_strategies",
-            "constraints": constraints,
-        })
+        emit_receipt(
+            "strategy_recommendation",
+            {
+                "tenant_id": "axiom-autonomy",
+                "recommended": None,
+                "reason": "no_valid_strategies",
+                "constraints": constraints,
+            },
+        )
         return None
 
     # Best by cycles (already sorted)
     best = valid[0]
 
-    emit_receipt("strategy_recommendation", {
-        "tenant_id": "axiom-autonomy",
-        "recommended": best.strategy.value,
-        "effective_tau": best.effective_tau,
-        "effective_alpha": best.effective_alpha,
-        "cycles_to_10k": best.cycles_to_10k,
-        "p_cost": best.p_cost,
-        "c_factor": best.c_factor,
-        "constraints_applied": constraints,
-    })
+    emit_receipt(
+        "strategy_recommendation",
+        {
+            "tenant_id": "axiom-autonomy",
+            "recommended": best.strategy.value,
+            "effective_tau": best.effective_tau,
+            "effective_alpha": best.effective_alpha,
+            "cycles_to_10k": best.cycles_to_10k,
+            "p_cost": best.p_cost,
+            "c_factor": best.c_factor,
+            "constraints_applied": constraints,
+        },
+    )
 
     return best
 
@@ -409,6 +420,10 @@ def get_all_strategy_configs() -> List[StrategyConfig]:
         StrategyConfig(strategy=Strategy.BASELINE),
         StrategyConfig(strategy=Strategy.ONBOARD_AI),
         StrategyConfig(strategy=Strategy.PREDICTIVE),
-        StrategyConfig(strategy=Strategy.RELAY_SWARM, relay_swarm_size=RELAY_SWARM_OPTIMAL),
-        StrategyConfig(strategy=Strategy.COMBINED, relay_swarm_size=RELAY_SWARM_OPTIMAL),
+        StrategyConfig(
+            strategy=Strategy.RELAY_SWARM, relay_swarm_size=RELAY_SWARM_OPTIMAL
+        ),
+        StrategyConfig(
+            strategy=Strategy.COMBINED, relay_swarm_size=RELAY_SWARM_OPTIMAL
+        ),
     ]

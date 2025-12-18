@@ -87,21 +87,24 @@ def load_alpha_formula_spec(path: str = None) -> Dict[str, Any]:
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         path = os.path.join(repo_root, ALPHA_FORMULA_SPEC_PATH)
 
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     content_hash = dual_hash(json.dumps(data, sort_keys=True))
 
-    emit_receipt("alpha_formula_spec_ingest", {
-        "tenant_id": "axiom-alpha-compute",
-        "file_path": path,
-        "formula_version": data["formula_version"],
-        "formula": data["formula"],
-        "shannon_floor_alpha": data["constants"]["shannon_floor_alpha"],
-        "alpha_ceiling_target": data["constants"]["alpha_ceiling_target"],
-        "ablation_modes": data["ablation_modes"],
-        "payload_hash": content_hash
-    })
+    emit_receipt(
+        "alpha_formula_spec_ingest",
+        {
+            "tenant_id": "axiom-alpha-compute",
+            "file_path": path,
+            "formula_version": data["formula_version"],
+            "formula": data["formula"],
+            "shannon_floor_alpha": data["constants"]["shannon_floor_alpha"],
+            "alpha_ceiling_target": data["constants"]["alpha_ceiling_target"],
+            "ablation_modes": data["ablation_modes"],
+            "payload_hash": content_hash,
+        },
+    )
 
     return data
 
@@ -116,14 +119,17 @@ def stoprule_invalid_retention(factor: float) -> None:
         StopRule: If factor < 0.95 or > 1.15
     """
     if factor < RETENTION_FACTOR_MIN or factor > RETENTION_FACTOR_STOPRULE_MAX:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-alpha-compute",
-            "metric": "retention_factor",
-            "baseline": 1.0,
-            "delta": factor - 1.0,
-            "classification": "violation",
-            "action": "halt"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-alpha-compute",
+                "metric": "retention_factor",
+                "baseline": 1.0,
+                "delta": factor - 1.0,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
         raise StopRule(
             f"Invalid retention factor {factor:.4f}: "
             f"must be in range [{RETENTION_FACTOR_MIN}, {RETENTION_FACTOR_STOPRULE_MAX}]"
@@ -140,14 +146,17 @@ def stoprule_alpha_below_floor(alpha: float) -> None:
         StopRule: If alpha < 2.70
     """
     if alpha < 2.70:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-alpha-compute",
-            "metric": "computed_alpha",
-            "baseline": SHANNON_FLOOR_ALPHA,
-            "delta": alpha - SHANNON_FLOOR_ALPHA,
-            "classification": "deviation",
-            "action": "investigate"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-alpha-compute",
+                "metric": "computed_alpha",
+                "baseline": SHANNON_FLOOR_ALPHA,
+                "delta": alpha - SHANNON_FLOOR_ALPHA,
+                "classification": "deviation",
+                "action": "investigate",
+            },
+        )
         raise StopRule(
             f"Alpha {alpha:.4f} below Shannon floor {SHANNON_FLOOR_ALPHA:.4f}"
         )
@@ -164,24 +173,24 @@ def stoprule_alpha_above_ceiling(alpha: float) -> None:
     """
     ceiling_plus_margin = ALPHA_CEILING_TARGET + 0.1
     if alpha > ceiling_plus_margin:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-alpha-compute",
-            "metric": "computed_alpha",
-            "baseline": ALPHA_CEILING_TARGET,
-            "delta": alpha - ALPHA_CEILING_TARGET,
-            "classification": "deviation",
-            "action": "investigate"
-        })
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-alpha-compute",
+                "metric": "computed_alpha",
+                "baseline": ALPHA_CEILING_TARGET,
+                "delta": alpha - ALPHA_CEILING_TARGET,
+                "classification": "deviation",
+                "action": "investigate",
+            },
+        )
         raise StopRule(
             f"Alpha {alpha:.4f} exceeds ceiling {ALPHA_CEILING_TARGET:.1f} + margin"
         )
 
 
 def alpha_calc(
-    min_eff: float,
-    baseline: float,
-    retention_factor: float,
-    validate: bool = True
+    min_eff: float, baseline: float, retention_factor: float, validate: bool = True
 ) -> Dict[str, Any]:
     """Compute alpha using explicit formula.
 
@@ -232,28 +241,31 @@ def alpha_calc(
         "components": {
             "min_eff": min_eff,
             "baseline": baseline,
-            "retention_factor": retention_factor
+            "retention_factor": retention_factor,
         },
         "floor_reference": SHANNON_FLOOR_ALPHA,
         "ceiling_reference": ALPHA_CEILING_TARGET,
         "gap_to_ceiling_absolute": round(gap_absolute, 4),
         "gap_to_ceiling_pct": round(gap_pct, 2),
-        "formula_version": ALPHA_FORMULA_VERSION
+        "formula_version": ALPHA_FORMULA_VERSION,
     }
 
-    emit_receipt("alpha_formula", {
-        "receipt_type": "alpha_formula",
-        "tenant_id": "axiom-alpha-compute",
-        "min_eff": min_eff,
-        "baseline": baseline,
-        "retention_factor": retention_factor,
-        "computed_alpha": computed_alpha,
-        "formula_version": ALPHA_FORMULA_VERSION,
-        "floor_reference": SHANNON_FLOOR_ALPHA,
-        "ceiling_reference": ALPHA_CEILING_TARGET,
-        "gap_to_ceiling_pct": round(gap_pct, 2),
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "alpha_formula",
+        {
+            "receipt_type": "alpha_formula",
+            "tenant_id": "axiom-alpha-compute",
+            "min_eff": min_eff,
+            "baseline": baseline,
+            "retention_factor": retention_factor,
+            "computed_alpha": computed_alpha,
+            "formula_version": ALPHA_FORMULA_VERSION,
+            "floor_reference": SHANNON_FLOOR_ALPHA,
+            "ceiling_reference": ALPHA_CEILING_TARGET,
+            "gap_to_ceiling_pct": round(gap_pct, 2),
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -277,9 +289,7 @@ def compound_retention(factors: List[float]) -> float:
 
 
 def isolate_layer_contribution(
-    full_alpha: float,
-    ablated_alpha: float,
-    floor: float = SHANNON_FLOOR_ALPHA
+    full_alpha: float, ablated_alpha: float, floor: float = SHANNON_FLOOR_ALPHA
 ) -> float:
     """Compute isolated contribution of a layer.
 
@@ -301,8 +311,7 @@ def isolate_layer_contribution(
 
 
 def ceiling_gap(
-    current_alpha: float,
-    ceiling_target: float = ALPHA_CEILING_TARGET
+    current_alpha: float, ceiling_target: float = ALPHA_CEILING_TARGET
 ) -> Dict[str, Any]:
     """Track progress toward ceiling target.
 
@@ -350,24 +359,24 @@ def ceiling_gap(
         "retention_factor_current": round(retention_current, 4),
         "retention_factor_needed": round(retention_needed, 4),
         "retention_factor_delta": round(retention_delta, 4),
-        "path_to_ceiling": path
+        "path_to_ceiling": path,
     }
 
-    emit_receipt("ceiling_track", {
-        "receipt_type": "ceiling_track",
-        "tenant_id": "axiom-alpha-compute",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "ceiling_track",
+        {
+            "receipt_type": "ceiling_track",
+            "tenant_id": "axiom-alpha-compute",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
 
 def validate_formula(
-    min_eff: float,
-    retention: float,
-    expected: float,
-    tolerance: float = 0.01
+    min_eff: float, retention: float, expected: float, tolerance: float = 0.01
 ) -> bool:
     """Validate formula correctness within tolerance.
 
@@ -401,23 +410,23 @@ def get_ablation_expected(mode: str) -> Dict[str, Any]:
         "baseline": {
             "alpha_range": (2.71, 2.72),
             "retention": 1.0,
-            "description": "No engineering - Shannon floor"
+            "description": "No engineering - Shannon floor",
         },
         "no_cache": {
             "alpha_range": (2.76, 2.80),
             "retention": (1.015, 1.03),
-            "description": "Pruning only - no GNN caching"
+            "description": "Pruning only - no GNN caching",
         },
         "no_prune": {
             "alpha_range": (2.72, 2.74),
             "retention": (1.003, 1.01),
-            "description": "GNN only - no pruning"
+            "description": "GNN only - no pruning",
         },
         "full": {
             "alpha_range": (2.80, 2.85),
             "retention": (1.03, 1.05),
-            "description": "Full stack - GNN + pruning"
-        }
+            "description": "Full stack - GNN + pruning",
+        },
     }
 
     return expected[mode]
@@ -427,7 +436,7 @@ def compute_alpha_from_layers(
     gnn_retention: float = 1.0,
     prune_retention: float = 1.0,
     base_min_eff: float = SHANNON_FLOOR_ALPHA,
-    ablation_mode: str = "full"
+    ablation_mode: str = "full",
 ) -> Dict[str, Any]:
     """Compute alpha from individual layer retention factors.
 
@@ -469,19 +478,22 @@ def compute_alpha_from_layers(
             "gnn_retention": gnn_retention,
             "gnn_active": gnn_active,
             "prune_retention": prune_retention,
-            "prune_active": prune_active
+            "prune_active": prune_active,
         },
         "ablation_mode": ablation_mode,
         "base_min_eff": base_min_eff,
-        "gap_to_ceiling_pct": alpha_result["gap_to_ceiling_pct"]
+        "gap_to_ceiling_pct": alpha_result["gap_to_ceiling_pct"],
     }
 
-    emit_receipt("alpha_from_layers", {
-        "receipt_type": "alpha_from_layers",
-        "tenant_id": "axiom-alpha-compute",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "alpha_from_layers",
+        {
+            "receipt_type": "alpha_from_layers",
+            "tenant_id": "axiom-alpha-compute",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -509,16 +521,19 @@ def get_alpha_compute_info() -> Dict[str, Any]:
             "shannon_bound": "H ≤ e·ln(n) is Shannon entropy bound",
             "alpha_definition": "α is engineered resilience metric",
             "floor_is_e": "e is the FLOOR (baseline), not ceiling",
-            "ceiling_is_3": "Ceiling is ~3.0 with ML optimization"
+            "ceiling_is_3": "Ceiling is ~3.0 with ML optimization",
         },
-        "description": "Explicit α formula computation module. Single source of truth for α calculation."
+        "description": "Explicit α formula computation module. Single source of truth for α calculation.",
     }
 
-    emit_receipt("alpha_compute_info", {
-        "tenant_id": "axiom-alpha-compute",
-        **info,
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True))
-    })
+    emit_receipt(
+        "alpha_compute_info",
+        {
+            "tenant_id": "axiom-alpha-compute",
+            **info,
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info
 
@@ -531,7 +546,7 @@ def alpha_calc_dynamic(
     min_eff: float,
     baseline: float,
     rl_tuner_retention: float = None,
-    static_retention: float = 1.01
+    static_retention: float = 1.01,
 ) -> Dict[str, Any]:
     """Compute alpha with dynamic retention from RL feedback.
 
@@ -570,31 +585,42 @@ def alpha_calc_dynamic(
     milestone_2 = 1.08
     result["milestone_1_achieved"] = retention >= milestone_1
     result["milestone_2_achieved"] = retention >= milestone_2
-    result["retention_target_next"] = milestone_1 if not result["milestone_1_achieved"] else (
-        milestone_2 if not result["milestone_2_achieved"] else RETENTION_FACTOR_MAX
+    result["retention_target_next"] = (
+        milestone_1
+        if not result["milestone_1_achieved"]
+        else (
+            milestone_2 if not result["milestone_2_achieved"] else RETENTION_FACTOR_MAX
+        )
     )
 
-    emit_receipt("alpha_calc_dynamic", {
-        "receipt_type": "alpha_calc_dynamic",
-        "tenant_id": "axiom-alpha-compute",
-        "computed_alpha": result["computed_alpha"],
-        "retention_factor": result["retention_factor"],
-        "retention_source": retention_source,
-        "gap_to_ceiling_pct": result["gap_to_ceiling_pct"],
-        "milestone_1_achieved": result["milestone_1_achieved"],
-        "payload_hash": dual_hash(json.dumps({
-            "alpha": result["computed_alpha"],
-            "retention": retention,
-            "source": retention_source
-        }, sort_keys=True))
-    })
+    emit_receipt(
+        "alpha_calc_dynamic",
+        {
+            "receipt_type": "alpha_calc_dynamic",
+            "tenant_id": "axiom-alpha-compute",
+            "computed_alpha": result["computed_alpha"],
+            "retention_factor": result["retention_factor"],
+            "retention_source": retention_source,
+            "gap_to_ceiling_pct": result["gap_to_ceiling_pct"],
+            "milestone_1_achieved": result["milestone_1_achieved"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "alpha": result["computed_alpha"],
+                        "retention": retention,
+                        "source": retention_source,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     return result
 
 
 def ceiling_gap_with_rl_path(
-    current_alpha: float,
-    rl_projected_retention: float = None
+    current_alpha: float, rl_projected_retention: float = None
 ) -> Dict[str, Any]:
     """Analyze ceiling gap with RL-projected path.
 
@@ -614,36 +640,52 @@ def ceiling_gap_with_rl_path(
     if rl_projected_retention is not None:
         # Compute projected alpha with RL retention
         projected_alpha = SHANNON_FLOOR_ALPHA * rl_projected_retention
-        projected_gap_pct = ((ALPHA_CEILING_TARGET - projected_alpha) / ALPHA_CEILING_TARGET) * 100
+        projected_gap_pct = (
+            (ALPHA_CEILING_TARGET - projected_alpha) / ALPHA_CEILING_TARGET
+        ) * 100
 
         gap_result["rl_projected_retention"] = rl_projected_retention
         gap_result["rl_projected_alpha"] = round(projected_alpha, 4)
         gap_result["rl_projected_gap_pct"] = round(projected_gap_pct, 2)
-        gap_result["rl_improvement_pct"] = round(gap_result["gap_pct"] - projected_gap_pct, 2)
+        gap_result["rl_improvement_pct"] = round(
+            gap_result["gap_pct"] - projected_gap_pct, 2
+        )
 
         # Update path with RL info
         if rl_projected_retention >= RETENTION_FACTOR_MAX:
             gap_result["path_to_ceiling"] = "RL reaches ceiling - quantum validates"
         elif rl_projected_retention >= 1.08:
-            gap_result["path_to_ceiling"] = f"RL → {rl_projected_retention:.3f} (+quantum hybrid)"
+            gap_result["path_to_ceiling"] = (
+                f"RL → {rl_projected_retention:.3f} (+quantum hybrid)"
+            )
         elif rl_projected_retention >= 1.05:
-            gap_result["path_to_ceiling"] = f"RL → {rl_projected_retention:.3f} (+RL2 → 1.08 +quantum)"
+            gap_result["path_to_ceiling"] = (
+                f"RL → {rl_projected_retention:.3f} (+RL2 → 1.08 +quantum)"
+            )
         else:
-            gap_result["path_to_ceiling"] = f"RL → {rl_projected_retention:.3f} (continue tuning)"
+            gap_result["path_to_ceiling"] = (
+                f"RL → {rl_projected_retention:.3f} (continue tuning)"
+            )
 
-    emit_receipt("ceiling_gap_rl_path", {
-        "receipt_type": "ceiling_gap_rl_path",
-        "tenant_id": "axiom-alpha-compute",
-        "current_alpha": current_alpha,
-        "gap_pct": gap_result["gap_pct"],
-        "rl_projected_retention": rl_projected_retention,
-        "rl_projected_alpha": gap_result.get("rl_projected_alpha"),
-        "path_to_ceiling": gap_result["path_to_ceiling"],
-        "payload_hash": dual_hash(json.dumps({
-            "alpha": current_alpha,
-            "rl_retention": rl_projected_retention
-        }, sort_keys=True, default=str))
-    })
+    emit_receipt(
+        "ceiling_gap_rl_path",
+        {
+            "receipt_type": "ceiling_gap_rl_path",
+            "tenant_id": "axiom-alpha-compute",
+            "current_alpha": current_alpha,
+            "gap_pct": gap_result["gap_pct"],
+            "rl_projected_retention": rl_projected_retention,
+            "rl_projected_alpha": gap_result.get("rl_projected_alpha"),
+            "path_to_ceiling": gap_result["path_to_ceiling"],
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"alpha": current_alpha, "rl_retention": rl_projected_retention},
+                    sort_keys=True,
+                    default=str,
+                )
+            ),
+        },
+    )
 
     return gap_result
 
@@ -658,23 +700,23 @@ def get_retention_milestones() -> Dict[str, Any]:
         "current": {
             "retention": 1.01,
             "alpha": round(SHANNON_FLOOR_ALPHA * 1.01, 4),
-            "description": "Current baseline"
+            "description": "Current baseline",
         },
         "milestone_1": {
             "retention": 1.05,
             "alpha": round(SHANNON_FLOOR_ALPHA * 1.05, 4),
-            "description": "First RL target (this build)"
+            "description": "First RL target (this build)",
         },
         "milestone_2": {
             "retention": 1.08,
             "alpha": round(SHANNON_FLOOR_ALPHA * 1.08, 4),
-            "description": "Second RL target (next build)"
+            "description": "Second RL target (next build)",
         },
         "ceiling": {
             "retention": RETENTION_FACTOR_MAX,
             "alpha": ALPHA_CEILING_TARGET,
-            "description": "Physics ceiling (quantum hybrid)"
-        }
+            "description": "Physics ceiling (quantum hybrid)",
+        },
     }
 
     return milestones
@@ -697,19 +739,24 @@ def get_alpha_compute_dynamic_info() -> Dict[str, Any]:
         "rl_integration": {
             "rl_retention_source": "rl_tune.RLTuner.best_retention",
             "static_fallback": 1.01,
-            "dynamic_mode_default": False
+            "dynamic_mode_default": False,
         },
-        "kill_list": [
-            "Fixed retention_factor defaults"
-        ],
+        "kill_list": ["Fixed retention_factor defaults"],
         "description_dynamic": "Alpha compute with dynamic RL retention input. "
-                               "Kill static baselines - go dynamic."
+        "Kill static baselines - go dynamic.",
     }
 
-    emit_receipt("alpha_compute_dynamic_info", {
-        "tenant_id": "axiom-alpha-compute",
-        **{k: v for k, v in info.items() if k not in ["description", "kill_list", "physics_clarification"]},
-        "payload_hash": dual_hash(json.dumps(milestones, sort_keys=True))
-    })
+    emit_receipt(
+        "alpha_compute_dynamic_info",
+        {
+            "tenant_id": "axiom-alpha-compute",
+            **{
+                k: v
+                for k, v in info.items()
+                if k not in ["description", "kill_list", "physics_clarification"]
+            },
+            "payload_hash": dual_hash(json.dumps(milestones, sort_keys=True)),
+        },
+    )
 
     return info

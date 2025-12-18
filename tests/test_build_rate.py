@@ -6,6 +6,7 @@ Validates Grok's core equation: B = c x A^alpha x P
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.build_rate import (
@@ -61,11 +62,7 @@ class TestAutonomyToLevel:
 
     def test_baseline_values(self):
         """Baseline tau, expertise, capacity should give reasonable level."""
-        level = autonomy_to_level(
-            tau=300.0,
-            expertise=0.8,
-            decision_capacity=1000.0
-        )
+        level = autonomy_to_level(tau=300.0, expertise=0.8, decision_capacity=1000.0)
         assert 0 < level <= 1.0, f"Level should be in (0, 1], got {level}"
 
     def test_lower_tau_higher_level(self):
@@ -88,9 +85,7 @@ class TestPropulsionToLevel:
     def test_baseline_propulsion(self):
         """Baseline values should give level ~1.0."""
         level = propulsion_to_level(
-            launches_per_year=10.0,
-            payload_tons=100.0,
-            reliability=0.95
+            launches_per_year=10.0, payload_tons=100.0, reliability=0.95
         )
         assert 0.9 < level < 1.1, f"Baseline should give ~1.0, got {level}"
 
@@ -119,7 +114,7 @@ class TestAnnualMultiplier:
     def test_zero_prior_rate(self):
         """Zero prior rate with positive current should give inf."""
         mult = annual_multiplier(1.0, 0.0)
-        assert mult == float('inf')
+        assert mult == float("inf")
 
     def test_both_zero(self):
         """Both zero should give 1.0."""
@@ -133,8 +128,9 @@ class TestAllocationToMultiplier:
     def test_40pct_multiplier(self):
         """40% allocation should give 2.5-3.0x multiplier."""
         mult = allocation_to_multiplier(0.40)
-        assert MULTIPLIER_40PCT[0] <= mult <= MULTIPLIER_40PCT[1], \
+        assert MULTIPLIER_40PCT[0] <= mult <= MULTIPLIER_40PCT[1], (
             f"Expected {MULTIPLIER_40PCT}, got {mult}"
+        )
 
     def test_25pct_multiplier(self):
         """25% allocation should give 1.6-2.0x multiplier."""
@@ -183,9 +179,7 @@ class TestBuildRateState:
     def test_state_computation(self):
         """Should compute full state correctly."""
         state = compute_build_rate_state(
-            autonomy=0.40,
-            propulsion=1.0,
-            prior_build_rate=0.1
+            autonomy=0.40, propulsion=1.0, prior_build_rate=0.1
         )
         assert state.autonomy_level == 0.40
         assert state.propulsion_level == 1.0
@@ -197,7 +191,7 @@ class TestBuildRateState:
         state = compute_build_rate_state(
             autonomy=0.40,
             propulsion=1.0,
-            prior_build_rate=0.0  # No prior
+            prior_build_rate=0.0,  # No prior
         )
         assert state.annual_multiplier == 1.0
 

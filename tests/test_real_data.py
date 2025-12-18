@@ -140,7 +140,9 @@ class TestMOXIELoader:
 
         for run in result["runs"]:
             # Efficiency should be between 0.1 and 1.0 g O2/Wh
-            assert 0.1 <= run["efficiency"] <= 1.0, f"Run {run['run_id']} efficiency out of range"
+            assert 0.1 <= run["efficiency"] <= 1.0, (
+                f"Run {run['run_id']} efficiency out of range"
+            )
 
 
 class TestECLSSLoader:

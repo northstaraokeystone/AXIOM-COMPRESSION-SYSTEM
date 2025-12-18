@@ -4,7 +4,6 @@ This module provides shared utilities, constants, and decorators
 used across all CLI command modules.
 """
 
-
 # Shared constants
 TENANT_ID = "axiom-colony"
 

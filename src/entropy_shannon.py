@@ -154,6 +154,7 @@ Source: Grok - "2-10 Mbps" range implies 4x variance."""
 
 # === CORE FUNCTIONS ===
 
+
 def internal_rate(crew: int, compute_flops: float = 0.0) -> float:
     """Calculate internal decision rate in decisions/sec.
 
@@ -215,9 +216,7 @@ def external_rate(bandwidth_mbps: float, delay_s: float) -> float:
 
 
 def external_rate_exponential(
-    bandwidth_mbps: float,
-    delay_s: float,
-    tau_s: float = TAU_DECISION_DECAY_S
+    bandwidth_mbps: float, delay_s: float, tau_s: float = TAU_DECISION_DECAY_S
 ) -> float:
     """Calculate external decision rate with exponential decay model.
 
@@ -291,10 +290,7 @@ def is_sovereign(advantage: float) -> bool:
 
 
 def emit_entropy_receipt(
-    crew: int,
-    bandwidth_mbps: float,
-    delay_s: float,
-    compute_flops: float = 0.0
+    crew: int, bandwidth_mbps: float, delay_s: float, compute_flops: float = 0.0
 ) -> dict:
     """Emit receipt for entropy calculation.
 
@@ -304,21 +300,25 @@ def emit_entropy_receipt(
     er = external_rate(bandwidth_mbps, delay_s)
     adv = sovereignty_advantage(ir, er)
 
-    return emit_receipt("entropy_calculation", {
-        "tenant_id": "axiom-core",
-        "crew": crew,
-        "bandwidth_mbps": bandwidth_mbps,
-        "delay_s": delay_s,
-        "compute_flops": compute_flops,
-        "internal_rate": ir,
-        "external_rate": er,
-        "advantage": adv,
-        "sovereign": is_sovereign(adv)
-    })
+    return emit_receipt(
+        "entropy_calculation",
+        {
+            "tenant_id": "axiom-core",
+            "crew": crew,
+            "bandwidth_mbps": bandwidth_mbps,
+            "delay_s": delay_s,
+            "compute_flops": compute_flops,
+            "internal_rate": ir,
+            "external_rate": er,
+            "advantage": adv,
+            "sovereign": is_sovereign(adv),
+        },
+    )
 
 
 # === TAU COST FUNCTIONS (v1.2 - Grok feedback Dec 16, 2025) ===
 # Source: "What if we simulate variable τ costs?"
+
 
 def tau_cost(tau_target: float, tau_base: float = TAU_BASE_CURRENT_S) -> float:
     """Calculate investment (millions USD) to reduce τ from tau_base to tau_target.
@@ -351,7 +351,9 @@ def tau_cost(tau_target: float, tau_base: float = TAU_BASE_CURRENT_S) -> float:
     return cost
 
 
-def tau_from_investment(investment_m: float, tau_base: float = TAU_BASE_CURRENT_S) -> float:
+def tau_from_investment(
+    investment_m: float, tau_base: float = TAU_BASE_CURRENT_S
+) -> float:
     """Calculate achievable τ given investment amount.
 
     Inverse of tau_cost():
@@ -435,10 +437,11 @@ def bandwidth_from_investment(investment_m: float) -> float:
 # === THREE τ COST CURVE OPTIONS (v1.3 - Grok: "sim variable τ costs") ===
 # Source: "Let's sim variable τ costs next—what's your baseline cost function?"
 
+
 def tau_cost_exponential(
     tau_target: float,
     tau_base: float = TAU_BASE_CURRENT_S,
-    tau_min: float = TAU_MIN_ACHIEVABLE_S
+    tau_min: float = TAU_MIN_ACHIEVABLE_S,
 ) -> float:
     """Exponential τ cost curve: cheap early, expensive late.
 
@@ -481,7 +484,7 @@ def tau_cost_logistic(
     tau_base: float = TAU_BASE_CURRENT_S,
     tau_min: float = TAU_MIN_ACHIEVABLE_S,
     inflection: float = TAU_COST_INFLECTION_M,
-    k: float = TAU_COST_STEEPNESS
+    k: float = TAU_COST_STEEPNESS,
 ) -> float:
     """Logistic (S-curve) τ cost: slow start, fast middle, asymptote.
 
@@ -544,7 +547,7 @@ def tau_cost_logistic(
 def tau_cost_piecewise(
     tau_target: float,
     tau_base: float = TAU_BASE_CURRENT_S,
-    tau_min: float = TAU_MIN_ACHIEVABLE_S
+    tau_min: float = TAU_MIN_ACHIEVABLE_S,
 ) -> float:
     """Piecewise τ cost: three autonomy tiers with discrete costs.
 
@@ -579,8 +582,8 @@ def tau_cost_piecewise(
         tau_target = tau_min  # Clamp to physical floor
 
     # Tier boundaries and costs
-    tier1_end = 150.0   # τ=150s
-    tier2_end = 75.0    # τ=75s
+    tier1_end = 150.0  # τ=150s
+    tier2_end = 75.0  # τ=75s
     tier3_end = tau_min  # τ=30s
 
     tier1_cost = 100.0  # $100M for tier 1
@@ -617,7 +620,7 @@ def tau_from_cost(
     cost_m: float,
     curve_type: str = "logistic",
     tau_base: float = TAU_BASE_CURRENT_S,
-    tau_min: float = TAU_MIN_ACHIEVABLE_S
+    tau_min: float = TAU_MIN_ACHIEVABLE_S,
 ) -> float:
     """Inverse: given spend, what τ is achievable?
 
@@ -679,5 +682,7 @@ def get_cost_function(curve_type: str):
         "piecewise": tau_cost_piecewise,
     }
     if curve_type not in curves:
-        raise ValueError(f"Unknown curve type: {curve_type}. Use: {list(curves.keys())}")
+        raise ValueError(
+            f"Unknown curve type: {curve_type}. Use: {list(curves.keys())}"
+        )
     return curves[curve_type]

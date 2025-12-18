@@ -16,7 +16,6 @@ SLO Requirements:
 - Perovskite scaling factor == 3.33
 """
 
-
 from src.fractal_layers import (
     get_d6_spec,
     get_d6_uplift,
@@ -101,13 +100,17 @@ def test_d6_alpha_floor():
     With base_alpha=3.15 and uplift=0.185, eff_alpha should reach 3.31+.
     """
     result = d6_recursive_fractal(D6_TREE_MIN, 3.15, depth=6)
-    assert result["eff_alpha"] >= D6_ALPHA_FLOOR, f"Expected >= {D6_ALPHA_FLOOR}, got {result['eff_alpha']}"
+    assert result["eff_alpha"] >= D6_ALPHA_FLOOR, (
+        f"Expected >= {D6_ALPHA_FLOOR}, got {result['eff_alpha']}"
+    )
 
 
 def test_d6_alpha_target():
     """Test that D6 can achieve alpha target (3.33) at depth=6."""
     result = d6_recursive_fractal(D6_TREE_MIN, 3.15, depth=6)
-    assert result["eff_alpha"] >= D6_ALPHA_TARGET, f"Expected >= {D6_ALPHA_TARGET}, got {result['eff_alpha']}"
+    assert result["eff_alpha"] >= D6_ALPHA_TARGET, (
+        f"Expected >= {D6_ALPHA_TARGET}, got {result['eff_alpha']}"
+    )
 
 
 def test_d6_uplift_value():
@@ -388,5 +391,7 @@ def test_recursive_fractal_uplift_progression_to_d6():
     prev_alpha = base_alpha
     for depth in range(1, 7):
         result = recursive_fractal(tree_size, base_alpha, depth=depth)
-        assert result["final_alpha"] > prev_alpha, f"Depth {depth} should increase alpha"
+        assert result["final_alpha"] > prev_alpha, (
+            f"Depth {depth} should increase alpha"
+        )
         prev_alpha = result["final_alpha"]

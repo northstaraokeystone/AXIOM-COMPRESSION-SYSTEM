@@ -68,19 +68,16 @@ def chain_receipts(receipts: list) -> dict:
     """
     if not receipts:
         root = dual_hash(b"empty")
-        return emit_receipt("chain", {
-            "tenant_id": TENANT_ID,
-            "n_receipts": 0,
-            "merkle_root": root
-        })
+        return emit_receipt(
+            "chain", {"tenant_id": TENANT_ID, "n_receipts": 0, "merkle_root": root}
+        )
 
     root = merkle(receipts)
 
-    return emit_receipt("chain", {
-        "tenant_id": TENANT_ID,
-        "n_receipts": len(receipts),
-        "merkle_root": root
-    })
+    return emit_receipt(
+        "chain",
+        {"tenant_id": TENANT_ID, "n_receipts": len(receipts), "merkle_root": root},
+    )
 
 
 def verify_proof(receipt: dict, proof_path: list, root: str) -> bool:
@@ -112,6 +109,7 @@ def verify_proof(receipt: dict, proof_path: list, root: str) -> bool:
 
 # === SENSITIVITY FORMATTING (v1.1 - Grok feedback Dec 16, 2025) ===
 
+
 def format_sensitivity_finding(sensitivity_data: dict) -> str:
     """Format sensitivity analysis results as human-readable finding.
 
@@ -134,7 +132,7 @@ def format_sensitivity_finding(sensitivity_data: dict) -> str:
         "=" * 60 + "\n"
         "SENSITIVITY ANALYSIS FINDING\n"
         "=" * 60 + "\n\n"
-        f"Grok validation: \"It's primarily latency-limited\"\n\n"
+        f'Grok validation: "It\'s primarily latency-limited"\n\n'
         f"Parameter Variance:\n"
         f"  Delay:     180s to 1320s ({delay_variance:.2f}x range)\n"
         f"  Bandwidth: 2 to 10 Mbps ({bw_variance:.2f}x range)\n\n"
@@ -186,14 +184,16 @@ def format_model_comparison(comparison_data: dict) -> str:
         diff = s.get("threshold_diff", 0)
         lines.append(f"{desc:<35} {t_lin:<12} {t_exp:<12} {diff:+<8}")
 
-    lines.extend([
-        "-" * 70,
-        "",
-        f"Mean rate ratio (exp/lin): {summary.get('mean_rate_ratio', 0):.4f}",
-        f"Mean threshold difference: {summary.get('mean_threshold_diff', 0):.1f} crew",
-        "",
-        "=" * 70,
-    ])
+    lines.extend(
+        [
+            "-" * 70,
+            "",
+            f"Mean rate ratio (exp/lin): {summary.get('mean_rate_ratio', 0):.4f}",
+            f"Mean threshold difference: {summary.get('mean_threshold_diff', 0):.1f} crew",
+            "",
+            "=" * 70,
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -230,9 +230,7 @@ def format_grok_validation(validation_data: dict) -> str:
 
 
 def emit_sensitivity_proof_receipt(
-    sensitivity_data: dict,
-    comparison_data: dict,
-    validation_data: dict
+    sensitivity_data: dict, comparison_data: dict, validation_data: dict
 ) -> dict:
     """Emit proof receipt for sensitivity analysis.
 
@@ -242,16 +240,22 @@ def emit_sensitivity_proof_receipt(
     comparison = format_model_comparison(comparison_data)
     validation = format_grok_validation(validation_data)
 
-    return emit_receipt("sensitivity_proof", {
-        "tenant_id": TENANT_ID,
-        "finding": finding,
-        "comparison": comparison,
-        "validation": validation,
-        "grok_validated": validation_data.get("validation", {}).get("all_match", False)
-    })
+    return emit_receipt(
+        "sensitivity_proof",
+        {
+            "tenant_id": TENANT_ID,
+            "finding": finding,
+            "comparison": comparison,
+            "validation": validation,
+            "grok_validated": validation_data.get("validation", {}).get(
+                "all_match", False
+            ),
+        },
+    )
 
 
 # === GROK ANSWER FORMATTING (v1.3 - "what's your baseline cost function?") ===
+
 
 def format_baseline_cost_function() -> str:
     """Returns tweet-ready explanation of default (logistic) curve.
@@ -311,15 +315,17 @@ def format_sweep_results(sweep_data: Dict) -> str:
             f"{opt.get('peak_roi', 0):.6f}"
         )
 
-    lines.extend([
-        "-" * 70,
-        "",
-        "INTERPRETATION:",
-        "  All curves confirm: τ investment beats bandwidth at Mars delays.",
-        "  Logistic has best ROI profile due to realistic inflection modeling.",
-        "",
-        "=" * 70,
-    ])
+    lines.extend(
+        [
+            "-" * 70,
+            "",
+            "INTERPRETATION:",
+            "  All curves confirm: τ investment beats bandwidth at Mars delays.",
+            "  Logistic has best ROI profile due to realistic inflection modeling.",
+            "",
+            "=" * 70,
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -337,17 +343,17 @@ def format_meta_compression(comparison: Dict) -> str:
 
 Grok's insight: "AI→AI iteration compresses the question-to-shift path by 5-10x"
 
-SAME ${comparison.get('spend_m', 500)}M INVESTMENT:
+SAME ${comparison.get("spend_m", 500)}M INVESTMENT:
   Human-only R&D:
-    - Cycle time: {comparison.get('human_time_to_value_years', 3):.1f} years to τ reduction
-    - ROI collection starts: Year {comparison.get('human_time_to_value_years', 3):.0f}+
+    - Cycle time: {comparison.get("human_time_to_value_years", 3):.1f} years to τ reduction
+    - ROI collection starts: Year {comparison.get("human_time_to_value_years", 3):.0f}+
 
   AI-mediated R&D:
-    - Cycle time: {comparison.get('ai_time_to_value_years', 0.4):.2f} years to τ reduction
-    - ROI collection starts: Month {comparison.get('ai_time_to_value_years', 0.4) * 12:.0f}+
+    - Cycle time: {comparison.get("ai_time_to_value_years", 0.4):.2f} years to τ reduction
+    - ROI collection starts: Month {comparison.get("ai_time_to_value_years", 0.4) * 12:.0f}+
 
-SPEEDUP FACTOR: {comparison.get('speedup_factor', 7.5)}x
-YEARS EARLIER: {comparison.get('years_earlier', 2.5):.1f} years
+SPEEDUP FACTOR: {comparison.get("speedup_factor", 7.5)}x
+YEARS EARLIER: {comparison.get("years_earlier", 2.5):.1f} years
 
 THE RECURSIVE INSIGHT:
   We used fast iteration (low meta-τ) to discover that
@@ -388,7 +394,7 @@ Q1: "What's your baseline cost function?"
 A1: Logistic (S-curve) with:
     - τ_base = 300s, τ_min = 30s
     - Inflection = $400M (steepest gains)
-    - Optimal spend = ${logistic_opt.get('spend_m', 400):.0f}M for τ ≈ {logistic_opt.get('tau_s', 100):.0f}s
+    - Optimal spend = ${logistic_opt.get("spend_m", 400):.0f}M for τ ≈ {logistic_opt.get("tau_s", 100):.0f}s
 
 Q2: "Let's sim variable τ costs"
 A2: Swept exponential/logistic/piecewise.
@@ -396,9 +402,9 @@ A2: Swept exponential/logistic/piecewise.
     All curves confirm: τ investment beats bandwidth at Mars delays.
 
 META-INSIGHT:
-    AI→AI iteration = {comparison.get('speedup_factor', 7.5)}x speedup.
-    Same $500M reaches τ reduction in {comparison.get('ai_time_to_value_years', 0.4) * 12:.0f} months \
-vs {comparison.get('human_time_to_value_years', 3):.1f} years.
+    AI→AI iteration = {comparison.get("speedup_factor", 7.5)}x speedup.
+    Same $500M reaches τ reduction in {comparison.get("ai_time_to_value_years", 0.4) * 12:.0f} months \
+vs {comparison.get("human_time_to_value_years", 3):.1f} years.
 
 ══════════════════════════════════════════════════════════════════════"""
 
@@ -416,15 +422,15 @@ def format_tweet_summary(sweep_data: Dict, comparison: Dict) -> str:
         Tweet-ready summary string
     """
     logistic_opt = sweep_data.get("logistic", {}).get("optimal", {})
-    speedup = comparison.get('speedup_factor', 7.5)
-    ai_months = comparison.get('ai_time_to_value_years', 0.4) * 12
-    human_years = comparison.get('human_time_to_value_years', 3)
+    speedup = comparison.get("speedup_factor", 7.5)
+    ai_months = comparison.get("ai_time_to_value_years", 0.4) * 12
+    human_years = comparison.get("human_time_to_value_years", 3)
 
     tweet = f"""Baseline: LOGISTIC (S-curve)
 
 τ(spend) with inflection at $400M
 Swept 3 curves: logistic wins
-Optimal: ${logistic_opt.get('spend_m', 400):.0f}M → τ≈{logistic_opt.get('tau_s', 100):.0f}s
+Optimal: ${logistic_opt.get("spend_m", 400):.0f}M → τ≈{logistic_opt.get("tau_s", 100):.0f}s
 
 Meta-loop confirmed: AI→AI = {speedup}x speedup
 Same $500M reaches τ reduction in {ai_months:.0f} months vs {human_years:.0f} years"""
@@ -447,22 +453,28 @@ def emit_grok_answer_receipt(sweep_data: Dict, comparison: Dict) -> dict:
     full_answer = format_grok_answer(sweep_data, comparison)
     tweet = format_tweet_summary(sweep_data, comparison)
 
-    return emit_receipt("grok_answer", {
-        "tenant_id": TENANT_ID,
-        "question_1": "what's your baseline cost function?",
-        "question_2": "Let's sim variable τ costs",
-        "answer_baseline": "logistic",
-        "answer_inflection_m": 400,
-        "answer_optimal_spend_m": sweep_data.get("logistic", {}).get("optimal", {}).get("spend_m", 400),
-        "answer_speedup_factor": comparison.get("speedup_factor", 7.5),
-        "tweet_summary": tweet,
-        "tweet_length": len(tweet),
-        "under_280": len(tweet) <= 280,
-        "full_answer": full_answer
-    })
+    return emit_receipt(
+        "grok_answer",
+        {
+            "tenant_id": TENANT_ID,
+            "question_1": "what's your baseline cost function?",
+            "question_2": "Let's sim variable τ costs",
+            "answer_baseline": "logistic",
+            "answer_inflection_m": 400,
+            "answer_optimal_spend_m": sweep_data.get("logistic", {})
+            .get("optimal", {})
+            .get("spend_m", 400),
+            "answer_speedup_factor": comparison.get("speedup_factor", 7.5),
+            "tweet_summary": tweet,
+            "tweet_length": len(tweet),
+            "under_280": len(tweet) <= 280,
+            "full_answer": full_answer,
+        },
+    )
 
 
 # === PROVENANCE VERIFICATION (v1.1 - Validation Lock) ===
+
 
 def verify_provenance(receipts_path: str = "receipts.jsonl") -> dict:
     """Verify all receipt hashes and check chain integrity.
@@ -505,14 +517,17 @@ def verify_provenance(receipts_path: str = "receipts.jsonl") -> dict:
         results["verification_passed"] = False
         results["error"] = f"Receipts file not found: {receipts_path}"
 
-        verification_receipt = emit_receipt("verification", {
-            "tenant_id": TENANT_ID,
-            "receipts_checked": 0,
-            "hash_mismatches": [],
-            "chain_breaks": [],
-            "verification_passed": False,
-            "error": results["error"],
-        })
+        verification_receipt = emit_receipt(
+            "verification",
+            {
+                "tenant_id": TENANT_ID,
+                "receipts_checked": 0,
+                "hash_mismatches": [],
+                "chain_breaks": [],
+                "verification_passed": False,
+                "error": results["error"],
+            },
+        )
         results["verification_receipt"] = verification_receipt
         return results
 
@@ -520,7 +535,7 @@ def verify_provenance(receipts_path: str = "receipts.jsonl") -> dict:
     receipts = []
     line_number = 0
 
-    with open(receipts_path, 'r') as f:
+    with open(receipts_path, "r") as f:
         for line in f:
             line_number += 1
             line = line.strip()
@@ -531,10 +546,12 @@ def verify_provenance(receipts_path: str = "receipts.jsonl") -> dict:
                 receipt = json.loads(line)
                 receipts.append((line_number, receipt))
             except json.JSONDecodeError as e:
-                results["broken_chains"].append({
-                    "line": line_number,
-                    "error": f"Invalid JSON: {str(e)}",
-                })
+                results["broken_chains"].append(
+                    {
+                        "line": line_number,
+                        "error": f"Invalid JSON: {str(e)}",
+                    }
+                )
                 results["invalid_count"] += 1
 
     results["receipts_checked"] = len(receipts)
@@ -545,11 +562,13 @@ def verify_provenance(receipts_path: str = "receipts.jsonl") -> dict:
         stored_hash = receipt.get("payload_hash")
 
         if not stored_hash:
-            results["hash_mismatches"].append({
-                "line": line_num,
-                "receipt_type": receipt.get("receipt_type", "unknown"),
-                "error": "Missing payload_hash",
-            })
+            results["hash_mismatches"].append(
+                {
+                    "line": line_num,
+                    "receipt_type": receipt.get("receipt_type", "unknown"),
+                    "error": "Missing payload_hash",
+                }
+            )
             results["invalid_count"] += 1
             continue
 
@@ -564,12 +583,14 @@ def verify_provenance(receipts_path: str = "receipts.jsonl") -> dict:
         if computed_hash == stored_hash:
             results["valid_count"] += 1
         else:
-            results["hash_mismatches"].append({
-                "line": line_num,
-                "receipt_type": receipt.get("receipt_type", "unknown"),
-                "expected": stored_hash,
-                "computed": computed_hash,
-            })
+            results["hash_mismatches"].append(
+                {
+                    "line": line_num,
+                    "receipt_type": receipt.get("receipt_type", "unknown"),
+                    "expected": stored_hash,
+                    "computed": computed_hash,
+                }
+            )
             results["invalid_count"] += 1
 
     # Check for chain breaks (gaps in timestamps)
@@ -591,28 +612,32 @@ def verify_provenance(receipts_path: str = "receipts.jsonl") -> dict:
                 gap = (timestamps[i] - timestamps[i - 1]).total_seconds()
                 # Flag gaps > 1 hour as potential chain breaks
                 if gap > 3600:
-                    results["broken_chains"].append({
-                        "gap_seconds": gap,
-                        "before": timestamps[i - 1].isoformat(),
-                        "after": timestamps[i].isoformat(),
-                    })
+                    results["broken_chains"].append(
+                        {
+                            "gap_seconds": gap,
+                            "before": timestamps[i - 1].isoformat(),
+                            "after": timestamps[i].isoformat(),
+                        }
+                    )
 
     # Determine overall pass/fail
     results["verification_passed"] = (
-        results["invalid_count"] == 0 and
-        len(results["broken_chains"]) == 0
+        results["invalid_count"] == 0 and len(results["broken_chains"]) == 0
     )
 
     # Emit verification receipt
-    verification_receipt = emit_receipt("verification", {
-        "tenant_id": TENANT_ID,
-        "receipts_checked": results["receipts_checked"],
-        "hash_mismatches": results["hash_mismatches"],
-        "chain_breaks": results["broken_chains"],
-        "verification_passed": results["verification_passed"],
-        "valid_count": results["valid_count"],
-        "invalid_count": results["invalid_count"],
-    })
+    verification_receipt = emit_receipt(
+        "verification",
+        {
+            "tenant_id": TENANT_ID,
+            "receipts_checked": results["receipts_checked"],
+            "hash_mismatches": results["hash_mismatches"],
+            "chain_breaks": results["broken_chains"],
+            "verification_passed": results["verification_passed"],
+            "valid_count": results["valid_count"],
+            "invalid_count": results["invalid_count"],
+        },
+    )
     results["verification_receipt"] = verification_receipt
 
     return results
@@ -644,7 +669,7 @@ def verify_real_data_provenance(receipts_path: str = "receipts.jsonl") -> dict:
         results["errors"].append(f"Receipts file not found: {receipts_path}")
         return results
 
-    with open(receipts_path, 'r') as f:
+    with open(receipts_path, "r") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -663,20 +688,24 @@ def verify_real_data_provenance(receipts_path: str = "receipts.jsonl") -> dict:
             # Check for source_url
             source_url = receipt.get("source_url")
             if not source_url:
-                results["errors"].append({
-                    "dataset_id": receipt.get("dataset_id", "unknown"),
-                    "error": "Missing source_url",
-                })
+                results["errors"].append(
+                    {
+                        "dataset_id": receipt.get("dataset_id", "unknown"),
+                        "error": "Missing source_url",
+                    }
+                )
                 results["unverified"] += 1
                 continue
 
             # Check for provenance chain
             provenance_chain = receipt.get("provenance_chain")
             if not provenance_chain or len(provenance_chain) < 2:
-                results["errors"].append({
-                    "dataset_id": receipt.get("dataset_id", "unknown"),
-                    "error": "Missing or incomplete provenance_chain",
-                })
+                results["errors"].append(
+                    {
+                        "dataset_id": receipt.get("dataset_id", "unknown"),
+                        "error": "Missing or incomplete provenance_chain",
+                    }
+                )
                 results["unverified"] += 1
                 continue
 

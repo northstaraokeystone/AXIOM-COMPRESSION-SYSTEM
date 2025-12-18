@@ -67,6 +67,7 @@ class BuildRateConfig:
         constant: Initial conditions factor (default 1.0)
         alpha: Compounding exponent for autonomy (default 1.8)
     """
+
     constant: float = BUILD_RATE_CONSTANT
     alpha: float = ALPHA_BASELINE
 
@@ -81,6 +82,7 @@ class BuildRateState:
         build_rate: Computed B value (B = c x A^alpha x P)
         annual_multiplier: Effective yearly compounding factor
     """
+
     autonomy_level: float
     propulsion_level: float
     build_rate: float
@@ -92,7 +94,7 @@ def compute_build_rate(
     propulsion: float,
     alpha: float = ALPHA_BASELINE,
     constant: float = BUILD_RATE_CONSTANT,
-    tau_seconds: Optional[float] = None
+    tau_seconds: Optional[float] = None,
 ) -> float:
     """Compute multiplicative build rate B = c x A^alpha x P.
 
@@ -138,29 +140,28 @@ def compute_build_rate(
         eff_alpha = compute_effective_alpha(alpha, tau_seconds)
 
     # B = c x A^effective_alpha x P
-    build_rate = constant * (autonomy ** eff_alpha) * propulsion
+    build_rate = constant * (autonomy**eff_alpha) * propulsion
 
     # Emit receipt
-    emit_receipt("build_rate", {
-        "tenant_id": "axiom-autonomy",
-        "autonomy_level": autonomy,
-        "propulsion_level": propulsion,
-        "alpha": alpha,
-        "tau_seconds": tau_seconds,
-        "effective_alpha": eff_alpha,
-        "constant": constant,
-        "build_rate": build_rate,
-        "computation": f"B = {constant} x {autonomy}^{eff_alpha:.2f} x {propulsion} = {build_rate:.6f}"
-    })
+    emit_receipt(
+        "build_rate",
+        {
+            "tenant_id": "axiom-autonomy",
+            "autonomy_level": autonomy,
+            "propulsion_level": propulsion,
+            "alpha": alpha,
+            "tau_seconds": tau_seconds,
+            "effective_alpha": eff_alpha,
+            "constant": constant,
+            "build_rate": build_rate,
+            "computation": f"B = {constant} x {autonomy}^{eff_alpha:.2f} x {propulsion} = {build_rate:.6f}",
+        },
+    )
 
     return build_rate
 
 
-def autonomy_to_level(
-    tau: float,
-    expertise: float,
-    decision_capacity: float
-) -> float:
+def autonomy_to_level(tau: float, expertise: float, decision_capacity: float) -> float:
     """Normalize autonomy state to 0-1 level for build rate calculation.
 
     Combines three factors:
@@ -200,9 +201,7 @@ def autonomy_to_level(
 
 
 def propulsion_to_level(
-    launches_per_year: float,
-    payload_tons: float,
-    reliability: float
+    launches_per_year: float, payload_tons: float, reliability: float
 ) -> float:
     """Normalize propulsion state to level for build rate calculation.
 
@@ -224,7 +223,9 @@ def propulsion_to_level(
         Where baseline = 10 launches * 100 tons * 0.95 reliability
     """
     if launches_per_year < 0:
-        raise ValueError(f"launches_per_year must be non-negative, got {launches_per_year}")
+        raise ValueError(
+            f"launches_per_year must be non-negative, got {launches_per_year}"
+        )
     if payload_tons < 0:
         raise ValueError(f"payload_tons must be non-negative, got {payload_tons}")
     if reliability < 0 or reliability > 1:
@@ -261,12 +262,14 @@ def annual_multiplier(build_rate: float, prior_build_rate: float) -> float:
         0% allocation  -> ~1.1x
     """
     if prior_build_rate <= 0:
-        return float('inf') if build_rate > 0 else 1.0
+        return float("inf") if build_rate > 0 else 1.0
 
     return build_rate / prior_build_rate
 
 
-def allocation_to_multiplier(autonomy_fraction: float, alpha: float = ALPHA_BASELINE) -> float:
+def allocation_to_multiplier(
+    autonomy_fraction: float, alpha: float = ALPHA_BASELINE
+) -> float:
     """Convert autonomy allocation fraction to expected annual multiplier.
 
     Uses Grok's empirical table values, interpolated by alpha exponent.
@@ -292,13 +295,13 @@ def allocation_to_multiplier(autonomy_fraction: float, alpha: float = ALPHA_BASE
     # At 40%: 0.40^1.8 ~ 0.217, need to map to 2.75
     # Scaling factor: 2.75 / 0.217 ~ 12.7
 
-    base_effect = autonomy_fraction ** alpha
+    base_effect = autonomy_fraction**alpha
 
     # Interpolate between 1.1 (floor) and ~3.0 (ceiling at 40%)
     # Using linear scaling between autonomy effect and multiplier
     # multiplier = 1.1 + (max_mult - 1.1) * (effect / max_effect)
 
-    max_effect = 0.40 ** alpha  # ~0.217
+    max_effect = 0.40**alpha  # ~0.217
     max_mult = (MULTIPLIER_40PCT[0] + MULTIPLIER_40PCT[1]) / 2  # 2.75
 
     if base_effect >= max_effect:
@@ -357,7 +360,7 @@ def compute_build_rate_state(
     autonomy: float,
     propulsion: float,
     prior_build_rate: float = 0.0,
-    config: BuildRateConfig = None
+    config: BuildRateConfig = None,
 ) -> BuildRateState:
     """Compute full build rate state including annual multiplier.
 
@@ -373,21 +376,23 @@ def compute_build_rate_state(
     if config is None:
         config = BuildRateConfig()
 
-    build_rate = compute_build_rate(
-        autonomy, propulsion, config.alpha, config.constant
-    )
+    build_rate = compute_build_rate(autonomy, propulsion, config.alpha, config.constant)
 
-    mult = annual_multiplier(build_rate, prior_build_rate) if prior_build_rate > 0 else 1.0
+    mult = (
+        annual_multiplier(build_rate, prior_build_rate) if prior_build_rate > 0 else 1.0
+    )
 
     return BuildRateState(
         autonomy_level=autonomy,
         propulsion_level=propulsion,
         build_rate=build_rate,
-        annual_multiplier=mult
+        annual_multiplier=mult,
     )
 
 
-def emit_build_rate_receipt(state: BuildRateState, cycle: int, config: BuildRateConfig = None) -> dict:
+def emit_build_rate_receipt(
+    state: BuildRateState, cycle: int, config: BuildRateConfig = None
+) -> dict:
     """Emit receipt for build rate calculation per CLAUDEME.
 
     Args:
@@ -401,13 +406,16 @@ def emit_build_rate_receipt(state: BuildRateState, cycle: int, config: BuildRate
     if config is None:
         config = BuildRateConfig()
 
-    return emit_receipt("build_rate", {
-        "tenant_id": "axiom-autonomy",
-        "cycle": cycle,
-        "autonomy_level": state.autonomy_level,
-        "propulsion_level": state.propulsion_level,
-        "alpha": config.alpha,
-        "constant": config.constant,
-        "build_rate": state.build_rate,
-        "annual_multiplier": state.annual_multiplier,
-    })
+    return emit_receipt(
+        "build_rate",
+        {
+            "tenant_id": "axiom-autonomy",
+            "cycle": cycle,
+            "autonomy_level": state.autonomy_level,
+            "propulsion_level": state.propulsion_level,
+            "alpha": config.alpha,
+            "constant": config.constant,
+            "build_rate": state.build_rate,
+            "annual_multiplier": state.annual_multiplier,
+        },
+    )

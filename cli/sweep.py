@@ -18,10 +18,7 @@ from cli.base import print_header, print_receipt_note
 
 
 def cmd_full_500_sweep(
-    tree_size: int,
-    lr_range: tuple,
-    retention_target: float,
-    simulate: bool
+    tree_size: int, lr_range: tuple, retention_target: float, simulate: bool
 ):
     """Run full 500-sweep with quantum-fractal hybrid.
 
@@ -50,7 +47,9 @@ def cmd_full_500_sweep(
     print("\nPhase 1: Quantum Simulation (10 runs)...")
     quantum_result = simulate_quantum_policy(runs=10, seed=42)
 
-    print(f"  Instability reduction: {quantum_result['instability_reduction_pct']:.1f}%")
+    print(
+        f"  Instability reduction: {quantum_result['instability_reduction_pct']:.1f}%"
+    )
     print(f"  Effective boost: {quantum_result['effective_retention_boost']:.4f}")
 
     # Run fractal analysis
@@ -77,10 +76,14 @@ def cmd_full_500_sweep(
     print(f"  Ceiling breached: {'YES' if hybrid_result['ceiling_breached'] else 'NO'}")
 
     print("\nSLO VALIDATION:")
-    alpha_ok = hybrid_result['final_alpha'] >= 3.04
-    instability_ok = hybrid_result['instability'] == 0.0
-    print(f"  eff_alpha >= 3.04: {'PASS' if alpha_ok else 'FAIL'} ({hybrid_result['final_alpha']})")
-    print(f"  instability == 0.0: {'PASS' if instability_ok else 'FAIL'} ({hybrid_result['instability']})")
+    alpha_ok = hybrid_result["final_alpha"] >= 3.04
+    instability_ok = hybrid_result["instability"] == 0.0
+    print(
+        f"  eff_alpha >= 3.04: {'PASS' if alpha_ok else 'FAIL'} ({hybrid_result['final_alpha']})"
+    )
+    print(
+        f"  instability == 0.0: {'PASS' if instability_ok else 'FAIL'} ({hybrid_result['instability']})"
+    )
 
     if simulate:
         print_receipt_note("quantum_10run_sim")

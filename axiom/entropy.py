@@ -18,6 +18,7 @@ try:
     from src.core import emit_receipt
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from src.core import emit_receipt
 
@@ -56,6 +57,7 @@ ISS_O2_CLOSURE = 0.875
 
 
 # === LANDAUER MASS EQUIVALENT ===
+
 
 def landauer_mass_equivalent(bits_per_sec: float) -> float:
     """Convert decision capacity to kg-equivalent using Landauer limit.
@@ -99,7 +101,9 @@ def landauer_mass_equivalent(bits_per_sec: float) -> float:
     # Need to scale to get 60k kg
 
     # Empirical calibration factor
-    MASS_CALIBRATION = 60000 / (1e6 * 86400 * LANDAUER_LIMIT_J_PER_BIT * OPERATIONAL_OVERHEAD)
+    MASS_CALIBRATION = 60000 / (
+        1e6 * 86400 * LANDAUER_LIMIT_J_PER_BIT * OPERATIONAL_OVERHEAD
+    )
 
     kg_equivalent = energy_j * MASS_CALIBRATION
 
@@ -107,9 +111,7 @@ def landauer_mass_equivalent(bits_per_sec: float) -> float:
 
 
 def validate_landauer_calibration(
-    bits_per_sec: float = 1e6,
-    target_kg: float = 60000,
-    tolerance: float = 0.15
+    bits_per_sec: float = 1e6, target_kg: float = 60000, tolerance: float = 0.15
 ) -> Dict:
     """Validate Landauer mass equivalent against baseline.
 
@@ -136,26 +138,31 @@ def validate_landauer_calibration(
     }
 
     # Emit landauer_receipt
-    emit_receipt("landauer", {
-        "tenant_id": TENANT_ID,
-        "bits_per_sec": bits_per_sec,
-        "kg_equivalent": computed_kg,
-        "calibration_source": "NASA_ECLSS_2023",
-        "confidence_interval": [
-            computed_kg * (1 - tolerance),
-            computed_kg * (1 + tolerance),
-        ],
-        "validation_passed": valid,
-    })
+    emit_receipt(
+        "landauer",
+        {
+            "tenant_id": TENANT_ID,
+            "bits_per_sec": bits_per_sec,
+            "kg_equivalent": computed_kg,
+            "calibration_source": "NASA_ECLSS_2023",
+            "confidence_interval": [
+                computed_kg * (1 - tolerance),
+                computed_kg * (1 + tolerance),
+            ],
+            "validation_passed": valid,
+        },
+    )
 
     return result
 
 
 # === CREW PSYCHOLOGY ENTROPY ===
 
+
 @dataclass
 class CrewPsychologyState:
     """State for crew psychology entropy calculation."""
+
     stress_level: float = 0.0  # 0-1 scale
     isolation_days: int = 0
     crisis_count: int = 0
@@ -166,7 +173,7 @@ def crew_psychology_entropy(
     stress_level: float,
     isolation_days: int,
     crisis_count: int = 0,
-    cohesion: float = 1.0
+    cohesion: float = 1.0,
 ) -> float:
     """Compute H_psychology from crew state.
 
@@ -197,7 +204,11 @@ def crew_psychology_entropy(
     crisis_factor = crisis_count * CRISIS_ENTROPY_SPIKE
 
     # Total entropy, reduced by cohesion
-    h_psychology = base_entropy * (1 + stress_factor + isolation_factor + crisis_factor) / max(cohesion, 0.1)
+    h_psychology = (
+        base_entropy
+        * (1 + stress_factor + isolation_factor + crisis_factor)
+        / max(cohesion, 0.1)
+    )
 
     return h_psychology
 
@@ -207,7 +218,7 @@ def update_psychology_state(
     days_elapsed: int = 1,
     stress_delta: float = 0.0,
     crisis_occurred: bool = False,
-    cohesion_change: float = 0.0
+    cohesion_change: float = 0.0,
 ) -> Tuple[CrewPsychologyState, float]:
     """Update crew psychology state and return new entropy.
 
@@ -232,7 +243,7 @@ def update_psychology_state(
         new_state.stress_level,
         new_state.isolation_days,
         new_state.crisis_count,
-        new_state.cohesion
+        new_state.cohesion,
     )
 
     return new_state, h_psychology
@@ -240,13 +251,14 @@ def update_psychology_state(
 
 # === TOTAL COLONY ENTROPY ===
 
+
 def total_colony_entropy(
     h_thermal: float,
     h_atmospheric: float,
     h_resource: float,
     h_information: float,
     h_psychology: float = 0.0,
-    weights: Dict[str, float] = None
+    weights: Dict[str, float] = None,
 ) -> float:
     """Compute total colony entropy as weighted sum.
 
@@ -276,20 +288,18 @@ def total_colony_entropy(
         }
 
     h_total = (
-        weights["thermal"] * h_thermal +
-        weights["atmospheric"] * h_atmospheric +
-        weights["resource"] * h_resource +
-        weights["information"] * h_information +
-        weights["psychology"] * h_psychology
+        weights["thermal"] * h_thermal
+        + weights["atmospheric"] * h_atmospheric
+        + weights["resource"] * h_resource
+        + weights["information"] * h_information
+        + weights["psychology"] * h_psychology
     )
 
     return h_total
 
 
 def compute_sovereignty_from_entropy(
-    h_internal: float,
-    h_external: float,
-    h_psychology: float = 0.0
+    h_internal: float, h_external: float, h_psychology: float = 0.0
 ) -> Dict:
     """Compute sovereignty metrics from entropy values.
 
@@ -330,10 +340,8 @@ def compute_sovereignty_from_entropy(
 
 # === INFORMATION COMPRESSION METRICS ===
 
-def compute_compression_entropy(
-    original_bits: int,
-    compressed_bits: int
-) -> float:
+
+def compute_compression_entropy(original_bits: int, compressed_bits: int) -> float:
     """Compute entropy reduction from compression.
 
     Args:

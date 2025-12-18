@@ -15,9 +15,7 @@ from .constants import MIN_PROOF_PATHS_RETAINED, MIN_QUORUM_FRACTION
 
 
 def verify_chain_integrity(
-    original_root: str,
-    pruned_root: str,
-    proof_paths: List[Dict[str, Any]]
+    original_root: str, pruned_root: str, proof_paths: List[Dict[str, Any]]
 ) -> bool:
     """Verify Merkle chain integrity after pruning.
 
@@ -37,15 +35,20 @@ def verify_chain_integrity(
     # In production, this would verify actual Merkle proofs
     # For now, check that we have minimum required proof paths
     if len(proof_paths) < MIN_PROOF_PATHS_RETAINED:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-pruning",
-            "metric": "proof_paths",
-            "baseline": MIN_PROOF_PATHS_RETAINED,
-            "delta": len(proof_paths) - MIN_PROOF_PATHS_RETAINED,
-            "classification": "violation",
-            "action": "halt"
-        })
-        raise StopRule(f"Chain broken: only {len(proof_paths)} proof paths (need {MIN_PROOF_PATHS_RETAINED})")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-pruning",
+                "metric": "proof_paths",
+                "baseline": MIN_PROOF_PATHS_RETAINED,
+                "delta": len(proof_paths) - MIN_PROOF_PATHS_RETAINED,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
+        raise StopRule(
+            f"Chain broken: only {len(proof_paths)} proof paths (need {MIN_PROOF_PATHS_RETAINED})"
+        )
 
     # Verify roots are valid hashes (basic check)
     if not original_root or not pruned_root:
@@ -54,10 +57,7 @@ def verify_chain_integrity(
     return True
 
 
-def verify_quorum_maintained(
-    pruned_tree: Dict[str, Any],
-    min_nodes: int = 3
-) -> bool:
+def verify_quorum_maintained(pruned_tree: Dict[str, Any], min_nodes: int = 3) -> bool:
     """Verify quorum is maintained after pruning.
 
     Args:
@@ -80,14 +80,19 @@ def verify_quorum_maintained(
 
     # Quorum requires at least 2/3 retention
     if retention_ratio < MIN_QUORUM_FRACTION:
-        emit_receipt("anomaly", {
-            "tenant_id": "axiom-pruning",
-            "metric": "quorum",
-            "baseline": MIN_QUORUM_FRACTION,
-            "delta": retention_ratio - MIN_QUORUM_FRACTION,
-            "classification": "violation",
-            "action": "halt"
-        })
-        raise StopRule(f"Quorum lost: {retention_ratio:.2%} retention < {MIN_QUORUM_FRACTION:.2%} required")
+        emit_receipt(
+            "anomaly",
+            {
+                "tenant_id": "axiom-pruning",
+                "metric": "quorum",
+                "baseline": MIN_QUORUM_FRACTION,
+                "delta": retention_ratio - MIN_QUORUM_FRACTION,
+                "classification": "violation",
+                "action": "halt",
+            },
+        )
+        raise StopRule(
+            f"Quorum lost: {retention_ratio:.2%} retention < {MIN_QUORUM_FRACTION:.2%} required"
+        )
 
     return True

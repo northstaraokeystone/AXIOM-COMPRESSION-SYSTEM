@@ -24,9 +24,7 @@ from .constants import (
 
 
 def cache_depth_check(
-    blackout_days: int,
-    depth: int,
-    entries_per_sol: int = ENTRIES_PER_SOL
+    blackout_days: int, depth: int, entries_per_sol: int = ENTRIES_PER_SOL
 ) -> Dict[str, Any]:
     """Check if cache can sustain blackout duration.
 
@@ -59,14 +57,17 @@ def cache_depth_check(
         "overflow_risk": round(overflow_risk, 4),
         "days_remaining": round(days_remaining, 1),
         "days_capacity": round(days_capacity, 1),
-        "safe_days": round(safe_days, 1)
+        "safe_days": round(safe_days, 1),
     }
 
-    emit_receipt("cache_depth", {
-        "tenant_id": "axiom-gnn-cache",
-        **result,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-    })
+    emit_receipt(
+        "cache_depth",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **result,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
 
     return result
 
@@ -93,7 +94,7 @@ def predict_overflow(blackout_days: int, cache_depth: int) -> Dict[str, Any]:
         "overflow_day": overflow_day,
         "overflow_risk": round(min(1.0, overflow_risk), 4),
         "blackout_days": blackout_days,
-        "cache_depth": cache_depth
+        "cache_depth": cache_depth,
     }
 
 
@@ -102,7 +103,7 @@ def extreme_blackout_sweep(
     cache_depth: int = CACHE_DEPTH_BASELINE,
     iterations: int = 1000,
     seed: Optional[int] = None,
-    nonlinear_retention_fn=None
+    nonlinear_retention_fn=None,
 ) -> List[Dict[str, Any]]:
     """Run extreme blackout sweeps to 200d+, detect overflow.
 
@@ -124,6 +125,7 @@ def extreme_blackout_sweep(
     # Import here to avoid circular dependency
     if nonlinear_retention_fn is None:
         from .gnn_cache import nonlinear_retention
+
         nonlinear_retention_fn = nonlinear_retention
 
     results = []
@@ -137,8 +139,8 @@ def extreme_blackout_sweep(
             overflow_result = predict_overflow(blackout_days, cache_depth)
 
             survival_status = (
-                retention["eff_alpha"] >= 2.50 and
-                overflow_result["overflow_risk"] < OVERFLOW_CAPACITY_PCT
+                retention["eff_alpha"] >= 2.50
+                and overflow_result["overflow_risk"] < OVERFLOW_CAPACITY_PCT
             )
 
             result = {
@@ -149,15 +151,19 @@ def extreme_blackout_sweep(
                 "gnn_boost": retention["gnn_boost"],
                 "asymptote_proximity": retention["asymptote_proximity"],
                 "overflow_risk": overflow_result["overflow_risk"],
-                "overflow_triggered": overflow_result["overflow_risk"] >= OVERFLOW_CAPACITY_PCT,
-                "survival_status": survival_status
+                "overflow_triggered": overflow_result["overflow_risk"]
+                >= OVERFLOW_CAPACITY_PCT,
+                "survival_status": survival_status,
             }
 
-            emit_receipt("extreme_blackout", {
-                "tenant_id": "axiom-gnn-cache",
-                **result,
-                "payload_hash": dual_hash(json.dumps(result, sort_keys=True))
-            })
+            emit_receipt(
+                "extreme_blackout",
+                {
+                    "tenant_id": "axiom-gnn-cache",
+                    **result,
+                    "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+                },
+            )
 
             results.append(result)
 
@@ -167,16 +173,14 @@ def extreme_blackout_sweep(
                 "blackout_days": blackout_days,
                 "overflow_triggered": True,
                 "survival_status": False,
-                "stoprule_reason": str(e)
+                "stoprule_reason": str(e),
             }
             results.append(result)
 
     return results
 
 
-def validate_gnn_nonlinear_slos(
-    sweep_results: List[Dict[str, Any]]
-) -> Dict[str, Any]:
+def validate_gnn_nonlinear_slos(sweep_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Validate GNN nonlinear SLOs.
 
     SLOs:
@@ -198,10 +202,11 @@ def validate_gnn_nonlinear_slos(
 
     # SLO 1: Asymptote proximity at 150d
     results_150d = [r for r in sweep_results if r.get("blackout_days") == 150]
-    asymptote_ok = all(
-        r.get("asymptote_proximity", 1.0) <= 0.02
-        for r in results_150d
-    ) if results_150d else True
+    asymptote_ok = (
+        all(r.get("asymptote_proximity", 1.0) <= 0.02 for r in results_150d)
+        if results_150d
+        else True
+    )
 
     # SLO 2: Survival to 150d
     results_under_150d = [r for r in sweep_results if r.get("blackout_days", 0) <= 150]
@@ -209,17 +214,22 @@ def validate_gnn_nonlinear_slos(
 
     # SLO 3: Overflow detection at 200d+
     results_200d_plus = [r for r in sweep_results if r.get("blackout_days", 0) >= 200]
-    overflow_detected = any(r.get("overflow_triggered", False) for r in results_200d_plus)
+    overflow_detected = any(
+        r.get("overflow_triggered", False) for r in results_200d_plus
+    )
 
     # SLO 4: No cliff behavior (check smooth degradation)
-    eff_alphas = [(r.get("blackout_days", 0), r.get("eff_alpha", 0))
-                  for r in sweep_results if "eff_alpha" in r]
+    eff_alphas = [
+        (r.get("blackout_days", 0), r.get("eff_alpha", 0))
+        for r in sweep_results
+        if "eff_alpha" in r
+    ]
     eff_alphas.sort(key=lambda x: x[0])
 
     no_cliff = True
     for i in range(1, len(eff_alphas)):
-        if eff_alphas[i][0] - eff_alphas[i-1][0] == 1:
-            drop = eff_alphas[i-1][1] - eff_alphas[i][1]
+        if eff_alphas[i][0] - eff_alphas[i - 1][0] == 1:
+            drop = eff_alphas[i - 1][1] - eff_alphas[i][1]
             if drop > 0.01:
                 no_cliff = False
                 break
@@ -229,13 +239,16 @@ def validate_gnn_nonlinear_slos(
         "survival_to_150d": survival_to_150d,
         "overflow_detected_at_200d": overflow_detected,
         "no_cliff_behavior": no_cliff,
-        "validated": asymptote_ok and survival_to_150d and no_cliff
+        "validated": asymptote_ok and survival_to_150d and no_cliff,
     }
 
-    emit_receipt("gnn_nonlinear_slo_validation", {
-        "tenant_id": "axiom-gnn-cache",
-        **validation,
-        "payload_hash": dual_hash(json.dumps(validation, sort_keys=True))
-    })
+    emit_receipt(
+        "gnn_nonlinear_slo_validation",
+        {
+            "tenant_id": "axiom-gnn-cache",
+            **validation,
+            "payload_hash": dual_hash(json.dumps(validation, sort_keys=True)),
+        },
+    )
 
     return validation

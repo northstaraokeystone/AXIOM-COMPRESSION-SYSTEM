@@ -19,6 +19,7 @@ try:
     from src.core import emit_receipt
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from src.core import emit_receipt
 
@@ -39,6 +40,7 @@ MILKY_WAY_DISK_SCALE = 3.0  # kpc
 
 class PhysicsRegime(Enum):
     """Physics regime for rotation curve."""
+
     NEWTONIAN = "newtonian"
     DARK_MATTER = "dark_matter"
     MOND = "mond"
@@ -49,6 +51,7 @@ class PhysicsRegime(Enum):
 @dataclass
 class GalaxyParams:
     """Parameters for synthetic galaxy generation."""
+
     mass: float = 1e11  # Total mass in M_sun
     disk_scale: float = 3.0  # Disk scale length in kpc
     halo_scale: float = 10.0  # Halo scale length in kpc
@@ -58,6 +61,7 @@ class GalaxyParams:
 
 
 # === ROTATION CURVE PHYSICS ===
+
 
 def newtonian_velocity(r: np.ndarray, M: float) -> np.ndarray:
     """Compute Newtonian rotation velocity.
@@ -93,7 +97,9 @@ def exponential_disk_velocity(r: np.ndarray, M_disk: float, R_d: float) -> np.nd
     return np.sqrt(G * M_disk / R_d * disk_factor)
 
 
-def nfw_halo_velocity(r: np.ndarray, M_vir: float, c: float, R_vir: float) -> np.ndarray:
+def nfw_halo_velocity(
+    r: np.ndarray, M_vir: float, c: float, R_vir: float
+) -> np.ndarray:
     """Compute velocity contribution from NFW dark matter halo.
 
     NFW profile: rho(r) = rho_s / (r/r_s * (1 + r/r_s)^2)
@@ -154,7 +160,7 @@ def generate_galaxy(
     r_min: float = 0.5,
     r_max: float = 20.0,
     params: GalaxyParams = None,
-    noise_level: float = 0.05
+    noise_level: float = 0.05,
 ) -> Dict:
     """Generate synthetic galaxy rotation curve.
 
@@ -218,26 +224,27 @@ def generate_galaxy(
             "disk_scale": params.disk_scale,
             "mass": params.mass,
             "halo_mass": params.halo_mass,
-        }
+        },
     }
 
     # Emit receipt
-    emit_receipt("synthetic_galaxy", {
-        "tenant_id": TENANT_ID,
-        "galaxy_id": galaxy_id,
-        "regime": regime.value,
-        "n_points": n_points,
-        "r_range": [r_min, r_max],
-        "noise_level": noise_level,
-    })
+    emit_receipt(
+        "synthetic_galaxy",
+        {
+            "tenant_id": TENANT_ID,
+            "galaxy_id": galaxy_id,
+            "regime": regime.value,
+            "n_points": n_points,
+            "r_range": [r_min, r_max],
+            "noise_level": noise_level,
+        },
+    )
 
     return galaxy
 
 
 def generate_synthetic_dataset(
-    n_galaxies: int = 30,
-    regimes: List[PhysicsRegime] = None,
-    seed: int = None
+    n_galaxies: int = 30, regimes: List[PhysicsRegime] = None, seed: int = None
 ) -> List[Dict]:
     """Generate synthetic galaxy dataset with known physics.
 
@@ -253,7 +260,12 @@ def generate_synthetic_dataset(
         np.random.seed(seed)
 
     if regimes is None:
-        regimes = [PhysicsRegime.NEWTONIAN, PhysicsRegime.DARK_MATTER, PhysicsRegime.MOND, PhysicsRegime.MIXED]
+        regimes = [
+            PhysicsRegime.NEWTONIAN,
+            PhysicsRegime.DARK_MATTER,
+            PhysicsRegime.MOND,
+            PhysicsRegime.MIXED,
+        ]
 
     galaxies = []
     for i in range(n_galaxies):
@@ -271,17 +283,20 @@ def generate_synthetic_dataset(
             galaxy_id=f"SYN_{i:05d}",
             regime=regime,
             params=params,
-            noise_level=0.03 + 0.04 * np.random.rand()
+            noise_level=0.03 + 0.04 * np.random.rand(),
         )
         galaxies.append(galaxy)
 
     # Emit dataset receipt
-    emit_receipt("synthetic_dataset", {
-        "tenant_id": TENANT_ID,
-        "n_galaxies": n_galaxies,
-        "regimes": [r.value for r in regimes],
-        "seed": seed,
-    })
+    emit_receipt(
+        "synthetic_dataset",
+        {
+            "tenant_id": TENANT_ID,
+            "n_galaxies": n_galaxies,
+            "regimes": [r.value for r in regimes],
+            "seed": seed,
+        },
+    )
 
     return galaxies
 
@@ -298,10 +313,13 @@ def load_real_data(n_galaxies: int = 30) -> List[Dict]:
         List of galaxy dicts
     """
     from real_data.sparc import load_sparc
+
     return load_sparc(n_galaxies=n_galaxies)
 
 
-def classify_regime(galaxy: Dict, v_pred: np.ndarray = None) -> Tuple[PhysicsRegime, float]:
+def classify_regime(
+    galaxy: Dict, v_pred: np.ndarray = None
+) -> Tuple[PhysicsRegime, float]:
     """Classify the physics regime of a galaxy.
 
     Uses rotation curve shape to infer underlying physics.
@@ -317,7 +335,7 @@ def classify_regime(galaxy: Dict, v_pred: np.ndarray = None) -> Tuple[PhysicsReg
     v = np.array(galaxy["v"])
 
     # Compute v^2 * r (should be constant for Newtonian)
-    v2r = v ** 2 * r
+    v2r = v**2 * r
     v2r_std = np.std(v2r) / np.mean(v2r)
 
     # Compute v gradient at large r (flat = dark matter dominated)

@@ -49,6 +49,7 @@ Negative = improving (tau decreasing)."""
 
 class LeadingIndicator(Enum):
     """Leading indicator types."""
+
     SIM_FIDELITY = "sim_fidelity"
     FLEET_LEARNING_RATE = "fleet_learning_rate"
     TAU_VELOCITY = "tau_velocity"
@@ -66,6 +67,7 @@ class IndicatorMeasurement:
         trend: "improving", "stable", or "degrading"
         confidence: Confidence in measurement (0-1)
     """
+
     indicator_type: LeadingIndicator
     current_value: float
     target_value: float
@@ -75,8 +77,7 @@ class IndicatorMeasurement:
 
 
 def measure_sim_fidelity(
-    sim_predictions: List[float],
-    actual_telemetry: List[float]
+    sim_predictions: List[float], actual_telemetry: List[float]
 ) -> IndicatorMeasurement:
     """Compare sim predictions to real Starship telemetry.
 
@@ -97,7 +98,7 @@ def measure_sim_fidelity(
             target_value=SIM_FIDELITY_TARGET,
             gap=-SIM_FIDELITY_TARGET,
             trend="unknown",
-            confidence=0.0
+            confidence=0.0,
         )
 
     # Ensure same length
@@ -142,26 +143,29 @@ def measure_sim_fidelity(
         target_value=SIM_FIDELITY_TARGET,
         gap=gap,
         trend=trend,
-        confidence=confidence
+        confidence=confidence,
     )
 
     # Emit receipt
-    emit_receipt("leading_indicator", {
-        "tenant_id": "axiom-autonomy",
-        "indicator_type": LeadingIndicator.SIM_FIDELITY.value,
-        "current_value": fidelity,
-        "target_value": SIM_FIDELITY_TARGET,
-        "gap": gap,
-        "trend": trend,
-        "confidence": confidence,
-        "data_points": n,
-    })
+    emit_receipt(
+        "leading_indicator",
+        {
+            "tenant_id": "axiom-autonomy",
+            "indicator_type": LeadingIndicator.SIM_FIDELITY.value,
+            "current_value": fidelity,
+            "target_value": SIM_FIDELITY_TARGET,
+            "gap": gap,
+            "trend": trend,
+            "confidence": confidence,
+            "data_points": n,
+        },
+    )
 
     return measurement
 
 
 def measure_fleet_learning_rate(
-    calibration_output: CalibrationOutput
+    calibration_output: CalibrationOutput,
 ) -> IndicatorMeasurement:
     """Extract alpha estimate as learning rate indicator.
 
@@ -201,28 +205,30 @@ def measure_fleet_learning_rate(
         target_value=FLEET_LEARNING_ALPHA_TARGET,
         gap=current_alpha - FLEET_LEARNING_ALPHA_TARGET,
         trend=trend,
-        confidence=current_confidence
+        confidence=current_confidence,
     )
 
     # Emit receipt
-    emit_receipt("leading_indicator", {
-        "tenant_id": "axiom-autonomy",
-        "indicator_type": LeadingIndicator.FLEET_LEARNING_RATE.value,
-        "current_value": current_alpha,
-        "target_value": FLEET_LEARNING_ALPHA_TARGET,
-        "gap": current_alpha - FLEET_LEARNING_ALPHA_TARGET,
-        "trend": trend,
-        "confidence": current_confidence,
-        "alpha_confidence_interval": calibration_output.confidence_interval,
-        "dominant_signal": calibration_output.dominant_signal,
-    })
+    emit_receipt(
+        "leading_indicator",
+        {
+            "tenant_id": "axiom-autonomy",
+            "indicator_type": LeadingIndicator.FLEET_LEARNING_RATE.value,
+            "current_value": current_alpha,
+            "target_value": FLEET_LEARNING_ALPHA_TARGET,
+            "gap": current_alpha - FLEET_LEARNING_ALPHA_TARGET,
+            "trend": trend,
+            "confidence": current_confidence,
+            "alpha_confidence_interval": calibration_output.confidence_interval,
+            "dominant_signal": calibration_output.dominant_signal,
+        },
+    )
 
     return measurement
 
 
 def measure_tau_velocity(
-    tau_history: List[float],
-    time_history: List[float] = None
+    tau_history: List[float], time_history: List[float] = None
 ) -> IndicatorMeasurement:
     """Compute d(tau)/dt from historical tau measurements.
 
@@ -243,7 +249,7 @@ def measure_tau_velocity(
             target_value=TAU_VELOCITY_TARGET,
             gap=abs(TAU_VELOCITY_TARGET),
             trend="unknown",
-            confidence=0.0
+            confidence=0.0,
         )
 
     n = len(tau_history)
@@ -255,7 +261,9 @@ def measure_tau_velocity(
     mean_t = sum(time_history) / n
     mean_tau = sum(tau_history) / n
 
-    numerator = sum((time_history[i] - mean_t) * (tau_history[i] - mean_tau) for i in range(n))
+    numerator = sum(
+        (time_history[i] - mean_t) * (tau_history[i] - mean_tau) for i in range(n)
+    )
     denominator = sum((time_history[i] - mean_t) ** 2 for i in range(n))
 
     if denominator == 0:
@@ -299,22 +307,25 @@ def measure_tau_velocity(
         target_value=TAU_VELOCITY_TARGET,
         gap=gap,
         trend=trend,
-        confidence=confidence
+        confidence=confidence,
     )
 
     # Emit receipt
-    emit_receipt("leading_indicator", {
-        "tenant_id": "axiom-autonomy",
-        "indicator_type": LeadingIndicator.TAU_VELOCITY.value,
-        "current_value": velocity_pct,
-        "target_value": TAU_VELOCITY_TARGET,
-        "gap": gap,
-        "trend": trend,
-        "confidence": confidence,
-        "tau_start": tau_history[0],
-        "tau_end": tau_history[-1],
-        "observations": n,
-    })
+    emit_receipt(
+        "leading_indicator",
+        {
+            "tenant_id": "axiom-autonomy",
+            "indicator_type": LeadingIndicator.TAU_VELOCITY.value,
+            "current_value": velocity_pct,
+            "target_value": TAU_VELOCITY_TARGET,
+            "gap": gap,
+            "trend": trend,
+            "confidence": confidence,
+            "tau_start": tau_history[0],
+            "tau_end": tau_history[-1],
+            "observations": n,
+        },
+    )
 
     return measurement
 
@@ -323,7 +334,7 @@ def assess_all_indicators(
     sim_predictions: List[float] = None,
     actual_telemetry: List[float] = None,
     calibration_output: CalibrationOutput = None,
-    tau_history: List[float] = None
+    tau_history: List[float] = None,
 ) -> List[IndicatorMeasurement]:
     """Run all three indicators and emit receipts.
 
@@ -345,40 +356,46 @@ def assess_all_indicators(
         measurements.append(measure_sim_fidelity(sim_predictions, actual_telemetry))
     else:
         # Default empty measurement
-        measurements.append(IndicatorMeasurement(
-            indicator_type=LeadingIndicator.SIM_FIDELITY,
-            current_value=0.0,
-            target_value=SIM_FIDELITY_TARGET,
-            gap=-SIM_FIDELITY_TARGET,
-            trend="unknown",
-            confidence=0.0
-        ))
+        measurements.append(
+            IndicatorMeasurement(
+                indicator_type=LeadingIndicator.SIM_FIDELITY,
+                current_value=0.0,
+                target_value=SIM_FIDELITY_TARGET,
+                gap=-SIM_FIDELITY_TARGET,
+                trend="unknown",
+                confidence=0.0,
+            )
+        )
 
     # Fleet learning rate
     if calibration_output:
         measurements.append(measure_fleet_learning_rate(calibration_output))
     else:
-        measurements.append(IndicatorMeasurement(
-            indicator_type=LeadingIndicator.FLEET_LEARNING_RATE,
-            current_value=ALPHA_BASELINE,
-            target_value=FLEET_LEARNING_ALPHA_TARGET,
-            gap=0.0,
-            trend="unknown",
-            confidence=0.0
-        ))
+        measurements.append(
+            IndicatorMeasurement(
+                indicator_type=LeadingIndicator.FLEET_LEARNING_RATE,
+                current_value=ALPHA_BASELINE,
+                target_value=FLEET_LEARNING_ALPHA_TARGET,
+                gap=0.0,
+                trend="unknown",
+                confidence=0.0,
+            )
+        )
 
     # Tau velocity
     if tau_history and len(tau_history) >= 2:
         measurements.append(measure_tau_velocity(tau_history))
     else:
-        measurements.append(IndicatorMeasurement(
-            indicator_type=LeadingIndicator.TAU_VELOCITY,
-            current_value=0.0,
-            target_value=TAU_VELOCITY_TARGET,
-            gap=abs(TAU_VELOCITY_TARGET),
-            trend="unknown",
-            confidence=0.0
-        ))
+        measurements.append(
+            IndicatorMeasurement(
+                indicator_type=LeadingIndicator.TAU_VELOCITY,
+                current_value=0.0,
+                target_value=TAU_VELOCITY_TARGET,
+                gap=abs(TAU_VELOCITY_TARGET),
+                trend="unknown",
+                confidence=0.0,
+            )
+        )
 
     return measurements
 
@@ -517,12 +534,15 @@ def emit_leading_indicator_receipt(measurement: IndicatorMeasurement) -> dict:
     Returns:
         Receipt dict
     """
-    return emit_receipt("leading_indicator", {
-        "tenant_id": "axiom-autonomy",
-        "indicator_type": measurement.indicator_type.value,
-        "current_value": measurement.current_value,
-        "target_value": measurement.target_value,
-        "gap": measurement.gap,
-        "trend": measurement.trend,
-        "confidence": measurement.confidence,
-    })
+    return emit_receipt(
+        "leading_indicator",
+        {
+            "tenant_id": "axiom-autonomy",
+            "indicator_type": measurement.indicator_type.value,
+            "current_value": measurement.current_value,
+            "target_value": measurement.target_value,
+            "gap": measurement.gap,
+            "trend": measurement.trend,
+            "confidence": measurement.confidence,
+        },
+    )

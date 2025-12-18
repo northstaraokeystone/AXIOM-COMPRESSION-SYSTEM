@@ -56,6 +56,7 @@ CRITICAL_UNDER_PIVOT_THRESHOLD = 0.10
 
 class RiskTier(Enum):
     """Risk tier classification."""
+
     TIER_1 = 1
     TIER_2 = 2
     TIER_3 = 3
@@ -73,6 +74,7 @@ class TierRiskProfile:
         failure_modes: List of failure mode descriptions
         mitigation_available: True if mitigation exists
     """
+
     tier: RiskTier
     probability_low: float
     probability_high: float
@@ -121,7 +123,7 @@ def tier_1_risk(autonomy_fraction: float) -> TierRiskProfile:
         probability_high=prob_high,
         impact_class=IMPACT_MEDIUM,
         failure_modes=failure_modes,
-        mitigation_available=True  # Can increase autonomy allocation
+        mitigation_available=True,  # Can increase autonomy allocation
     )
 
 
@@ -166,7 +168,7 @@ def tier_2_risk(years_to_threshold: int) -> TierRiskProfile:
         probability_high=prob_high,
         impact_class=IMPACT_HIGH,
         failure_modes=failure_modes,
-        mitigation_available=True  # Can accelerate with more autonomy
+        mitigation_available=True,  # Can accelerate with more autonomy
     )
 
 
@@ -215,13 +217,12 @@ def tier_3_risk(autonomy_fraction: float) -> TierRiskProfile:
         probability_high=prob_high,
         impact_class=IMPACT_EXISTENTIAL,
         failure_modes=failure_modes,
-        mitigation_available=True  # Still possible to pivot
+        mitigation_available=True,  # Still possible to pivot
     )
 
 
 def assess_tier_risk(
-    autonomy_fraction: float,
-    years_to_threshold: int
+    autonomy_fraction: float, years_to_threshold: int
 ) -> List[TierRiskProfile]:
     """Assess all applicable risk tiers for given allocation.
 
@@ -243,16 +244,19 @@ def assess_tier_risk(
 
     # Emit receipts for each tier
     for profile in profiles:
-        emit_receipt("tier_risk", {
-            "tenant_id": "axiom-autonomy",
-            "autonomy_fraction": autonomy_fraction,
-            "tier": profile.tier.value,
-            "probability_low": profile.probability_low,
-            "probability_high": profile.probability_high,
-            "impact_class": profile.impact_class,
-            "failure_modes": profile.failure_modes,
-            "mitigation_available": profile.mitigation_available,
-        })
+        emit_receipt(
+            "tier_risk",
+            {
+                "tenant_id": "axiom-autonomy",
+                "autonomy_fraction": autonomy_fraction,
+                "tier": profile.tier.value,
+                "probability_low": profile.probability_low,
+                "probability_high": profile.probability_high,
+                "impact_class": profile.impact_class,
+                "failure_modes": profile.failure_modes,
+                "mitigation_available": profile.mitigation_available,
+            },
+        )
 
     return profiles
 
@@ -357,9 +361,18 @@ def risk_summary(profiles: List[TierRiskProfile]) -> dict:
         "has_existential_risk": existential,
         "highest_probability_tier": highest_prob.tier.value,
         "highest_impact_tier": highest_impact.tier.value,
-        "tier_1_prob_range": (profiles[0].probability_low, profiles[0].probability_high),
-        "tier_2_prob_range": (profiles[1].probability_low, profiles[1].probability_high),
-        "tier_3_prob_range": (profiles[2].probability_low, profiles[2].probability_high),
+        "tier_1_prob_range": (
+            profiles[0].probability_low,
+            profiles[0].probability_high,
+        ),
+        "tier_2_prob_range": (
+            profiles[1].probability_low,
+            profiles[1].probability_high,
+        ),
+        "tier_3_prob_range": (
+            profiles[2].probability_low,
+            profiles[2].probability_high,
+        ),
         "mitigation_possible": all(p.mitigation_available for p in profiles),
     }
 
@@ -386,8 +399,12 @@ def format_risk_assessment(profiles: List[TierRiskProfile]) -> str:
     ]
 
     for profile in profiles:
-        lines.append(f"TIER {profile.tier.value} ({profile.impact_class.upper()} IMPACT)")
-        lines.append(f"  Probability: {profile.probability_low:.0%} - {profile.probability_high:.0%}")
+        lines.append(
+            f"TIER {profile.tier.value} ({profile.impact_class.upper()} IMPACT)"
+        )
+        lines.append(
+            f"  Probability: {profile.probability_low:.0%} - {profile.probability_high:.0%}"
+        )
         lines.append("  Failure Modes:")
         for mode in profile.failure_modes[:3]:  # Top 3
             lines.append(f"    - {mode}")
@@ -399,10 +416,7 @@ def format_risk_assessment(profiles: List[TierRiskProfile]) -> str:
     return "\n".join(lines)
 
 
-def emit_tier_risk_receipt(
-    profile: TierRiskProfile,
-    autonomy_fraction: float
-) -> dict:
+def emit_tier_risk_receipt(profile: TierRiskProfile, autonomy_fraction: float) -> dict:
     """Emit detailed tier risk receipt per CLAUDEME.
 
     Args:
@@ -412,13 +426,16 @@ def emit_tier_risk_receipt(
     Returns:
         Receipt dict
     """
-    return emit_receipt("tier_risk", {
-        "tenant_id": "axiom-autonomy",
-        "autonomy_fraction": autonomy_fraction,
-        "tier": profile.tier.value,
-        "probability_low": profile.probability_low,
-        "probability_high": profile.probability_high,
-        "impact_class": profile.impact_class,
-        "failure_modes": profile.failure_modes,
-        "mitigation_available": profile.mitigation_available,
-    })
+    return emit_receipt(
+        "tier_risk",
+        {
+            "tenant_id": "axiom-autonomy",
+            "autonomy_fraction": autonomy_fraction,
+            "tier": profile.tier.value,
+            "probability_low": profile.probability_low,
+            "probability_high": profile.probability_high,
+            "impact_class": profile.impact_class,
+            "failure_modes": profile.failure_modes,
+            "mitigation_available": profile.mitigation_available,
+        },
+    )

@@ -39,6 +39,7 @@ CROSSOVER_THRESHOLD = 0.1
 
 # === KAN IMPLEMENTATION ===
 
+
 @dataclass
 class KANConfig:
     """Configuration for Kolmogorov-Arnold Network.
@@ -50,6 +51,7 @@ class KANConfig:
         n_knots: Number of B-spline knots
         learning_rate: Training learning rate
     """
+
     input_dim: int = 1
     hidden_dim: int = DEFAULT_HIDDEN_DIM
     output_dim: int = 1
@@ -81,9 +83,7 @@ class KAN:
         self.lr = config.learning_rate
 
         # Initialize spline coefficients
-        self.spline_coeffs = np.random.randn(
-            self.hidden_dim, self.n_knots
-        ) * 0.1
+        self.spline_coeffs = np.random.randn(self.hidden_dim, self.n_knots) * 0.1
 
         # Output weights
         self.output_weights = np.random.randn(self.hidden_dim) * 0.1
@@ -106,7 +106,7 @@ class KAN:
         centers = np.linspace(x_min, x_max, self.n_knots)
         width = (x_max - x_min) / self.n_knots + 1e-8
 
-        return np.exp(-((x[:, None] - centers) ** 2) / (2 * width ** 2))
+        return np.exp(-((x[:, None] - centers) ** 2) / (2 * width**2))
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         """Forward pass through KAN.
@@ -254,12 +254,8 @@ class KAN:
 
 # === TRAINING FUNCTION ===
 
-def train(
-    kan: KAN,
-    r: np.ndarray,
-    v: np.ndarray,
-    epochs: int = DEFAULT_EPOCHS
-) -> Dict:
+
+def train(kan: KAN, r: np.ndarray, v: np.ndarray, epochs: int = DEFAULT_EPOCHS) -> Dict:
     """Train KAN on rotation curve data.
 
     Args:
@@ -294,10 +290,9 @@ def train(
 
 # === CROSSOVER DETECTION ===
 
+
 def crossover_detection(
-    kan: KAN,
-    r_values: np.ndarray,
-    threshold: float = CROSSOVER_THRESHOLD
+    kan: KAN, r_values: np.ndarray, threshold: float = CROSSOVER_THRESHOLD
 ) -> List[Dict]:
     """Detect physics regime transitions in KAN output.
 
@@ -358,13 +353,15 @@ def crossover_detection(
             # Compute confidence based on change magnitude
             confidence = min(1.0, local_change / (threshold * d2v_std * 2))
 
-            transitions.append({
-                "transition_point_r": float(r_fine[i]),
-                "regime_from": regime_from,
-                "regime_to": regime_to,
-                "confidence": float(confidence),
-                "d2v_dr2": float(d2v_dr2[i]),
-            })
+            transitions.append(
+                {
+                    "transition_point_r": float(r_fine[i]),
+                    "regime_from": regime_from,
+                    "regime_to": regime_to,
+                    "confidence": float(confidence),
+                    "d2v_dr2": float(d2v_dr2[i]),
+                }
+            )
 
     # Deduplicate nearby transitions
     if transitions:
@@ -380,6 +377,7 @@ def crossover_detection(
 
 # === WITNESS RECEIPT EMISSION ===
 
+
 def emit_witness_receipt(
     galaxy_id: str,
     kan: KAN,
@@ -387,7 +385,7 @@ def emit_witness_receipt(
     v: np.ndarray,
     data_source: str = "synthetic",
     sparc_seed: int = None,
-    provenance_hash: str = None
+    provenance_hash: str = None,
 ) -> Dict:
     """Emit witness receipt for KAN analysis.
 
@@ -411,11 +409,11 @@ def emit_witness_receipt(
     # Compute metrics
     compression = kan.get_compression_ratio(
         (r - r.min()) / (r.max() - r.min() + 1e-8),
-        (v - v.min()) / (v.max() - v.min() + 1e-8)
+        (v - v.min()) / (v.max() - v.min() + 1e-8),
     )
     r_squared = kan.get_r_squared(
         (r - r.min()) / (r.max() - r.min() + 1e-8),
-        (v - v.min()) / (v.max() - v.min() + 1e-8)
+        (v - v.min()) / (v.max() - v.min() + 1e-8),
     )
 
     # Detect crossovers
@@ -443,9 +441,9 @@ def emit_witness_receipt(
 
 # === VALIDATION FUNCTIONS ===
 
+
 def validate_compression_threshold(
-    galaxies: List[Dict],
-    threshold: float = 0.92
+    galaxies: List[Dict], threshold: float = 0.92
 ) -> Dict:
     """Validate that compression meets threshold on galaxy set.
 
@@ -463,12 +461,14 @@ def validate_compression_threshold(
         v = np.array(galaxy["v"])
 
         train_result = train(kan, r, v)
-        results.append({
-            "galaxy_id": galaxy.get("id", "unknown"),
-            "compression": train_result["compression"],
-            "r_squared": train_result["r_squared"],
-            "passes_threshold": train_result["compression"] >= threshold,
-        })
+        results.append(
+            {
+                "galaxy_id": galaxy.get("id", "unknown"),
+                "compression": train_result["compression"],
+                "r_squared": train_result["r_squared"],
+                "passes_threshold": train_result["compression"] >= threshold,
+            }
+        )
 
     n_passing = sum(1 for r in results if r["passes_threshold"])
     mean_compression = np.mean([r["compression"] for r in results])

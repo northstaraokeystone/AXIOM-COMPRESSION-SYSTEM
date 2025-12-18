@@ -9,7 +9,7 @@ from src.partition import (
     NODE_BASELINE,
     QUORUM_THRESHOLD,
     PARTITION_MAX_TEST_PCT,
-    BASE_ALPHA
+    BASE_ALPHA,
 )
 from src.ledger import LEDGER_ALPHA_BOOST_VALIDATED
 
@@ -35,10 +35,7 @@ def cmd_partition(loss_pct: float, nodes: int, simulate: bool):
     try:
         # Run partition simulation
         result = partition_sim(
-            nodes_total=nodes,
-            loss_pct=loss_pct,
-            base_alpha=BASE_ALPHA,
-            emit=simulate
+            nodes_total=nodes, loss_pct=loss_pct, base_alpha=BASE_ALPHA, emit=simulate
         )
 
         print("\nRESULTS:")
@@ -49,12 +46,16 @@ def cmd_partition(loss_pct: float, nodes: int, simulate: bool):
 
         # Validate SLOs
         print("\nSLO VALIDATION:")
-        alpha_ok = result['eff_alpha'] >= 2.63
-        drop_ok = result['eff_alpha_drop'] <= 0.05  # At boundary at 40% (exactly 0.05)
-        quorum_ok = result['quorum_status']
+        alpha_ok = result["eff_alpha"] >= 2.63
+        drop_ok = result["eff_alpha_drop"] <= 0.05  # At boundary at 40% (exactly 0.05)
+        quorum_ok = result["quorum_status"]
 
-        print(f"  eff_α >= 2.63: {'PASS' if alpha_ok else 'FAIL'} ({result['eff_alpha']:.4f})")
-        print(f"  α drop <= 0.05: {'PASS' if drop_ok else 'FAIL'} ({result['eff_alpha_drop']:.4f})")
+        print(
+            f"  eff_α >= 2.63: {'PASS' if alpha_ok else 'FAIL'} ({result['eff_alpha']:.4f})"
+        )
+        print(
+            f"  α drop <= 0.05: {'PASS' if drop_ok else 'FAIL'} ({result['eff_alpha_drop']:.4f})"
+        )
         print(f"  Quorum intact: {'PASS' if quorum_ok else 'FAIL'}")
 
         if simulate:
@@ -86,13 +87,15 @@ def cmd_stress_quorum():
         loss_range=(0.0, PARTITION_MAX_TEST_PCT),
         n_iterations=1000,
         base_alpha=BASE_ALPHA,
-        seed=42
+        seed=42,
     )
 
     # Compute stats
     quorum_successes = [r for r in results if r["quorum_status"]]
     success_rate = len(quorum_successes) / len(results)
-    avg_drop = sum(r["eff_alpha_drop"] for r in quorum_successes) / len(quorum_successes)
+    avg_drop = sum(r["eff_alpha_drop"] for r in quorum_successes) / len(
+        quorum_successes
+    )
     max_drop = max(r["eff_alpha_drop"] for r in quorum_successes)
     min_alpha = min(r["eff_alpha"] for r in quorum_successes)
 

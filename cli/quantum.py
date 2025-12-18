@@ -42,11 +42,11 @@ def cmd_quantum_estimate(current_retention: float = 1.05):
     print(f"  Note: {projection['note']}")
 
     print("\nSequencing:")
-    for step, desc in info['sequencing'].items():
+    for step, desc in info["sequencing"].items():
         print(f"  {step}: {desc}")
 
     print("\nWhy stub now:")
-    for reason in info['why_stub_now']:
+    for reason in info["why_stub_now"]:
         print(f"  - {reason}")
 
     print("\n[quantum_stub_receipt emitted above]")
@@ -70,34 +70,44 @@ def cmd_quantum_sim(runs: int, simulate: bool):
 
     print("\nRunning quantum policy simulation...")
 
-    result = simulate_quantum_policy(
-        runs=runs,
-        seed=42
-    )
+    result = simulate_quantum_policy(runs=runs, seed=42)
 
     print("\nRESULTS:")
     print(f"  Runs completed: {result.get('runs_completed', runs)}")
 
     # Get retention values, compute if not directly available
-    avg_retention = result.get('avg_retention', 1.0 + result.get('effective_retention_boost', QUANTUM_RETENTION_BOOST))
-    max_retention = result.get('max_retention', avg_retention + 0.01)
-    quantum_boost = result.get('quantum_boost_applied', result.get('effective_retention_boost', QUANTUM_RETENTION_BOOST))
-    penalty = result.get('entanglement_penalty', result.get('entangled_penalty_factor', ENTANGLED_PENALTY_FACTOR))
+    avg_retention = result.get(
+        "avg_retention",
+        1.0 + result.get("effective_retention_boost", QUANTUM_RETENTION_BOOST),
+    )
+    max_retention = result.get("max_retention", avg_retention + 0.01)
+    quantum_boost = result.get(
+        "quantum_boost_applied",
+        result.get("effective_retention_boost", QUANTUM_RETENTION_BOOST),
+    )
+    penalty = result.get(
+        "entanglement_penalty",
+        result.get("entangled_penalty_factor", ENTANGLED_PENALTY_FACTOR),
+    )
 
     print(f"  Avg retention: {avg_retention:.5f}")
     print(f"  Max retention: {max_retention:.5f}")
     print(f"  Quantum boost applied: {quantum_boost}")
     print(f"  Entanglement penalty: {penalty:.4f}")
-    print(f"  Instability reduction: {result.get('instability_reduction_pct', 8.0):.1f}%")
+    print(
+        f"  Instability reduction: {result.get('instability_reduction_pct', 8.0):.1f}%"
+    )
 
-    if result.get('best_action'):
+    if result.get("best_action"):
         print("\nBest Action Found:")
-        for key, val in result['best_action'].items():
+        for key, val in result["best_action"].items():
             print(f"  {key}: {val}")
 
     print("\nSLO VALIDATION:")
     retention_ok = avg_retention >= 1.0
-    print(f"  Avg retention >= 1.0: {'PASS' if retention_ok else 'FAIL'} ({avg_retention:.5f})")
+    print(
+        f"  Avg retention >= 1.0: {'PASS' if retention_ok else 'FAIL'} ({avg_retention:.5f})"
+    )
 
     if simulate:
         print("\n[quantum_sim_receipt emitted above]")
@@ -118,16 +128,18 @@ def cmd_quantum_rl_hybrid_info():
 
     print("\nIntegration:")
     print(f"  Integration mode: {info.get('integration_mode', 'entangled_penalty')}")
-    print(f"  Hybrid enabled: {info.get('hybrid_enabled', info.get('implemented', True))}")
+    print(
+        f"  Hybrid enabled: {info.get('hybrid_enabled', info.get('implemented', True))}"
+    )
 
-    if 'state_components' in info:
+    if "state_components" in info:
         print("\nState Components:")
-        for comp in info['state_components']:
+        for comp in info["state_components"]:
             print(f"  - {comp}")
 
-    if 'action_components' in info:
+    if "action_components" in info:
         print("\nAction Components:")
-        for comp in info['action_components']:
+        for comp in info["action_components"]:
             print(f"  - {comp}")
 
     print(f"\nDescription: {info['description']}")

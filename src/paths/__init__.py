@@ -49,12 +49,15 @@ def get_path(name: str):
     if name not in _path_modules:
         if name == "mars":
             from . import mars
+
             _path_modules[name] = mars
         elif name == "multiplanet":
             from . import multiplanet
+
             _path_modules[name] = multiplanet
         elif name == "agi":
             from . import agi
+
             _path_modules[name] = agi
 
     return _path_modules.get(name)

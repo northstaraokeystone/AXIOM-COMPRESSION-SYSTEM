@@ -42,7 +42,7 @@ def stoprule_overflow(
     blackout_days: int,
     cache_depth: int,
     overflow_pct: float,
-    pruning_enabled: bool = False
+    pruning_enabled: bool = False,
 ) -> NoReturn:
     """StopRule for cache overflow.
 
@@ -58,31 +58,36 @@ def stoprule_overflow(
     """
     import json
 
-    emit_receipt("overflow_stoprule", {
-        "tenant_id": tenant_id,
-        "blackout_days": blackout_days,
-        "cache_depth": cache_depth,
-        "overflow_pct": overflow_pct,
-        "pruning_enabled": pruning_enabled,
-        "action": "halt",
-        "payload_hash": dual_hash(json.dumps({
+    emit_receipt(
+        "overflow_stoprule",
+        {
+            "tenant_id": tenant_id,
             "blackout_days": blackout_days,
             "cache_depth": cache_depth,
             "overflow_pct": overflow_pct,
-            "pruning_enabled": pruning_enabled
-        }, sort_keys=True))
-    })
+            "pruning_enabled": pruning_enabled,
+            "action": "halt",
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "blackout_days": blackout_days,
+                        "cache_depth": cache_depth,
+                        "overflow_pct": overflow_pct,
+                        "pruning_enabled": pruning_enabled,
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
 
     raise StopRule(
         f"Cache overflow at {blackout_days}d (pruning={pruning_enabled}): "
-        f"{overflow_pct*100:.1f}% > {OVERFLOW_CAPACITY_PCT*100:.0f}%"
+        f"{overflow_pct * 100:.1f}% > {OVERFLOW_CAPACITY_PCT * 100:.0f}%"
     )
 
 
-def stoprule_over_prune(
-    tenant_id: str,
-    trim_factor: float
-) -> NoReturn:
+def stoprule_over_prune(tenant_id: str, trim_factor: float) -> NoReturn:
     """StopRule for excessive pruning.
 
     Args:
@@ -92,14 +97,17 @@ def stoprule_over_prune(
     Raises:
         StopRule: If trim_factor > OVER_PRUNE_STOPRULE_THRESHOLD (0.6)
     """
-    emit_receipt("anomaly", {
-        "tenant_id": tenant_id,
-        "metric": "trim_factor",
-        "baseline": OVER_PRUNE_STOPRULE_THRESHOLD,
-        "delta": trim_factor - OVER_PRUNE_STOPRULE_THRESHOLD,
-        "classification": "violation",
-        "action": "halt"
-    })
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": tenant_id,
+            "metric": "trim_factor",
+            "baseline": OVER_PRUNE_STOPRULE_THRESHOLD,
+            "delta": trim_factor - OVER_PRUNE_STOPRULE_THRESHOLD,
+            "classification": "violation",
+            "action": "halt",
+        },
+    )
 
     raise StopRule(
         f"Over-prune: trim_factor {trim_factor} > "
@@ -108,9 +116,7 @@ def stoprule_over_prune(
 
 
 def stoprule_low_confidence(
-    tenant_id: str,
-    confidence: float,
-    threshold: float = MIN_CONFIDENCE_THRESHOLD
+    tenant_id: str, confidence: float, threshold: float = MIN_CONFIDENCE_THRESHOLD
 ) -> NoReturn:
     """StopRule for low GNN prediction confidence.
 
@@ -122,24 +128,23 @@ def stoprule_low_confidence(
     Raises:
         StopRule: If confidence < threshold
     """
-    emit_receipt("anomaly", {
-        "tenant_id": tenant_id,
-        "metric": "predictive_confidence",
-        "baseline": threshold,
-        "delta": confidence - threshold,
-        "classification": "deviation",
-        "action": "skip_predictive"
-    })
-
-    raise StopRule(
-        f"Predictive confidence {confidence:.3f} < {threshold} threshold"
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": tenant_id,
+            "metric": "predictive_confidence",
+            "baseline": threshold,
+            "delta": confidence - threshold,
+            "classification": "deviation",
+            "action": "skip_predictive",
+        },
     )
+
+    raise StopRule(f"Predictive confidence {confidence:.3f} < {threshold} threshold")
 
 
 def stoprule_quorum_lost(
-    tenant_id: str,
-    retention_ratio: float,
-    required: float = MIN_QUORUM_FRACTION
+    tenant_id: str, retention_ratio: float, required: float = MIN_QUORUM_FRACTION
 ) -> NoReturn:
     """StopRule for lost quorum.
 
@@ -151,25 +156,25 @@ def stoprule_quorum_lost(
     Raises:
         StopRule: If retention_ratio < required
     """
-    emit_receipt("anomaly", {
-        "tenant_id": tenant_id,
-        "metric": "quorum",
-        "baseline": required,
-        "delta": retention_ratio - required,
-        "classification": "violation",
-        "action": "halt"
-    })
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": tenant_id,
+            "metric": "quorum",
+            "baseline": required,
+            "delta": retention_ratio - required,
+            "classification": "violation",
+            "action": "halt",
+        },
+    )
 
     raise StopRule(
-        f"Quorum lost: {retention_ratio:.2%} retention < "
-        f"{required:.2%} required"
+        f"Quorum lost: {retention_ratio:.2%} retention < {required:.2%} required"
     )
 
 
 def stoprule_chain_broken(
-    tenant_id: str,
-    proof_paths_count: int,
-    reason: str = ""
+    tenant_id: str, proof_paths_count: int, reason: str = ""
 ) -> NoReturn:
     """StopRule for broken Merkle chain.
 
@@ -181,14 +186,17 @@ def stoprule_chain_broken(
     Raises:
         StopRule: If chain integrity compromised
     """
-    emit_receipt("anomaly", {
-        "tenant_id": tenant_id,
-        "metric": "proof_paths",
-        "baseline": MIN_PROOF_PATHS_RETAINED,
-        "delta": proof_paths_count - MIN_PROOF_PATHS_RETAINED,
-        "classification": "violation",
-        "action": "halt"
-    })
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": tenant_id,
+            "metric": "proof_paths",
+            "baseline": MIN_PROOF_PATHS_RETAINED,
+            "delta": proof_paths_count - MIN_PROOF_PATHS_RETAINED,
+            "classification": "violation",
+            "action": "halt",
+        },
+    )
 
     msg = f"Chain broken: only {proof_paths_count} proof paths (need {MIN_PROOF_PATHS_RETAINED})"
     if reason:
@@ -197,11 +205,7 @@ def stoprule_chain_broken(
     raise StopRule(msg)
 
 
-def stoprule_hash_mismatch(
-    tenant_id: str,
-    expected: str,
-    actual: str
-) -> NoReturn:
+def stoprule_hash_mismatch(tenant_id: str, expected: str, actual: str) -> NoReturn:
     """StopRule for hash verification failure.
 
     Args:
@@ -212,24 +216,24 @@ def stoprule_hash_mismatch(
     Raises:
         StopRule: Always raises with hash details
     """
-    emit_receipt("anomaly", {
-        "tenant_id": tenant_id,
-        "metric": "hash_mismatch",
-        "baseline": 0.0,
-        "delta": -1.0,
-        "classification": "violation",
-        "action": "halt",
-        "expected": expected,
-        "actual": actual
-    })
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": tenant_id,
+            "metric": "hash_mismatch",
+            "baseline": 0.0,
+            "delta": -1.0,
+            "classification": "violation",
+            "action": "halt",
+            "expected": expected,
+            "actual": actual,
+        },
+    )
 
     raise StopRule(f"Hash mismatch: expected {expected}, got {actual}")
 
 
-def stoprule_invalid_receipt(
-    tenant_id: str,
-    reason: str
-) -> NoReturn:
+def stoprule_invalid_receipt(tenant_id: str, reason: str) -> NoReturn:
     """StopRule for invalid receipt structure.
 
     Args:
@@ -239,23 +243,24 @@ def stoprule_invalid_receipt(
     Raises:
         StopRule: Always raises with reason
     """
-    emit_receipt("anomaly", {
-        "tenant_id": tenant_id,
-        "metric": "invalid_receipt",
-        "baseline": 0.0,
-        "delta": -1.0,
-        "classification": "anti_pattern",
-        "action": "halt",
-        "reason": reason
-    })
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": tenant_id,
+            "metric": "invalid_receipt",
+            "baseline": 0.0,
+            "delta": -1.0,
+            "classification": "anti_pattern",
+            "action": "halt",
+            "reason": reason,
+        },
+    )
 
     raise StopRule(f"Invalid receipt: {reason}")
 
 
 def stoprule_alpha_violation(
-    tenant_id: str,
-    alpha: float,
-    violation_type: str
+    tenant_id: str, alpha: float, violation_type: str
 ) -> NoReturn:
     """StopRule for alpha outside valid range.
 
@@ -276,14 +281,17 @@ def stoprule_alpha_violation(
         classification = "investigate"
         msg = f"Alpha {alpha:.4f} exceeds theoretical ceiling {baseline}"
 
-    emit_receipt("anomaly", {
-        "tenant_id": tenant_id,
-        "metric": f"alpha_{violation_type}",
-        "baseline": baseline,
-        "delta": alpha - baseline,
-        "classification": classification,
-        "action": "investigate"
-    })
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": tenant_id,
+            "metric": f"alpha_{violation_type}",
+            "baseline": baseline,
+            "delta": alpha - baseline,
+            "classification": classification,
+            "action": "investigate",
+        },
+    )
 
     raise StopRule(msg)
 

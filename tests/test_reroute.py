@@ -40,24 +40,15 @@ from src.reroute import (
     REROUTE_RETENTION_FACTOR,
     CGR_BASELINE,
     ML_MODEL_TYPE,
-    ALGO_TYPE
+    ALGO_TYPE,
 )
-from src.partition import (
-    partition_sim,
-    stress_sweep,
-    NODE_BASELINE,
-    BASE_ALPHA
-)
-from src.reasoning import (
-    blackout_sweep,
-    project_with_reroute,
-    sovereignty_timeline
-)
+from src.partition import partition_sim, stress_sweep, NODE_BASELINE, BASE_ALPHA
+from src.reasoning import blackout_sweep, project_with_reroute, sovereignty_timeline
 from src.mitigation import (
     compute_reroute_mitigation,
     compute_blackout_factor,
     compute_mitigation_score,
-    REROUTE_ALPHA_BOOST as MITIGATION_REROUTE_BOOST
+    REROUTE_ALPHA_BOOST as MITIGATION_REROUTE_BOOST,
 )
 from src.core import StopRule
 
@@ -76,15 +67,17 @@ class TestRerouteAlphaBoost:
 
         f = io.StringIO()
         with redirect_stdout(f):
-            boosted = apply_reroute_boost(base_alpha, reroute_active=True, blackout_days=0)
+            boosted = apply_reroute_boost(
+                base_alpha, reroute_active=True, blackout_days=0
+            )
 
-        assert boosted >= 2.70, \
-            f"With reroute_enabled=True, eff_α = {boosted} < 2.70"
+        assert boosted >= 2.70, f"With reroute_enabled=True, eff_α = {boosted} < 2.70"
 
         # Verify calculation (use approximate comparison for float)
         expected = base_alpha + REROUTE_ALPHA_BOOST
-        assert abs(boosted - expected) < 0.001, \
+        assert abs(boosted - expected) < 0.001, (
             f"boosted {boosted} != expected {expected}"
+        )
 
     def test_reroute_alpha_boost_disabled(self):
         """With reroute_enabled=False, no boost applied."""
@@ -92,7 +85,9 @@ class TestRerouteAlphaBoost:
 
         f = io.StringIO()
         with redirect_stdout(f):
-            result = apply_reroute_boost(base_alpha, reroute_active=False, blackout_days=0)
+            result = apply_reroute_boost(
+                base_alpha, reroute_active=False, blackout_days=0
+            )
 
         assert result == base_alpha
 
@@ -108,8 +103,9 @@ class TestRerouteAlphaBoost:
 
         # At 43d, full boost (use approximate comparison for float)
         expected = base_alpha + REROUTE_ALPHA_BOOST
-        assert abs(boost_at_43 - expected) < 0.001, \
+        assert abs(boost_at_43 - expected) < 0.001, (
             f"boost_at_43 {boost_at_43} != expected {expected}"
+        )
 
         # Beyond 43d, gradual degradation
         assert boost_at_50 < boost_at_43
@@ -131,13 +127,15 @@ class TestBlackout43DaysBaseline:
                 blackout_days=43,
                 reroute_enabled=False,
                 base_alpha=MIN_EFF_ALPHA_FLOOR,
-                seed=42
+                seed=42,
             )
 
-        assert result["survival_status"] is True, \
+        assert result["survival_status"] is True, (
             "43-day blackout baseline should survive"
-        assert result["min_alpha_during"] >= MIN_EFF_ALPHA_FLOOR * 0.9, \
+        )
+        assert result["min_alpha_during"] >= MIN_EFF_ALPHA_FLOOR * 0.9, (
             f"min_alpha {result['min_alpha_during']} too low for baseline"
+        )
 
     def test_blackout_43_days_with_reroute(self):
         """43-day blackout with reroute: improved alpha."""
@@ -148,7 +146,7 @@ class TestBlackout43DaysBaseline:
                 blackout_days=43,
                 reroute_enabled=True,
                 base_alpha=MIN_EFF_ALPHA_FLOOR,
-                seed=42
+                seed=42,
             )
 
         assert result["survival_status"] is True
@@ -167,16 +165,18 @@ class TestBlackout60DaysWithReroute:
                 blackout_days=60,
                 reroute_enabled=True,
                 base_alpha=MIN_EFF_ALPHA_FLOOR,
-                seed=42
+                seed=42,
             )
 
-        assert result["survival_status"] is True, \
+        assert result["survival_status"] is True, (
             "60-day blackout with reroute should survive"
+        )
 
         # Min alpha should be reasonable even at 60d
         expected_min = MIN_EFF_ALPHA_FLOOR * 0.95
-        assert result["min_alpha_during"] >= expected_min, \
+        assert result["min_alpha_during"] >= expected_min, (
             f"min_alpha {result['min_alpha_during']} < {expected_min}"
+        )
 
     def test_blackout_60_days_without_reroute_stressed(self):
         """60-day blackout without reroute: more stressed but may survive."""
@@ -187,7 +187,7 @@ class TestBlackout60DaysWithReroute:
                 blackout_days=60,
                 reroute_enabled=False,
                 base_alpha=MIN_EFF_ALPHA_FLOOR,
-                seed=42
+                seed=42,
             )
 
         # Without reroute, 60d is challenging
@@ -208,16 +208,18 @@ class TestBlackoutSweep1000Iterations:
                 n_iterations=1000,
                 reroute_enabled=True,
                 base_alpha=MIN_EFF_ALPHA_FLOOR,
-                seed=42
+                seed=42,
             )
 
         # (1) 100% survival with reroute
-        assert result["survival_rate"] == 1.0, \
-            f"Expected 100% survival, got {result['survival_rate']*100}%"
+        assert result["survival_rate"] == 1.0, (
+            f"Expected 100% survival, got {result['survival_rate'] * 100}%"
+        )
 
         # (2) Avg α drop < 0.05
-        assert result["avg_max_drop"] < 0.05, \
+        assert result["avg_max_drop"] < 0.05, (
             f"avg_max_drop {result['avg_max_drop']} >= 0.05"
+        )
 
         # (3) All survived
         assert result["all_survived"] is True
@@ -233,14 +235,16 @@ class TestBlackoutSweep1000Iterations:
                 n_iterations=100,
                 reroute_enabled=True,
                 base_alpha=MIN_EFF_ALPHA_FLOOR,
-                seed=42
+                seed=42,
             )
 
         output = f.getvalue()
-        receipts = [json.loads(line) for line in output.strip().split('\n') if line]
+        receipts = [json.loads(line) for line in output.strip().split("\n") if line]
 
         # Should have blackout_sim receipts and stress sweep summary
-        stress_receipts = [r for r in receipts if r.get("receipt_type") == "blackout_stress_sweep"]
+        stress_receipts = [
+            r for r in receipts if r.get("receipt_type") == "blackout_stress_sweep"
+        ]
         assert len(stress_receipts) >= 1, "Expected blackout_stress_sweep receipt"
 
 
@@ -252,14 +256,15 @@ class TestCGRPathComputation:
         contact_graph = {
             "nodes": [f"node_{i}" for i in range(5)],
             "edges": [
-                {"src": f"node_{i}", "dst": f"node_{(i+1) % 5}"}
-                for i in range(5)
-            ]
+                {"src": f"node_{i}", "dst": f"node_{(i + 1) % 5}"} for i in range(5)
+            ],
         }
 
         f = io.StringIO()
         with redirect_stdout(f):
-            paths = compute_cgr_paths(contact_graph, "node_0", ["node_1", "node_2", "node_3", "node_4"])
+            paths = compute_cgr_paths(
+                contact_graph, "node_0", ["node_1", "node_2", "node_3", "node_4"]
+            )
 
         assert len(paths) == 4, f"Expected 4 paths, got {len(paths)}"
 
@@ -293,23 +298,21 @@ class TestReroutePreservesQuorum:
         """Reroute recovery maintains Merkle chain continuity."""
         graph_state = {
             "nodes": 5,
-            "edges": [{"src": f"n{i}", "dst": f"n{(i+1) % 5}"} for i in range(5)]
+            "edges": [{"src": f"n{i}", "dst": f"n{(i + 1) % 5}"} for i in range(5)],
         }
 
         f = io.StringIO()
         with redirect_stdout(f):
             result = adaptive_reroute(graph_state, partition_pct=0.2, blackout_days=0)
 
-        assert result["quorum_preserved"] is True, \
+        assert result["quorum_preserved"] is True, (
             "Reroute should preserve quorum at 20% partition"
+        )
         assert result["recovery_factor"] > 0.5
 
     def test_reroute_fails_at_high_partition(self):
         """Reroute fails when partition exceeds quorum threshold by wide margin."""
-        graph_state = {
-            "nodes": 5,
-            "edges": []
-        }
+        graph_state = {"nodes": 5, "edges": []}
 
         # 80% partition = 4 nodes lost, only 1 surviving (well below quorum of 3)
         # Even emergency recovery (+20% max) can't save this
@@ -333,10 +336,12 @@ class TestReceiptsEmitted:
             result = adaptive_reroute(graph_state, partition_pct=0.2, blackout_days=10)
 
         output = f.getvalue()
-        receipts = [json.loads(line) for line in output.strip().split('\n') if line]
+        receipts = [json.loads(line) for line in output.strip().split("\n") if line]
 
         # Find adaptive_reroute receipt
-        reroute_receipts = [r for r in receipts if r.get("receipt_type") == "adaptive_reroute"]
+        reroute_receipts = [
+            r for r in receipts if r.get("receipt_type") == "adaptive_reroute"
+        ]
         assert len(reroute_receipts) >= 1
 
         receipt = reroute_receipts[0]
@@ -349,13 +354,17 @@ class TestReceiptsEmitted:
         """blackout_sim emits valid receipt."""
         f = io.StringIO()
         with redirect_stdout(f):
-            result = blackout_sim(nodes=5, blackout_days=43, reroute_enabled=True, seed=42)
+            result = blackout_sim(
+                nodes=5, blackout_days=43, reroute_enabled=True, seed=42
+            )
 
         output = f.getvalue()
-        receipts = [json.loads(line) for line in output.strip().split('\n') if line]
+        receipts = [json.loads(line) for line in output.strip().split("\n") if line]
 
         # Find blackout_sim receipt
-        blackout_receipts = [r for r in receipts if r.get("receipt_type") == "blackout_sim"]
+        blackout_receipts = [
+            r for r in receipts if r.get("receipt_type") == "blackout_sim"
+        ]
         assert len(blackout_receipts) >= 1
 
         receipt = blackout_receipts[0]
@@ -453,7 +462,7 @@ class TestPartitionWithReroute:
                 loss_pct=0.2,
                 base_alpha=BASE_ALPHA,
                 emit=True,
-                reroute_enabled=True
+                reroute_enabled=True,
             )
 
         assert result["reroute_applied"] is True
@@ -471,7 +480,7 @@ class TestPartitionWithReroute:
                 loss_pct=0.2,
                 base_alpha=BASE_ALPHA,
                 emit=True,
-                reroute_enabled=False
+                reroute_enabled=False,
             )
 
         assert result["reroute_applied"] is False
@@ -491,7 +500,7 @@ class TestReasoningIntegration:
                 reroute_enabled=True,
                 iterations=100,
                 base_alpha=MIN_EFF_ALPHA_FLOOR,
-                seed=42
+                seed=42,
             )
 
         assert result["survival_rate"] == 1.0
@@ -503,17 +512,16 @@ class TestReasoningIntegration:
         base_projection = {
             "cycles_to_10k_person_eq": 4,
             "cycles_to_1M_person_eq": 15,
-            "effective_alpha": MIN_EFF_ALPHA_FLOOR
+            "effective_alpha": MIN_EFF_ALPHA_FLOOR,
         }
 
-        reroute_results = {
-            "alpha_boost": REROUTE_ALPHA_BOOST,
-            "recovery_factor": 0.9
-        }
+        reroute_results = {"alpha_boost": REROUTE_ALPHA_BOOST, "recovery_factor": 0.9}
 
         f = io.StringIO()
         with redirect_stdout(f):
-            result = project_with_reroute(base_projection, reroute_results, blackout_days=0)
+            result = project_with_reroute(
+                base_projection, reroute_results, blackout_days=0
+            )
 
         assert result["reroute_validated"] is True
         assert result["boosted_alpha"] >= 2.70
@@ -529,7 +537,7 @@ class TestReasoningIntegration:
                 alpha=BASE_ALPHA,
                 loss_pct=0.2,
                 reroute_enabled=True,
-                blackout_days=30
+                blackout_days=30,
             )
 
         assert result["reroute_enabled"] is True
@@ -544,7 +552,9 @@ class TestMitigationIntegration:
         """compute_reroute_mitigation returns valid score."""
         f = io.StringIO()
         with redirect_stdout(f):
-            score = compute_reroute_mitigation(reroute_enabled=True, reroute_result=None)
+            score = compute_reroute_mitigation(
+                reroute_enabled=True, reroute_result=None
+            )
 
         assert 0.0 <= score <= 1.0
         assert score == 0.7  # Default when enabled
@@ -566,9 +576,7 @@ class TestMitigationIntegration:
         f = io.StringIO()
         with redirect_stdout(f):
             score = compute_mitigation_score(
-                loss_pct=0.2,
-                reroute_enabled=True,
-                blackout_days=30
+                loss_pct=0.2, reroute_enabled=True, blackout_days=30
             )
 
         assert score.reroute_score > 0
@@ -634,7 +642,7 @@ class TestStressSweepWithReroute:
                 n_iterations=100,
                 base_alpha=BASE_ALPHA,
                 seed=42,
-                reroute_enabled=True
+                reroute_enabled=True,
             )
 
         # Should have higher effective alphas with reroute

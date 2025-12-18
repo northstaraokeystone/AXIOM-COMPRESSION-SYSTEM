@@ -2,6 +2,7 @@
 
 This IS the AXIOM genome - every receipt carries its DNA.
 """
+
 import hashlib
 import json
 from datetime import datetime
@@ -15,6 +16,7 @@ TENANT_ID = "axiom-core"
 # Runtime detection of blake3 availability
 try:
     import blake3
+
     HAS_BLAKE3 = True
 except ImportError:
     HAS_BLAKE3 = False
@@ -26,13 +28,14 @@ RECEIPT_SCHEMA = {
         "receipt_type": {"type": "string"},
         "ts": {"type": "string", "format": "date-time"},
         "tenant_id": {"type": "string"},
-        "payload_hash": {"type": "string", "pattern": "^[a-f0-9]{64}:[a-f0-9]{64}$"}
-    }
+        "payload_hash": {"type": "string", "pattern": "^[a-f0-9]{64}:[a-f0-9]{64}$"},
+    },
 }
 """JSON Schema for receipt autodocumentation. Per CLAUDEME S8."""
 
 
 # === CORE FUNCTIONS ===
+
 
 def dual_hash(data: bytes | str) -> str:
     """SHA256:BLAKE3 format. ALWAYS use this, never single hash.
@@ -66,7 +69,7 @@ def emit_receipt(receipt_type: str, data: dict) -> dict:
         "ts": datetime.utcnow().isoformat() + "Z",
         "tenant_id": data.get("tenant_id", TENANT_ID),
         "payload_hash": dual_hash(json.dumps(data, sort_keys=True)),
-        **data
+        **data,
     }
     print(json.dumps(receipt), flush=True)
     return receipt
@@ -88,22 +91,26 @@ def merkle(items: list) -> str:
     while len(hashes) > 1:
         if len(hashes) % 2:
             hashes.append(hashes[-1])
-        hashes = [dual_hash(hashes[i] + hashes[i + 1])
-                  for i in range(0, len(hashes), 2)]
+        hashes = [
+            dual_hash(hashes[i] + hashes[i + 1]) for i in range(0, len(hashes), 2)
+        ]
     return hashes[0]
 
 
 # === EXCEPTION CLASS ===
+
 
 class StopRule(Exception):
     """Raised when stoprule triggers. NEVER catch silently.
 
     Message should include context for debugging.
     """
+
     pass
 
 
 # === STOPRULE FUNCTIONS ===
+
 
 def stoprule_hash_mismatch(expected: str, actual: str) -> NoReturn:
     """Emit anomaly_receipt and raise StopRule for hash mismatch.
@@ -117,15 +124,18 @@ def stoprule_hash_mismatch(expected: str, actual: str) -> NoReturn:
 
     Source: CLAUDEME S4.7 pattern
     """
-    emit_receipt("anomaly", {
-        "metric": "hash_mismatch",
-        "baseline": 0.0,
-        "delta": -1.0,
-        "classification": "violation",
-        "action": "halt",
-        "expected": expected,
-        "actual": actual
-    })
+    emit_receipt(
+        "anomaly",
+        {
+            "metric": "hash_mismatch",
+            "baseline": 0.0,
+            "delta": -1.0,
+            "classification": "violation",
+            "action": "halt",
+            "expected": expected,
+            "actual": actual,
+        },
+    )
     raise StopRule(f"Hash mismatch: expected {expected}, got {actual}")
 
 
@@ -141,12 +151,15 @@ def stoprule_invalid_receipt(reason: str) -> NoReturn:
 
     Source: CLAUDEME S4.7 pattern
     """
-    emit_receipt("anomaly", {
-        "metric": "invalid_receipt",
-        "baseline": 0.0,
-        "delta": -1.0,
-        "classification": "anti_pattern",
-        "action": "halt",
-        "reason": reason
-    })
+    emit_receipt(
+        "anomaly",
+        {
+            "metric": "invalid_receipt",
+            "baseline": 0.0,
+            "delta": -1.0,
+            "classification": "anti_pattern",
+            "action": "halt",
+            "reason": reason,
+        },
+    )
     raise StopRule(f"Invalid receipt: {reason}")

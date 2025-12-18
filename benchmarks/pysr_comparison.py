@@ -21,6 +21,7 @@ try:
     from src.core import emit_receipt
 except ImportError:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent))
     from src.core import emit_receipt
 
@@ -33,9 +34,15 @@ DEFAULT_COMPLEXITY_LIMIT = 20
 
 # Physics-informed operators for rotation curves
 ROTATION_CURVE_OPERATORS = [
-    "+", "-", "*", "/",
-    "sqrt", "square", "cube",
-    "log", "exp",
+    "+",
+    "-",
+    "*",
+    "/",
+    "sqrt",
+    "square",
+    "cube",
+    "log",
+    "exp",
 ]
 
 # Known rotation curve equations
@@ -48,6 +55,7 @@ KNOWN_EQUATIONS = {
 
 
 # === AXIOM KAN IMPLEMENTATION ===
+
 
 class SimpleKAN:
     """Simplified Kolmogorov-Arnold Network for rotation curve fitting.
@@ -120,7 +128,7 @@ class SimpleKAN:
         for epoch in range(epochs):
             pred = basis @ self.weights
             residual = v - pred
-            mse = np.mean(residual ** 2)
+            mse = np.mean(residual**2)
             self.loss_history.append(mse)
 
             # Gradient update
@@ -192,10 +200,9 @@ class SimpleKAN:
 
 # === PYSR INTERFACE ===
 
+
 def run_pysr(
-    data: Dict,
-    complexity_limit: int = DEFAULT_COMPLEXITY_LIMIT,
-    timeout_s: int = 60
+    data: Dict, complexity_limit: int = DEFAULT_COMPLEXITY_LIMIT, timeout_s: int = 60
 ) -> Dict:
     """Run pySR symbolic regression on galaxy rotation curve.
 
@@ -253,7 +260,7 @@ def run_pysr(
 
         # Use known Newtonian approximation as baseline
         # v = sqrt(G*M/r) => v^2 * r = const
-        v_squared_r = v ** 2 * r
+        v_squared_r = v**2 * r
         const = np.mean(v_squared_r)
         pred = np.sqrt(const / r)
         mse = np.mean((v - pred) ** 2)
@@ -269,10 +276,7 @@ def run_pysr(
         }
 
 
-def run_axiom(
-    data: Dict,
-    epochs: int = DEFAULT_EPOCHS
-) -> Dict:
+def run_axiom(data: Dict, epochs: int = DEFAULT_EPOCHS) -> Dict:
     """Run AXIOM KAN witness on galaxy rotation curve.
 
     Args:
@@ -324,8 +328,16 @@ def compare(galaxy: Dict) -> Dict:
     axiom_result = run_axiom(galaxy)
 
     # Compute relative metrics
-    mse_ratio = axiom_result["mse"] / pysr_result["mse"] if pysr_result["mse"] > 0 else float("inf")
-    time_ratio = axiom_result["time_ms"] / pysr_result["time_ms"] if pysr_result["time_ms"] > 0 else float("inf")
+    mse_ratio = (
+        axiom_result["mse"] / pysr_result["mse"]
+        if pysr_result["mse"] > 0
+        else float("inf")
+    )
+    time_ratio = (
+        axiom_result["time_ms"] / pysr_result["time_ms"]
+        if pysr_result["time_ms"] > 0
+        else float("inf")
+    )
 
     comparison = {
         "galaxy_id": galaxy.get("id", "unknown"),
@@ -341,26 +353,34 @@ def compare(galaxy: Dict) -> Dict:
     }
 
     # Emit benchmark receipt for pySR
-    emit_receipt("benchmark", {
-        "tenant_id": TENANT_ID,
-        "tool_name": "pySR",
-        "dataset_id": galaxy.get("id", "unknown"),
-        "compression_ratio": 0,  # pySR doesn't report compression
-        "r_squared": 1 - pysr_result["mse"] / np.var(galaxy["v"]) if np.var(galaxy["v"]) > 0 else 0,
-        "equation": pysr_result["equation"],
-        "time_ms": pysr_result["time_ms"],
-    })
+    emit_receipt(
+        "benchmark",
+        {
+            "tenant_id": TENANT_ID,
+            "tool_name": "pySR",
+            "dataset_id": galaxy.get("id", "unknown"),
+            "compression_ratio": 0,  # pySR doesn't report compression
+            "r_squared": 1 - pysr_result["mse"] / np.var(galaxy["v"])
+            if np.var(galaxy["v"]) > 0
+            else 0,
+            "equation": pysr_result["equation"],
+            "time_ms": pysr_result["time_ms"],
+        },
+    )
 
     # Emit benchmark receipt for AXIOM
-    emit_receipt("benchmark", {
-        "tenant_id": TENANT_ID,
-        "tool_name": "AXIOM",
-        "dataset_id": galaxy.get("id", "unknown"),
-        "compression_ratio": axiom_result["compression"],
-        "r_squared": axiom_result["r_squared"],
-        "equation": axiom_result["equation"],
-        "time_ms": axiom_result["time_ms"],
-    })
+    emit_receipt(
+        "benchmark",
+        {
+            "tenant_id": TENANT_ID,
+            "tool_name": "AXIOM",
+            "dataset_id": galaxy.get("id", "unknown"),
+            "compression_ratio": axiom_result["compression"],
+            "r_squared": axiom_result["r_squared"],
+            "equation": axiom_result["equation"],
+            "time_ms": axiom_result["time_ms"],
+        },
+    )
 
     return comparison
 
@@ -398,20 +418,29 @@ def batch_compare(galaxies: List[Dict]) -> Dict:
         "pysr": {
             "mean_mse": float(np.mean(pysr_mses)),
         },
-        "axiom_wins_mse": sum(1 for r in results if r["comparison"]["winner_mse"] == "axiom"),
-        "pysr_wins_mse": sum(1 for r in results if r["comparison"]["winner_mse"] == "pysr"),
-        "axiom_wins_time": sum(1 for r in results if r["comparison"]["winner_time"] == "axiom"),
+        "axiom_wins_mse": sum(
+            1 for r in results if r["comparison"]["winner_mse"] == "axiom"
+        ),
+        "pysr_wins_mse": sum(
+            1 for r in results if r["comparison"]["winner_mse"] == "pysr"
+        ),
+        "axiom_wins_time": sum(
+            1 for r in results if r["comparison"]["winner_time"] == "axiom"
+        ),
     }
 
     # Emit summary receipt
-    emit_receipt("benchmark_summary", {
-        "tenant_id": TENANT_ID,
-        "n_galaxies": len(galaxies),
-        "mean_axiom_compression": summary["axiom"]["mean_compression"],
-        "mean_axiom_r_squared": summary["axiom"]["mean_r_squared"],
-        "axiom_wins_mse": summary["axiom_wins_mse"],
-        "axiom_wins_time": summary["axiom_wins_time"],
-    })
+    emit_receipt(
+        "benchmark_summary",
+        {
+            "tenant_id": TENANT_ID,
+            "n_galaxies": len(galaxies),
+            "mean_axiom_compression": summary["axiom"]["mean_compression"],
+            "mean_axiom_r_squared": summary["axiom"]["mean_r_squared"],
+            "axiom_wins_mse": summary["axiom_wins_mse"],
+            "axiom_wins_time": summary["axiom_wins_time"],
+        },
+    )
 
     return {
         "individual_results": results,
@@ -451,6 +480,7 @@ def generate_table(results: List[Dict]) -> str:
 
 # === CLI ENTRY POINT ===
 
+
 def main():
     """Run benchmark suite from command line."""
     import argparse
@@ -476,14 +506,18 @@ def main():
 
     # Print summary
     print("\nSummary:")
-    print(f"  AXIOM mean compression: {results['summary']['axiom']['mean_compression']:.2%}")
+    print(
+        f"  AXIOM mean compression: {results['summary']['axiom']['mean_compression']:.2%}"
+    )
     print(f"  AXIOM mean R²: {results['summary']['axiom']['mean_r_squared']:.4f}")
     print(f"  AXIOM wins (MSE): {results['summary']['axiom_wins_mse']}/{len(galaxies)}")
-    print(f"  AXIOM wins (time): {results['summary']['axiom_wins_time']}/{len(galaxies)}")
+    print(
+        f"  AXIOM wins (time): {results['summary']['axiom_wins_time']}/{len(galaxies)}"
+    )
 
     # Save results
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(results, f, indent=2, default=str)
         print(f"\nResults saved to {args.output}")
 

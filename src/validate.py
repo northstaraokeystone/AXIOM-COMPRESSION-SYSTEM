@@ -52,10 +52,7 @@ def test_null_hypothesis() -> Dict:
     # "Zero" bandwidth proxy (can't use actual 0 due to division)
     zero_bw = 0.001  # 1 kbps - effectively no Earth help
 
-    threshold = find_threshold(
-        bandwidth_mbps=zero_bw,
-        delay_s=MARS_LIGHT_DELAY_AVG_S
-    )
+    threshold = find_threshold(bandwidth_mbps=zero_bw, delay_s=MARS_LIGHT_DELAY_AVG_S)
 
     # With zero bandwidth, any crew should be sovereign (threshold = 1)
     passed = threshold <= 1
@@ -65,7 +62,7 @@ def test_null_hypothesis() -> Dict:
         "bandwidth_mbps": zero_bw,
         "delay_s": MARS_LIGHT_DELAY_AVG_S,
         "threshold": threshold,
-        "passed": passed
+        "passed": passed,
     }
 
 
@@ -85,14 +82,14 @@ def test_baseline() -> Dict:
     threshold = find_threshold(
         bandwidth_mbps=STARLINK_MARS_BANDWIDTH_MIN_MBPS,
         delay_s=MARS_LIGHT_DELAY_AVG_S,
-        compute_flops=0.0
+        compute_flops=0.0,
     )
 
     return {
         "bandwidth_mbps": STARLINK_MARS_BANDWIDTH_MIN_MBPS,
         "delay_s": MARS_LIGHT_DELAY_AVG_S,
         "compute_flops": 0.0,
-        "threshold": threshold
+        "threshold": threshold,
     }
 
 
@@ -134,9 +131,7 @@ def bootstrap_threshold(n_runs: int = 100, seed: int = 42) -> Dict:
         delay = delay_samples[0]
 
         threshold = find_threshold(
-            bandwidth_mbps=bandwidth,
-            delay_s=delay,
-            compute_flops=0.0
+            bandwidth_mbps=bandwidth, delay_s=delay, compute_flops=0.0
         )
         thresholds.append(threshold)
 
@@ -159,7 +154,7 @@ def bootstrap_threshold(n_runs: int = 100, seed: int = 42) -> Dict:
         "max": max_threshold,
         "p_value": p_value,
         "thresholds": thresholds,
-        "n_runs": n_runs
+        "n_runs": n_runs,
     }
 
 
@@ -211,14 +206,14 @@ def generate_falsifiable_prediction(result: Dict) -> str:
     min_delay_threshold = find_threshold(
         bandwidth_mbps=STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
         delay_s=MARS_LIGHT_DELAY_MIN_S,
-        compute_flops=0.0
+        compute_flops=0.0,
     )
 
     # Prediction for maximum delay (Mars at conjunction)
     max_delay_threshold = find_threshold(
         bandwidth_mbps=STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
         delay_s=MARS_LIGHT_DELAY_MAX_S,
-        compute_flops=0.0
+        compute_flops=0.0,
     )
 
     return (
@@ -233,7 +228,7 @@ def generate_falsifiable_prediction(result: Dict) -> str:
         f"   (Lower because Earth help is delayed)\n"
         f"\n"
         f"FALSIFICATION CRITERIA:\n"
-        f"If observed thresholds differ by >2sigma (~{2*std:.0f} crew),\n"
+        f"If observed thresholds differ by >2sigma (~{2 * std:.0f} crew),\n"
         f"the model is falsified."
     )
 
@@ -248,14 +243,14 @@ def emit_statistical_receipt(test_name: str, result: Dict) -> Dict:
     Returns:
         Receipt dict
     """
-    return emit_receipt("statistical_test", {
-        "tenant_id": "axiom-core",
-        "test_name": test_name,
-        **result
-    })
+    return emit_receipt(
+        "statistical_test",
+        {"tenant_id": "axiom-core", "test_name": test_name, **result},
+    )
 
 
 # === MODEL COMPARISON (v1.1 - Grok feedback Dec 16, 2025) ===
+
 
 def compare_models() -> Dict:
     """Compare linear vs exponential decay models across scenarios.
@@ -285,18 +280,20 @@ def compare_models() -> Dict:
         t_lin = find_threshold(bandwidth_mbps=bw, delay_s=delay)
         t_exp = find_threshold_exponential(bandwidth_mbps=bw, delay_s=delay)
 
-        results.append({
-            "description": desc,
-            "bandwidth_mbps": bw,
-            "delay_s": delay,
-            "delay_min": delay / 60,
-            "external_rate_linear": er_lin,
-            "external_rate_exp": er_exp,
-            "rate_ratio": er_exp / er_lin if er_lin > 0 else 0,
-            "threshold_linear": t_lin,
-            "threshold_exp": t_exp,
-            "threshold_diff": t_exp - t_lin
-        })
+        results.append(
+            {
+                "description": desc,
+                "bandwidth_mbps": bw,
+                "delay_s": delay,
+                "delay_min": delay / 60,
+                "external_rate_linear": er_lin,
+                "external_rate_exp": er_exp,
+                "rate_ratio": er_exp / er_lin if er_lin > 0 else 0,
+                "threshold_linear": t_lin,
+                "threshold_exp": t_exp,
+                "threshold_diff": t_exp - t_lin,
+            }
+        )
 
     # Summary statistics
     rate_ratios = [r["rate_ratio"] for r in results]
@@ -308,8 +305,8 @@ def compare_models() -> Dict:
             "mean_rate_ratio": statistics.mean(rate_ratios),
             "mean_threshold_diff": statistics.mean(threshold_diffs),
             "tau_s": TAU_DECISION_DECAY_S,
-            "model_note": "Exponential captures VALUE decay, linear captures throughput"
-        }
+            "model_note": "Exponential captures VALUE decay, linear captures throughput",
+        },
     }
 
 
@@ -364,7 +361,7 @@ def validate_grok_numbers() -> Dict:
             "Grok uses raw bps/(2*delay) formula = bits/sec effective rate. "
             "Our formula divides by BITS_PER_DECISION to get decisions/sec. "
             "Both are valid - Grok's is channel capacity, ours is decision rate."
-        )
+        ),
     }
 
 
@@ -382,40 +379,40 @@ def variance_analysis() -> Dict:
     # Baseline: average values
     baseline_threshold = find_threshold(
         bandwidth_mbps=STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
-        delay_s=MARS_LIGHT_DELAY_AVG_S
+        delay_s=MARS_LIGHT_DELAY_AVG_S,
     )
 
     # Delay extremes (holding bandwidth at expected)
     threshold_min_delay = find_threshold(
         bandwidth_mbps=STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
-        delay_s=MARS_LIGHT_DELAY_MIN_S
+        delay_s=MARS_LIGHT_DELAY_MIN_S,
     )
     threshold_max_delay = find_threshold(
         bandwidth_mbps=STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
-        delay_s=MARS_LIGHT_DELAY_MAX_S
+        delay_s=MARS_LIGHT_DELAY_MAX_S,
     )
     delay_impact = abs(threshold_max_delay - threshold_min_delay)
 
     # Bandwidth extremes (holding delay at average)
     threshold_min_bw = find_threshold(
-        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_MIN_MBPS,
-        delay_s=MARS_LIGHT_DELAY_AVG_S
+        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_MIN_MBPS, delay_s=MARS_LIGHT_DELAY_AVG_S
     )
     threshold_max_bw = find_threshold(
-        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_MAX_MBPS,
-        delay_s=MARS_LIGHT_DELAY_AVG_S
+        bandwidth_mbps=STARLINK_MARS_BANDWIDTH_MAX_MBPS, delay_s=MARS_LIGHT_DELAY_AVG_S
     )
     bandwidth_impact = abs(threshold_max_bw - threshold_min_bw)
 
     # Determine dominance
     latency_limited = delay_impact > bandwidth_impact
-    dominance_ratio = delay_impact / bandwidth_impact if bandwidth_impact > 0 else float('inf')
+    dominance_ratio = (
+        delay_impact / bandwidth_impact if bandwidth_impact > 0 else float("inf")
+    )
 
     return {
         "baseline": {
             "bandwidth_mbps": STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
             "delay_s": MARS_LIGHT_DELAY_AVG_S,
-            "threshold": baseline_threshold
+            "threshold": baseline_threshold,
         },
         "delay_sensitivity": {
             "min_delay_s": MARS_LIGHT_DELAY_MIN_S,
@@ -423,7 +420,7 @@ def variance_analysis() -> Dict:
             "threshold_at_min": threshold_min_delay,
             "threshold_at_max": threshold_max_delay,
             "impact_crew": delay_impact,
-            "variance_ratio": DELAY_VARIANCE_RATIO
+            "variance_ratio": DELAY_VARIANCE_RATIO,
         },
         "bandwidth_sensitivity": {
             "min_bandwidth_mbps": STARLINK_MARS_BANDWIDTH_MIN_MBPS,
@@ -431,7 +428,7 @@ def variance_analysis() -> Dict:
             "threshold_at_min": threshold_min_bw,
             "threshold_at_max": threshold_max_bw,
             "impact_crew": bandwidth_impact,
-            "variance_ratio": BANDWIDTH_VARIANCE_RATIO
+            "variance_ratio": BANDWIDTH_VARIANCE_RATIO,
         },
         "analysis": {
             "latency_limited": latency_limited,
@@ -441,8 +438,8 @@ def variance_analysis() -> Dict:
                 f"Delay changes threshold by {delay_impact} crew over range. "
                 f"Bandwidth changes threshold by {bandwidth_impact} crew over range. "
                 f"{'Latency' if latency_limited else 'Bandwidth'} dominates by {dominance_ratio:.2f}x."
-            )
-        }
+            ),
+        },
     }
 
 
@@ -455,10 +452,13 @@ def emit_model_comparison_receipt() -> Dict:
     grok_validation = validate_grok_numbers()
     variance = variance_analysis()
 
-    return emit_receipt("model_comparison", {
-        "tenant_id": "axiom-core",
-        "comparison": comparison,
-        "grok_validation": grok_validation,
-        "variance_analysis": variance,
-        "grok_numbers_match": grok_validation["validation"]["all_match"]
-    })
+    return emit_receipt(
+        "model_comparison",
+        {
+            "tenant_id": "axiom-core",
+            "comparison": comparison,
+            "grok_validation": grok_validation,
+            "variance_analysis": variance,
+            "grok_numbers_match": grok_validation["validation"]["all_match"],
+        },
+    )

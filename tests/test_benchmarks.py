@@ -209,7 +209,8 @@ class TestComparison:
             {
                 "id": f"NGC_{i:04d}",
                 "r": np.linspace(0.5, 10, 15),
-                "v": 100 * np.sqrt(1 / np.linspace(0.5, 10, 15)) + np.random.randn(15) * 5,
+                "v": 100 * np.sqrt(1 / np.linspace(0.5, 10, 15))
+                + np.random.randn(15) * 5,
             }
             for i in range(3)
         ]
@@ -274,7 +275,12 @@ class TestSymbolicBaselines:
         result = run_ai_feynman(data)
 
         # Should identify as Newtonian or similar
-        assert result["physics_form"] in ["newtonian", "mond_like", "isothermal_halo", "exponential_disk"]
+        assert result["physics_form"] in [
+            "newtonian",
+            "mond_like",
+            "isothermal_halo",
+            "exponential_disk",
+        ]
 
     def test_eureqa_stub_returns_unavailable(self):
         """run_eureqa_stub() should indicate unavailability."""
@@ -307,7 +313,7 @@ class TestReport:
                 "axiom": {"mean_compression": 0.85, "mean_r_squared": 0.95},
                 "axiom_wins_mse": 1,
                 "axiom_wins_time": 1,
-            }
+            },
         }
 
         table = format_comparison_table(results)

@@ -13,6 +13,7 @@ Key Scenarios:
 import pytest
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.sim import (
@@ -109,10 +110,11 @@ class TestScenarioHelper:
     def test_helper_scenario_runs(self):
         """SCENARIO_HELPER should run without errors."""
         from src.helper import HelperConfig
+
         config = SimConfig(
             max_cycles=50,
             harvest_frequency=10,
-            helper_config=HelperConfig(recurrence_threshold=5)
+            helper_config=HelperConfig(recurrence_threshold=5),
         )
 
         state = run_scenario(Scenario.SCENARIO_HELPER, config)
@@ -200,8 +202,7 @@ class TestScenarioFull:
 
         # Should have some coverage
         has_coverage = any(
-            cov.receipt_count > 0
-            for cov in state.support_coverage.values()
+            cov.receipt_count > 0 for cov in state.support_coverage.values()
         )
         assert has_coverage
 
@@ -288,7 +289,7 @@ class TestIntegration:
         config = SimConfig(
             max_cycles=60,
             harvest_frequency=20,
-            helper_config=HelperConfig(recurrence_threshold=3)
+            helper_config=HelperConfig(recurrence_threshold=3),
         )
 
         state = initialize_sim(config)
@@ -307,17 +308,14 @@ class TestIntegration:
 
     def test_optimizer_influences_selection(self):
         """Optimizer should learn and improve selections."""
-        config = SimConfig(
-            max_cycles=50,
-            patterns=["good", "bad"]
-        )
+        config = SimConfig(max_cycles=50, patterns=["good", "bad"])
 
         state = initialize_sim(config)
 
         # Set up fitness so "good" is clearly better
         state.optimization_state.pattern_fitness = {
             "good": (0.9, 0.05),
-            "bad": (0.1, 0.05)
+            "bad": (0.1, 0.05),
         }
 
         for _ in range(50):
@@ -331,10 +329,7 @@ class TestIntegration:
 
     def test_l4_feedback_loop(self):
         """L4 feedback should trigger during simulation."""
-        config = SimConfig(
-            max_cycles=100,
-            support_check_frequency=10
-        )
+        config = SimConfig(max_cycles=100, support_check_frequency=10)
 
         state = initialize_sim(config)
 
