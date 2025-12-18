@@ -201,7 +201,7 @@ class TestRiskSummary:
 
         # Lower risk (adequate)
         profiles_low = assess_tier_risk(0.40, 12)
-        summary_low = risk_summary(profiles_low)
+        risk_summary(profiles_low)
         # Could be MODERATE or LOW depending on exact numbers
 
 

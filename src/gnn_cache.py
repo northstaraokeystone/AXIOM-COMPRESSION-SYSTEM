@@ -112,7 +112,6 @@ from .gnn_overflow import (
     cache_depth_check,
     predict_overflow,
     extreme_blackout_sweep,
-    validate_gnn_nonlinear_slos,
 )
 
 # === ADAPTIVE DEPTH INTEGRATION (Dec 2025) ===
@@ -309,12 +308,10 @@ def nonlinear_retention_with_pruning(
 
     if ablation_mode == "no_cache":
         pruning_enabled = True
-        gnn_active = False
     elif ablation_mode == "no_prune":
         pruning_enabled = False
-        gnn_active = True
     else:
-        gnn_active = True
+        pass
 
     overflow_threshold = (
         OVERFLOW_THRESHOLD_DAYS_PRUNED if pruning_enabled else CACHE_BREAK_DAYS
@@ -744,7 +741,7 @@ def nonlinear_retention_dynamic(
         # LR decay affects stability (higher LR = more variance)
         lr_decay = dynamic_config.get("lr_decay", 0.002)
         lr_optimal = 0.002
-        lr_factor = 1.0 - (abs(lr_decay - lr_optimal) / lr_optimal) * 0.01
+        1.0 - (abs(lr_decay - lr_optimal) / lr_optimal) * 0.01
 
         # Prune aggressiveness affects retention
         prune_aggr = dynamic_config.get("prune_aggressiveness")

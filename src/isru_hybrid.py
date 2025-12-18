@@ -456,7 +456,7 @@ def get_isru_info() -> Dict[str, Any]:
 
     Receipt: isru_info
     """
-    spec = get_d5_spec()
+    get_d5_spec()
 
     info = {
         "moxie_calibration": {

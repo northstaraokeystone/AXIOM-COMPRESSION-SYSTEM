@@ -350,7 +350,7 @@ class TestScenarioRelayComparison:
 
     def test_relay_comparison_runs(self, capsys):
         """SCENARIO_RELAY_COMPARISON should run and compare swarm sizes."""
-        state = run_scenario(Scenario.SCENARIO_RELAY_COMPARISON)
+        run_scenario(Scenario.SCENARIO_RELAY_COMPARISON)
 
         captured = capsys.readouterr()
         assert '"receipt_type": "relay_comparison"' in captured.out
@@ -358,7 +358,7 @@ class TestScenarioRelayComparison:
 
     def test_relay_comparison_tests_multiple_sizes(self, capsys):
         """Should test swarm sizes 3, 6, 9."""
-        state = run_scenario(Scenario.SCENARIO_RELAY_COMPARISON)
+        run_scenario(Scenario.SCENARIO_RELAY_COMPARISON)
 
         captured = capsys.readouterr()
         assert '"swarm_size": 3' in captured.out
@@ -371,21 +371,21 @@ class TestScenarioStrategyRanking:
 
     def test_strategy_ranking_runs(self, capsys):
         """SCENARIO_STRATEGY_RANKING should run and rank strategies."""
-        state = run_scenario(Scenario.SCENARIO_STRATEGY_RANKING)
+        run_scenario(Scenario.SCENARIO_STRATEGY_RANKING)
 
         captured = capsys.readouterr()
         assert '"receipt_type": "strategy_ranking_summary"' in captured.out
 
     def test_strategy_ranking_compares_all(self, capsys):
         """Should compare all 5 strategies."""
-        state = run_scenario(Scenario.SCENARIO_STRATEGY_RANKING)
+        run_scenario(Scenario.SCENARIO_STRATEGY_RANKING)
 
         captured = capsys.readouterr()
         assert '"strategies_compared": 5' in captured.out
 
     def test_strategy_ranking_provides_roi_order(self, capsys):
         """Should provide ranking by both cycles and ROI."""
-        state = run_scenario(Scenario.SCENARIO_STRATEGY_RANKING)
+        run_scenario(Scenario.SCENARIO_STRATEGY_RANKING)
 
         captured = capsys.readouterr()
         assert '"ranking_by_cycles"' in captured.out
@@ -397,14 +397,14 @@ class TestScenarioROIGate:
 
     def test_roi_gate_runs(self, capsys):
         """SCENARIO_ROI_GATE should run and make gate decisions."""
-        state = run_scenario(Scenario.SCENARIO_ROI_GATE)
+        run_scenario(Scenario.SCENARIO_ROI_GATE)
 
         captured = capsys.readouterr()
         assert '"receipt_type": "roi_gate_summary"' in captured.out
 
     def test_roi_gate_provides_decisions(self, capsys):
         """Should provide deploy/shadow/kill decisions."""
-        state = run_scenario(Scenario.SCENARIO_ROI_GATE)
+        run_scenario(Scenario.SCENARIO_ROI_GATE)
 
         captured = capsys.readouterr()
         assert '"deploy_count"' in captured.out
@@ -413,7 +413,7 @@ class TestScenarioROIGate:
 
     def test_roi_gate_evaluates_strategies(self, capsys):
         """Should evaluate multiple strategies (excluding baseline)."""
-        state = run_scenario(Scenario.SCENARIO_ROI_GATE)
+        run_scenario(Scenario.SCENARIO_ROI_GATE)
 
         captured = capsys.readouterr()
         # 4 strategies evaluated (all except baseline)

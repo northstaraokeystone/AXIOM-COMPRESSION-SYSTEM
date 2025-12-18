@@ -195,8 +195,8 @@ class TestSafetyRevert:
         tuner = RLTuner()
 
         # Should trigger for drop > 0.05
-        assert tuner.safety_check(0.06) == True
-        assert tuner.safety_check(0.04) == False
+        assert tuner.safety_check(0.06)
+        assert not tuner.safety_check(0.04)
 
     def test_safety_revert_returns_params(self):
         """revert returns previous parameters."""
@@ -302,7 +302,7 @@ class TestAdaptiveScaling:
         assert "gnn_layers" in config
         assert "lr_decay" in config
         assert "prune_aggressiveness" in config
-        assert config["adaptive_depth_enabled"] == True
+        assert config["adaptive_depth_enabled"]
 
 
 class TestDynamicConfigApplied:
@@ -319,7 +319,7 @@ class TestDynamicConfigApplied:
             "adaptive_depth_enabled": True,
         }
 
-        old_values = apply_dynamic_config(config)
+        apply_dynamic_config(config)
         current = get_current_config()
 
         assert current["gnn_layers"] == 7
@@ -331,7 +331,7 @@ class TestDynamicConfigApplied:
         """pruning module uses dynamic aggressiveness."""
         reset_dynamic_aggressiveness()
 
-        old = apply_dynamic_aggressiveness(0.45)
+        apply_dynamic_aggressiveness(0.45)
         current = get_current_aggressiveness()
 
         assert current == 0.45
@@ -406,10 +406,10 @@ class TestNoStaticConfigs:
         validations = validate_no_static_configs()
 
         # All modules should be available (not necessarily in dynamic mode)
-        assert validations["gnn_config_dynamic"] == True
-        assert validations["pruning_dynamic"] == True
-        assert validations["rl_tune_available"] == True
-        assert validations["adaptive_available"] == True
+        assert validations["gnn_config_dynamic"]
+        assert validations["pruning_dynamic"]
+        assert validations["rl_tune_available"]
+        assert validations["adaptive_available"]
 
 
 class TestRLIntegration:
@@ -419,11 +419,11 @@ class TestRLIntegration:
         """All modules report ready."""
         status = get_rl_integration_status()
 
-        assert status["rl_tune_ready"] == True
-        assert status["adaptive_ready"] == True
-        assert status["gnn_dynamic_ready"] == True
-        assert status["pruning_dynamic_ready"] == True
-        assert status["all_modules_ready"] == True
+        assert status["rl_tune_ready"]
+        assert status["adaptive_ready"]
+        assert status["gnn_dynamic_ready"]
+        assert status["pruning_dynamic_ready"]
+        assert status["all_modules_ready"]
 
     def test_sovereignty_timeline_dynamic_runs(self):
         """sovereignty_timeline_dynamic executes without error."""
@@ -435,7 +435,7 @@ class TestRLIntegration:
         )
 
         assert "effective_alpha" in result
-        assert result["dynamic_mode"] == True
+        assert result["dynamic_mode"]
 
 
 class TestContinuedAblation:
@@ -453,7 +453,7 @@ class TestContinuedAblation:
 
         assert "avg_alpha" in result
         assert "final_retention" in result
-        assert result["rl_enabled"] == True
+        assert result["rl_enabled"]
 
 
 class TestRunningBaseline:

@@ -282,7 +282,6 @@ def simulate_gate_progression(
         confidence_trajectory = [0.85] * len(alpha_trajectory)
 
     states = []
-    current_fraction = config.initial_autonomy_fraction
     escalated = False
 
     for month, (alpha, conf) in enumerate(zip(alpha_trajectory, confidence_trajectory)):

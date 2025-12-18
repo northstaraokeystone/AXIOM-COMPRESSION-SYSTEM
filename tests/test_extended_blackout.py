@@ -183,7 +183,7 @@ class TestStaticPartitionRemoved:
             warnings.simplefilter("always")
 
             # Call with reroute_enabled=False (deprecated)
-            result = partition_sim(nodes_total=5, loss_pct=0.2, reroute_enabled=False)
+            partition_sim(nodes_total=5, loss_pct=0.2, reroute_enabled=False)
 
             # Check that deprecation warning was raised
             deprecation_warnings = [
@@ -202,7 +202,7 @@ class TestStaticPartitionRemoved:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
 
-            result = partition_sim(nodes_total=5, loss_pct=0.2)
+            partition_sim(nodes_total=5, loss_pct=0.2)
 
             deprecation_warnings = [
                 x for x in w if issubclass(x.category, DeprecationWarning)

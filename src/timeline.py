@@ -769,7 +769,6 @@ def sovereignty_timeline(
     cycles_to_1M = None
 
     # Base autonomy level (40% allocation)
-    base_autonomy = 0.40
 
     for cycle in range(1, 200):  # Max 200 cycles
         # Multiplier per cycle from B = c × A^α × P model

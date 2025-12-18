@@ -1777,7 +1777,7 @@ def pilot_lr_narrow(
         pass
 
     # Initialize tuner
-    tuner = RLTuner()
+    RLTuner()
 
     current_retention = 1.01
     current_alpha = SHANNON_FLOOR * current_retention
@@ -1792,7 +1792,6 @@ def pilot_lr_narrow(
         lr = _math.exp(random.uniform(log_lr_min, log_lr_max))
 
         # Build state
-        state = (current_retention, current_alpha, blackout_days, tree_size)
 
         # Create action with sampled LR
         action = {
@@ -1949,7 +1948,7 @@ def run_tuned_sweep(
         lr = _math.exp(random.uniform(log_lr_min, log_lr_max))
 
         # Build state
-        state = build_state(current_retention, tree_size, 0.5, depth_used)
+        build_state(current_retention, tree_size, 0.5, depth_used)
 
         # Create action with narrowed LR
         action = {

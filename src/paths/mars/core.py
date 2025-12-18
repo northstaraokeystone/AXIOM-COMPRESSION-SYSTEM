@@ -353,7 +353,7 @@ def integrate_moxie(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
 
     # Load MOXIE calibration from isru_hybrid module
     try:
-        from ...isru_hybrid import load_moxie_calibration, MOXIE_O2_TOTAL_G as TOTAL
+        from ...isru_hybrid import load_moxie_calibration
 
         calibration = load_moxie_calibration()
     except ImportError:

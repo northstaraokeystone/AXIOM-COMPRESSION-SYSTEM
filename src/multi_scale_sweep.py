@@ -270,7 +270,7 @@ def validate_scalability(results: Dict[str, Any]) -> bool:
 
     # Check each scale
     for scale_key, data in scale_results.items():
-        alpha = data.get("alpha", 0)
+        data.get("alpha", 0)
         instability = data.get("instability", 0)
 
         # Stoprule: instability must be zero
@@ -403,7 +403,7 @@ def run_multi_scale_validation() -> Dict[str, Any]:
     Receipt: multi_scale_10e9_receipt
     """
     # Load spec
-    spec = load_multi_scale_spec()
+    load_multi_scale_spec()
 
     # Run sweep
     sweep_results = run_scale_sweep(TREE_SCALES)

@@ -145,7 +145,7 @@ def benchmark_10e12(
 
     # Apply scale decay to hybrid alpha
     # At 10^12, we expect ~0.005-0.01 decay due to correlation dilution
-    scale_adjusted_alpha = hybrid_result["final_alpha"] * (scale_factor**2)
+    hybrid_result["final_alpha"] * (scale_factor**2)
 
     # For 10^12, scale_factor should be close to 1 (minimal decay)
     # But we simulate realistic decay for large trees

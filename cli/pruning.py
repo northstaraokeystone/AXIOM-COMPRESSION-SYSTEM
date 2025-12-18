@@ -175,7 +175,7 @@ def cmd_verify_chain(trim_factor: float, simulate: bool):
     for i in range(10):
         tree = generate_sample_merkle_tree(n_leaves=100, duplicate_ratio=0.2)
         try:
-            result = entropy_prune(tree, trim_factor=trim_factor, hybrid=True)
+            entropy_prune(tree, trim_factor=trim_factor, hybrid=True)
             status = "PASS"
         except Exception as e:
             if "Chain broken" in str(e) or "Quorum lost" in str(e):

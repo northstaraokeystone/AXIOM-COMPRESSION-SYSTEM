@@ -268,7 +268,7 @@ def simulate_cycle(state: SimState, config: SimConfig = None) -> SimState:
         # L4 feedback if coverage low
         if not check_completeness(state.support_coverage):
             l0_params = {"sample_rate": 1.0, "telemetry_level": "normal"}
-            improved_params = l4_feedback(state.support_coverage, l0_params)
+            l4_feedback(state.support_coverage, l0_params)
             # Apply improvements (in real system, would update config)
 
     # 5. Mars provenance (if enabled)

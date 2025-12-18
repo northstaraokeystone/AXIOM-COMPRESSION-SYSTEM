@@ -258,7 +258,7 @@ class TestOverflowThreshold:
         """No overflow should occur until 300d+ with pruning."""
         # Test at 290d - should NOT overflow
         try:
-            result = nonlinear_retention_with_pruning(
+            nonlinear_retention_with_pruning(
                 290, CACHE_DEPTH_BASELINE, pruning_enabled=True, trim_factor=0.3
             )
             overflow_at_290d = False
@@ -288,7 +288,7 @@ class TestChainIntegrity:
             original_root = tree["root"]
             pruned_root = result["merkle_root_after"]
             proof_paths = [
-                l for l in result["pruned_tree"]["leaves"] if l.get("is_proof_path")
+                leaf for leaf in result["pruned_tree"]["leaves"] if leaf.get("is_proof_path")
             ]
 
             # Should not raise

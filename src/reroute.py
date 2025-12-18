@@ -166,7 +166,7 @@ def compute_cgr_paths(
 
     Receipt: cgr_paths
     """
-    nodes = contact_graph.get("nodes", [])
+    contact_graph.get("nodes", [])
     edges = contact_graph.get("edges", [])
 
     paths = []
@@ -343,7 +343,7 @@ def adaptive_reroute(
     Receipt: adaptive_reroute_receipt
     """
     nodes = graph_state.get("nodes", 5)
-    edges = graph_state.get("edges", [])
+    graph_state.get("edges", [])
     historical_anomalies = graph_state.get("anomalies", [])
 
     # Calculate surviving nodes
@@ -469,7 +469,6 @@ def blackout_sim(
 
     alpha_trajectory = []
     quorum_health = []
-    current_alpha = base_alpha
     quorum_failures = 0
     max_alpha_drop = 0.0
 

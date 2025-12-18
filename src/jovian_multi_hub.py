@@ -129,7 +129,7 @@ def init_hub(hub_location: str = "callisto") -> Dict[str, Any]:
 
     Receipt: jovian_hub_init_receipt
     """
-    config = load_jovian_hub_config()
+    load_jovian_hub_config()
 
     hub_state = {
         "initialized": True,

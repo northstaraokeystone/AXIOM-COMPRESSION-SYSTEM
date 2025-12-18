@@ -250,7 +250,7 @@ def check_tests() -> dict[str, Any]:
                 check=True,
             )
             pytest_cmd = [sys.executable, "-m", "pytest"]
-        except:
+        except Exception:
             return {
                 "passed": True,
                 "duration_ms": 0,
@@ -271,7 +271,7 @@ def check_tests() -> dict[str, Any]:
         if not passed:
             # Extract failing test name and summary
             lines = result.stdout.strip().split("\n")
-            failed_lines = [l for l in lines if "FAILED" in l]
+            failed_lines = [line for line in lines if "FAILED" in line]
             summary = lines[-1] if lines else ""
             if failed_lines:
                 error = f"{failed_lines[0][:100]} | {summary}"
@@ -305,7 +305,7 @@ def check_lint() -> dict[str, Any]:
                 check=True,
             )
             ruff_cmd = [sys.executable, "-m", "ruff"]
-        except:
+        except Exception:
             return {
                 "passed": True,
                 "duration_ms": 0,
@@ -325,7 +325,7 @@ def check_lint() -> dict[str, Any]:
         passed = result.returncode == 0
         if not passed:
             # Count errors
-            error_lines = [l for l in result.stdout.split("\n") if l.strip()]
+            error_lines = [line for line in result.stdout.split("\n") if line.strip()]
             error = f"{len(error_lines)} lint errors found"
         else:
             error = None
