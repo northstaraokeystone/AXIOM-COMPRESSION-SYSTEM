@@ -34,7 +34,6 @@ from .quantum_rl_hybrid import (
 from .fractal_layers import (
     multi_scale_fractal,
     get_scale_factor,
-    scale_adjusted_correlation,
     FRACTAL_UPLIFT,
 )
 

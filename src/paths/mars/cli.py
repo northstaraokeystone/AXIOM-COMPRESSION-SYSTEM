@@ -17,7 +17,6 @@ from .core import (
     simulate_dome,
     compute_isru_closure,
     compute_sovereignty,
-    optimize_resources,
     get_mars_info,
 )
 
@@ -40,10 +39,10 @@ def cmd_mars_status(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     print(f"Stage: {status['stage']}")
     print(f"Version: {status['version']}")
     print(f"\nEvolution path: {' -> '.join(status['evolution_path'])}")
-    print(f"\nCurrent capabilities:")
+    print("\nCurrent capabilities:")
     for cap in status.get("current_capabilities", []):
         print(f"  - {cap}")
-    print(f"\nPending capabilities:")
+    print("\nPending capabilities:")
     for cap in status.get("pending_capabilities", []):
         print(f"  - {cap}")
 
@@ -70,18 +69,18 @@ def cmd_mars_simulate(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     result = simulate_dome(crew=crew, duration_days=duration)
 
     print("=" * 60)
-    print(f"MARS DOME SIMULATION (STUB)")
+    print("MARS DOME SIMULATION (STUB)")
     print("=" * 60)
     print(f"Crew: {crew}")
     print(f"Duration: {duration} days")
-    print(f"\nResources Required:")
+    print("\nResources Required:")
     for resource, amount in result["resources_required"].items():
         print(f"  {resource}: {amount:,.1f}")
-    print(f"\nISRU Projected:")
+    print("\nISRU Projected:")
     for resource, amount in result["isru_projected"].items():
         print(f"  {resource}: {amount:,.1f}")
     print(f"\nISRU Closure: {result['isru_closure_projected']:.1%}")
-    print(f"\n[STUB MODE - Full simulation pending]")
+    print("\n[STUB MODE - Full simulation pending]")
 
     return result
 
@@ -112,10 +111,10 @@ def cmd_mars_isru(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     print("MARS ISRU METRICS")
     print("=" * 60)
     print(f"Closure Ratio: {closure:.1%}")
-    print(f"Target: 85%")
+    print("Target: 85%")
     print(f"Gap: {0.85 - closure:.1%}")
     print(f"Target Met: {'YES' if closure >= 0.85 else 'NO'}")
-    print(f"\nResource Breakdown:")
+    print("\nResource Breakdown:")
     for resource, values in resources.items():
         if isinstance(values, (list, tuple)):
             local, total = values
@@ -184,7 +183,7 @@ def cmd_mars_info(args: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     print(f"Version: {info['version']}")
     print(f"Status: {info['status']}")
     print(f"Description: {info['description']}")
-    print(f"\nConfig:")
+    print("\nConfig:")
     print(json.dumps(info["config"], indent=2))
     print(f"\nDependencies: {info['dependencies']}")
     print(f"Receipts: {info['receipts']}")

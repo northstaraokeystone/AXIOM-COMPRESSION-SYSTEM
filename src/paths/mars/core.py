@@ -18,11 +18,9 @@ PHYSICS BASIS:
 Source: AXIOM scalable paths architecture - Mars autonomous habitat
 """
 
-import json
-from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 
-from ..base import emit_path_receipt, load_path_spec, PathStopRule
+from ..base import emit_path_receipt, load_path_spec
 
 
 # === CONSTANTS ===

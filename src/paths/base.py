@@ -12,7 +12,7 @@ Source: AXIOM scalable paths architecture
 import json
 import os
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from ..core import dual_hash, emit_receipt, StopRule
 

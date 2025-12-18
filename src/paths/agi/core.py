@@ -21,7 +21,7 @@ import math
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-from ..base import emit_path_receipt, load_path_spec, PathStopRule
+from ..base import emit_path_receipt, load_path_spec
 
 
 # === CONSTANTS ===
