@@ -150,6 +150,28 @@ from cli.isru import (
     cmd_isru_info,
 )
 
+# D6 + Titan hybrid commands
+from cli.titan import (
+    cmd_d6_info,
+    cmd_d6_push,
+    cmd_d6_titan_hybrid,
+    cmd_titan_info,
+    cmd_titan_config,
+    cmd_titan_simulate,
+    cmd_titan_autonomy,
+    cmd_perovskite_info,
+    cmd_perovskite_project,
+)
+
+# Adversarial audit commands
+from cli.audit import (
+    cmd_audit_info,
+    cmd_audit_config,
+    cmd_audit_run,
+    cmd_audit_stress,
+    cmd_audit_classify,
+)
+
 __all__ = [
     # Core
     'cmd_baseline',
@@ -249,4 +271,20 @@ __all__ = [
     'cmd_d5_push_isru',
     'cmd_d5_info_isru',
     'cmd_isru_info',
+    # D6 + Titan hybrid
+    'cmd_d6_info',
+    'cmd_d6_push',
+    'cmd_d6_titan_hybrid',
+    'cmd_titan_info',
+    'cmd_titan_config',
+    'cmd_titan_simulate',
+    'cmd_titan_autonomy',
+    'cmd_perovskite_info',
+    'cmd_perovskite_project',
+    # Adversarial audit
+    'cmd_audit_info',
+    'cmd_audit_config',
+    'cmd_audit_run',
+    'cmd_audit_stress',
+    'cmd_audit_classify',
 ]

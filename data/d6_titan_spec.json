@@ -1,0 +1,100 @@
+{
+  "version": "1.0.0",
+  "description": "D6 recursion + Titan methane hybrid + adversarial audit configuration",
+  "d6_config": {
+    "recursion_depth": 6,
+    "alpha_floor": 3.31,
+    "alpha_target": 3.33,
+    "alpha_ceiling": 3.35,
+    "instability_max": 0.00,
+    "tree_min": 1000000000000,
+    "uplift": 0.185
+  },
+  "uplift_by_depth": {
+    "1": 0.05,
+    "2": 0.09,
+    "3": 0.122,
+    "4": 0.148,
+    "5": 0.168,
+    "6": 0.185
+  },
+  "depth_contributions": {
+    "1": {
+      "contribution": 0.05,
+      "decay_factor": 1.0,
+      "cumulative": 0.05
+    },
+    "2": {
+      "contribution": 0.04,
+      "decay_factor": 0.8,
+      "cumulative": 0.09
+    },
+    "3": {
+      "contribution": 0.032,
+      "decay_factor": 0.64,
+      "cumulative": 0.122
+    },
+    "4": {
+      "contribution": 0.0256,
+      "decay_factor": 0.512,
+      "cumulative": 0.148
+    },
+    "5": {
+      "contribution": 0.02048,
+      "decay_factor": 0.4096,
+      "cumulative": 0.168
+    },
+    "6": {
+      "contribution": 0.01638,
+      "decay_factor": 0.3277,
+      "cumulative": 0.185
+    }
+  },
+  "expected_alpha": {
+    "depth_1": 3.04,
+    "depth_2": 3.08,
+    "depth_3": 3.12,
+    "depth_4": 3.148,
+    "depth_5": 3.168,
+    "depth_6": 3.185
+  },
+  "titan_config": {
+    "body": "titan",
+    "resource": "methane",
+    "methane_density_kg_m3": 1.5,
+    "surface_temp_k": 94,
+    "surface_pressure_atm": 1.45,
+    "autonomy_requirement": 0.99,
+    "latency_min": [70, 90],
+    "earth_callback_max_pct": 0.01,
+    "methane_lake_depth_m": 100,
+    "methane_energy_mj_kg": 55.5
+  },
+  "efficiency_config": {
+    "moxie_baseline": 0.06,
+    "perovskite_target": 0.20,
+    "scaling_factor": 3.33,
+    "timeline_years": 10
+  },
+  "adversarial_config": {
+    "noise_level": 0.05,
+    "recovery_threshold": 0.95,
+    "test_iterations": 100,
+    "misalignment_threshold": 0.85
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min_d6": 3.31,
+    "titan_autonomy_min": 0.99,
+    "adversarial_recovery_min": 0.95,
+    "scale_decay_threshold": 0.02,
+    "receipt_required": "d6_fractal_receipt",
+    "titan_receipt_required": "titan_methane_receipt",
+    "adversarial_receipt_required": "adversarial_audit_receipt"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM D6 recursion + Titan methane + adversarial audits - alpha 3.33+ target"
+}

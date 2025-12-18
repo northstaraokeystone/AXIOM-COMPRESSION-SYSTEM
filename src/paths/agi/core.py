@@ -361,3 +361,147 @@ def get_agi_info() -> Dict[str, Any]:
 
     emit_path_receipt("agi", "info", info)
     return info
+
+
+# === ADVERSARIAL AUDIT INTEGRATION ===
+
+
+def integrate_adversarial(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire adversarial audits to AGI path.
+
+    Args:
+        config: Optional adversarial config override
+
+    Returns:
+        Dict with adversarial integration results
+
+    Receipt: agi_adversarial_integrate
+    """
+    # Import adversarial module
+    from ...adversarial_audit import (
+        load_adversarial_config,
+        run_audit,
+        RECOVERY_THRESHOLD,
+    )
+
+    if config is None:
+        config = load_adversarial_config()
+
+    # Run audit
+    audit = run_audit(
+        noise_level=config["noise_level"],
+        iterations=config["test_iterations"]
+    )
+
+    result = {
+        "integrated": True,
+        "adversarial_config": config,
+        "audit_results": {
+            "avg_recovery": audit["avg_recovery"],
+            "alignment_rate": audit["alignment_rate"],
+            "overall_classification": audit["overall_classification"],
+            "recovery_passed": audit["recovery_passed"],
+        },
+        "recovery_threshold": RECOVERY_THRESHOLD,
+        "alignment_metric": ALIGNMENT_METRIC,
+        "key_insight": "Compression as alignment - recovery indicates coherent behavior",
+        "tenant_id": AGI_TENANT_ID
+    }
+
+    emit_path_receipt("agi", "adversarial_integrate", result)
+    return result
+
+
+def run_alignment_stress_test(
+    noise_level: float = 0.05
+) -> Dict[str, Any]:
+    """Run adversarial alignment stress test.
+
+    Args:
+        noise_level: Noise level for testing
+
+    Returns:
+        Dict with stress test results
+
+    Receipt: agi_alignment_stress
+    """
+    # Import adversarial module
+    from ...adversarial_audit import (
+        run_stress_test,
+        RECOVERY_THRESHOLD,
+    )
+
+    # Run stress test
+    stress = run_stress_test(
+        noise_levels=[0.01, 0.03, 0.05, 0.10, noise_level],
+        iterations_per_level=50
+    )
+
+    # Compute alignment metrics
+    passed_levels = [r for r in stress["results_by_level"] if r["passed"]]
+    failed_levels = [r for r in stress["results_by_level"] if not r["passed"]]
+
+    result = {
+        "stress_test_complete": True,
+        "noise_levels_tested": stress["noise_levels_tested"],
+        "critical_noise_level": stress["critical_noise_level"],
+        "stress_passed": stress["stress_passed"],
+        "passed_levels": len(passed_levels),
+        "failed_levels": len(failed_levels),
+        "recovery_threshold": RECOVERY_THRESHOLD,
+        "alignment_metric": ALIGNMENT_METRIC,
+        "results_summary": stress["results_by_level"],
+        "tenant_id": AGI_TENANT_ID
+    }
+
+    emit_path_receipt("agi", "alignment_stress", result)
+    return result
+
+
+def compute_adversarial_alignment(
+    receipts: Optional[List[Dict[str, Any]]] = None
+) -> Dict[str, Any]:
+    """Compute alignment combining compression metric and adversarial audit.
+
+    Args:
+        receipts: Optional system receipts for compression alignment
+
+    Returns:
+        Dict with combined alignment metrics
+
+    Receipt: agi_combined_alignment
+    """
+    # Import adversarial module
+    from ...adversarial_audit import (
+        run_audit,
+        RECOVERY_THRESHOLD,
+    )
+
+    # Compute compression alignment
+    if receipts is None:
+        receipts = []
+    compression_alignment = compute_alignment(receipts)
+
+    # Run adversarial audit
+    audit = run_audit(noise_level=0.05, iterations=50)
+    adversarial_alignment = audit["avg_recovery"]
+
+    # Combined alignment (weighted average)
+    # Weight adversarial higher since it's active testing
+    combined = (compression_alignment * 0.4) + (adversarial_alignment * 0.6)
+
+    result = {
+        "compression_alignment": round(compression_alignment, 4),
+        "adversarial_alignment": round(adversarial_alignment, 4),
+        "combined_alignment": round(combined, 4),
+        "compression_weight": 0.4,
+        "adversarial_weight": 0.6,
+        "recovery_threshold": RECOVERY_THRESHOLD,
+        "is_aligned": combined >= RECOVERY_THRESHOLD,
+        "alignment_metric": ALIGNMENT_METRIC,
+        "key_insight": "Combined compression + adversarial = robust alignment",
+        "tenant_id": AGI_TENANT_ID
+    }
+
+    emit_path_receipt("agi", "combined_alignment", result)
+    return result

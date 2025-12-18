@@ -156,6 +156,22 @@ from cli import (
     cmd_d5_push_isru,
     cmd_d5_info_isru,
     cmd_isru_info,
+    # D6 + Titan hybrid
+    cmd_d6_info,
+    cmd_d6_push,
+    cmd_d6_titan_hybrid,
+    cmd_titan_info,
+    cmd_titan_config,
+    cmd_titan_simulate,
+    cmd_titan_autonomy,
+    cmd_perovskite_info,
+    cmd_perovskite_project,
+    # Adversarial audit
+    cmd_audit_info,
+    cmd_audit_config,
+    cmd_audit_run,
+    cmd_audit_stress,
+    cmd_audit_classify,
 )
 
 
@@ -353,6 +369,46 @@ def main():
     parser.add_argument('--moxie_units', type=int, default=10,
                         help='Number of MOXIE units (default: 10)')
 
+    # D6 + Titan hybrid flags
+    parser.add_argument('--d6_push', action='store_true',
+                        help='Run D6 recursion for alpha>=3.33')
+    parser.add_argument('--d6_info', action='store_true',
+                        help='Show D6 + Titan configuration')
+    parser.add_argument('--d6_titan_hybrid', action='store_true',
+                        help='Run integrated D6+Titan hybrid')
+    parser.add_argument('--titan_info', action='store_true',
+                        help='Show Titan methane hybrid info')
+    parser.add_argument('--titan_config', action='store_true',
+                        help='Show Titan configuration from spec')
+    parser.add_argument('--titan_simulate', action='store_true',
+                        help='Run Titan methane harvest simulation')
+    parser.add_argument('--titan_duration', type=int, default=30,
+                        help='Titan simulation duration in days (default: 30)')
+    parser.add_argument('--titan_extraction_rate', type=float, default=10.0,
+                        help='Titan extraction rate kg/hr (default: 10.0)')
+    parser.add_argument('--perovskite_info', action='store_true',
+                        help='Show perovskite efficiency configuration')
+    parser.add_argument('--perovskite_project', action='store_true',
+                        help='Project perovskite efficiency timeline')
+    parser.add_argument('--perovskite_years', type=int, default=10,
+                        help='Perovskite projection years (default: 10)')
+    parser.add_argument('--perovskite_growth', type=float, default=0.10,
+                        help='Perovskite annual growth rate (default: 0.10)')
+
+    # Adversarial audit flags
+    parser.add_argument('--audit_info', action='store_true',
+                        help='Show adversarial audit configuration')
+    parser.add_argument('--audit_config', action='store_true',
+                        help='Show adversarial config from spec')
+    parser.add_argument('--audit_run', action='store_true',
+                        help='Run adversarial audit')
+    parser.add_argument('--audit_noise', type=float, default=0.05,
+                        help='Adversarial noise level (default: 0.05)')
+    parser.add_argument('--audit_iterations', type=int, default=100,
+                        help='Adversarial test iterations (default: 100)')
+    parser.add_argument('--audit_stress', action='store_true',
+                        help='Run adversarial stress test')
+
     args = parser.parse_args()
     reroute_enabled = args.reroute or args.reroute_enabled
 
@@ -443,6 +499,34 @@ def main():
         return cmd_d5_push_isru(args.tree_size, args.base_alpha, args.simulate)
     if args.d5_isru_hybrid:
         return cmd_d5_isru_hybrid(args.tree_size, args.base_alpha, args.crew, args.hours, args.moxie_units, args.simulate)
+
+    # D6 + Titan hybrid commands
+    if args.d6_info:
+        return cmd_d6_info()
+    if args.titan_info:
+        return cmd_titan_info()
+    if args.titan_config:
+        return cmd_titan_config()
+    if args.perovskite_info:
+        return cmd_perovskite_info()
+    if args.d6_push:
+        return cmd_d6_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.titan_simulate:
+        return cmd_titan_simulate(args.titan_duration, args.titan_extraction_rate, args.simulate)
+    if args.d6_titan_hybrid:
+        return cmd_d6_titan_hybrid(args.tree_size, args.base_alpha, args.titan_duration, args.simulate)
+    if args.perovskite_project:
+        return cmd_perovskite_project(args.perovskite_years, args.perovskite_growth)
+
+    # Adversarial audit commands
+    if args.audit_info:
+        return cmd_audit_info()
+    if args.audit_config:
+        return cmd_audit_config()
+    if args.audit_run:
+        return cmd_audit_run(args.audit_noise, args.audit_iterations, args.simulate)
+    if args.audit_stress:
+        return cmd_audit_stress(None, 50, args.simulate)
 
     # Scale commands
     if args.scalability_gate_test:
