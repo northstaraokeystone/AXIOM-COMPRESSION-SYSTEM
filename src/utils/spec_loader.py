@@ -66,12 +66,15 @@ def get_depth_config(depth: int) -> Dict[str, Any]:
     spec = load_depth_spec(depth)
     depth_info = DEPTH_SPECS[depth]
 
-    return spec.get(f"d{depth}_config", {
-        "alpha_floor": depth_info["alpha_floor"],
-        "alpha_target": depth_info["alpha_target"],
-        "alpha_ceiling": depth_info["alpha_ceiling"],
-        "instability_max": 0.00,
-    })
+    return spec.get(
+        f"d{depth}_config",
+        {
+            "alpha_floor": depth_info["alpha_floor"],
+            "alpha_target": depth_info["alpha_target"],
+            "alpha_ceiling": depth_info["alpha_ceiling"],
+            "instability_max": 0.00,
+        },
+    )
 
 
 def get_depth_uplift(depth: int, level: int = None) -> float:
@@ -92,7 +95,9 @@ def get_depth_uplift(depth: int, level: int = None) -> float:
     spec = load_depth_spec(depth)
     uplift_map = spec.get("uplift_by_depth", {})
 
-    return float(uplift_map.get(str(level), DEPTH_SPECS.get(depth, {}).get("uplift", 0.0)))
+    return float(
+        uplift_map.get(str(level), DEPTH_SPECS.get(depth, {}).get("uplift", 0.0))
+    )
 
 
 def get_all_depth_constants(depth: int) -> Dict[str, Any]:

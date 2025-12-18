@@ -1,0 +1,815 @@
+"""cli/dispatch.py - Command dispatch logic for AXIOM CLI.
+
+Extracted from cli.py to keep main entry point under 600 lines.
+"""
+
+from src.rl_tune import RL_LR_MIN, RL_LR_MAX
+
+# Import all command handlers
+from cli import (
+    # Core
+    cmd_baseline,
+    cmd_bootstrap,
+    cmd_curve,
+    cmd_full,
+    # Partition
+    cmd_partition,
+    cmd_stress_quorum,
+    # Blackout
+    cmd_reroute,
+    cmd_algo_info,
+    cmd_blackout,
+    cmd_blackout_sweep,
+    cmd_simulate_timeline,
+    cmd_extended_sweep,
+    cmd_retention_curve,
+    cmd_gnn_stub,
+    cmd_gnn_nonlinear,
+    cmd_cache_sweep,
+    cmd_extreme_sweep,
+    cmd_overflow_test,
+    cmd_innovation_stubs,
+    # Pruning
+    cmd_entropy_prune,
+    cmd_pruning_sweep,
+    cmd_extended_250d,
+    cmd_verify_chain,
+    cmd_pruning_info,
+    # Ablation
+    cmd_ablate,
+    cmd_ablation_sweep,
+    cmd_ceiling_track,
+    cmd_formula_check,
+    cmd_isolate_layers,
+    # Depth
+    cmd_adaptive_depth_run,
+    cmd_depth_scaling_test,
+    cmd_compute_depth_single,
+    cmd_depth_scaling_info,
+    cmd_efficient_sweep_info,
+    # RL
+    cmd_rl_info,
+    cmd_adaptive_info,
+    cmd_rl_status,
+    cmd_validate_no_static,
+    cmd_rl_tune,
+    cmd_dynamic_mode,
+    cmd_tune_sweep,
+    cmd_rl_500_sweep,
+    cmd_rl_500_sweep_info,
+    # Quantum
+    cmd_quantum_estimate,
+    cmd_quantum_sim,
+    cmd_quantum_rl_hybrid_info,
+    # Pipeline
+    cmd_lr_pilot,
+    cmd_post_tune_execute,
+    cmd_full_pipeline,
+    cmd_pilot_info,
+    cmd_pipeline_info,
+    # Scale
+    cmd_multi_scale_sweep,
+    cmd_scalability_gate_test,
+    cmd_scale_info,
+    cmd_fractal_info,
+    # Fractal ceiling breach
+    cmd_fractal_push,
+    cmd_alpha_boost,
+    cmd_fractal_info_hybrid,
+    # Full sweep
+    cmd_full_500_sweep,
+    # Info
+    cmd_hybrid_boost_info,
+    # Benchmark (10^12 scale)
+    cmd_hybrid_10e12,
+    cmd_release_gate,
+    cmd_fractal_recursion,
+    cmd_fractal_recursion_sweep,
+    cmd_benchmark_info,
+    # Paths
+    cmd_path_status,
+    cmd_path_list,
+    cmd_path_run,
+    cmd_mars_status,
+    cmd_multiplanet_status,
+    cmd_agi_status,
+    cmd_d4_push,
+    cmd_d4_info,
+    cmd_registry_info,
+    # ISRU hybrid (D5 + MOXIE)
+    cmd_moxie_info,
+    cmd_isru_simulate,
+    cmd_isru_closure,
+    cmd_d5_isru_hybrid,
+    cmd_d5_push_isru,
+    cmd_d5_info_isru,
+    cmd_isru_info,
+    # D6 + Titan hybrid
+    cmd_d6_info,
+    cmd_d6_push,
+    cmd_d6_titan_hybrid,
+    cmd_titan_info,
+    cmd_titan_config,
+    cmd_titan_simulate,
+    cmd_perovskite_info,
+    cmd_perovskite_project,
+    # Adversarial audit
+    cmd_audit_info,
+    cmd_audit_config,
+    cmd_audit_run,
+    cmd_audit_stress,
+    cmd_d7_info,
+    cmd_d7_push,
+    cmd_d7_europa_hybrid,
+    cmd_europa_info,
+    cmd_europa_config,
+    cmd_europa_simulate,
+    cmd_nrel_info,
+    cmd_nrel_config,
+    cmd_nrel_validate,
+    cmd_nrel_project,
+    cmd_nrel_compare,
+    # D8 + Multi-planet sync
+    cmd_sync_info,
+    cmd_sync_run,
+    cmd_sync_efficiency,
+    cmd_d8_multi_sync,
+    # D8 + Fractal encryption
+    cmd_encrypt_info,
+    cmd_encrypt_keygen,
+    cmd_encrypt_audit,
+    cmd_encrypt_side_channel,
+    cmd_encrypt_inversion,
+    # D8 + Atacama validation
+    cmd_atacama_info,
+    cmd_atacama_validate,
+    # D8
+    cmd_d8_info,
+    cmd_d8_push,
+    # D9 + Ganymede
+    cmd_d9_info,
+    cmd_d9_push,
+    cmd_d9_ganymede_hybrid,
+    cmd_ganymede_info,
+    cmd_ganymede_config,
+    cmd_ganymede_navigate,
+    cmd_ganymede_autonomy,
+    # Atacama drone arrays
+    cmd_drone_info,
+    cmd_drone_config,
+    cmd_drone_coverage,
+    cmd_drone_sample,
+    cmd_drone_validate,
+    # Randomized execution paths
+    cmd_randomized_info,
+    cmd_randomized_config,
+    cmd_randomized_generate,
+    cmd_randomized_audit,
+    cmd_randomized_timing,
+    cmd_randomized_power,
+    cmd_randomized_cache,
+    # D10 + Jovian hub
+    cmd_d10_info,
+    cmd_d10_push,
+    cmd_d10_jovian_hub,
+    cmd_jovian_info,
+    cmd_jovian_sync,
+    cmd_jovian_autonomy,
+    cmd_jovian_coordinate,
+    # Callisto
+    cmd_callisto_info,
+    cmd_callisto_config,
+    cmd_callisto_ice,
+    cmd_callisto_extract,
+    cmd_callisto_radiation,
+    cmd_callisto_autonomy,
+    cmd_callisto_hub_suitability,
+    # Quantum-resistant
+    cmd_quantum_resist_info,
+    cmd_quantum_resist_config,
+    cmd_quantum_keygen,
+    cmd_quantum_resist_audit,
+    cmd_quantum_spectre,
+    cmd_quantum_resist_cache,
+    cmd_quantum_spectre_v1,
+    cmd_quantum_spectre_v2,
+    cmd_quantum_spectre_v4,
+    # Dust dynamics
+    cmd_dust_dynamics_info,
+    cmd_dust_dynamics_config,
+    cmd_dust_dynamics,
+    cmd_dust_settling,
+    cmd_dust_particle,
+    cmd_dust_solar_impact,
+    cmd_dust_mars_projection,
+    # D11/Venus
+    cmd_d11_info,
+    cmd_d11_push,
+    cmd_d11_venus_hybrid,
+    cmd_venus_info,
+    cmd_venus_config,
+    cmd_venus_simulate,
+    # D12/Mercury
+    cmd_d12_info,
+    cmd_d12_push,
+    cmd_d12_mercury_hybrid,
+    # Mercury thermal
+    cmd_mercury_info,
+    cmd_mercury_config,
+    cmd_mercury_simulate,
+    cmd_mercury_autonomy,
+    cmd_mercury_cycling,
+    # TEE hardening
+    cmd_tee_info,
+    cmd_tee_config,
+    cmd_tee_init,
+    cmd_tee_audit,
+    cmd_tee_timing,
+    cmd_tee_power,
+    cmd_tee_cache,
+    cmd_tee_branch,
+    cmd_tee_attestation,
+    cmd_tee_sealed,
+    cmd_tee_overhead,
+    # Turbulent CFD
+    cmd_turbulent_info,
+    cmd_turbulent_config,
+    cmd_turbulent_simulate,
+    cmd_turbulent_storm,
+    cmd_turbulent_validate,
+)
+
+
+def dispatch(args, docstring: str) -> None:
+    """Dispatch command based on parsed arguments.
+
+    Args:
+        args: Parsed arguments from argparse
+        docstring: CLI docstring to show for help
+    """
+    reroute_enabled = args.reroute or args.reroute_enabled
+
+    # Info commands (no args needed)
+    if args.rl_info:
+        return cmd_rl_info()
+    if args.adaptive_info:
+        return cmd_adaptive_info()
+    if args.rl_status:
+        return cmd_rl_status()
+    if args.validate_no_static:
+        return cmd_validate_no_static()
+    if args.depth_scaling_info:
+        return cmd_depth_scaling_info()
+    if args.efficient_sweep_info:
+        return cmd_efficient_sweep_info()
+    if args.rl_500_sweep_info:
+        return cmd_rl_500_sweep_info()
+    if args.pilot_info:
+        return cmd_pilot_info()
+    if args.quantum_rl_hybrid_info:
+        return cmd_quantum_rl_hybrid_info()
+    if args.pipeline_info:
+        return cmd_pipeline_info()
+    if args.scale_info:
+        return cmd_scale_info()
+    if args.fractal_info:
+        return cmd_fractal_info()
+    if args.algo_info:
+        return cmd_algo_info()
+    if args.gnn_stub:
+        return cmd_gnn_stub()
+    if args.innovation_stubs:
+        return cmd_innovation_stubs()
+    if args.pruning_info:
+        return cmd_pruning_info()
+    if args.formula_check:
+        return cmd_formula_check()
+    if args.retention_curve:
+        return cmd_retention_curve()
+
+    # Benchmark (10^12 scale) commands
+    if args.benchmark_info:
+        return cmd_benchmark_info()
+    if args.hybrid_10e12:
+        return cmd_hybrid_10e12(args.tree_size, args.base_alpha, args.simulate)
+    if args.release_gate:
+        return cmd_release_gate(args.simulate)
+    if args.fractal_recursion_sweep:
+        return cmd_fractal_recursion_sweep(
+            args.tree_size, args.base_alpha, args.simulate
+        )
+    if args.fractal_recursion:
+        return cmd_fractal_recursion(
+            args.tree_size, args.base_alpha, args.recursion_depth, args.simulate
+        )
+
+    # Path exploration commands
+    if args.d4_info:
+        return cmd_d4_info()
+    if args.registry_info:
+        return cmd_registry_info()
+    if args.d4_push:
+        return cmd_d4_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.path_status:
+        return cmd_path_status(args.path)
+    if args.path_list:
+        return cmd_path_list()
+    if args.mars_status:
+        return cmd_mars_status()
+    if args.multiplanet_status:
+        return cmd_multiplanet_status()
+    if args.agi_status:
+        return cmd_agi_status()
+    if args.path is not None and args.path_cmd is not None:
+        return cmd_path_run(args.path, args.path_cmd)
+
+    # D5 + ISRU hybrid commands
+    if args.moxie_info:
+        return cmd_moxie_info()
+    if args.isru_info:
+        return cmd_isru_info()
+    if args.d5_info:
+        return cmd_d5_info_isru()
+    if args.isru_closure:
+        return cmd_isru_closure(args.simulate)
+    if args.isru_simulate:
+        return cmd_isru_simulate(args.hours, args.crew, args.moxie_units, args.simulate)
+    if args.d5_push:
+        return cmd_d5_push_isru(args.tree_size, args.base_alpha, args.simulate)
+    if args.d5_isru_hybrid:
+        return cmd_d5_isru_hybrid(
+            args.tree_size,
+            args.base_alpha,
+            args.crew,
+            args.hours,
+            args.moxie_units,
+            args.simulate,
+        )
+
+    # D6 + Titan hybrid commands
+    if args.d6_info:
+        return cmd_d6_info()
+    if args.titan_info:
+        return cmd_titan_info()
+    if args.titan_config:
+        return cmd_titan_config()
+    if args.perovskite_info:
+        return cmd_perovskite_info()
+    if args.d6_push:
+        return cmd_d6_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.titan_simulate:
+        return cmd_titan_simulate(
+            args.titan_duration, args.titan_extraction_rate, args.simulate
+        )
+    if args.d6_titan_hybrid:
+        return cmd_d6_titan_hybrid(
+            args.tree_size, args.base_alpha, args.titan_duration, args.simulate
+        )
+    if args.perovskite_project:
+        return cmd_perovskite_project(args.perovskite_years, args.perovskite_growth)
+
+    # Adversarial audit commands
+    if args.audit_info:
+        return cmd_audit_info()
+    if args.audit_config:
+        return cmd_audit_config()
+    if args.audit_run:
+        return cmd_audit_run(args.audit_noise, args.audit_iterations, args.simulate)
+    if args.audit_stress:
+        return cmd_audit_stress(None, 50, args.simulate)
+
+    # D7 + Europa hybrid commands
+    if args.d7_info:
+        return cmd_d7_info()
+    if args.europa_info:
+        return cmd_europa_info()
+    if args.europa_config:
+        return cmd_europa_config()
+    if args.d7_push:
+        return cmd_d7_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.europa_simulate:
+        return cmd_europa_simulate(
+            args.europa_depth,
+            args.europa_duration,
+            args.europa_drill_rate,
+            args.simulate,
+        )
+    if args.d7_europa_hybrid:
+        return cmd_d7_europa_hybrid(
+            args.tree_size,
+            args.base_alpha,
+            args.europa_depth,
+            args.europa_duration,
+            args.simulate,
+        )
+
+    # NREL perovskite validation commands
+    if args.nrel_info:
+        return cmd_nrel_info()
+    if args.nrel_config:
+        return cmd_nrel_config()
+    if args.nrel_validate:
+        return cmd_nrel_validate(args.nrel_efficiency, args.simulate)
+    if args.nrel_project:
+        return cmd_nrel_project(args.nrel_years, args.nrel_initial, args.simulate)
+    if args.nrel_compare:
+        return cmd_nrel_compare(
+            args.nrel_efficiency, args.moxie_efficiency, args.simulate
+        )
+
+    # D8 + Multi-planet sync commands
+    if args.d8_info:
+        return cmd_d8_info()
+    if args.sync_info:
+        return cmd_sync_info()
+    if args.encrypt_info:
+        return cmd_encrypt_info()
+    if args.atacama_info:
+        return cmd_atacama_info()
+    if args.d8_push:
+        return cmd_d8_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.d8_multi_sync:
+        return cmd_d8_multi_sync(args.tree_size, args.base_alpha, args.simulate)
+    if args.sync_run:
+        return cmd_sync_run(args.simulate)
+    if args.sync_efficiency:
+        return cmd_sync_efficiency()
+    if args.atacama_validate:
+        return cmd_atacama_validate(args.simulate)
+    if args.encrypt_keygen:
+        return cmd_encrypt_keygen(args.encrypt_key_depth)
+    if args.encrypt_audit:
+        return cmd_encrypt_audit(args.simulate)
+    if args.encrypt_side_channel:
+        return cmd_encrypt_side_channel(args.encrypt_iterations)
+    if args.encrypt_inversion:
+        return cmd_encrypt_inversion(args.encrypt_iterations)
+
+    # D9 + Ganymede + randomized paths commands
+    if args.d9_info:
+        return cmd_d9_info()
+    if args.ganymede_info:
+        return cmd_ganymede_info()
+    if args.ganymede_config:
+        return cmd_ganymede_config()
+    if args.drone_info:
+        return cmd_drone_info()
+    if args.drone_config:
+        return cmd_drone_config()
+    if args.randomized_info:
+        return cmd_randomized_info()
+    if args.randomized_config:
+        return cmd_randomized_config()
+    if args.d9_push:
+        return cmd_d9_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.d9_ganymede_hybrid:
+        return cmd_d9_ganymede_hybrid(
+            args.tree_size,
+            args.base_alpha,
+            args.ganymede_nav_mode,
+            args.ganymede_duration,
+            args.simulate,
+        )
+    if args.ganymede_navigate:
+        return cmd_ganymede_navigate(
+            args.ganymede_nav_mode, args.ganymede_duration, args.simulate
+        )
+    if args.ganymede_autonomy:
+        return cmd_ganymede_autonomy(args.simulate)
+    if args.drone_coverage:
+        return cmd_drone_coverage(args.drone_count, args.drone_area, args.simulate)
+    if args.drone_sample:
+        return cmd_drone_sample(10, args.drone_duration, args.simulate)
+    if args.drone_validate:
+        return cmd_drone_validate(
+            args.drone_count, args.drone_area, args.drone_duration, args.simulate
+        )
+    if args.randomized_generate:
+        return cmd_randomized_generate(args.randomized_depth)
+    if args.randomized_audit:
+        return cmd_randomized_audit(args.randomized_iterations, args.simulate)
+    if args.randomized_timing:
+        return cmd_randomized_timing(args.randomized_iterations, args.simulate)
+    if args.randomized_power:
+        return cmd_randomized_power(args.randomized_iterations, args.simulate)
+    if args.randomized_cache:
+        return cmd_randomized_cache(args.randomized_iterations, args.simulate)
+
+    # D10 + Jovian hub commands
+    if args.d10_info:
+        return cmd_d10_info()
+    if args.d10_push:
+        return cmd_d10_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.d10_jovian_hub:
+        return cmd_d10_jovian_hub(args.tree_size, args.base_alpha, args.simulate)
+    if args.jovian_info:
+        return cmd_jovian_info()
+    if args.jovian_sync:
+        return cmd_jovian_sync(args.simulate)
+    if args.jovian_autonomy:
+        return cmd_jovian_autonomy(args.simulate)
+    if args.jovian_coordinate:
+        return cmd_jovian_coordinate(args.simulate)
+
+    # Callisto commands
+    if args.callisto_info:
+        return cmd_callisto_info()
+    if args.callisto_config:
+        return cmd_callisto_config()
+    if args.callisto_ice:
+        return cmd_callisto_ice(args.simulate)
+    if args.callisto_extract:
+        return cmd_callisto_extract(
+            args.callisto_duration, args.callisto_rate, args.simulate
+        )
+    if args.callisto_radiation:
+        return cmd_callisto_radiation(args.simulate)
+    if args.callisto_autonomy:
+        return cmd_callisto_autonomy(args.simulate)
+    if args.callisto_hub:
+        return cmd_callisto_hub_suitability(args.simulate)
+
+    # Quantum-resistant commands
+    if args.quantum_resist_info:
+        return cmd_quantum_resist_info()
+    if args.quantum_resist_config:
+        return cmd_quantum_resist_config()
+    if args.quantum_keygen:
+        return cmd_quantum_keygen(args.quantum_key_size)
+    if args.quantum_audit:
+        return cmd_quantum_resist_audit(args.quantum_iterations, args.simulate)
+    if args.quantum_spectre:
+        return cmd_quantum_spectre(args.quantum_iterations, args.simulate)
+    if args.quantum_cache:
+        return cmd_quantum_resist_cache(args.quantum_iterations, args.simulate)
+    if args.spectre_v1:
+        return cmd_quantum_spectre_v1(args.quantum_iterations, args.simulate)
+    if args.spectre_v2:
+        return cmd_quantum_spectre_v2(args.quantum_iterations, args.simulate)
+    if args.spectre_v4:
+        return cmd_quantum_spectre_v4(args.quantum_iterations, args.simulate)
+
+    # Dust dynamics commands
+    if args.dust_info:
+        return cmd_dust_dynamics_info()
+    if args.dust_config:
+        return cmd_dust_dynamics_config()
+    if args.dust_dynamics:
+        return cmd_dust_dynamics(args.simulate)
+    if args.dust_settling:
+        return cmd_dust_settling(args.dust_duration, args.simulate)
+    if args.dust_particle:
+        return cmd_dust_particle(args.simulate)
+    if args.dust_solar_impact:
+        return cmd_dust_solar_impact(args.dust_depth_mm, args.simulate)
+    if args.dust_mars:
+        return cmd_dust_mars_projection(args.simulate)
+
+    # D11/Venus commands
+    if args.d11_info:
+        return cmd_d11_info()
+    if args.venus_info:
+        return cmd_venus_info()
+    if args.venus_config:
+        return cmd_venus_config()
+    if args.d11_push:
+        return cmd_d11_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.venus_simulate:
+        return cmd_venus_simulate(args.venus_altitude, args.venus_duration, args.simulate)
+    if args.d11_venus_hybrid:
+        return cmd_d11_venus_hybrid(
+            args.tree_size, args.base_alpha, args.venus_duration, args.simulate
+        )
+
+    # D12/Mercury commands
+    if args.d12_info:
+        return cmd_d12_info()
+    if args.d12_push:
+        return cmd_d12_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.d12_mercury_hybrid:
+        return cmd_d12_mercury_hybrid(
+            args.tree_size, args.base_alpha, args.mercury_duration, args.simulate
+        )
+
+    # Mercury thermal commands
+    if args.mercury_info:
+        return cmd_mercury_info()
+    if args.mercury_config:
+        return cmd_mercury_config()
+    if args.mercury_simulate:
+        return cmd_mercury_simulate(args.mercury_zone, args.mercury_duration, args.simulate)
+    if args.mercury_autonomy:
+        return cmd_mercury_autonomy(args.simulate)
+    if args.mercury_cycling:
+        return cmd_mercury_cycling(args.mercury_cycles, args.mercury_alloy, args.simulate)
+
+    # TEE hardening commands
+    if args.tee_info:
+        return cmd_tee_info()
+    if args.tee_config:
+        return cmd_tee_config()
+    if args.tee_init:
+        return cmd_tee_init(args.tee_memory)
+    if args.tee_audit:
+        return cmd_tee_audit(args.simulate)
+    if args.tee_timing:
+        return cmd_tee_timing(args.simulate)
+    if args.tee_power:
+        return cmd_tee_power(args.simulate)
+    if args.tee_cache:
+        return cmd_tee_cache(args.simulate)
+    if args.tee_branch:
+        return cmd_tee_branch(args.simulate)
+    if args.tee_attestation:
+        return cmd_tee_attestation(args.simulate)
+    if args.tee_sealed:
+        return cmd_tee_sealed(args.simulate)
+    if args.tee_overhead:
+        return cmd_tee_overhead(args.simulate)
+
+    # Turbulent CFD commands
+    if args.turbulent_info:
+        return cmd_turbulent_info()
+    if args.turbulent_config:
+        return cmd_turbulent_config()
+    if args.turbulent_simulate:
+        return cmd_turbulent_simulate(
+            args.turbulent_reynolds, args.turbulent_duration, args.simulate
+        )
+    if args.turbulent_storm:
+        return cmd_turbulent_storm(args.turbulent_intensity, args.simulate)
+    if args.turbulent_validate:
+        return cmd_turbulent_validate(args.simulate)
+
+    # Expanded AGI audit commands
+    if args.audit_expanded:
+        from src.agi_audit_expanded import run_expanded_audit
+        import json
+
+        result = run_expanded_audit(attack_type="all", iterations=args.audit_iterations)
+        print(json.dumps(result, indent=2))
+        return
+    if args.audit_injection:
+        from src.agi_audit_expanded import run_expanded_audit
+        import json
+
+        result = run_expanded_audit(
+            attack_type="injection", iterations=args.audit_iterations
+        )
+        print(json.dumps(result, indent=2))
+        return
+    if args.audit_poisoning:
+        from src.agi_audit_expanded import run_expanded_audit
+        import json
+
+        result = run_expanded_audit(
+            attack_type="poisoning", iterations=args.audit_iterations
+        )
+        print(json.dumps(result, indent=2))
+        return
+
+    # Scale commands
+    if args.scalability_gate_test:
+        return cmd_scalability_gate_test()
+    if args.multi_scale_sweep is not None:
+        return cmd_multi_scale_sweep(args.multi_scale_sweep, args.simulate)
+
+    # Fractal ceiling breach commands
+    if args.fractal_info_hybrid:
+        return cmd_fractal_info_hybrid()
+    if args.hybrid_boost_info:
+        return cmd_hybrid_boost_info()
+    if args.fractal_push:
+        return cmd_fractal_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.alpha_boost is not None:
+        return cmd_alpha_boost(
+            args.alpha_boost, args.tree_size, args.base_alpha, args.simulate
+        )
+    if args.full_500_sweep:
+        lr_range = tuple(args.lr_range) if args.lr_range else (RL_LR_MIN, RL_LR_MAX)
+        return cmd_full_500_sweep(
+            args.tree_size, lr_range, args.retention_target, args.simulate
+        )
+
+    # RL commands
+    if args.rl_tune and args.blackout is not None:
+        return cmd_rl_tune(
+            args.blackout,
+            args.rl_episodes,
+            True,
+            args.adaptive or args.dynamic,
+            args.simulate,
+        )
+    if args.dynamic and args.blackout is not None:
+        return cmd_dynamic_mode(args.blackout, args.rl_episodes, args.simulate)
+    if args.tune_sweep:
+        return cmd_tune_sweep(args.simulate)
+    if args.quantum_estimate:
+        return cmd_quantum_estimate(args.retention_target)
+    if args.rl_500_sweep:
+        lr_range = tuple(args.lr_range) if args.lr_range else (RL_LR_MIN, RL_LR_MAX)
+        return cmd_rl_500_sweep(
+            args.tree_size, lr_range, args.retention_target, args.simulate
+        )
+
+    # Pipeline commands
+    if args.full_pipeline:
+        return cmd_full_pipeline(
+            args.pilot_runs,
+            args.quantum_runs,
+            args.sweep_runs,
+            args.tree_size,
+            args.simulate,
+        )
+    if args.post_tune_execute:
+        return cmd_post_tune_execute(args.tree_size, args.simulate)
+    if args.lr_pilot is not None:
+        runs = args.lr_pilot if args.lr_pilot else 50
+        return cmd_lr_pilot(runs, args.tree_size, args.simulate, args.show_bounds)
+    if args.quantum_sim is not None:
+        runs = args.quantum_sim if args.quantum_sim else 10
+        return cmd_quantum_sim(runs, args.simulate)
+
+    # Depth commands
+    if args.compute_depth:
+        return cmd_compute_depth_single(args.tree_size)
+    if args.depth_scaling_test:
+        return cmd_depth_scaling_test()
+    if args.adaptive_depth_run:
+        return cmd_adaptive_depth_run(args.rl_sweep, args.tree_size, args.simulate)
+
+    # Ablation commands
+    if args.ceiling_track is not None:
+        return cmd_ceiling_track(args.ceiling_track)
+    if args.isolate_layers:
+        blackout_days = args.blackout if args.blackout is not None else 150
+        return cmd_isolate_layers(blackout_days, args.simulate)
+    if args.ablation_sweep:
+        blackout_days = args.blackout if args.blackout is not None else 150
+        return cmd_ablation_sweep(blackout_days, args.simulate)
+    if args.ablate is not None:
+        blackout_days = args.blackout if args.blackout is not None else 150
+        return cmd_ablate(args.ablate, blackout_days, args.simulate)
+
+    # Pruning commands
+    if args.pruning_sweep:
+        return cmd_pruning_sweep(args.simulate)
+    if args.extended_250d:
+        return cmd_extended_250d(args.simulate)
+    if args.verify_chain:
+        return cmd_verify_chain(args.trim_factor, args.simulate)
+    if args.entropy_prune and args.blackout is not None:
+        hybrid = args.hybrid_prune or True
+        return cmd_entropy_prune(args.blackout, args.trim_factor, hybrid, args.simulate)
+
+    # GNN/cache commands
+    if args.cache_sweep:
+        return cmd_cache_sweep(args.simulate)
+    if args.overflow_test:
+        return cmd_overflow_test(args.simulate)
+    if args.extreme_sweep is not None:
+        return cmd_extreme_sweep(args.extreme_sweep, args.cache_depth, args.simulate)
+    if args.gnn_nonlinear and args.blackout is not None:
+        return cmd_gnn_nonlinear(args.blackout, args.cache_depth, args.simulate)
+
+    # Extended sweep
+    if args.extended_sweep is not None:
+        return cmd_extended_sweep(
+            args.extended_sweep[0], args.extended_sweep[1], args.simulate
+        )
+
+    # Blackout commands
+    if args.blackout_sweep:
+        return cmd_blackout_sweep(reroute_enabled)
+    if args.blackout is not None:
+        return cmd_blackout(args.blackout, reroute_enabled, args.simulate)
+    if reroute_enabled and args.partition is None and args.blackout is None:
+        return cmd_reroute(args.simulate)
+
+    # Partition commands
+    if args.stress_quorum:
+        return cmd_stress_quorum()
+    if args.partition is not None:
+        return cmd_partition(args.partition, args.nodes, args.simulate)
+
+    # Timeline
+    if args.simulate_timeline:
+        return cmd_simulate_timeline(args.c_base, args.p_factor, args.tau)
+
+    # Positional commands
+    if args.command is None:
+        print(docstring)
+        return
+
+    cmd = args.command.lower()
+    if cmd == "baseline":
+        cmd_baseline()
+    elif cmd == "bootstrap":
+        cmd_bootstrap()
+    elif cmd == "curve":
+        cmd_curve()
+    elif cmd == "full":
+        cmd_full()
+    else:
+        print(f"Unknown command: {cmd}")
+        print(docstring)

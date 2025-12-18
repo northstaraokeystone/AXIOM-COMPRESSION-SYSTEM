@@ -300,6 +300,8 @@ from cli.venus import (
     cmd_venus_acid,
     cmd_venus_ops,
     cmd_venus_autonomy,
+    cmd_venus_config,
+    cmd_venus_simulate,
 )
 
 from cli.cfd import (
@@ -308,6 +310,11 @@ from cli.cfd import (
     cmd_cfd_settling,
     cmd_cfd_storm,
     cmd_cfd_validate,
+    cmd_turbulent_info,
+    cmd_turbulent_config,
+    cmd_turbulent_simulate,
+    cmd_turbulent_storm,
+    cmd_turbulent_validate,
 )
 
 from cli.enclave import (
@@ -336,6 +343,9 @@ from cli.mercury import (
     cmd_mercury_hazard,
     cmd_mercury_shield,
     cmd_mercury_budget,
+    cmd_mercury_config,
+    cmd_mercury_simulate,
+    cmd_mercury_cycling,
 )
 
 from cli.tee import (
@@ -349,6 +359,7 @@ from cli.tee import (
     cmd_tee_attestation,
     cmd_tee_overhead,
     cmd_tee_sealed,
+    cmd_tee_config,
 )
 
 __all__ = [
@@ -565,12 +576,20 @@ __all__ = [
     "cmd_venus_acid",
     "cmd_venus_ops",
     "cmd_venus_autonomy",
+    "cmd_venus_config",
+    "cmd_venus_simulate",
     # CFD dust dynamics
     "cmd_cfd_info",
     "cmd_cfd_reynolds",
     "cmd_cfd_settling",
     "cmd_cfd_storm",
     "cmd_cfd_validate",
+    # Turbulent CFD
+    "cmd_turbulent_info",
+    "cmd_turbulent_config",
+    "cmd_turbulent_simulate",
+    "cmd_turbulent_storm",
+    "cmd_turbulent_validate",
     # Secure enclave
     "cmd_enclave_info",
     "cmd_enclave_init",
@@ -591,6 +610,9 @@ __all__ = [
     "cmd_mercury_hazard",
     "cmd_mercury_shield",
     "cmd_mercury_budget",
+    "cmd_mercury_config",
+    "cmd_mercury_simulate",
+    "cmd_mercury_cycling",
     # TEE hardening
     "cmd_tee_info",
     "cmd_tee_init",
@@ -602,4 +624,5 @@ __all__ = [
     "cmd_tee_attestation",
     "cmd_tee_overhead",
     "cmd_tee_sealed",
+    "cmd_tee_config",
 ]

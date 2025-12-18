@@ -25,8 +25,8 @@ from ..base import emit_path_receipt, load_path_spec, PathStopRule
 MULTIPLANET_TENANT_ID = "axiom-multiplanet"
 """Tenant ID for multi-planet path receipts."""
 
-EXPANSION_SEQUENCE = ["asteroid", "mars", "europa", "titan", "ganymede"]
-"""Ordered expansion sequence."""
+EXPANSION_SEQUENCE = ["asteroid", "mars", "europa", "ganymede", "titan"]
+"""Ordered expansion sequence (by increasing latency/autonomy)."""
 
 LATENCY_BOUNDS_MIN = {
     "asteroid": 3,

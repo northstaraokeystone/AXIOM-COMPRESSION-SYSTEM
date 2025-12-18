@@ -288,7 +288,9 @@ class TestChainIntegrity:
             original_root = tree["root"]
             pruned_root = result["merkle_root_after"]
             proof_paths = [
-                leaf for leaf in result["pruned_tree"]["leaves"] if leaf.get("is_proof_path")
+                leaf
+                for leaf in result["pruned_tree"]["leaves"]
+                if leaf.get("is_proof_path")
             ]
 
             # Should not raise

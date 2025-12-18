@@ -116,7 +116,9 @@ class MoonHybridBase(ABC):
             self.earth_callback_max_pct,
         )
 
-        result["autonomy_met"] = result["autonomy_achieved"] >= self.autonomy_requirement
+        result["autonomy_met"] = (
+            result["autonomy_achieved"] >= self.autonomy_requirement
+        )
         result["autonomy_requirement"] = self.autonomy_requirement
 
         emit_receipt(

@@ -66,3 +66,29 @@ def cmd_mercury_budget(power_w: float = 500.0, radiator_m2: float = 2.0):
 
     result = thermal_budget_analysis(power_w, radiator_m2)
     print(json.dumps(result, indent=2))
+
+
+def cmd_mercury_config():
+    """Show Mercury configuration from spec."""
+    from src.mercury_thermal_hybrid import load_mercury_config
+
+    config = load_mercury_config()
+    print(json.dumps(config, indent=2))
+
+
+def cmd_mercury_simulate(zone: str = "terminator", duration_hrs: int = 24, simulate: bool = False):
+    """Run Mercury thermal simulation for specified zone."""
+    from src.mercury_thermal_hybrid import simulate_thermal_ops
+
+    result = simulate_thermal_ops(night_duration_hrs=duration_hrs / 2, day_duration_hrs=duration_hrs / 2)
+    result["zone"] = zone
+    print(json.dumps(result, indent=2))
+
+
+def cmd_mercury_cycling(cycles: int = 100, alloy: str = "inconel_718", simulate: bool = False):
+    """Run thermal cycling test."""
+    from src.mercury_thermal_hybrid import simulate_thermal_cycling
+
+    result = simulate_thermal_cycling(cycles, 200)  # 200°C swing
+    result["alloy"] = alloy
+    print(json.dumps(result, indent=2))

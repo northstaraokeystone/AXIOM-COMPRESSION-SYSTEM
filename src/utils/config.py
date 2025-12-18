@@ -20,7 +20,9 @@ def get_spec_path(spec_name: str) -> str:
     Returns:
         Absolute path to the spec file
     """
-    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    repo_root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
     return os.path.join(repo_root, "data", spec_name)
 
 

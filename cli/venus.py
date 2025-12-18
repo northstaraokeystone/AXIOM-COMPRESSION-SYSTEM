@@ -42,3 +42,19 @@ def cmd_venus_autonomy():
     ops = simulate_cloud_ops(duration_days=30, altitude_km=55.0)
     autonomy = compute_autonomy(ops)
     print(json.dumps({"autonomy": autonomy, "ops": ops}, indent=2))
+
+
+def cmd_venus_config():
+    """Show Venus configuration from spec."""
+    from src.venus_acid_hybrid import load_venus_config
+
+    config = load_venus_config()
+    print(json.dumps(config, indent=2))
+
+
+def cmd_venus_simulate(altitude_km: float = 55.0, duration_hrs: int = 24, simulate: bool = False):
+    """Run Venus cloud simulation."""
+    from src.venus_acid_hybrid import simulate_cloud_ops
+
+    result = simulate_cloud_ops(duration_days=duration_hrs / 24, altitude_km=altitude_km)
+    print(json.dumps(result, indent=2))

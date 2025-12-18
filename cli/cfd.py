@@ -41,3 +41,54 @@ def cmd_cfd_validate():
 
     result = run_cfd_validation()
     print(json.dumps(result, indent=2))
+
+
+# Turbulent CFD commands
+
+def cmd_turbulent_info():
+    """Show turbulent CFD configuration."""
+    from src.cfd_dust_dynamics import (
+        CFD_REYNOLDS_TURBULENT_THRESHOLD,
+        CFD_TURBULENCE_MODEL_KEPS,
+        CFD_REYNOLDS_MARS_TURBULENT,
+    )
+
+    info = {
+        "model": "navier_stokes_turbulent",
+        "reynolds_threshold": CFD_REYNOLDS_TURBULENT_THRESHOLD,
+        "turbulence_model": CFD_TURBULENCE_MODEL_KEPS,
+        "mars_storm_reynolds": CFD_REYNOLDS_MARS_TURBULENT,
+    }
+    print(json.dumps(info, indent=2))
+
+
+def cmd_turbulent_config():
+    """Show turbulent CFD configuration from spec."""
+    from src.cfd_dust_dynamics import load_turbulent_cfd_config
+
+    config = load_turbulent_cfd_config()
+    print(json.dumps(config, indent=2))
+
+
+def cmd_turbulent_simulate(reynolds: float = 5000, duration_s: float = 100, simulate: bool = False):
+    """Run turbulent flow simulation."""
+    from src.cfd_dust_dynamics import simulate_turbulent
+
+    result = simulate_turbulent(reynolds, duration_s)
+    print(json.dumps(result, indent=2))
+
+
+def cmd_turbulent_storm(intensity: float = 0.8, simulate: bool = False):
+    """Run turbulent dust storm simulation."""
+    from src.cfd_dust_dynamics import dust_storm_turbulent
+
+    result = dust_storm_turbulent(intensity=intensity, duration_hrs=24)
+    print(json.dumps(result, indent=2))
+
+
+def cmd_turbulent_validate(simulate: bool = False):
+    """Run turbulent CFD validation."""
+    from src.cfd_dust_dynamics import run_turbulent_validation
+
+    result = run_turbulent_validation()
+    print(json.dumps(result, indent=2))

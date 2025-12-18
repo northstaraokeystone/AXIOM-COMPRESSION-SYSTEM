@@ -37,12 +37,12 @@ def test_multiplanet_stub_ready():
 
 
 def test_multiplanet_sequence():
-    """Expansion sequence is correct."""
+    """Expansion sequence is correct (ordered by increasing autonomy)."""
     from src.paths.multiplanet import get_sequence, EXPANSION_SEQUENCE
 
     sequence = get_sequence()
 
-    assert sequence == ["asteroid", "mars", "europa", "titan"]
+    assert sequence == ["asteroid", "mars", "europa", "ganymede", "titan"]
     assert sequence == list(EXPANSION_SEQUENCE)
 
 
@@ -205,4 +205,4 @@ def test_multiplanet_cli_sequence():
     result = cmd_multiplanet_sequence()
 
     assert "sequence" in result
-    assert result["sequence"] == ["asteroid", "mars", "europa", "titan"]
+    assert result["sequence"] == ["asteroid", "mars", "europa", "ganymede", "titan"]

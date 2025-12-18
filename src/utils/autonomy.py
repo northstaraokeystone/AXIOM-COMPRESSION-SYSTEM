@@ -28,7 +28,9 @@ def compute_autonomy_from_latency(
             - autonomy_achieved: Computed autonomy ratio (0-1)
     """
     # Compute possible Earth round-trips in the duration
-    min_latency = latency_min[0] if isinstance(latency_min, (list, tuple)) else latency_min
+    min_latency = (
+        latency_min[0] if isinstance(latency_min, (list, tuple)) else latency_min
+    )
     earth_queries_possible = (duration_hours * 60) / (min_latency * 2)  # Round-trip
 
     # Compute allowed queries and required local decisions

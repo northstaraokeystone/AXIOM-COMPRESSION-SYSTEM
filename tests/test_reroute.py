@@ -354,9 +354,7 @@ class TestReceiptsEmitted:
         """blackout_sim emits valid receipt."""
         f = io.StringIO()
         with redirect_stdout(f):
-            blackout_sim(
-                nodes=5, blackout_days=43, reroute_enabled=True, seed=42
-            )
+            blackout_sim(nodes=5, blackout_days=43, reroute_enabled=True, seed=42)
 
         output = f.getvalue()
         receipts = [json.loads(line) for line in output.strip().split("\n") if line]

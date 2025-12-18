@@ -81,3 +81,11 @@ def cmd_tee_sealed():
 
     result = sealed_storage_test()
     print(json.dumps(result, indent=2))
+
+
+def cmd_tee_config():
+    """Show TEE configuration from spec."""
+    from src.tee_harden_audit import load_tee_config
+
+    config = load_tee_config()
+    print(json.dumps(config, indent=2))
