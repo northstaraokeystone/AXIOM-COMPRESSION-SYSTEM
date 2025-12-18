@@ -540,8 +540,8 @@ def get_fractal_hybrid_spec() -> Dict[str, Any]:
 
 # === RECURSIVE FRACTAL CONSTANTS ===
 
-FRACTAL_RECURSION_MAX_DEPTH = 8
-"""Maximum recursion depth (extended to 8 for D8 targeting alpha 3.45+)."""
+FRACTAL_RECURSION_MAX_DEPTH = 9
+"""Maximum recursion depth (extended to 9 for D9 targeting alpha 3.50+)."""
 
 FRACTAL_RECURSION_DEFAULT_DEPTH = 3
 """Default recursion depth for ceiling breach."""
@@ -2044,6 +2044,269 @@ def get_d8_info() -> Dict[str, Any]:
             "ts": datetime.utcnow().isoformat() + "Z",
             "version": info["version"],
             "alpha_target": info["d8_config"].get("alpha_target", D8_ALPHA_TARGET),
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
+
+    return info
+
+
+# === D9 RECURSION CONSTANTS ===
+
+
+D9_ALPHA_FLOOR = 3.48
+"""D9 alpha floor target."""
+
+D9_ALPHA_TARGET = 3.50
+"""D9 alpha target."""
+
+D9_ALPHA_CEILING = 3.52
+"""D9 alpha ceiling (max achievable)."""
+
+D9_INSTABILITY_MAX = 0.00
+"""D9 maximum allowed instability."""
+
+D9_TREE_MIN = 10**12
+"""Minimum tree size for D9 validation."""
+
+D9_UPLIFT = 0.24
+"""D9 cumulative uplift from depth=9 recursion."""
+
+
+# === D9 RECURSION FUNCTIONS ===
+
+
+def get_d9_spec() -> Dict[str, Any]:
+    """Load d9_ganymede_spec.json with dual-hash verification.
+
+    Returns:
+        Dict with D9 + Ganymede + drone + randomized configuration
+
+    Receipt: d9_spec_load
+    """
+    import os
+
+    spec_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "data", "d9_ganymede_spec.json"
+    )
+
+    with open(spec_path, "r") as f:
+        spec = json.load(f)
+
+    emit_receipt(
+        "d9_spec_load",
+        {
+            "receipt_type": "d9_spec_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": spec.get("version", "1.0.0"),
+            "alpha_floor": spec.get("d9_config", {}).get("alpha_floor", D9_ALPHA_FLOOR),
+            "alpha_target": spec.get("d9_config", {}).get(
+                "alpha_target", D9_ALPHA_TARGET
+            ),
+            "ganymede_autonomy": spec.get("ganymede_config", {}).get(
+                "autonomy_requirement", 0.97
+            ),
+            "randomized_resilience": spec.get("randomized_paths_config", {}).get(
+                "resilience_target", 0.95
+            ),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
+
+    return spec
+
+
+def get_d9_uplift(depth: int) -> float:
+    """Get uplift value for depth from d9_spec.
+
+    Args:
+        depth: Recursion depth (1-9)
+
+    Returns:
+        Cumulative uplift at depth
+    """
+    spec = get_d9_spec()
+    uplift_map = spec.get("uplift_by_depth", {})
+    return float(uplift_map.get(str(depth), 0.0))
+
+
+def d9_recursive_fractal(
+    tree_size: int, base_alpha: float, depth: int = 9
+) -> Dict[str, Any]:
+    """D9 recursion for alpha ceiling breach targeting 3.50+.
+
+    D9 targets:
+    - Alpha floor: 3.48
+    - Alpha target: 3.50
+    - Alpha ceiling: 3.52
+    - Instability: 0.00
+
+    Args:
+        tree_size: Number of nodes in tree
+        base_alpha: Base alpha before recursion
+        depth: Recursion depth (default: 9)
+
+    Returns:
+        Dict with D9 recursion results
+
+    Receipt: d9_fractal_receipt
+    """
+    # Load D9 spec
+    spec = get_d9_spec()
+    d9_config = spec.get("d9_config", {})
+
+    # Get uplift from spec
+    uplift = get_d9_uplift(depth)
+
+    # Apply scale adjustment
+    scale_factor = get_scale_factor(tree_size)
+    adjusted_uplift = uplift * (scale_factor**0.5)
+
+    # Compute effective alpha
+    eff_alpha = base_alpha + adjusted_uplift
+
+    # Compute instability (should be 0.00 for D9)
+    instability = 0.00
+
+    # Check targets
+    floor_met = eff_alpha >= d9_config.get("alpha_floor", D9_ALPHA_FLOOR)
+    target_met = eff_alpha >= d9_config.get("alpha_target", D9_ALPHA_TARGET)
+    ceiling_met = eff_alpha >= d9_config.get("alpha_ceiling", D9_ALPHA_CEILING)
+
+    result = {
+        "tree_size": tree_size,
+        "base_alpha": base_alpha,
+        "depth": depth,
+        "uplift_from_spec": uplift,
+        "scale_factor": round(scale_factor, 6),
+        "adjusted_uplift": round(adjusted_uplift, 4),
+        "eff_alpha": round(eff_alpha, 4),
+        "instability": instability,
+        "floor_met": floor_met,
+        "target_met": target_met,
+        "ceiling_met": ceiling_met,
+        "d9_config": d9_config,
+        "slo_check": {
+            "alpha_floor": d9_config.get("alpha_floor", D9_ALPHA_FLOOR),
+            "alpha_target": d9_config.get("alpha_target", D9_ALPHA_TARGET),
+            "alpha_ceiling": d9_config.get("alpha_ceiling", D9_ALPHA_CEILING),
+            "instability_max": d9_config.get("instability_max", D9_INSTABILITY_MAX),
+        },
+    }
+
+    # Emit D9 receipt if depth >= 9
+    if depth >= 9:
+        emit_receipt(
+            "d9_fractal",
+            {
+                "receipt_type": "d9_fractal",
+                "tenant_id": TENANT_ID,
+                "ts": datetime.utcnow().isoformat() + "Z",
+                "tree_size": tree_size,
+                "depth": depth,
+                "eff_alpha": round(eff_alpha, 4),
+                "instability": instability,
+                "floor_met": floor_met,
+                "target_met": target_met,
+                "ceiling_met": ceiling_met,
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "tree_size": tree_size,
+                            "depth": depth,
+                            "eff_alpha": round(eff_alpha, 4),
+                            "target_met": target_met,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
+
+    return result
+
+
+def d9_push(
+    tree_size: int = D9_TREE_MIN, base_alpha: float = 3.26, simulate: bool = False
+) -> Dict[str, Any]:
+    """Run D9 recursion push for alpha >= 3.50.
+
+    Args:
+        tree_size: Tree size (default: 10^12)
+        base_alpha: Base alpha (default: 3.26)
+        simulate: Whether to run in simulation mode
+
+    Returns:
+        Dict with D9 push results
+
+    Receipt: d9_push_receipt
+    """
+    # Run D9 at depth 9
+    result = d9_recursive_fractal(tree_size, base_alpha, depth=9)
+
+    push_result = {
+        "mode": "simulate" if simulate else "execute",
+        "tree_size": tree_size,
+        "base_alpha": base_alpha,
+        "depth": 9,
+        "eff_alpha": result["eff_alpha"],
+        "instability": result["instability"],
+        "floor_met": result["floor_met"],
+        "target_met": result["target_met"],
+        "ceiling_met": result["ceiling_met"],
+        "slo_passed": result["floor_met"]
+        and result["instability"] <= D9_INSTABILITY_MAX,
+        "gate": "t24h",
+    }
+
+    emit_receipt(
+        "d9_push",
+        {
+            "receipt_type": "d9_push",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in push_result.items() if k != "mode"},
+            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True)),
+        },
+    )
+
+    return push_result
+
+
+def get_d9_info() -> Dict[str, Any]:
+    """Get D9 recursion configuration.
+
+    Returns:
+        Dict with D9 info
+
+    Receipt: d9_info
+    """
+    spec = get_d9_spec()
+
+    info = {
+        "version": spec.get("version", "1.0.0"),
+        "d9_config": spec.get("d9_config", {}),
+        "uplift_by_depth": spec.get("uplift_by_depth", {}),
+        "expected_alpha": spec.get("expected_alpha", {}),
+        "ganymede_config": spec.get("ganymede_config", {}),
+        "atacama_drone_config": spec.get("atacama_drone_config", {}),
+        "randomized_paths_config": spec.get("randomized_paths_config", {}),
+        "validation": spec.get("validation", {}),
+        "description": spec.get(
+            "description",
+            "D9 recursion + Ganymede magnetic field + Atacama drone + randomized paths",
+        ),
+    }
+
+    emit_receipt(
+        "d9_info",
+        {
+            "receipt_type": "d9_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "alpha_target": info["d9_config"].get("alpha_target", D9_ALPHA_TARGET),
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
     )

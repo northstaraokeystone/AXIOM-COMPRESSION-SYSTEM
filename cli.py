@@ -198,6 +198,28 @@ from cli import (
     # D8
     cmd_d8_info,
     cmd_d8_push,
+    # D9 + Ganymede
+    cmd_d9_info,
+    cmd_d9_push,
+    cmd_d9_ganymede_hybrid,
+    cmd_ganymede_info,
+    cmd_ganymede_config,
+    cmd_ganymede_navigate,
+    cmd_ganymede_autonomy,
+    # Atacama drone arrays
+    cmd_drone_info,
+    cmd_drone_config,
+    cmd_drone_coverage,
+    cmd_drone_sample,
+    cmd_drone_validate,
+    # Randomized execution paths
+    cmd_randomized_info,
+    cmd_randomized_config,
+    cmd_randomized_generate,
+    cmd_randomized_audit,
+    cmd_randomized_timing,
+    cmd_randomized_power,
+    cmd_randomized_cache,
 )
 
 
@@ -873,6 +895,116 @@ def main():
         help="Encryption test iterations (default: 100)",
     )
 
+    # D9 + Ganymede + randomized paths flags
+    parser.add_argument(
+        "--d9_push", action="store_true", help="Run D9 recursion for alpha>=3.50"
+    )
+    parser.add_argument("--d9_info", action="store_true", help="Show D9 configuration")
+    parser.add_argument(
+        "--d9_ganymede_hybrid", action="store_true", help="Run integrated D9+Ganymede"
+    )
+    parser.add_argument(
+        "--ganymede_info", action="store_true", help="Show Ganymede configuration"
+    )
+    parser.add_argument(
+        "--ganymede_config", action="store_true", help="Show Ganymede config from spec"
+    )
+    parser.add_argument(
+        "--ganymede_navigate", action="store_true", help="Run navigation simulation"
+    )
+    parser.add_argument(
+        "--ganymede_nav_mode",
+        type=str,
+        default="field_following",
+        help="Navigation mode (field_following, magnetopause_crossing, polar_transit)",
+    )
+    parser.add_argument(
+        "--ganymede_duration",
+        type=int,
+        default=24,
+        help="Navigation duration in hours (default: 24)",
+    )
+    parser.add_argument(
+        "--ganymede_autonomy", action="store_true", help="Show autonomy metrics"
+    )
+
+    # Atacama drone array flags
+    parser.add_argument(
+        "--drone_info", action="store_true", help="Show drone array configuration"
+    )
+    parser.add_argument(
+        "--drone_config", action="store_true", help="Show drone config from spec"
+    )
+    parser.add_argument(
+        "--drone_coverage", action="store_true", help="Run drone coverage simulation"
+    )
+    parser.add_argument(
+        "--drone_sample", action="store_true", help="Run drone dust sampling"
+    )
+    parser.add_argument(
+        "--drone_validate", action="store_true", help="Run full drone validation"
+    )
+    parser.add_argument(
+        "--drone_count", type=int, default=10, help="Number of drones (default: 10)"
+    )
+    parser.add_argument(
+        "--drone_area",
+        type=float,
+        default=1000.0,
+        help="Area to cover in km2 (default: 1000)",
+    )
+    parser.add_argument(
+        "--drone_duration",
+        type=int,
+        default=60,
+        help="Sampling duration in seconds (default: 60)",
+    )
+
+    # Randomized execution paths flags
+    parser.add_argument(
+        "--randomized_info",
+        action="store_true",
+        help="Show randomized paths configuration",
+    )
+    parser.add_argument(
+        "--randomized_config",
+        action="store_true",
+        help="Show randomized config from spec",
+    )
+    parser.add_argument(
+        "--randomized_generate", action="store_true", help="Generate execution tree"
+    )
+    parser.add_argument(
+        "--randomized_audit", action="store_true", help="Run full randomized audit"
+    )
+    parser.add_argument(
+        "--randomized_timing", action="store_true", help="Test timing resilience"
+    )
+    parser.add_argument(
+        "--randomized_power", action="store_true", help="Test power resilience"
+    )
+    parser.add_argument(
+        "--randomized_cache", action="store_true", help="Test cache resilience"
+    )
+    parser.add_argument(
+        "--randomized_depth",
+        type=int,
+        default=8,
+        help="Execution tree depth (default: 8)",
+    )
+    parser.add_argument(
+        "--randomized_iterations",
+        type=int,
+        default=100,
+        help="Randomized test iterations (default: 100)",
+    )
+    parser.add_argument(
+        "--threat_level",
+        type=str,
+        default="medium",
+        help="Threat level for path depth recommendation (low, medium, high, critical)",
+    )
+
     args = parser.parse_args()
     reroute_enabled = args.reroute or args.reroute_enabled
 
@@ -1073,6 +1205,56 @@ def main():
         return cmd_encrypt_side_channel(args.encrypt_iterations)
     if args.encrypt_inversion:
         return cmd_encrypt_inversion(args.encrypt_iterations)
+
+    # D9 + Ganymede + randomized paths commands
+    if args.d9_info:
+        return cmd_d9_info()
+    if args.ganymede_info:
+        return cmd_ganymede_info()
+    if args.ganymede_config:
+        return cmd_ganymede_config()
+    if args.drone_info:
+        return cmd_drone_info()
+    if args.drone_config:
+        return cmd_drone_config()
+    if args.randomized_info:
+        return cmd_randomized_info()
+    if args.randomized_config:
+        return cmd_randomized_config()
+    if args.d9_push:
+        return cmd_d9_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.d9_ganymede_hybrid:
+        return cmd_d9_ganymede_hybrid(
+            args.tree_size,
+            args.base_alpha,
+            args.ganymede_nav_mode,
+            args.ganymede_duration,
+            args.simulate,
+        )
+    if args.ganymede_navigate:
+        return cmd_ganymede_navigate(
+            args.ganymede_nav_mode, args.ganymede_duration, args.simulate
+        )
+    if args.ganymede_autonomy:
+        return cmd_ganymede_autonomy(args.simulate)
+    if args.drone_coverage:
+        return cmd_drone_coverage(args.drone_count, args.drone_area, args.simulate)
+    if args.drone_sample:
+        return cmd_drone_sample(10, args.drone_duration, args.simulate)
+    if args.drone_validate:
+        return cmd_drone_validate(
+            args.drone_count, args.drone_area, args.drone_duration, args.simulate
+        )
+    if args.randomized_generate:
+        return cmd_randomized_generate(args.randomized_depth)
+    if args.randomized_audit:
+        return cmd_randomized_audit(args.randomized_iterations, args.simulate)
+    if args.randomized_timing:
+        return cmd_randomized_timing(args.randomized_iterations, args.simulate)
+    if args.randomized_power:
+        return cmd_randomized_power(args.randomized_iterations, args.simulate)
+    if args.randomized_cache:
+        return cmd_randomized_cache(args.randomized_iterations, args.simulate)
 
     # Expanded AGI audit commands
     if args.audit_expanded:

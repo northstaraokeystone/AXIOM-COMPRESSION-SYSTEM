@@ -1,0 +1,129 @@
+{
+  "version": "1.0.0",
+  "description": "D9 recursion + Ganymede magnetic field navigation + Atacama drone arrays + randomized execution paths configuration",
+  "d9_config": {
+    "recursion_depth": 9,
+    "alpha_floor": 3.48,
+    "alpha_target": 3.50,
+    "alpha_ceiling": 3.52,
+    "instability_max": 0.00,
+    "tree_min": 1000000000000,
+    "uplift": 0.24
+  },
+  "uplift_by_depth": {
+    "1": 0.05,
+    "2": 0.09,
+    "3": 0.122,
+    "4": 0.148,
+    "5": 0.168,
+    "6": 0.185,
+    "7": 0.20,
+    "8": 0.22,
+    "9": 0.24
+  },
+  "depth_contributions": {
+    "1": {
+      "contribution": 0.05,
+      "decay_factor": 1.0,
+      "cumulative": 0.05
+    },
+    "2": {
+      "contribution": 0.04,
+      "decay_factor": 0.8,
+      "cumulative": 0.09
+    },
+    "3": {
+      "contribution": 0.032,
+      "decay_factor": 0.64,
+      "cumulative": 0.122
+    },
+    "4": {
+      "contribution": 0.0256,
+      "decay_factor": 0.512,
+      "cumulative": 0.148
+    },
+    "5": {
+      "contribution": 0.02048,
+      "decay_factor": 0.4096,
+      "cumulative": 0.168
+    },
+    "6": {
+      "contribution": 0.01638,
+      "decay_factor": 0.3277,
+      "cumulative": 0.185
+    },
+    "7": {
+      "contribution": 0.01311,
+      "decay_factor": 0.2621,
+      "cumulative": 0.20
+    },
+    "8": {
+      "contribution": 0.01049,
+      "decay_factor": 0.2097,
+      "cumulative": 0.22
+    },
+    "9": {
+      "contribution": 0.00839,
+      "decay_factor": 0.1678,
+      "cumulative": 0.24
+    }
+  },
+  "expected_alpha": {
+    "depth_1": 3.04,
+    "depth_2": 3.08,
+    "depth_3": 3.12,
+    "depth_4": 3.148,
+    "depth_5": 3.168,
+    "depth_6": 3.185,
+    "depth_7": 3.20,
+    "depth_8": 3.22,
+    "depth_9": 3.24
+  },
+  "ganymede_config": {
+    "body": "ganymede",
+    "resource": "magnetic_shielding",
+    "surface_field_nT": 719,
+    "magnetopause_km": 2600,
+    "orbital_period_days": 7.15,
+    "autonomy_requirement": 0.97,
+    "latency_min": [33, 53],
+    "radiation_shield_factor": 3.5,
+    "navigation_modes": ["field_following", "magnetopause_crossing", "polar_transit"],
+    "earth_callback_max_pct": 0.03
+  },
+  "atacama_drone_config": {
+    "source": "Atacama Drone Array Studies",
+    "coverage_km2": 100,
+    "sample_rate_hz": 10,
+    "mars_correlation": 0.92,
+    "dust_metrics": ["particle_size", "optical_depth", "deposition_rate"],
+    "solar_efficiency_impact": 0.15,
+    "calibration_interval_hrs": 24
+  },
+  "randomized_paths_config": {
+    "path_depth": 8,
+    "timing_jitter_ns": [10, 100],
+    "shuffle_factor": 0.3,
+    "resilience_target": 0.95,
+    "attack_types": ["timing_analysis", "power_analysis", "cache_timing"],
+    "defense_mechanisms": ["instruction_shuffle", "dummy_operations", "random_delays"],
+    "dummy_operation_ratio": 0.1
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min_d9": 3.48,
+    "ganymede_autonomy_min": 0.97,
+    "atacama_correlation_min": 0.92,
+    "randomized_resilience_min": 0.95,
+    "scale_decay_threshold": 0.02,
+    "receipt_required": "d9_fractal_receipt",
+    "ganymede_receipt_required": "ganymede_navigation_receipt",
+    "atacama_receipt_required": "atacama_drone_receipt",
+    "randomized_receipt_required": "randomized_paths_receipt"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM D9 recursion + Ganymede magnetic field + Atacama drone + randomized paths - alpha 3.50+ target"
+}

@@ -25,19 +25,43 @@ from ..base import emit_path_receipt, load_path_spec, PathStopRule
 MULTIPLANET_TENANT_ID = "axiom-multiplanet"
 """Tenant ID for multi-planet path receipts."""
 
-EXPANSION_SEQUENCE = ["asteroid", "mars", "europa", "titan"]
+EXPANSION_SEQUENCE = ["asteroid", "mars", "europa", "titan", "ganymede"]
 """Ordered expansion sequence."""
 
-LATENCY_BOUNDS_MIN = {"asteroid": 3, "mars": 3, "europa": 33, "titan": 70}
+LATENCY_BOUNDS_MIN = {
+    "asteroid": 3,
+    "mars": 3,
+    "europa": 33,
+    "titan": 70,
+    "ganymede": 33,
+}
 """Minimum one-way latency in minutes."""
 
-LATENCY_BOUNDS_MAX = {"asteroid": 20, "mars": 22, "europa": 53, "titan": 90}
+LATENCY_BOUNDS_MAX = {
+    "asteroid": 20,
+    "mars": 22,
+    "europa": 53,
+    "titan": 90,
+    "ganymede": 53,
+}
 """Maximum one-way latency in minutes."""
 
-AUTONOMY_REQUIREMENT = {"asteroid": 0.70, "mars": 0.85, "europa": 0.95, "titan": 0.99}
+AUTONOMY_REQUIREMENT = {
+    "asteroid": 0.70,
+    "mars": 0.85,
+    "europa": 0.95,
+    "titan": 0.99,
+    "ganymede": 0.97,
+}
 """Required autonomy level per body."""
 
-BANDWIDTH_BUDGET_MBPS = {"asteroid": 500, "mars": 100, "europa": 20, "titan": 5}
+BANDWIDTH_BUDGET_MBPS = {
+    "asteroid": 500,
+    "mars": 100,
+    "europa": 20,
+    "titan": 5,
+    "ganymede": 15,
+}
 """Bandwidth budget per body in Mbps."""
 
 TELEMETRY_COMPRESSION_TARGET = 0.95
@@ -792,7 +816,7 @@ def compute_jovian_autonomy(moons: Optional[List[str]] = None) -> float:
     """Compute system-level autonomy for Jovian moons.
 
     Args:
-        moons: List of moons to include (default: titan, europa)
+        moons: List of moons to include (default: titan, europa, ganymede)
 
     Returns:
         Combined autonomy score (0-1)
@@ -800,11 +824,12 @@ def compute_jovian_autonomy(moons: Optional[List[str]] = None) -> float:
     Receipt: mp_jovian_autonomy
     """
     if moons is None:
-        moons = ["titan", "europa"]
+        moons = ["titan", "europa", "ganymede"]
 
     autonomy_weights = {
-        "titan": (0.99, 0.6),  # (autonomy, weight) - Titan weighted higher (further)
-        "europa": (0.95, 0.4),
+        "titan": (0.99, 0.4),  # (autonomy, weight) - Titan weighted for distance
+        "europa": (0.95, 0.3),
+        "ganymede": (0.97, 0.3),  # Ganymede weighted for magnetic complexity
     }
 
     total_weight = 0.0
@@ -827,4 +852,259 @@ def compute_jovian_autonomy(moons: Optional[List[str]] = None) -> float:
     }
 
     emit_path_receipt("multiplanet", "jovian_autonomy", result)
+    return combined
+
+
+# === GANYMEDE INTEGRATION ===
+
+
+def integrate_ganymede(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire Ganymede magnetic field navigation to multi-planet path.
+
+    Args:
+        config: Optional Ganymede config override
+
+    Returns:
+        Dict with Ganymede integration results
+
+    Receipt: mp_ganymede_integrate
+    """
+    # Import Ganymede module
+    from ...ganymede_mag_hybrid import (
+        load_ganymede_config,
+        simulate_navigation,
+        GANYMEDE_AUTONOMY_REQUIREMENT,
+    )
+
+    if config is None:
+        config = load_ganymede_config()
+
+    # Get Ganymede body config
+    ganymede_body = get_body_config("ganymede")
+
+    # Run navigation simulation
+    navigation = simulate_navigation(mode="field_following", duration_hrs=24)
+
+    result = {
+        "integrated": True,
+        "body": "ganymede",
+        "body_config": ganymede_body,
+        "ganymede_config": config,
+        "navigation_simulation": {
+            "mode": navigation["mode"],
+            "duration_hrs": navigation["duration_hrs"],
+            "autonomy_achieved": navigation["autonomy"],
+        },
+        "autonomy_requirement": GANYMEDE_AUTONOMY_REQUIREMENT,
+        "autonomy_met": navigation["autonomy"] >= GANYMEDE_AUTONOMY_REQUIREMENT,
+        "sequence_position": EXPANSION_SEQUENCE.index("ganymede") + 1,
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "ganymede_integrate", result)
+    return result
+
+
+def compute_ganymede_autonomy() -> float:
+    """Compute Ganymede-specific autonomy metrics.
+
+    Returns:
+        Autonomy level (0-1)
+
+    Receipt: mp_ganymede_autonomy
+    """
+    # Import Ganymede module
+    from ...ganymede_mag_hybrid import (
+        load_ganymede_config,
+        simulate_navigation,
+    )
+
+    config = load_ganymede_config()
+    navigation = simulate_navigation(mode="field_following", duration_hrs=24)
+
+    autonomy = navigation["autonomy"]
+
+    result = {
+        "body": "ganymede",
+        "autonomy_achieved": autonomy,
+        "autonomy_required": config["autonomy_requirement"],
+        "autonomy_met": autonomy >= config["autonomy_requirement"],
+        "latency_min": config["latency_min"],
+        "earth_callback_max_pct": config["earth_callback_max_pct"],
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "ganymede_autonomy", result)
+    return autonomy
+
+
+def simulate_ganymede_navigation(
+    mode: str = "field_following", duration_hrs: int = 24
+) -> Dict[str, Any]:
+    """Run Ganymede navigation simulation within multiplanet context.
+
+    Args:
+        mode: Navigation mode
+        duration_hrs: Simulation duration
+
+    Returns:
+        Dict with simulation results
+
+    Receipt: mp_ganymede_simulate
+    """
+    # Import Ganymede module
+    from ...ganymede_mag_hybrid import (
+        simulate_navigation,
+        compute_radiation_shielding,
+        GANYMEDE_AUTONOMY_REQUIREMENT,
+        GANYMEDE_RADIUS_KM,
+    )
+
+    # Run navigation simulation
+    navigation = simulate_navigation(mode, duration_hrs)
+
+    # Get radiation shielding at typical position
+    shielding = compute_radiation_shielding((GANYMEDE_RADIUS_KM + 500, 0, 0))
+
+    result = {
+        "body": "ganymede",
+        "simulation_type": "magnetic_navigation",
+        "mode": mode,
+        "duration_hrs": duration_hrs,
+        "navigation": {
+            "autonomy_achieved": navigation["autonomy"],
+            "autonomy_met": navigation["autonomy_met"],
+        },
+        "radiation_shielding": shielding,
+        "autonomy_met": navigation["autonomy"] >= GANYMEDE_AUTONOMY_REQUIREMENT,
+        "sequence": EXPANSION_SEQUENCE,
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "ganymede_simulate", result)
+    return result
+
+
+# === FULL JOVIAN SYSTEM COORDINATION ===
+
+
+def coordinate_jovian_system(
+    titan: Optional[Dict[str, Any]] = None,
+    europa: Optional[Dict[str, Any]] = None,
+    ganymede: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Coordinate Titan, Europa, and Ganymede operations as full Jovian system.
+
+    Args:
+        titan: Optional Titan state override
+        europa: Optional Europa state override
+        ganymede: Optional Ganymede state override
+
+    Returns:
+        Dict with full system coordination results
+
+    Receipt: mp_jovian_system_coordinate
+    """
+    # Import modules
+    from ...titan_methane_hybrid import (
+        load_titan_config,
+        simulate_harvest,
+        TITAN_AUTONOMY_REQUIREMENT,
+    )
+    from ...europa_ice_hybrid import (
+        load_europa_config,
+        simulate_drilling,
+        EUROPA_AUTONOMY_REQUIREMENT,
+    )
+    from ...ganymede_mag_hybrid import (
+        load_ganymede_config,
+        simulate_navigation,
+        GANYMEDE_AUTONOMY_REQUIREMENT,
+    )
+
+    if titan is None:
+        titan_config = load_titan_config()
+    if europa is None:
+        europa_config = load_europa_config()
+    if ganymede is None:
+        ganymede_config = load_ganymede_config()
+
+    # Run simulations
+    titan_result = simulate_harvest(duration_days=30)
+    europa_result = simulate_drilling(depth_m=1000, duration_days=30)
+    ganymede_result = simulate_navigation(mode="field_following", duration_hrs=24)
+
+    # Compute individual autonomies
+    titan_autonomy = titan_result["autonomy_achieved"]
+    europa_autonomy = europa_result["autonomy_achieved"]
+    ganymede_autonomy = ganymede_result["autonomy"]
+
+    # Combined autonomy (weighted by mission complexity)
+    combined_autonomy = (
+        titan_autonomy * 0.4 + europa_autonomy * 0.3 + ganymede_autonomy * 0.3
+    )
+
+    result = {
+        "subsystem": "full_jovian",
+        "bodies": ["titan", "europa", "ganymede"],
+        "titan": {
+            "autonomy_achieved": titan_autonomy,
+            "autonomy_required": TITAN_AUTONOMY_REQUIREMENT,
+            "autonomy_met": titan_autonomy >= TITAN_AUTONOMY_REQUIREMENT,
+            "resource": "methane",
+            "processed_kg": titan_result["processed_kg"],
+        },
+        "europa": {
+            "autonomy_achieved": europa_autonomy,
+            "autonomy_required": EUROPA_AUTONOMY_REQUIREMENT,
+            "autonomy_met": europa_autonomy >= EUROPA_AUTONOMY_REQUIREMENT,
+            "resource": "water_ice",
+            "water_kg": europa_result["water_extracted_kg"],
+        },
+        "ganymede": {
+            "autonomy_achieved": ganymede_autonomy,
+            "autonomy_required": GANYMEDE_AUTONOMY_REQUIREMENT,
+            "autonomy_met": ganymede_autonomy >= GANYMEDE_AUTONOMY_REQUIREMENT,
+            "resource": "magnetic_shielding",
+            "mode": ganymede_result["mode"],
+        },
+        "combined_autonomy": round(combined_autonomy, 4),
+        "all_targets_met": (
+            titan_autonomy >= TITAN_AUTONOMY_REQUIREMENT
+            and europa_autonomy >= EUROPA_AUTONOMY_REQUIREMENT
+            and ganymede_autonomy >= GANYMEDE_AUTONOMY_REQUIREMENT
+        ),
+        "coordination_status": "operational",
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "jovian_system_coordinate", result)
+    return result
+
+
+def compute_system_autonomy(moons: Optional[List[str]] = None) -> float:
+    """Compute system-level autonomy for all Jovian moons.
+
+    Args:
+        moons: List of moons to include (default: titan, europa, ganymede)
+
+    Returns:
+        Combined autonomy score (0-1)
+
+    Receipt: mp_system_autonomy
+    """
+    if moons is None:
+        moons = ["titan", "europa", "ganymede"]
+
+    # Use compute_jovian_autonomy with full moon list
+    combined = compute_jovian_autonomy(moons)
+
+    result = {
+        "moons": moons,
+        "system_autonomy": round(combined, 4),
+        "full_jovian": len(moons) == 3,
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "system_autonomy", result)
     return combined
