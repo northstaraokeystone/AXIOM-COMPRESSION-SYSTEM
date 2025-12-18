@@ -46,7 +46,6 @@ from src.partition import (
     partition_sim,
     stress_sweep,
     NODE_BASELINE,
-    QUORUM_THRESHOLD,
     BASE_ALPHA
 )
 from src.reasoning import (
@@ -57,7 +56,6 @@ from src.reasoning import (
 from src.mitigation import (
     compute_reroute_mitigation,
     compute_blackout_factor,
-    apply_reroute_mitigation,
     compute_mitigation_score,
     REROUTE_ALPHA_BOOST as MITIGATION_REROUTE_BOOST
 )

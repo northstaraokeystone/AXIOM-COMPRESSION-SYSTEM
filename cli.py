@@ -172,6 +172,20 @@ from cli import (
     cmd_audit_run,
     cmd_audit_stress,
     cmd_audit_classify,
+    # D7 + Europa hybrid
+    cmd_d7_info,
+    cmd_d7_push,
+    cmd_d7_europa_hybrid,
+    cmd_europa_info,
+    cmd_europa_config,
+    cmd_europa_simulate,
+    cmd_europa_autonomy,
+    # NREL perovskite validation
+    cmd_nrel_info,
+    cmd_nrel_config,
+    cmd_nrel_validate,
+    cmd_nrel_project,
+    cmd_nrel_compare,
 )
 
 
@@ -409,6 +423,56 @@ def main():
     parser.add_argument('--audit_stress', action='store_true',
                         help='Run adversarial stress test')
 
+    # D7 + Europa hybrid flags
+    parser.add_argument('--d7_push', action='store_true',
+                        help='Run D7 recursion for alpha>=3.40')
+    parser.add_argument('--d7_info', action='store_true',
+                        help='Show D7 + Europa configuration')
+    parser.add_argument('--d7_europa_hybrid', action='store_true',
+                        help='Run integrated D7+Europa hybrid')
+    parser.add_argument('--europa_info', action='store_true',
+                        help='Show Europa ice drilling info')
+    parser.add_argument('--europa_config', action='store_true',
+                        help='Show Europa configuration from spec')
+    parser.add_argument('--europa_simulate', action='store_true',
+                        help='Run Europa ice drilling simulation')
+    parser.add_argument('--europa_depth', type=int, default=1000,
+                        help='Europa drilling depth in meters (default: 1000)')
+    parser.add_argument('--europa_duration', type=int, default=30,
+                        help='Europa simulation duration in days (default: 30)')
+    parser.add_argument('--europa_drill_rate', type=float, default=2.0,
+                        help='Europa drill rate m/hr (default: 2.0)')
+    parser.add_argument('--europa_resupply', type=float, default=180.0,
+                        help='Europa resupply interval in days (default: 180)')
+
+    # NREL perovskite validation flags
+    parser.add_argument('--nrel_info', action='store_true',
+                        help='Show NREL validation configuration')
+    parser.add_argument('--nrel_config', action='store_true',
+                        help='Show NREL configuration from spec')
+    parser.add_argument('--nrel_validate', action='store_true',
+                        help='Run NREL efficiency validation')
+    parser.add_argument('--nrel_efficiency', type=float, default=0.256,
+                        help='NREL efficiency to validate (default: 0.256)')
+    parser.add_argument('--nrel_project', action='store_true',
+                        help='Project NREL degradation over time')
+    parser.add_argument('--nrel_years', type=int, default=25,
+                        help='NREL projection years (default: 25)')
+    parser.add_argument('--nrel_initial', type=float, default=0.0,
+                        help='NREL initial efficiency for projection (default: lab value)')
+    parser.add_argument('--nrel_compare', action='store_true',
+                        help='Compare NREL to MOXIE efficiency')
+    parser.add_argument('--moxie_efficiency', type=float, default=0.0,
+                        help='MOXIE efficiency for comparison (default: baseline)')
+
+    # Expanded AGI audit flags
+    parser.add_argument('--audit_injection', action='store_true',
+                        help='Run injection attack audit')
+    parser.add_argument('--audit_poisoning', action='store_true',
+                        help='Run poisoning attack audit')
+    parser.add_argument('--audit_expanded', action='store_true',
+                        help='Run all expanded audits')
+
     args = parser.parse_args()
     reroute_enabled = args.reroute or args.reroute_enabled
 
@@ -527,6 +591,52 @@ def main():
         return cmd_audit_run(args.audit_noise, args.audit_iterations, args.simulate)
     if args.audit_stress:
         return cmd_audit_stress(None, 50, args.simulate)
+
+    # D7 + Europa hybrid commands
+    if args.d7_info:
+        return cmd_d7_info()
+    if args.europa_info:
+        return cmd_europa_info()
+    if args.europa_config:
+        return cmd_europa_config()
+    if args.d7_push:
+        return cmd_d7_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.europa_simulate:
+        return cmd_europa_simulate(args.europa_depth, args.europa_duration, args.europa_drill_rate, args.simulate)
+    if args.d7_europa_hybrid:
+        return cmd_d7_europa_hybrid(args.tree_size, args.base_alpha, args.europa_depth, args.europa_duration, args.simulate)
+
+    # NREL perovskite validation commands
+    if args.nrel_info:
+        return cmd_nrel_info()
+    if args.nrel_config:
+        return cmd_nrel_config()
+    if args.nrel_validate:
+        return cmd_nrel_validate(args.nrel_efficiency, args.simulate)
+    if args.nrel_project:
+        return cmd_nrel_project(args.nrel_years, args.nrel_initial, args.simulate)
+    if args.nrel_compare:
+        return cmd_nrel_compare(args.nrel_efficiency, args.moxie_efficiency, args.simulate)
+
+    # Expanded AGI audit commands
+    if args.audit_expanded:
+        from src.agi_audit_expanded import run_expanded_audit
+        import json
+        result = run_expanded_audit(attack_type="all", iterations=args.audit_iterations)
+        print(json.dumps(result, indent=2))
+        return
+    if args.audit_injection:
+        from src.agi_audit_expanded import run_expanded_audit
+        import json
+        result = run_expanded_audit(attack_type="injection", iterations=args.audit_iterations)
+        print(json.dumps(result, indent=2))
+        return
+    if args.audit_poisoning:
+        from src.agi_audit_expanded import run_expanded_audit
+        import json
+        result = run_expanded_audit(attack_type="poisoning", iterations=args.audit_iterations)
+        print(json.dumps(result, indent=2))
+        return
 
     # Scale commands
     if args.scalability_gate_test:

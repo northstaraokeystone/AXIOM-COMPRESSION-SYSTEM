@@ -26,7 +26,7 @@ def cmd_partition(loss_pct: float, nodes: int, simulate: bool):
     """
     print_header("PARTITION RESILIENCE TEST")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Nodes total: {nodes}")
     print(f"  Loss percentage: {loss_pct * 100:.0f}%")
     print(f"  Base alpha: {BASE_ALPHA}")
@@ -41,14 +41,14 @@ def cmd_partition(loss_pct: float, nodes: int, simulate: bool):
             emit=simulate
         )
 
-        print(f"\nRESULTS:")
+        print("\nRESULTS:")
         print(f"  Nodes surviving: {result['nodes_surviving']}")
         print(f"  Quorum status: {'INTACT' if result['quorum_status'] else 'FAILED'}")
         print(f"  Effective α drop: {result['eff_alpha_drop']:.4f}")
         print(f"  Effective α: {result['eff_alpha']:.4f}")
 
         # Validate SLOs
-        print(f"\nSLO VALIDATION:")
+        print("\nSLO VALIDATION:")
         alpha_ok = result['eff_alpha'] >= 2.63
         drop_ok = result['eff_alpha_drop'] <= 0.05  # At boundary at 40% (exactly 0.05)
         quorum_ok = result['quorum_status']
@@ -71,11 +71,11 @@ def cmd_stress_quorum():
     """Run full stress quorum test (1000 iterations, 0-40% loss)."""
     print_header("QUORUM STRESS TEST (1000 iterations)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Nodes baseline: {NODE_BASELINE}")
     print(f"  Quorum threshold: {QUORUM_THRESHOLD}")
     print(f"  Loss range: 0-{PARTITION_MAX_TEST_PCT * 100:.0f}%")
-    print(f"  Iterations: 1000")
+    print("  Iterations: 1000")
     print(f"  Base alpha: {BASE_ALPHA}")
 
     print("\nRunning stress sweep...")
@@ -96,13 +96,13 @@ def cmd_stress_quorum():
     max_drop = max(r["eff_alpha_drop"] for r in quorum_successes)
     min_alpha = min(r["eff_alpha"] for r in quorum_successes)
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Success rate: {success_rate * 100:.1f}%")
     print(f"  Avg α drop: {avg_drop:.4f}")
     print(f"  Max α drop: {max_drop:.4f}")
     print(f"  Min effective α: {min_alpha:.4f}")
 
-    print(f"\nSLO VALIDATION:")
+    print("\nSLO VALIDATION:")
     print(f"  100% quorum survival: {'PASS' if success_rate == 1.0 else 'FAIL'}")
     print(f"  Avg drop < 0.05: {'PASS' if avg_drop < 0.05 else 'FAIL'}")
     print(f"  Min α >= 2.63: {'PASS' if min_alpha >= 2.63 else 'FAIL'}")

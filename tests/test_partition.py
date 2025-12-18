@@ -23,7 +23,6 @@ from src.partition import (
     partition_sim,
     quorum_check,
     stress_sweep,
-    validate_partition_bounds,
     load_partition_spec,
     get_rerouting_potential,
     NODE_BASELINE,
@@ -37,24 +36,17 @@ from src.partition import (
 from src.ledger import (
     apply_ledger_boost,
     apply_quorum_factor,
-    anchor_with_quorum,
     get_effective_alpha_with_partition,
-    LEDGER_ALPHA_BOOST_VALIDATED,
-    BASE_ALPHA_PRE_BOOST
+    LEDGER_ALPHA_BOOST_VALIDATED
 )
 from src.reasoning import (
     partition_sweep,
-    project_with_resilience,
-    sovereignty_projection_with_partition,
     validate_resilience_slo,
     MIN_EFF_ALPHA_BOUND
 )
 from src.mitigation import (
     compute_partition_tolerance,
-    compute_quorum_health,
-    compute_mitigation_score,
-    get_mitigation_summary,
-    PARTITION_MITIGATION_FACTOR
+    compute_mitigation_score
 )
 from src.core import StopRule
 

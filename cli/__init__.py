@@ -172,6 +172,26 @@ from cli.audit import (
     cmd_audit_classify,
 )
 
+# D7 + Europa hybrid commands
+from cli.europa import (
+    cmd_d7_info,
+    cmd_d7_push,
+    cmd_d7_europa_hybrid,
+    cmd_europa_info,
+    cmd_europa_config,
+    cmd_europa_simulate,
+    cmd_europa_autonomy,
+)
+
+# NREL perovskite validation commands
+from cli.nrel import (
+    cmd_nrel_info,
+    cmd_nrel_config,
+    cmd_nrel_validate,
+    cmd_nrel_project,
+    cmd_nrel_compare,
+)
+
 __all__ = [
     # Core
     'cmd_baseline',
@@ -287,4 +307,18 @@ __all__ = [
     'cmd_audit_run',
     'cmd_audit_stress',
     'cmd_audit_classify',
+    # D7 + Europa hybrid
+    'cmd_d7_info',
+    'cmd_d7_push',
+    'cmd_d7_europa_hybrid',
+    'cmd_europa_info',
+    'cmd_europa_config',
+    'cmd_europa_simulate',
+    'cmd_europa_autonomy',
+    # NREL perovskite validation
+    'cmd_nrel_info',
+    'cmd_nrel_config',
+    'cmd_nrel_validate',
+    'cmd_nrel_project',
+    'cmd_nrel_compare',
 ]

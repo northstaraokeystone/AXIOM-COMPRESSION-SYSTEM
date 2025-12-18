@@ -10,7 +10,6 @@ Source: PHASE 2.7 VALIDATE criteria from Grok Dec 16, 2025
 """
 
 import pytest
-import math
 
 from src.compounding import (
     GROWTH_EXPONENT_ALPHA,
@@ -19,8 +18,6 @@ from src.compounding import (
     MARS_LIGHT_DELAY_MAX_S,
     iteration_speedup,
     compounding_factor,
-    effective_investment,
-    tau_reduction_from_investment,
     orbital_delay_at_phase,
     effective_rate_at_tau,
     simulate_compounding,
@@ -35,9 +32,7 @@ from src.compounding import (
 )
 from src.entropy_shannon import (
     TAU_BASE_CURRENT_S,
-    TAU_MIN_ACHIEVABLE_S,
     STARLINK_MARS_BANDWIDTH_EXPECTED_MBPS,
-    external_rate_exponential,
 )
 
 

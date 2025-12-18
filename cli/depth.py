@@ -33,7 +33,7 @@ def cmd_adaptive_depth_run(rl_sweep_runs: int, tree_size: int, simulate: bool):
 
     # Load and display spec
     spec = load_depth_spec()
-    print(f"\nSpec loaded:")
+    print("\nSpec loaded:")
     print(f"  base_layers: {spec['base_layers']}")
     print(f"  scale_factor: {spec['scale_factor']}")
     print(f"  baseline_n: {spec['baseline_n']}")
@@ -55,7 +55,7 @@ def cmd_adaptive_depth_run(rl_sweep_runs: int, tree_size: int, simulate: bool):
         seed=42
     )
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Runs completed: {result['runs_completed']}/{result['runs_limit']}")
     print(f"  Best retention: {result['best_retention']:.5f}")
     print(f"  Best alpha: {result['best_alpha']:.5f}")
@@ -66,7 +66,7 @@ def cmd_adaptive_depth_run(rl_sweep_runs: int, tree_size: int, simulate: bool):
     if result['convergence_run']:
         print(f"  Convergence run: {result['convergence_run']}")
 
-    print(f"\nSLO VALIDATION:")
+    print("\nSLO VALIDATION:")
     ret_ok = result['best_retention'] >= RETENTION_QUICK_WIN_TARGET
     print(f"  Retention >= {RETENTION_QUICK_WIN_TARGET}: {'PASS' if ret_ok else 'FAIL'} ({result['best_retention']:.5f})")
 
@@ -89,7 +89,7 @@ def cmd_depth_scaling_test():
         seed=42
     )
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Informed (500 runs): {result['informed_retention']:.5f}")
     print(f"  Blind (300 runs): {result['blind_retention']:.5f}")
     print(f"  Efficiency gain: {result['efficiency_gain']:.5f}")
@@ -111,7 +111,7 @@ def cmd_compute_depth_single(tree_size: int):
 
     # Load spec
     spec = load_depth_spec()
-    print(f"\nSpec:")
+    print("\nSpec:")
     print(f"  base_layers: {spec['base_layers']}")
     print(f"  scale_factor: {spec['scale_factor']}")
     print(f"  baseline_n: {spec['baseline_n']}")
@@ -120,7 +120,7 @@ def cmd_compute_depth_single(tree_size: int):
     # Compute depth
     depth = compute_adaptive_n_depth(tree_size, 0.5)
 
-    print(f"\nFormula: layers = base + scale * log(n / baseline)")
+    print("\nFormula: layers = base + scale * log(n / baseline)")
     print(f"  base_layers: {spec['base_layers']}")
     print(f"  scale_factor * log({tree_size} / {spec['baseline_n']})")
 
@@ -132,7 +132,7 @@ def cmd_compute_depth_single(tree_size: int):
 
     # Show expected examples
     info = get_depth_scaling_info()
-    print(f"\nExpected depths table:")
+    print("\nExpected depths table:")
     for key, val in info['example_depths'].items():
         print(f"  {key}: {val} layers")
 
@@ -146,20 +146,20 @@ def cmd_depth_scaling_info():
 
     info = get_depth_scaling_info()
 
-    print(f"\nScaling Parameters:")
+    print("\nScaling Parameters:")
     print(f"  base_layers: {info['base_layers']}")
     print(f"  scale_factor: {info['scale_factor']}")
     print(f"  baseline_n: {info['baseline_n']}")
     print(f"  max_layers: {info['max_layers']}")
     print(f"  min_layers: {info['min_layers']}")
 
-    print(f"\nSweep Configuration:")
+    print("\nSweep Configuration:")
     print(f"  sweep_limit: {info['sweep_limit']}")
     print(f"  quick_target: {info['quick_target']}")
 
     print(f"\nFormula: {info['formula']}")
 
-    print(f"\nExample Depths:")
+    print("\nExample Depths:")
     for key, val in info['example_depths'].items():
         print(f"  {key}: {val} layers")
 
@@ -175,13 +175,13 @@ def cmd_efficient_sweep_info():
 
     info = get_efficient_sweep_info()
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  sweep_limit: {info['sweep_limit']}")
     print(f"  quick_win_target: {info['quick_win_target']}")
     print(f"  convergence_check_interval: {info['convergence_check_interval']}")
     print(f"  early_stopping_threshold: {info['early_stopping_threshold']}")
 
-    print(f"\nExpected Behavior:")
+    print("\nExpected Behavior:")
     print(f"  Expected convergence: {info['expected_convergence']}")
     print(f"  vs blind: {info['vs_blind']}")
 

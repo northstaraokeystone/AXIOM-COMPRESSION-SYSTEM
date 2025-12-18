@@ -26,7 +26,6 @@ from src.fractal_layers import (
     recursive_fractal,
     D5_ALPHA_FLOOR,
     D5_ALPHA_TARGET,
-    D5_ALPHA_CEILING,
     D5_UPLIFT,
     D5_TREE_MIN,
 )

@@ -22,10 +22,8 @@ Expected Results (from Grok Simulation - GNN Nonlinear):
 """
 
 import pytest
-import warnings
 import io
 from contextlib import redirect_stdout
-from typing import Dict, Any
 
 from src.gnn_cache import (
     nonlinear_retention,
@@ -43,11 +41,9 @@ from src.gnn_cache import (
     ASYMPTOTE_ALPHA,
     MIN_EFF_ALPHA_VALIDATED,
     CACHE_DEPTH_BASELINE,
-    CACHE_DEPTH_MIN,
     OVERFLOW_THRESHOLD_DAYS,
     OVERFLOW_CAPACITY_PCT,
     QUORUM_FAIL_DAYS,
-    CACHE_BREAK_DAYS,
     ENTRIES_PER_SOL,
     BLACKOUT_BASE_DAYS,
     NONLINEAR_RETENTION_FLOOR,

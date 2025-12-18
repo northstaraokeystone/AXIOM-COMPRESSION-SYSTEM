@@ -28,15 +28,10 @@ from src.pruning import (
     LN_N_TRIM_FACTOR_BASE,
     LN_N_TRIM_FACTOR_MAX,
     OVER_PRUNE_STOPRULE_THRESHOLD,
-    ENTROPY_PRUNE_THRESHOLD,
-    MIN_CONFIDENCE_THRESHOLD,
-    MIN_QUORUM_FRACTION,
-    MIN_PROOF_PATHS_RETAINED,
     entropy_prune,
     dedup_prune,
     predictive_prune,
     classify_leaf_entropy,
-    compute_alpha_uplift,
     compute_shannon_entropy,
     compute_leaf_entropy,
     generate_sample_merkle_tree,
@@ -49,12 +44,7 @@ from src.pruning import (
 )
 from src.gnn_cache import (
     nonlinear_retention_with_pruning,
-    CACHE_DEPTH_BASELINE,
-    OVERFLOW_THRESHOLD_DAYS
-)
-from src.blackout import (
-    sweep_with_pruning,
-    extended_blackout_sweep
+    CACHE_DEPTH_BASELINE
 )
 from src.reasoning import (
     extended_250d_sovereignty,

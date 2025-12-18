@@ -17,7 +17,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.sim import (
     SimConfig,
-    SimState,
     Scenario,
     initialize_sim,
     simulate_cycle,
@@ -26,8 +25,7 @@ from src.sim import (
     validate_constraints,
     emit_simulation_summary,
 )
-from src.helper import get_active_helpers
-from src.support import SupportLevel, check_completeness
+from src.support import SupportLevel
 
 
 class TestInitializeSim:

@@ -22,8 +22,6 @@ from src.roi import (
     rank_by_roi,
     update_result_roi,
     evaluate_strategy_roi,
-    ROI_GATE_DEPLOY,
-    ROI_GATE_SHADOW,
     DEFAULT_REWARD_PER_CYCLE,
     DEFAULT_PENALTY_PER_P_COST,
     DEFAULT_PENALTY_PER_C_REDUCTION,

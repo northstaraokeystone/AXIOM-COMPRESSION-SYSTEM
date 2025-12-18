@@ -19,7 +19,6 @@ Source: Grok analysis - "α and H measure different things", "e is floor not cei
 
 import pytest
 import math
-import json
 import os
 import sys
 
@@ -32,14 +31,12 @@ from src.alpha_compute import (
     isolate_layer_contribution,
     ceiling_gap,
     validate_formula,
-    get_ablation_expected,
     compute_alpha_from_layers,
     load_alpha_formula_spec,
     stoprule_invalid_retention,
     stoprule_alpha_below_floor,
     SHANNON_FLOOR_ALPHA,
     ALPHA_CEILING_TARGET,
-    RETENTION_FACTOR_MAX,
     RETENTION_FACTOR_GNN_RANGE,
     RETENTION_FACTOR_PRUNE_RANGE,
     ABLATION_MODES
@@ -51,13 +48,11 @@ from src.gnn_cache import (
     ENTROPY_ASYMPTOTE_E
 )
 from src.pruning import (
-    entropy_prune,
     generate_sample_merkle_tree,
     get_retention_factor_prune_isolated
 )
 from src.reasoning import (
     ablation_sweep,
-    compute_alpha_with_isolation,
     get_layer_contributions
 )
 from src.core import StopRule

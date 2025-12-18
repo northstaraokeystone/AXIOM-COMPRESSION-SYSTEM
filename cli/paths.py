@@ -34,7 +34,6 @@ from src.registry import (
 from src.fractal_layers import (
     d4_push,
     get_d4_info,
-    d4_recursive_fractal,
     D4_TREE_MIN,
 )
 
@@ -58,7 +57,7 @@ def cmd_path_status(path: Optional[str] = None) -> Dict[str, Any]:
         print("=" * 60)
         print(f"\nTotal paths: {status['total_paths']}")
         print(f"Ready: {status['ready_count']}")
-        print(f"\nPath details:")
+        print("\nPath details:")
         for path_name, path_status in status.get("paths", {}).items():
             ready = "READY" if path_status.get("ready") else "NOT READY"
             stage = path_status.get("status", "unknown")
@@ -104,9 +103,9 @@ def cmd_path_list() -> Dict[str, Any]:
     # Validate registry
     validation = validate_registry()
     if validation["valid"]:
-        print(f"\nRegistry: VALID")
+        print("\nRegistry: VALID")
     else:
-        print(f"\nRegistry: INVALID")
+        print("\nRegistry: INVALID")
         if validation["missing"]:
             print(f"  Missing: {validation['missing']}")
         if validation["extra"]:
@@ -228,12 +227,12 @@ def cmd_d4_info() -> Dict[str, Any]:
     print("D4 RECURSION INFO")
     print("=" * 60)
     print(f"Version: {info['version']}")
-    print(f"\nD4 Config:")
+    print("\nD4 Config:")
     print(json.dumps(info["d4_config"], indent=2))
-    print(f"\nUplift by depth:")
+    print("\nUplift by depth:")
     for depth, uplift in info["uplift_by_depth"].items():
         print(f"  Depth {depth}: +{uplift}")
-    print(f"\nExpected alpha:")
+    print("\nExpected alpha:")
     for depth, alpha in info["expected_alpha"].items():
         print(f"  {depth}: {alpha}")
 
@@ -257,7 +256,7 @@ def cmd_registry_info() -> Dict[str, Any]:
     print(f"Discovered paths: {info['discovered_paths']}")
     print(f"Registry valid: {info['registry_valid']}")
     print(f"Paths ready: {info['paths_ready']}/{info['paths_total']}")
-    print(f"\nPath statuses:")
+    print("\nPath statuses:")
     for path, status in info.get("path_statuses", {}).items():
         print(f"  {path}: {status}")
 

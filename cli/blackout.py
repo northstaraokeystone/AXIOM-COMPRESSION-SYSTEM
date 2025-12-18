@@ -8,7 +8,7 @@ Commands: blackout, blackout_sweep, simulate_timeline, extended_sweep,
 import json as json_lib
 
 from src.partition import NODE_BASELINE
-from src.timeline import sovereignty_timeline, C_BASE_DEFAULT, P_FACTOR_DEFAULT, ALPHA_DEFAULT
+from src.timeline import sovereignty_timeline, ALPHA_DEFAULT
 from src.latency import tau_penalty, effective_alpha
 from src.reroute import (
     adaptive_reroute,
@@ -54,7 +54,7 @@ def cmd_reroute(simulate: bool):
     """
     print_header("ADAPTIVE REROUTE TEST")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Algorithm: {load_reroute_spec()['algo_type']}")
     print(f"  CGR Baseline: {load_reroute_spec()['cgr_baseline']}")
     print(f"  ML Model: {load_reroute_spec()['ml_model_type']}")
@@ -64,12 +64,12 @@ def cmd_reroute(simulate: bool):
     # Test reroute boost
     boosted = apply_reroute_boost(MIN_EFF_ALPHA_FLOOR, reroute_active=True, blackout_days=0)
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Base eff_α: {MIN_EFF_ALPHA_FLOOR}")
     print(f"  Boosted eff_α: {boosted}")
     print(f"  Boost applied: +{REROUTE_ALPHA_BOOST}")
 
-    print(f"\nSLO VALIDATION:")
+    print("\nSLO VALIDATION:")
     alpha_ok = boosted >= 2.70
     print(f"  eff_α >= 2.70: {'PASS' if alpha_ok else 'FAIL'} ({boosted})")
 
@@ -100,18 +100,18 @@ def cmd_algo_info():
     print(f"\nAlgorithm: {info['algo_type']}")
     print(f"Description: {info['description']}")
 
-    print(f"\nComponents:")
+    print("\nComponents:")
     print(f"  CGR Baseline: {info['cgr_baseline']}")
     print(f"  ML Model: {info['ml_model_type']}")
 
-    print(f"\nParameters:")
+    print("\nParameters:")
     print(f"  Alpha Boost: +{info['alpha_boost']}")
     print(f"  Blackout Base: {info['blackout_base_days']} days")
     print(f"  Blackout Extended: {info['blackout_extended_days']} days")
     print(f"  Retention Factor: {info['retention_factor']}")
     print(f"  Min eff_α Floor: {info['min_eff_alpha_floor']}")
 
-    print(f"\nHybrid Architecture:")
+    print("\nHybrid Architecture:")
     print("  ┌─────────────────────────────────────────────────────┐")
     print("  │  CGR Base Layer (Deterministic)                     │")
     print("  │  - Time-varying Dijkstra on contact graph           │")
@@ -142,7 +142,7 @@ def cmd_blackout(blackout_days: int, reroute_enabled: bool, simulate: bool):
     """
     print_header(f"BLACKOUT SIMULATION ({blackout_days} days)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Blackout duration: {blackout_days} days")
     print(f"  Baseline max: {BLACKOUT_BASE_DAYS} days")
     print(f"  Extended max: {BLACKOUT_EXTENDED_DAYS} days (with reroute)")
@@ -158,13 +158,13 @@ def cmd_blackout(blackout_days: int, reroute_enabled: bool, simulate: bool):
         seed=42
     )
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Survival status: {'SURVIVED' if result['survival_status'] else 'FAILED'}")
     print(f"  Min α during: {result['min_alpha_during']}")
     print(f"  Max α drop: {result['max_alpha_drop']}")
     print(f"  Quorum failures: {result['quorum_failures']}")
 
-    print(f"\nSLO VALIDATION:")
+    print("\nSLO VALIDATION:")
     survival_ok = result['survival_status']
     alpha_ok = result['min_alpha_during'] >= MIN_EFF_ALPHA_FLOOR * 0.9
 
@@ -172,11 +172,11 @@ def cmd_blackout(blackout_days: int, reroute_enabled: bool, simulate: bool):
     print(f"  Min α acceptable: {'PASS' if alpha_ok else 'FAIL'} ({result['min_alpha_during']})")
 
     if blackout_days <= BLACKOUT_BASE_DAYS:
-        print(f"  Within baseline (43d): PASS")
+        print("  Within baseline (43d): PASS")
     elif blackout_days <= BLACKOUT_EXTENDED_DAYS and reroute_enabled:
-        print(f"  Within extended (60d) with reroute: PASS")
+        print("  Within extended (60d) with reroute: PASS")
     else:
-        print(f"  Beyond tolerance: WARNING")
+        print("  Beyond tolerance: WARNING")
 
     if simulate:
         print("\n[blackout_sim_receipt emitted above]")
@@ -192,10 +192,10 @@ def cmd_blackout_sweep(reroute_enabled: bool):
     """
     print_header("BLACKOUT STRESS SWEEP (1000 iterations)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Nodes baseline: {NODE_BASELINE}")
     print(f"  Blackout range: {BLACKOUT_BASE_DAYS}-{BLACKOUT_EXTENDED_DAYS} days")
-    print(f"  Iterations: 1000")
+    print("  Iterations: 1000")
     print(f"  Reroute enabled: {reroute_enabled}")
     print(f"  Base alpha: {MIN_EFF_ALPHA_FLOOR}")
 
@@ -210,14 +210,14 @@ def cmd_blackout_sweep(reroute_enabled: bool):
         seed=42
     )
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Survival rate: {result['survival_rate'] * 100:.1f}%")
     print(f"  Failures: {result['failures']}")
     print(f"  Avg min α: {result['avg_min_alpha']}")
     print(f"  Avg max drop: {result['avg_max_drop']}")
     print(f"  All survived: {result['all_survived']}")
 
-    print(f"\nSLO VALIDATION:")
+    print("\nSLO VALIDATION:")
     survival_ok = result['survival_rate'] == 1.0
     drop_ok = result['avg_max_drop'] < 0.05
 
@@ -242,7 +242,7 @@ def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
     """
     print_header("SOVEREIGNTY TIMELINE SIMULATION")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  c_base (initial capacity): {c_base} person-eq")
     print(f"  p_factor (propulsion growth): {p_factor}x per synod")
     print(f"  tau (latency): {tau}s ({tau/60:.1f} min)")
@@ -259,7 +259,7 @@ def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
     # Run simulation
     result = sovereignty_timeline(c_base, p_factor, ALPHA_DEFAULT, tau)
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Cycles to 10³ person-eq: {result['cycles_to_10k_person_eq']}")
     print(f"  Cycles to 10⁶ person-eq: {result['cycles_to_1M_person_eq']}")
 
@@ -268,7 +268,7 @@ def cmd_simulate_timeline(c_base: float, p_factor: float, tau: float):
 
     # Show trajectory summary
     traj = result['person_eq_trajectory']
-    print(f"\nTrajectory (first 10 cycles):")
+    print("\nTrajectory (first 10 cycles):")
     for i, val in enumerate(traj[:10]):
         marker = ""
         if val >= 1000 and (i == 0 or traj[i-1] < 1000):
@@ -293,9 +293,9 @@ def cmd_extended_sweep(start_days: int, end_days: int, simulate: bool):
     """
     print_header(f"EXTENDED BLACKOUT SWEEP ({start_days}-{end_days}d)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Sweep range: {start_days}-{end_days} days")
-    print(f"  Iterations: 1000")
+    print("  Iterations: 1000")
     print(f"  Validated floor: {MIN_EFF_ALPHA_VALIDATED}")
     print(f"  Reroute boost (locked): +{REROUTING_ALPHA_BOOST_LOCKED}")
 
@@ -307,7 +307,7 @@ def cmd_extended_sweep(start_days: int, end_days: int, simulate: bool):
         seed=42
     )
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  All survived: {result['all_survived']}")
     print(f"  Survival rate: {result['survival_rate'] * 100:.1f}%")
     print(f"  Avg α: {result['avg_alpha']}")
@@ -315,13 +315,13 @@ def cmd_extended_sweep(start_days: int, end_days: int, simulate: bool):
     print(f"  α at 60d: {result['alpha_at_60d']}")
     print(f"  α at 90d: {result['alpha_at_90d']}")
 
-    print(f"\nRETENTION FLOOR:")
+    print("\nRETENTION FLOOR:")
     floor = result['retention_floor']
     print(f"  Min retention: {floor['min_retention']}")
     print(f"  Days at min: {floor['days_at_min']}")
     print(f"  α at min: {floor['alpha_at_min']}")
 
-    print(f"\nASSERTION VALIDATION:")
+    print("\nASSERTION VALIDATION:")
     assertions = result['assertions_passed']
     print(f"  α(60d) >= 2.69: {'PASS' if assertions['alpha_60_ge_2.69'] else 'FAIL'}")
     print(f"  α(90d) >= 2.65: {'PASS' if assertions['alpha_90_ge_2.65'] else 'FAIL'}")
@@ -336,10 +336,10 @@ def cmd_retention_curve():
     """Output retention curve data as JSON."""
     print_header("RETENTION CURVE DATA")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Range: {BLACKOUT_BASE_DAYS}-{BLACKOUT_SWEEP_MAX_DAYS} days")
     print(f"  Base retention: {RETENTION_BASE_FACTOR}")
-    print(f"  Degradation model: linear")
+    print("  Degradation model: linear")
 
     curve_data = generate_retention_curve_data((BLACKOUT_BASE_DAYS, BLACKOUT_SWEEP_MAX_DAYS))
 
@@ -384,7 +384,7 @@ def cmd_gnn_stub():
     print(f"Not implemented: {result['not_implemented']}")
     print(f"Next gate: {result['next_gate']}")
 
-    print(f"\nParameter config:")
+    print("\nParameter config:")
     print(json_lib.dumps(param_config, indent=2))
 
     print(f"\nDescription: {result['description']}")
@@ -403,7 +403,7 @@ def cmd_gnn_nonlinear(blackout_days: int, cache_depth: int, simulate: bool):
     """
     print_header(f"GNN NONLINEAR RETENTION ({blackout_days} days)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Blackout duration: {blackout_days} days")
     print(f"  Cache depth: {cache_depth:,} entries")
     print(f"  Asymptote alpha: {GNN_ASYMPTOTE_ALPHA}")
@@ -412,14 +412,14 @@ def cmd_gnn_nonlinear(blackout_days: int, cache_depth: int, simulate: bool):
     try:
         result = nonlinear_retention(blackout_days, cache_depth)
 
-        print(f"\nRESULTS:")
+        print("\nRESULTS:")
         print(f"  Retention factor: {result['retention_factor']}")
         print(f"  Effective alpha: {result['eff_alpha']}")
         print(f"  Asymptote proximity: {result['asymptote_proximity']}")
         print(f"  GNN boost: {result['gnn_boost']}")
         print(f"  Curve type: {result['curve_type']}")
 
-        print(f"\nSLO VALIDATION:")
+        print("\nSLO VALIDATION:")
         asymptote_ok = result['asymptote_proximity'] <= 0.02
         print(f"  Asymptote proximity <= 0.02: {'PASS' if asymptote_ok else 'FAIL'} ({result['asymptote_proximity']})")
 
@@ -444,11 +444,11 @@ def cmd_cache_sweep(simulate: bool):
     cache_depths = [int(1e7), int(1e8), int(1e9), int(1e10)]
     test_days = [90, 150, 180, 200]
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Cache depths: {[f'{d:.0e}' for d in cache_depths]}")
     print(f"  Test durations: {test_days} days")
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  {'Depth':>12} | {'90d':>10} | {'150d':>10} | {'180d':>10} | {'200d':>10}")
     print(f"  {'-'*12}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}")
 
@@ -478,10 +478,10 @@ def cmd_extreme_sweep(max_days: int, cache_depth: int, simulate: bool):
     """
     print_header(f"EXTREME BLACKOUT SWEEP (43-{max_days}d)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Day range: 43-{max_days} days")
     print(f"  Cache depth: {cache_depth:,} entries")
-    print(f"  Iterations: 100 (abbreviated)")
+    print("  Iterations: 100 (abbreviated)")
 
     result = extreme_blackout_sweep_200d(
         day_range=(43, max_days),
@@ -490,7 +490,7 @@ def cmd_extreme_sweep(max_days: int, cache_depth: int, simulate: bool):
         seed=42
     )
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Total sweeps: {result['total_sweeps']}")
     print(f"  Overflow events: {result['overflow_events']}")
     print(f"  Survival events: {result['survival_events']}")
@@ -511,14 +511,14 @@ def cmd_overflow_test(simulate: bool):
     """
     print_header("CACHE OVERFLOW DETECTION TEST")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Overflow threshold: {OVERFLOW_THRESHOLD_DAYS} days")
     print(f"  Cache baseline: {CACHE_DEPTH_BASELINE:,} entries")
 
     # Test overflow detection
     test_days = [180, 190, 200, 201]
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     for days in test_days:
         overflow_result = predict_overflow(days, CACHE_DEPTH_BASELINE)
         overflow = overflow_result["overflow_risk"] >= 0.95

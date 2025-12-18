@@ -1,0 +1,112 @@
+{
+  "version": "1.0.0",
+  "description": "D7 recursion + Europa ice drilling + NREL perovskite + expanded AGI audit configuration",
+  "d7_config": {
+    "recursion_depth": 7,
+    "alpha_floor": 3.38,
+    "alpha_target": 3.40,
+    "alpha_ceiling": 3.42,
+    "instability_max": 0.00,
+    "tree_min": 1000000000000,
+    "uplift": 0.20
+  },
+  "uplift_by_depth": {
+    "1": 0.05,
+    "2": 0.09,
+    "3": 0.122,
+    "4": 0.148,
+    "5": 0.168,
+    "6": 0.185,
+    "7": 0.20
+  },
+  "depth_contributions": {
+    "1": {
+      "contribution": 0.05,
+      "decay_factor": 1.0,
+      "cumulative": 0.05
+    },
+    "2": {
+      "contribution": 0.04,
+      "decay_factor": 0.8,
+      "cumulative": 0.09
+    },
+    "3": {
+      "contribution": 0.032,
+      "decay_factor": 0.64,
+      "cumulative": 0.122
+    },
+    "4": {
+      "contribution": 0.0256,
+      "decay_factor": 0.512,
+      "cumulative": 0.148
+    },
+    "5": {
+      "contribution": 0.02048,
+      "decay_factor": 0.4096,
+      "cumulative": 0.168
+    },
+    "6": {
+      "contribution": 0.01638,
+      "decay_factor": 0.3277,
+      "cumulative": 0.185
+    },
+    "7": {
+      "contribution": 0.01311,
+      "decay_factor": 0.2621,
+      "cumulative": 0.20
+    }
+  },
+  "expected_alpha": {
+    "depth_1": 3.04,
+    "depth_2": 3.08,
+    "depth_3": 3.12,
+    "depth_4": 3.148,
+    "depth_5": 3.168,
+    "depth_6": 3.185,
+    "depth_7": 3.20
+  },
+  "europa_config": {
+    "body": "europa",
+    "resource": "water_ice",
+    "ice_thickness_km": 15,
+    "ocean_depth_km": 100,
+    "surface_temp_k": 110,
+    "autonomy_requirement": 0.95,
+    "latency_min": [33, 53],
+    "earth_callback_max_pct": 0.05,
+    "ice_density_kg_m3": 917,
+    "drill_rate_m_hr": 2.0
+  },
+  "nrel_config": {
+    "source": "NREL Perovskite Reports 2024",
+    "lab_efficiency": 0.256,
+    "degradation_rate_annual": 0.02,
+    "target_stability_years": 25,
+    "scaling_factor": 3.33,
+    "moxie_baseline": 0.06
+  },
+  "expanded_audit_config": {
+    "injection_types": ["prompt", "data", "model"],
+    "poisoning_types": ["training", "inference", "feedback"],
+    "recovery_threshold": 0.95,
+    "test_iterations": 100,
+    "misalignment_threshold": 0.85
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min_d7": 3.38,
+    "europa_autonomy_min": 0.95,
+    "nrel_efficiency_min": 0.256,
+    "expanded_audit_recovery_min": 0.95,
+    "scale_decay_threshold": 0.02,
+    "receipt_required": "d7_fractal_receipt",
+    "europa_receipt_required": "europa_ice_receipt",
+    "nrel_receipt_required": "nrel_validation_receipt",
+    "expanded_audit_receipt_required": "expanded_audit_receipt"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM D7 recursion + Europa ice + NREL + expanded audits - alpha 3.40+ target"
+}

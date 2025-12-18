@@ -398,7 +398,7 @@ def run_multi_scale_validation() -> Dict[str, Any]:
     # Validate scalability (may raise stoprule)
     try:
         scalability_valid = validate_scalability(sweep_results)
-    except StopRule as e:
+    except StopRule:
         scalability_valid = False
 
     # Execute gate

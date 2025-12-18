@@ -22,20 +22,14 @@ from src.timeline import (
     validate_grok_table,
     allocation_to_multiplier,
     compute_years_to_threshold,
-    compare_to_optimal,
     format_timeline_table,
     project_sovereignty_date,
     sovereignty_timeline,
-    TimelineConfig,
-    TimelineProjection,
     THRESHOLD_PERSON_EQUIVALENT,
     YEARS_40PCT,
     YEARS_25PCT,
     YEARS_15PCT,
     YEARS_0PCT,
-    C_BASE_DEFAULT,
-    P_FACTOR_DEFAULT,
-    ALPHA_DEFAULT,
 )
 from src.latency import tau_penalty, effective_alpha
 

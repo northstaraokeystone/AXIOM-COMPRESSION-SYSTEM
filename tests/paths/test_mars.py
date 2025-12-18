@@ -11,7 +11,6 @@ Tests:
 Source: AXIOM scalable paths architecture - Mars autonomous habitat
 """
 
-import pytest
 
 
 def test_mars_spec_loads():

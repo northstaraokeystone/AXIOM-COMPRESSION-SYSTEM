@@ -17,9 +17,7 @@ from src.calibration import (
     combine_proxies,
     validate_alpha_range,
     compute_data_quality,
-    CalibrationConfig,
     CalibrationInput,
-    CalibrationOutput,
     ALPHA_MIN_PLAUSIBLE,
     ALPHA_MAX_PLAUSIBLE,
     ALPHA_BASELINE,
@@ -38,7 +36,6 @@ from src.calibration import (
     ALPHA_EMPIRICAL_LOW,
     ALPHA_EMPIRICAL_HIGH,
 )
-from src.core import StopRule
 
 
 class TestFsdToAlphaProxy:

@@ -12,9 +12,6 @@ Test categories:
 Source: Grok - "Validate at 10^9", "Gate before 3.1 push"
 """
 
-import pytest
-import json
-import sys
 import io
 from contextlib import redirect_stdout
 

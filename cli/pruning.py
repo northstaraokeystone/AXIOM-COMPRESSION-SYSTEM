@@ -32,7 +32,7 @@ def cmd_entropy_prune(blackout_days: int, trim_factor: float, hybrid: bool, simu
     """
     print_header(f"ENTROPY PRUNING TEST ({blackout_days} days)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  ENTROPY_ASYMPTOTE_E: {ENTROPY_ASYMPTOTE_E} (physics constant)")
     print(f"  Trim factor: {trim_factor}")
     print(f"  Hybrid mode: {hybrid}")
@@ -46,7 +46,7 @@ def cmd_entropy_prune(blackout_days: int, trim_factor: float, hybrid: bool, simu
     # Run entropy pruning
     result = entropy_prune(tree, trim_factor=trim_factor, hybrid=hybrid)
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Branches pruned: {result['branches_pruned']}")
     print(f"  Entropy before: {result['entropy_before']}")
     print(f"  Entropy after: {result['entropy_after']}")
@@ -86,11 +86,11 @@ def cmd_pruning_sweep(simulate: bool):
     trim_factors = [0.1, 0.2, 0.3, 0.4, 0.5]
     test_days = [150, 200, 250]
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Trim factors: {trim_factors}")
     print(f"  Test durations: {test_days} days")
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  {'Trim':>8} | {'150d':>10} | {'200d':>10} | {'250d':>10}")
     print(f"  {'-'*8}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}")
 
@@ -123,7 +123,7 @@ def cmd_extended_250d(simulate: bool):
     """
     print_header("EXTENDED 250d SOVEREIGNTY PROJECTION")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Target days: {BLACKOUT_PRUNING_TARGET_DAYS}")
     print(f"  Target alpha: {PRUNING_TARGET_ALPHA}")
     print(f"  Overflow threshold (pruned): {OVERFLOW_THRESHOLD_DAYS_PRUNED}")
@@ -135,7 +135,7 @@ def cmd_extended_250d(simulate: bool):
         blackout_days=BLACKOUT_PRUNING_TARGET_DAYS
     )
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Effective alpha: {result['effective_alpha']}")
     print(f"  Target achieved: {result['target_achieved']}")
     print(f"  Pruning boost: {result['pruning_boost']}")
@@ -143,7 +143,7 @@ def cmd_extended_250d(simulate: bool):
     print(f"  Cycles to 10K: {result['cycles_to_10k_person_eq']}")
     print(f"  Cycles to 1M: {result['cycles_to_1M_person_eq']}")
 
-    print(f"\nSLO VALIDATION:")
+    print("\nSLO VALIDATION:")
     alpha_ok = result['effective_alpha'] >= PRUNING_TARGET_ALPHA
     overflow_ok = result['overflow_margin'] >= 0
     print(f"  Alpha >= {PRUNING_TARGET_ALPHA}: {'PASS' if alpha_ok else 'FAIL'} ({result['effective_alpha']})")
@@ -164,9 +164,9 @@ def cmd_verify_chain(trim_factor: float, simulate: bool):
     """
     print_header("CHAIN INTEGRITY VERIFICATION")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Trim factor: {trim_factor}")
-    print(f"  Test iterations: 10")
+    print("  Test iterations: 10")
 
     all_passed = True
     for i in range(10):
@@ -196,20 +196,20 @@ def cmd_pruning_info():
 
     info = get_pruning_info()
 
-    print(f"\nPhysics Constants:")
+    print("\nPhysics Constants:")
     print(f"  ENTROPY_ASYMPTOTE_E: {info['entropy_asymptote_e']} (Shannon bound, NOT tunable)")
     print(f"  PRUNING_TARGET_ALPHA: {info['pruning_target_alpha']}")
 
-    print(f"\nTrim Factor Range:")
+    print("\nTrim Factor Range:")
     print(f"  Base: {info['ln_n_trim_factor_base']} (conservative)")
     print(f"  Max: {info['ln_n_trim_factor_max']} (aggressive)")
 
-    print(f"\nThresholds:")
+    print("\nThresholds:")
     print(f"  Entropy prune threshold: {info['entropy_prune_threshold']}")
     print(f"  Min confidence: {info['min_confidence_threshold']}")
     print(f"  Min quorum fraction: {info['min_quorum_fraction']:.2%}")
 
-    print(f"\nTargets:")
+    print("\nTargets:")
     print(f"  Blackout target days: {info['blackout_pruning_target_days']}")
     print(f"  Overflow threshold (pruned): {info['overflow_threshold_pruned_days']}")
 

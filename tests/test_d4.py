@@ -11,8 +11,6 @@ Tests:
 Source: AXIOM D4 recursion architecture
 """
 
-import json
-import pytest
 
 
 def test_d4_spec_loads():

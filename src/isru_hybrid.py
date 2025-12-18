@@ -26,13 +26,12 @@ Source: NASA Perseverance MOXIE, Grok D5+ISRU hybrid spec
 
 import json
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from .core import emit_receipt, dual_hash
 from .fractal_layers import (
     get_d5_spec,
     d5_recursive_fractal,
-    get_scale_factor,
     D5_ALPHA_TARGET,
     D5_UPLIFT,
     D5_TREE_MIN,

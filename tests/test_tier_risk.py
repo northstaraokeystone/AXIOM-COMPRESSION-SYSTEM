@@ -23,7 +23,6 @@ from src.tier_risk import (
     risk_summary,
     format_risk_assessment,
     RiskTier,
-    TierRiskProfile,
     TIER_1_PROB_RANGE,
     TIER_2_PROB_RANGE,
     TIER_3_PROB_RANGE,

@@ -9,14 +9,11 @@ Commands for D5+ISRU hybrid operations:
 - cmd_d5_info: Show D5 configuration
 """
 
-import json
 from typing import Dict, Any
 
 from src.fractal_layers import (
-    get_d5_spec,
     get_d5_info,
     d5_push,
-    d5_recursive_fractal,
     D5_ALPHA_TARGET,
     D5_ALPHA_FLOOR,
     D5_ALPHA_CEILING,

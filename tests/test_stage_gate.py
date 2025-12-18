@@ -16,7 +16,6 @@ from src.stage_gate import (
     check_gate_slos,
     simulate_gate_progression,
     get_gate_recommendation,
-    StageGateConfig,
     StageGateState,
     STAGE_GATE_INITIAL,
     STAGE_GATE_TRIGGER_ALPHA,
@@ -24,7 +23,6 @@ from src.stage_gate import (
     STAGE_GATE_WINDOW_MONTHS,
     STAGE_GATE_MAX_AUTONOMY,
     STAGE_GATE_MIN_PROPULSION,
-    ALPHA_CONFIDENCE_THRESHOLD,
 )
 
 

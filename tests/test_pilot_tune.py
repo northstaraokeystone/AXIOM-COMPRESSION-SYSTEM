@@ -194,13 +194,13 @@ class TestTargetNarrowRange:
         """Verify target_narrow_min is 0.002."""
         from src.rl_tune import load_pilot_spec
         spec = load_pilot_spec()
-        assert spec["target_narrow_min"] == 0.002, f"target_narrow_min should be 0.002"
+        assert spec["target_narrow_min"] == 0.002, "target_narrow_min should be 0.002"
 
     def test_target_narrow_max(self, suppress_receipts, clear_cache):
         """Verify target_narrow_max is 0.008."""
         from src.rl_tune import load_pilot_spec
         spec = load_pilot_spec()
-        assert spec["target_narrow_max"] == 0.008, f"target_narrow_max should be 0.008"
+        assert spec["target_narrow_max"] == 0.008, "target_narrow_max should be 0.008"
 
 
 # === TEST 6: PILOT 50 RUNS ===

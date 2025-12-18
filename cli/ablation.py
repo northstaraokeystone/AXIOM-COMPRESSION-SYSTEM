@@ -32,7 +32,7 @@ def cmd_ablate(mode: str, blackout_days: int, simulate: bool):
     """
     print_header(f"ABLATION TEST: {mode.upper()} ({blackout_days} days)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Ablation mode: {mode}")
     print(f"  Blackout duration: {blackout_days} days")
     print(f"  Shannon floor: {SHANNON_FLOOR_ALPHA}")
@@ -53,7 +53,7 @@ def cmd_ablate(mode: str, blackout_days: int, simulate: bool):
             ablation_mode=mode
         )
 
-        print(f"\nRESULTS:")
+        print("\nRESULTS:")
         print(f"  Effective alpha: {result['eff_alpha']}")
         print(f"  Retention factor: {result['retention_factor']}")
         print(f"  GNN boost: {result['gnn_boost']}")
@@ -64,7 +64,7 @@ def cmd_ablate(mode: str, blackout_days: int, simulate: bool):
         alpha_min, alpha_max = expected['alpha_range']
         alpha_ok = alpha_min <= result['eff_alpha'] <= alpha_max
 
-        print(f"\nVALIDATION:")
+        print("\nVALIDATION:")
         print(f"  Alpha in expected range: {'PASS' if alpha_ok else 'FAIL'} ({result['eff_alpha']} in {expected['alpha_range']})")
 
         if simulate:
@@ -87,10 +87,10 @@ def cmd_ablation_sweep(blackout_days: int, simulate: bool):
     """
     print_header(f"ABLATION SWEEP ({blackout_days} days)")
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Ablation modes: {ABLATION_MODES}")
     print(f"  Blackout duration: {blackout_days} days")
-    print(f"  Iterations per mode: 100")
+    print("  Iterations per mode: 100")
     print(f"  Shannon floor: {SHANNON_FLOOR_ALPHA}")
     print(f"  Ceiling target: {ALPHA_CEILING_TARGET}")
 
@@ -103,7 +103,7 @@ def cmd_ablation_sweep(blackout_days: int, simulate: bool):
         seed=42
     )
 
-    print(f"\nRESULTS BY MODE:")
+    print("\nRESULTS BY MODE:")
     print(f"  {'Mode':<12} | {'Avg Alpha':>10} | {'Min':>8} | {'Max':>8} | {'Success':>8}")
     print(f"  {'-'*12}-+-{'-'*10}-+-{'-'*8}-+-{'-'*8}-+-{'-'*8}")
 
@@ -112,17 +112,17 @@ def cmd_ablation_sweep(blackout_days: int, simulate: bool):
             m = result["results_by_mode"][mode]
             print(f"  {mode:<12} | {m['avg_alpha']:>10.4f} | {m['min_alpha']:>8.4f} | {m['max_alpha']:>8.4f} | {m['successful']:>8}")
 
-    print(f"\nORDERING VALIDATION:")
-    print(f"  Expected: baseline < no_prune < no_cache < full")
+    print("\nORDERING VALIDATION:")
+    print("  Expected: baseline < no_prune < no_cache < full")
     print(f"  Ordering valid: {'PASS' if result['ordering_valid'] else 'FAIL'}")
 
-    print(f"\nLAYER CONTRIBUTIONS:")
+    print("\nLAYER CONTRIBUTIONS:")
     lc = result["layer_contributions"]
     print(f"  GNN contribution: {lc['gnn_contribution']:.4f}")
     print(f"  Prune contribution: {lc['prune_contribution']:.4f}")
     print(f"  Total uplift: {lc['total_uplift']}")
 
-    print(f"\nCEILING ANALYSIS:")
+    print("\nCEILING ANALYSIS:")
     gap = result["gap_to_ceiling"]
     print(f"  Current alpha: {gap['current_alpha']}")
     print(f"  Ceiling target: {gap['ceiling_target']}")
@@ -145,21 +145,21 @@ def cmd_ceiling_track(current_alpha: float):
 
     result = ceiling_gap(current_alpha, ALPHA_CEILING_TARGET)
 
-    print(f"\nCurrent Status:")
+    print("\nCurrent Status:")
     print(f"  Current alpha: {result['current_alpha']}")
     print(f"  Ceiling target: {result['ceiling_target']}")
     print(f"  Shannon floor: {SHANNON_FLOOR_ALPHA}")
 
-    print(f"\nGap Analysis:")
+    print("\nGap Analysis:")
     print(f"  Gap absolute: {result['gap_absolute']}")
     print(f"  Gap percentage: {result['gap_pct']:.1f}%")
 
-    print(f"\nRetention Analysis:")
+    print("\nRetention Analysis:")
     print(f"  Current retention factor: {result['retention_factor_current']}")
     print(f"  Retention needed: {result['retention_factor_needed']}")
     print(f"  Retention delta: {result['retention_factor_delta']}")
 
-    print(f"\nPath to Ceiling:")
+    print("\nPath to Ceiling:")
     print(f"  {result['path_to_ceiling']}")
 
     print("\n[ceiling_track receipt emitted above]")
@@ -170,7 +170,7 @@ def cmd_formula_check():
     """Validate alpha formula with example values."""
     print_header("ALPHA FORMULA VALIDATION")
 
-    print(f"\nFormula: alpha = (min_eff / baseline) * retention_factor")
+    print("\nFormula: alpha = (min_eff / baseline) * retention_factor")
     print(f"Shannon floor (e): {SHANNON_FLOOR_ALPHA}")
     print(f"Ceiling target: {ALPHA_CEILING_TARGET}")
 
@@ -180,7 +180,7 @@ def cmd_formula_check():
         (math.e, 1.0, 1.10, ALPHA_CEILING_TARGET, "Ceiling case"),
     ]
 
-    print(f"\nTest Cases:")
+    print("\nTest Cases:")
     print(f"  {'min_eff':>10} | {'baseline':>10} | {'retention':>10} | {'expected':>10} | {'computed':>10} | {'status':>8}")
     print(f"  {'-'*10}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}-+-{'-'*8}")
 
@@ -192,7 +192,7 @@ def cmd_formula_check():
             passed = abs(computed - expected) < 0.01
             all_pass = all_pass and passed
             print(f"  {min_eff:>10.4f} | {baseline:>10.4f} | {retention:>10.4f} | {expected:>10.4f} | {computed:>10.4f} | {'PASS' if passed else 'FAIL':>8}")
-        except Exception as e:
+        except Exception:
             print(f"  {min_eff:>10.4f} | {baseline:>10.4f} | {retention:>10.4f} | {expected:>10.4f} | {'ERROR':>10} | {'FAIL':>8}")
             all_pass = False
 
@@ -213,27 +213,27 @@ def cmd_isolate_layers(blackout_days: int, simulate: bool):
 
     result = get_layer_contributions(blackout_days, 0.3)
 
-    print(f"\nGNN Layer:")
+    print("\nGNN Layer:")
     gnn = result["gnn_layer"]
     print(f"  Retention factor: {gnn['retention_factor']}")
     print(f"  Contribution: {gnn['contribution_pct']}%")
     print(f"  Alpha with GNN only: {gnn['alpha_with_gnn_only']}")
     print(f"  Expected range: {gnn['range_expected']}")
 
-    print(f"\nPruning Layer:")
+    print("\nPruning Layer:")
     prune = result["prune_layer"]
     print(f"  Retention factor: {prune['retention_factor']}")
     print(f"  Contribution: {prune['contribution_pct']}%")
     print(f"  Alpha with prune only: {prune['alpha_with_prune_only']}")
     print(f"  Expected range: {prune['range_expected']}")
 
-    print(f"\nCompound:")
+    print("\nCompound:")
     compound = result["compound"]
     print(f"  Compound retention: {compound['compound_retention']}")
     print(f"  Full alpha: {compound['full_alpha']}")
     print(f"  Total uplift from floor: {compound['total_uplift_from_floor']}")
 
-    print(f"\nCeiling Analysis:")
+    print("\nCeiling Analysis:")
     ceiling = result["ceiling_analysis"]
     print(f"  Gap to ceiling: {ceiling['gap_pct']:.1f}%")
     print(f"  Path: {ceiling['path_to_ceiling']}")

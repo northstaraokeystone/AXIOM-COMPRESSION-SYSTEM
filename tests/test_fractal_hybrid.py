@@ -10,24 +10,15 @@
 """
 
 import json
-import math
-import pytest
-from io import StringIO
-import sys
 
 from src.fractal_layers import (
     multi_scale_fractal,
     compute_fractal_dimension,
     cross_scale_correlation,
-    fractal_entropy,
     get_fractal_hybrid_spec,
-    get_fractal_layers_info,
-    scale_adjusted_correlation,
-    get_scale_factor,
     FRACTAL_SCALES,
     FRACTAL_DIM_MIN,
     FRACTAL_DIM_MAX,
-    FRACTAL_UPLIFT,
     CROSS_SCALE_CORRELATION_MIN,
     CROSS_SCALE_CORRELATION_MAX,
 )

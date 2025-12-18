@@ -11,7 +11,6 @@ Tests cover:
 - Receipts (5 tests)
 """
 
-import json
 import pytest
 
 from src.hybrid_benchmark import (
@@ -31,8 +30,6 @@ from src.fractal_layers import (
     recursive_fractal_sweep,
     get_recursive_fractal_info,
     FRACTAL_RECURSION_MAX_DEPTH,
-    FRACTAL_RECURSION_DEFAULT_DEPTH,
-    FRACTAL_RECURSION_DECAY,
     FRACTAL_UPLIFT,
 )
 

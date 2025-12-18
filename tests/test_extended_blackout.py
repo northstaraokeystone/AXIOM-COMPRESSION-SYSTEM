@@ -18,7 +18,6 @@ Expected Results (from Grok Simulation):
 
 import pytest
 import warnings
-from typing import Dict, Any
 
 from src.blackout import (
     retention_curve,
@@ -27,8 +26,6 @@ from src.blackout import (
     generate_retention_curve_data,
     find_retention_floor,
     gnn_sensitivity_stub,
-    BLACKOUT_BASE_DAYS,
-    BLACKOUT_SWEEP_MAX_DAYS,
     RETENTION_BASE_FACTOR,
     MIN_EFF_ALPHA_VALIDATED,
     REROUTING_ALPHA_BOOST_LOCKED,

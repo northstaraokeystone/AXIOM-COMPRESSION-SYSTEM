@@ -12,7 +12,6 @@ Tests:
 Source: AXIOM scalable paths architecture - AGI ethics modeling
 """
 
-import pytest
 
 
 def test_agi_spec_loads():

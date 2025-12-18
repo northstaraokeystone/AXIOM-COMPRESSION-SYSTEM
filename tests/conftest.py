@@ -17,8 +17,6 @@ def suppress_receipts(monkeypatch):
 
     Use this fixture when you don't want receipts printed to stdout.
     """
-    import io
-    from contextlib import redirect_stdout
 
     def captured_print(*args, **kwargs):
         pass

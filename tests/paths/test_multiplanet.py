@@ -11,7 +11,6 @@ Tests:
 Source: AXIOM scalable paths architecture - Multi-planet expansion
 """
 
-import pytest
 
 
 def test_multiplanet_spec_loads():

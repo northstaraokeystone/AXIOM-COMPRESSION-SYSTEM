@@ -5,7 +5,6 @@ Tests for SPARC, MOXIE, and ISS ECLSS data loading with provenance receipts.
 Source: AXIOM Validation Lock v1
 """
 
-import pytest
 import numpy as np
 
 

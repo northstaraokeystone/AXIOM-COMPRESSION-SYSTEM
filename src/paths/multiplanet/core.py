@@ -495,3 +495,215 @@ def simulate_titan_methane(
 
     emit_path_receipt("multiplanet", "titan_simulate", result)
     return result
+
+
+# === EUROPA INTEGRATION ===
+
+
+def integrate_europa(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire Europa ice drilling to multi-planet path.
+
+    Args:
+        config: Optional Europa config override
+
+    Returns:
+        Dict with Europa integration results
+
+    Receipt: mp_europa_integrate
+    """
+    # Import Europa module
+    from ...europa_ice_hybrid import (
+        load_europa_config,
+        simulate_drilling,
+        EUROPA_AUTONOMY_REQUIREMENT,
+    )
+
+    if config is None:
+        config = load_europa_config()
+
+    # Get Europa body config
+    europa_body = get_body_config("europa")
+
+    # Run drilling simulation
+    drilling = simulate_drilling(depth_m=1000, duration_days=30)
+
+    result = {
+        "integrated": True,
+        "body": "europa",
+        "body_config": europa_body,
+        "europa_config": config,
+        "drilling_simulation": {
+            "depth_m": drilling["actual_depth_m"],
+            "water_kg": drilling["water_extracted_kg"],
+            "energy_kwh": drilling["melting_energy_kwh"],
+            "autonomy_achieved": drilling["autonomy_achieved"],
+        },
+        "autonomy_requirement": EUROPA_AUTONOMY_REQUIREMENT,
+        "autonomy_met": drilling["autonomy_achieved"] >= EUROPA_AUTONOMY_REQUIREMENT,
+        "sequence_position": EXPANSION_SEQUENCE.index("europa") + 1,
+        "tenant_id": MULTIPLANET_TENANT_ID
+    }
+
+    emit_path_receipt("multiplanet", "europa_integrate", result)
+    return result
+
+
+def compute_europa_autonomy() -> float:
+    """Compute Europa-specific autonomy metrics.
+
+    Returns:
+        Autonomy level (0-1)
+
+    Receipt: mp_europa_autonomy
+    """
+    # Import Europa module
+    from ...europa_ice_hybrid import (
+        load_europa_config,
+        simulate_drilling,
+    )
+
+    config = load_europa_config()
+    drilling = simulate_drilling(depth_m=1000, duration_days=30)
+
+    autonomy = drilling["autonomy_achieved"]
+
+    result = {
+        "body": "europa",
+        "autonomy_achieved": autonomy,
+        "autonomy_required": config["autonomy_requirement"],
+        "autonomy_met": autonomy >= config["autonomy_requirement"],
+        "latency_min": config["latency_min"],
+        "earth_callback_max_pct": config["earth_callback_max_pct"],
+        "tenant_id": MULTIPLANET_TENANT_ID
+    }
+
+    emit_path_receipt("multiplanet", "europa_autonomy", result)
+    return autonomy
+
+
+def simulate_europa_drilling(
+    depth_m: int = 1000,
+    duration_days: int = 30,
+    drill_rate_m_hr: float = 2.0
+) -> Dict[str, Any]:
+    """Run Europa drilling simulation within multiplanet context.
+
+    Args:
+        depth_m: Target drill depth in meters
+        duration_days: Simulation duration
+        drill_rate_m_hr: Drilling rate
+
+    Returns:
+        Dict with simulation results
+
+    Receipt: mp_europa_simulate
+    """
+    # Import Europa module
+    from ...europa_ice_hybrid import (
+        simulate_drilling,
+        ice_to_water,
+        EUROPA_AUTONOMY_REQUIREMENT,
+    )
+
+    # Run drilling simulation
+    drilling = simulate_drilling(depth_m, duration_days, drill_rate_m_hr)
+
+    # Get water conversion metrics
+    water = ice_to_water(drilling["ice_mass_kg"])
+
+    result = {
+        "body": "europa",
+        "simulation_type": "ice_drilling",
+        "depth_m": depth_m,
+        "duration_days": duration_days,
+        "drill_rate_m_hr": drill_rate_m_hr,
+        "drilling": {
+            "actual_depth_m": drilling["actual_depth_m"],
+            "ice_mass_kg": drilling["ice_mass_kg"],
+            "water_kg": drilling["water_extracted_kg"],
+            "autonomy_achieved": drilling["autonomy_achieved"],
+        },
+        "water_conversion": water,
+        "autonomy_met": drilling["autonomy_achieved"] >= EUROPA_AUTONOMY_REQUIREMENT,
+        "sequence": EXPANSION_SEQUENCE,
+        "tenant_id": MULTIPLANET_TENANT_ID
+    }
+
+    emit_path_receipt("multiplanet", "europa_simulate", result)
+    return result
+
+
+# === JOVIAN MOON COORDINATION ===
+
+
+def coordinate_jovian_moons(
+    titan_config: Optional[Dict[str, Any]] = None,
+    europa_config: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """Coordinate Titan and Europa operations as Jovian subsystem.
+
+    Args:
+        titan_config: Optional Titan config override
+        europa_config: Optional Europa config override
+
+    Returns:
+        Dict with coordination results
+
+    Receipt: mp_jovian_coordinate
+    """
+    # Import modules
+    from ...titan_methane_hybrid import (
+        load_titan_config,
+        simulate_harvest,
+        TITAN_AUTONOMY_REQUIREMENT,
+    )
+    from ...europa_ice_hybrid import (
+        load_europa_config,
+        simulate_drilling,
+        EUROPA_AUTONOMY_REQUIREMENT,
+    )
+
+    if titan_config is None:
+        titan_config = load_titan_config()
+    if europa_config is None:
+        europa_config = load_europa_config()
+
+    # Run simulations
+    titan_result = simulate_harvest(duration_days=30)
+    europa_result = simulate_drilling(depth_m=1000, duration_days=30)
+
+    # Compute combined Jovian autonomy
+    titan_autonomy = titan_result["autonomy_achieved"]
+    europa_autonomy = europa_result["autonomy_achieved"]
+
+    # Combined autonomy is weighted by distance (Titan further)
+    combined_autonomy = (titan_autonomy * 0.6) + (europa_autonomy * 0.4)
+
+    result = {
+        "subsystem": "jovian",
+        "bodies": ["titan", "europa"],
+        "titan": {
+            "autonomy_achieved": titan_autonomy,
+            "autonomy_required": TITAN_AUTONOMY_REQUIREMENT,
+            "autonomy_met": titan_autonomy >= TITAN_AUTONOMY_REQUIREMENT,
+            "resource": "methane",
+            "processed_kg": titan_result["processed_kg"],
+        },
+        "europa": {
+            "autonomy_achieved": europa_autonomy,
+            "autonomy_required": EUROPA_AUTONOMY_REQUIREMENT,
+            "autonomy_met": europa_autonomy >= EUROPA_AUTONOMY_REQUIREMENT,
+            "resource": "water_ice",
+            "water_kg": europa_result["water_extracted_kg"],
+        },
+        "combined_autonomy": round(combined_autonomy, 4),
+        "all_targets_met": (
+            titan_autonomy >= TITAN_AUTONOMY_REQUIREMENT and
+            europa_autonomy >= EUROPA_AUTONOMY_REQUIREMENT
+        ),
+        "coordination_status": "operational",
+        "tenant_id": MULTIPLANET_TENANT_ID
+    }
+
+    emit_path_receipt("multiplanet", "jovian_coordinate", result)
+    return result

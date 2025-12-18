@@ -30,8 +30,6 @@ Source: Grok - "Run 1000-tune ablation loops"
 """
 
 import pytest
-import json
-import math
 import random
 import sys
 import os
@@ -50,12 +48,7 @@ from src.rl_tune import (
     stoprule_alpha_crash,
     stoprule_stuck,
     RETENTION_MILESTONE_1,
-    RETENTION_MILESTONE_2,
     RETENTION_CEILING,
-    ALPHA_TARGET_M1,
-    ALPHA_DROP_THRESHOLD,
-    EXPLORATION_BOUND,
-    MAX_EPISODES_WITHOUT_IMPROVEMENT,
     SHANNON_FLOOR,
     GNN_LAYERS_ADD_MIN,
     GNN_LAYERS_ADD_MAX,
@@ -68,17 +61,12 @@ from src.adaptive import (
     compute_adaptive_depth,
     scale_lr_to_depth,
     adaptive_prune_factor,
-    get_dynamic_config,
-    ADAPTIVE_DEPTH_BASE,
-    ADAPTIVE_DEPTH_MIN,
-    ADAPTIVE_DEPTH_MAX,
-    LR_BASE
+    get_dynamic_config
 )
 from src.gnn_cache import (
     apply_dynamic_config,
     get_current_config,
-    reset_dynamic_config,
-    nonlinear_retention_dynamic
+    reset_dynamic_config
 )
 from src.pruning import (
     apply_dynamic_aggressiveness,

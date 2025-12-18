@@ -16,7 +16,7 @@ def cmd_baseline():
     print_header("BASELINE SOVEREIGNTY TEST")
 
     result = test_baseline()
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Bandwidth: {result['bandwidth_mbps']} Mbps")
     print(f"  Delay: {result['delay_s']} seconds")
     print(f"  Compute: {result['compute_flops']} FLOPS (no AI assist)")
@@ -32,7 +32,7 @@ def cmd_bootstrap():
     print("\nRunning 100 bootstrap iterations...")
     result = bootstrap_threshold(100, 42)
 
-    print(f"\nRESULTS:")
+    print("\nRESULTS:")
     print(f"  Mean threshold: {result['mean']:.1f} crew")
     print(f"  Std deviation:  {result['std']:.1f} crew")
     print(f"  Range: [{result['min']}, {result['max']}] crew")
@@ -50,7 +50,7 @@ def cmd_curve():
     bandwidth = 4.0  # Expected Mbps
     delay = 480.0    # 8 min average
 
-    print(f"\nConfiguration:")
+    print("\nConfiguration:")
     print(f"  Bandwidth: {bandwidth} Mbps")
     print(f"  Delay: {delay} seconds ({delay/60:.0f} minutes)")
 

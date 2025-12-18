@@ -14,8 +14,6 @@ SLO Requirements:
 - Alignment classification accuracy
 """
 
-import pytest
-import math
 
 from src.adversarial_audit import (
     load_adversarial_config,

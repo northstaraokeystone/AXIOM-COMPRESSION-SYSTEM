@@ -16,7 +16,6 @@ SLO Requirements:
 - Perovskite scaling factor == 3.33
 """
 
-import pytest
 
 from src.fractal_layers import (
     get_d6_spec,
@@ -27,7 +26,6 @@ from src.fractal_layers import (
     recursive_fractal,
     D6_ALPHA_FLOOR,
     D6_ALPHA_TARGET,
-    D6_ALPHA_CEILING,
     D6_UPLIFT,
     D6_TREE_MIN,
 )

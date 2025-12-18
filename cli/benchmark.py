@@ -13,8 +13,6 @@ from src.hybrid_benchmark import (
     benchmark_10e12,
     check_release_gate_3_1,
     get_benchmark_info,
-    validate_scale_decay,
-    TREE_10E12,
     ALPHA_10E12_FLOOR,
     ALPHA_10E12_TARGET,
     SCALE_DECAY_MAX,
@@ -23,7 +21,6 @@ from src.fractal_layers import (
     recursive_fractal,
     recursive_fractal_sweep,
     get_recursive_fractal_info,
-    FRACTAL_RECURSION_DEFAULT_DEPTH,
     FRACTAL_RECURSION_MAX_DEPTH,
 )
 
@@ -174,7 +171,7 @@ def cmd_fractal_recursion_sweep(tree_size: int, base_alpha: float, simulate: boo
         target = "YES" if r['target_3_1'] else "NO"
         print(f"  {r['depth']:>6} | {r['final_alpha']:>8.4f} | {r['uplift']:>8.4f} | {target:>10}")
 
-    print(f"\nOPTIMAL:")
+    print("\nOPTIMAL:")
     print(f"  Depth: {result['optimal_depth']}")
     print(f"  Alpha: {result['optimal_alpha']}")
     print(f"  3.1 achievable: {'YES' if result['target_3_1_achievable'] else 'NO'}")
