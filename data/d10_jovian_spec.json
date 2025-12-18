@@ -1,0 +1,155 @@
+{
+  "version": "1.0.0",
+  "description": "D10 recursion + full Jovian multi-moon hub + Callisto ice + quantum-resistant Spectre defense + Atacama dust dynamics configuration",
+  "d10_config": {
+    "recursion_depth": 10,
+    "alpha_floor": 3.53,
+    "alpha_target": 3.55,
+    "alpha_ceiling": 3.57,
+    "instability_max": 0.00,
+    "tree_min": 1000000000000,
+    "uplift": 0.26
+  },
+  "uplift_by_depth": {
+    "1": 0.05,
+    "2": 0.09,
+    "3": 0.122,
+    "4": 0.148,
+    "5": 0.168,
+    "6": 0.185,
+    "7": 0.20,
+    "8": 0.22,
+    "9": 0.24,
+    "10": 0.26
+  },
+  "depth_contributions": {
+    "1": {
+      "contribution": 0.05,
+      "decay_factor": 1.0,
+      "cumulative": 0.05
+    },
+    "2": {
+      "contribution": 0.04,
+      "decay_factor": 0.8,
+      "cumulative": 0.09
+    },
+    "3": {
+      "contribution": 0.032,
+      "decay_factor": 0.64,
+      "cumulative": 0.122
+    },
+    "4": {
+      "contribution": 0.0256,
+      "decay_factor": 0.512,
+      "cumulative": 0.148
+    },
+    "5": {
+      "contribution": 0.02048,
+      "decay_factor": 0.4096,
+      "cumulative": 0.168
+    },
+    "6": {
+      "contribution": 0.01638,
+      "decay_factor": 0.3277,
+      "cumulative": 0.185
+    },
+    "7": {
+      "contribution": 0.01311,
+      "decay_factor": 0.2621,
+      "cumulative": 0.20
+    },
+    "8": {
+      "contribution": 0.01049,
+      "decay_factor": 0.2097,
+      "cumulative": 0.22
+    },
+    "9": {
+      "contribution": 0.00839,
+      "decay_factor": 0.1678,
+      "cumulative": 0.24
+    },
+    "10": {
+      "contribution": 0.00671,
+      "decay_factor": 0.1342,
+      "cumulative": 0.26
+    }
+  },
+  "expected_alpha": {
+    "depth_1": 3.05,
+    "depth_2": 3.09,
+    "depth_3": 3.12,
+    "depth_4": 3.148,
+    "depth_5": 3.168,
+    "depth_6": 3.185,
+    "depth_7": 3.20,
+    "depth_8": 3.22,
+    "depth_9": 3.24,
+    "depth_10": 3.26
+  },
+  "callisto_config": {
+    "body": "callisto",
+    "resource": "water_ice",
+    "ice_depth_km": 200,
+    "orbital_period_days": 16.69,
+    "autonomy_requirement": 0.98,
+    "latency_min": [33, 53],
+    "radiation_level": 0.01,
+    "advantage": "outside_magnetosphere",
+    "surface_temp_k": 134,
+    "diameter_km": 4821,
+    "earth_callback_max_pct": 0.02
+  },
+  "jovian_hub_config": {
+    "moons": ["titan", "europa", "ganymede", "callisto"],
+    "resources": {
+      "titan": "methane",
+      "europa": "water_ice",
+      "ganymede": "magnetic_shielding",
+      "callisto": "water_ice"
+    },
+    "sync_interval_hrs": 12,
+    "system_autonomy_target": 0.95,
+    "hub_location": "callisto",
+    "coordination_mode": "unified_rl",
+    "transfer_efficiency_target": 0.90,
+    "redundancy_factor": 2
+  },
+  "quantum_resist_config": {
+    "key_size_bits": 256,
+    "spectre_variants": ["v1", "v2", "v4"],
+    "cache_randomization": true,
+    "branch_prediction_defense": true,
+    "resilience_target": 1.0,
+    "defense_mechanisms": ["cache_partition", "speculative_barrier", "branch_hardening", "timing_isolation"],
+    "timing_jitter_ns": [5, 50],
+    "dummy_operation_ratio": 0.15
+  },
+  "atacama_dust_dynamics_config": {
+    "settling_rate_mm_day": 0.5,
+    "particle_size_um": [1, 100],
+    "dynamics_validated": true,
+    "mars_correlation": 0.92,
+    "coverage_km2": 100,
+    "sample_rate_hz": 10,
+    "solar_efficiency_impact": 0.15
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min_d10": 3.53,
+    "callisto_autonomy_min": 0.98,
+    "jovian_system_autonomy_min": 0.95,
+    "quantum_resilience_min": 1.0,
+    "dust_correlation_min": 0.92,
+    "scale_decay_threshold": 0.02,
+    "receipt_required": "d10_fractal_receipt",
+    "jovian_hub_receipt_required": "jovian_hub_receipt",
+    "callisto_receipt_required": "callisto_ice_receipt",
+    "quantum_receipt_required": "quantum_resist_receipt",
+    "dust_receipt_required": "dust_dynamics_receipt"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM D10 recursion + full Jovian hub + Callisto + quantum-resistant Spectre defense + Atacama dust dynamics - alpha 3.55+ target"
+}

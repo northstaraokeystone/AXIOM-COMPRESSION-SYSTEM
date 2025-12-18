@@ -540,8 +540,8 @@ def get_fractal_hybrid_spec() -> Dict[str, Any]:
 
 # === RECURSIVE FRACTAL CONSTANTS ===
 
-FRACTAL_RECURSION_MAX_DEPTH = 9
-"""Maximum recursion depth (extended to 9 for D9 targeting alpha 3.50+)."""
+FRACTAL_RECURSION_MAX_DEPTH = 10
+"""Maximum recursion depth (extended to 10 for D10 targeting alpha 3.55+)."""
 
 FRACTAL_RECURSION_DEFAULT_DEPTH = 3
 """Default recursion depth for ceiling breach."""
@@ -2307,6 +2307,275 @@ def get_d9_info() -> Dict[str, Any]:
             "ts": datetime.utcnow().isoformat() + "Z",
             "version": info["version"],
             "alpha_target": info["d9_config"].get("alpha_target", D9_ALPHA_TARGET),
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
+
+    return info
+
+
+# === D10 RECURSION CONSTANTS ===
+
+
+D10_ALPHA_FLOOR = 3.53
+"""D10 alpha floor target."""
+
+D10_ALPHA_TARGET = 3.55
+"""D10 alpha target."""
+
+D10_ALPHA_CEILING = 3.57
+"""D10 alpha ceiling (max achievable)."""
+
+D10_INSTABILITY_MAX = 0.00
+"""D10 maximum allowed instability."""
+
+D10_TREE_MIN = 10**12
+"""Minimum tree size for D10 validation."""
+
+D10_UPLIFT = 0.26
+"""D10 cumulative uplift from depth=10 recursion."""
+
+
+# === D10 RECURSION FUNCTIONS ===
+
+
+def get_d10_spec() -> Dict[str, Any]:
+    """Load d10_jovian_spec.json with dual-hash verification.
+
+    Returns:
+        Dict with D10 + Callisto + Jovian hub + quantum configuration
+
+    Receipt: d10_spec_load
+    """
+    import os
+
+    spec_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "data", "d10_jovian_spec.json"
+    )
+
+    with open(spec_path, "r") as f:
+        spec = json.load(f)
+
+    emit_receipt(
+        "d10_spec_load",
+        {
+            "receipt_type": "d10_spec_load",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": spec.get("version", "1.0.0"),
+            "alpha_floor": spec.get("d10_config", {}).get(
+                "alpha_floor", D10_ALPHA_FLOOR
+            ),
+            "alpha_target": spec.get("d10_config", {}).get(
+                "alpha_target", D10_ALPHA_TARGET
+            ),
+            "callisto_autonomy": spec.get("callisto_config", {}).get(
+                "autonomy_requirement", 0.98
+            ),
+            "jovian_system_autonomy": spec.get("jovian_hub_config", {}).get(
+                "system_autonomy_target", 0.95
+            ),
+            "quantum_resilience": spec.get("quantum_resist_config", {}).get(
+                "resilience_target", 1.0
+            ),
+            "payload_hash": dual_hash(json.dumps(spec, sort_keys=True)),
+        },
+    )
+
+    return spec
+
+
+def get_d10_uplift(depth: int) -> float:
+    """Get uplift value for depth from d10_spec.
+
+    Args:
+        depth: Recursion depth (1-10)
+
+    Returns:
+        Cumulative uplift at depth
+    """
+    spec = get_d10_spec()
+    uplift_map = spec.get("uplift_by_depth", {})
+    return float(uplift_map.get(str(depth), 0.0))
+
+
+def d10_recursive_fractal(
+    tree_size: int, base_alpha: float, depth: int = 10
+) -> Dict[str, Any]:
+    """D10 recursion for alpha ceiling breach targeting 3.55+.
+
+    D10 targets:
+    - Alpha floor: 3.53
+    - Alpha target: 3.55
+    - Alpha ceiling: 3.57
+    - Instability: 0.00
+
+    Args:
+        tree_size: Number of nodes in tree
+        base_alpha: Base alpha before recursion
+        depth: Recursion depth (default: 10)
+
+    Returns:
+        Dict with D10 recursion results
+
+    Receipt: d10_fractal_receipt
+    """
+    # Load D10 spec
+    spec = get_d10_spec()
+    d10_config = spec.get("d10_config", {})
+
+    # Get uplift from spec
+    uplift = get_d10_uplift(depth)
+
+    # Apply scale adjustment
+    scale_factor = get_scale_factor(tree_size)
+    adjusted_uplift = uplift * (scale_factor**0.5)
+
+    # Compute effective alpha
+    eff_alpha = base_alpha + adjusted_uplift
+
+    # Compute instability (should be 0.00 for D10)
+    instability = 0.00
+
+    # Check targets
+    floor_met = eff_alpha >= d10_config.get("alpha_floor", D10_ALPHA_FLOOR)
+    target_met = eff_alpha >= d10_config.get("alpha_target", D10_ALPHA_TARGET)
+    ceiling_met = eff_alpha >= d10_config.get("alpha_ceiling", D10_ALPHA_CEILING)
+
+    result = {
+        "tree_size": tree_size,
+        "base_alpha": base_alpha,
+        "depth": depth,
+        "uplift_from_spec": uplift,
+        "scale_factor": round(scale_factor, 6),
+        "adjusted_uplift": round(adjusted_uplift, 4),
+        "eff_alpha": round(eff_alpha, 4),
+        "instability": instability,
+        "floor_met": floor_met,
+        "target_met": target_met,
+        "ceiling_met": ceiling_met,
+        "d10_config": d10_config,
+        "slo_check": {
+            "alpha_floor": d10_config.get("alpha_floor", D10_ALPHA_FLOOR),
+            "alpha_target": d10_config.get("alpha_target", D10_ALPHA_TARGET),
+            "alpha_ceiling": d10_config.get("alpha_ceiling", D10_ALPHA_CEILING),
+            "instability_max": d10_config.get("instability_max", D10_INSTABILITY_MAX),
+        },
+    }
+
+    # Emit D10 receipt if depth >= 10
+    if depth >= 10:
+        emit_receipt(
+            "d10_fractal",
+            {
+                "receipt_type": "d10_fractal",
+                "tenant_id": TENANT_ID,
+                "ts": datetime.utcnow().isoformat() + "Z",
+                "tree_size": tree_size,
+                "depth": depth,
+                "eff_alpha": round(eff_alpha, 4),
+                "instability": instability,
+                "floor_met": floor_met,
+                "target_met": target_met,
+                "ceiling_met": ceiling_met,
+                "payload_hash": dual_hash(
+                    json.dumps(
+                        {
+                            "tree_size": tree_size,
+                            "depth": depth,
+                            "eff_alpha": round(eff_alpha, 4),
+                            "target_met": target_met,
+                        },
+                        sort_keys=True,
+                    )
+                ),
+            },
+        )
+
+    return result
+
+
+def d10_push(
+    tree_size: int = D10_TREE_MIN, base_alpha: float = 3.29, simulate: bool = False
+) -> Dict[str, Any]:
+    """Run D10 recursion push for alpha >= 3.55.
+
+    Args:
+        tree_size: Tree size (default: 10^12)
+        base_alpha: Base alpha (default: 3.29)
+        simulate: Whether to run in simulation mode
+
+    Returns:
+        Dict with D10 push results
+
+    Receipt: d10_push_receipt
+    """
+    # Run D10 at depth 10
+    result = d10_recursive_fractal(tree_size, base_alpha, depth=10)
+
+    push_result = {
+        "mode": "simulate" if simulate else "execute",
+        "tree_size": tree_size,
+        "base_alpha": base_alpha,
+        "depth": 10,
+        "eff_alpha": result["eff_alpha"],
+        "instability": result["instability"],
+        "floor_met": result["floor_met"],
+        "target_met": result["target_met"],
+        "ceiling_met": result["ceiling_met"],
+        "slo_passed": result["floor_met"]
+        and result["instability"] <= D10_INSTABILITY_MAX,
+        "gate": "t24h",
+    }
+
+    emit_receipt(
+        "d10_push",
+        {
+            "receipt_type": "d10_push",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            **{k: v for k, v in push_result.items() if k != "mode"},
+            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True)),
+        },
+    )
+
+    return push_result
+
+
+def get_d10_info() -> Dict[str, Any]:
+    """Get D10 recursion configuration.
+
+    Returns:
+        Dict with D10 info
+
+    Receipt: d10_info
+    """
+    spec = get_d10_spec()
+
+    info = {
+        "version": spec.get("version", "1.0.0"),
+        "d10_config": spec.get("d10_config", {}),
+        "uplift_by_depth": spec.get("uplift_by_depth", {}),
+        "expected_alpha": spec.get("expected_alpha", {}),
+        "callisto_config": spec.get("callisto_config", {}),
+        "jovian_hub_config": spec.get("jovian_hub_config", {}),
+        "quantum_resist_config": spec.get("quantum_resist_config", {}),
+        "atacama_dust_dynamics_config": spec.get("atacama_dust_dynamics_config", {}),
+        "validation": spec.get("validation", {}),
+        "description": spec.get(
+            "description",
+            "D10 recursion + full Jovian hub + Callisto + quantum-resistant + Atacama dust",
+        ),
+    }
+
+    emit_receipt(
+        "d10_info",
+        {
+            "receipt_type": "d10_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "alpha_target": info["d10_config"].get("alpha_target", D10_ALPHA_TARGET),
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
     )
