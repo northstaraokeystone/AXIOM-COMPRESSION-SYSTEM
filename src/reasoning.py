@@ -961,9 +961,7 @@ def project_with_degradation(
         degraded_alpha = curve_point["eff_alpha"]
         retention_factor = curve_point["retention_factor"]
         degradation_pct = curve_point["degradation_pct"]
-        (
-            curve_point.get("gnn_boost", 0.0) if "gnn_boost" in curve_point else 0.0
-        )
+        (curve_point.get("gnn_boost", 0.0) if "gnn_boost" in curve_point else 0.0)
     except StopRule:
         overflow_detected = True
         degraded_alpha = 0.0

@@ -1,0 +1,1075 @@
+"""cli/args.py - Argument definitions for AXIOM CLI.
+
+Extracted from cli.py to keep main entry point under 600 lines.
+"""
+
+import argparse
+from src.partition import NODE_BASELINE
+from src.timeline import C_BASE_DEFAULT, P_FACTOR_DEFAULT
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create the argument parser with all CLI options.
+
+    Returns:
+        Configured ArgumentParser
+    """
+    parser = argparse.ArgumentParser(
+        description="AXIOM-CORE CLI - The Sovereignty Calculator"
+    )
+    parser.add_argument(
+        "command", nargs="?", help="Command: baseline, bootstrap, curve, full"
+    )
+
+    # Timeline args
+    _add_timeline_args(parser)
+
+    # Partition flags
+    _add_partition_args(parser)
+
+    # Reroute/blackout flags
+    _add_blackout_args(parser)
+
+    # Extended sweep/retention flags
+    _add_extended_args(parser)
+
+    # GNN/cache flags
+    _add_gnn_args(parser)
+
+    # Pruning flags
+    _add_pruning_args(parser)
+
+    # Ablation flags
+    _add_ablation_args(parser)
+
+    # RL flags
+    _add_rl_args(parser)
+
+    # Adaptive depth flags
+    _add_depth_args(parser)
+
+    # 500-run sweep flags
+    _add_sweep_args(parser)
+
+    # Pipeline flags
+    _add_pipeline_args(parser)
+
+    # Scale flags
+    _add_scale_args(parser)
+
+    # Fractal ceiling breach flags
+    _add_fractal_args(parser)
+
+    # Full sweep and hybrid flags
+    _add_hybrid_args(parser)
+
+    # Benchmark flags
+    _add_benchmark_args(parser)
+
+    # Path exploration flags
+    _add_path_args(parser)
+
+    # ISRU/D5 flags
+    _add_isru_args(parser)
+
+    # Titan/D6 flags
+    _add_titan_args(parser)
+
+    # Adversarial audit flags
+    _add_audit_args(parser)
+
+    # Europa/D7 flags
+    _add_europa_args(parser)
+
+    # NREL flags
+    _add_nrel_args(parser)
+
+    # D8 flags
+    _add_d8_args(parser)
+
+    # D9 flags
+    _add_d9_args(parser)
+
+    # Drone flags
+    _add_drone_args(parser)
+
+    # Randomized paths flags
+    _add_randomized_args(parser)
+
+    # D10/Jovian flags
+    _add_d10_args(parser)
+
+    # Callisto flags
+    _add_callisto_args(parser)
+
+    # Quantum-resistant flags
+    _add_quantum_resist_args(parser)
+
+    # Dust dynamics flags
+    _add_dust_args(parser)
+
+    return parser
+
+
+def _add_timeline_args(parser: argparse.ArgumentParser) -> None:
+    """Add timeline simulation arguments."""
+    parser.add_argument(
+        "--c_base",
+        type=float,
+        default=C_BASE_DEFAULT,
+        help="Initial person-eq capacity (default: 50)",
+    )
+    parser.add_argument(
+        "--p_factor",
+        type=float,
+        default=P_FACTOR_DEFAULT,
+        help="Propulsion growth factor (default: 1.8)",
+    )
+    parser.add_argument(
+        "--tau",
+        type=float,
+        default=0,
+        help="Latency in seconds (0=Earth, 1200=Mars max)",
+    )
+    parser.add_argument(
+        "--simulate_timeline",
+        action="store_true",
+        help="Run sovereignty timeline simulation",
+    )
+
+
+def _add_partition_args(parser: argparse.ArgumentParser) -> None:
+    """Add partition simulation arguments."""
+    parser.add_argument(
+        "--partition",
+        type=float,
+        default=None,
+        help="Run single partition simulation at specified loss percentage (0-1)",
+    )
+    parser.add_argument(
+        "--nodes",
+        type=int,
+        default=NODE_BASELINE,
+        help="Specify node count for simulation (default: 5)",
+    )
+    parser.add_argument(
+        "--stress_quorum",
+        action="store_true",
+        help="Run full stress sweep (1000 iterations, 0-40%% loss)",
+    )
+    parser.add_argument(
+        "--simulate", action="store_true", help="Output simulation receipt to stdout"
+    )
+
+
+def _add_blackout_args(parser: argparse.ArgumentParser) -> None:
+    """Add blackout/reroute arguments."""
+    parser.add_argument(
+        "--reroute", action="store_true", help="Enable adaptive rerouting"
+    )
+    parser.add_argument(
+        "--reroute_enabled", action="store_true", help="Alias for --reroute"
+    )
+    parser.add_argument(
+        "--blackout", type=int, default=None, help="Blackout duration in days"
+    )
+    parser.add_argument(
+        "--blackout_sweep", action="store_true", help="Run full blackout sweep"
+    )
+    parser.add_argument(
+        "--algo_info", action="store_true", help="Output reroute algorithm spec"
+    )
+
+
+def _add_extended_args(parser: argparse.ArgumentParser) -> None:
+    """Add extended sweep arguments."""
+    parser.add_argument(
+        "--extended_sweep",
+        nargs=2,
+        type=int,
+        default=None,
+        metavar=("START", "END"),
+        help="Extended blackout sweep range",
+    )
+    parser.add_argument(
+        "--retention_curve", action="store_true", help="Output retention curve JSON"
+    )
+    parser.add_argument(
+        "--gnn_stub", action="store_true", help="Echo GNN sensitivity stub"
+    )
+
+
+def _add_gnn_args(parser: argparse.ArgumentParser) -> None:
+    """Add GNN/cache arguments."""
+    parser.add_argument(
+        "--gnn_nonlinear", action="store_true", help="Use GNN nonlinear model"
+    )
+    parser.add_argument(
+        "--cache_depth", type=int, default=int(1e8), help="Cache depth (default: 1e8)"
+    )
+    parser.add_argument(
+        "--cache_sweep", action="store_true", help="Run cache depth sweep"
+    )
+    parser.add_argument(
+        "--extreme_sweep",
+        type=int,
+        default=None,
+        metavar="DAYS",
+        help="Run extreme blackout sweep to days",
+    )
+    parser.add_argument(
+        "--overflow_test", action="store_true", help="Test cache overflow"
+    )
+    parser.add_argument(
+        "--innovation_stubs", action="store_true", help="Echo innovation stubs"
+    )
+
+
+def _add_pruning_args(parser: argparse.ArgumentParser) -> None:
+    """Add pruning arguments."""
+    parser.add_argument(
+        "--entropy_prune", action="store_true", help="Enable entropy pruning"
+    )
+    parser.add_argument(
+        "--trim_factor", type=float, default=0.3, help="Trim factor (default: 0.3)"
+    )
+    parser.add_argument(
+        "--hybrid_prune", action="store_true", help="Enable hybrid pruning"
+    )
+    parser.add_argument(
+        "--pruning_sweep", action="store_true", help="Run pruning sweep"
+    )
+    parser.add_argument(
+        "--extended_250d", action="store_true", help="Run 250d simulation"
+    )
+    parser.add_argument(
+        "--verify_chain", action="store_true", help="Verify chain integrity"
+    )
+    parser.add_argument(
+        "--pruning_info", action="store_true", help="Output pruning config"
+    )
+
+
+def _add_ablation_args(parser: argparse.ArgumentParser) -> None:
+    """Add ablation arguments."""
+    parser.add_argument(
+        "--ablate",
+        type=str,
+        default=None,
+        metavar="MODE",
+        help="Ablation mode (full/no_cache/no_prune/baseline)",
+    )
+    parser.add_argument(
+        "--ablation_sweep", action="store_true", help="Run ablation sweep"
+    )
+    parser.add_argument(
+        "--ceiling_track",
+        type=float,
+        default=None,
+        metavar="ALPHA",
+        help="Ceiling gap analysis for alpha",
+    )
+    parser.add_argument(
+        "--formula_check", action="store_true", help="Validate alpha formula"
+    )
+    parser.add_argument(
+        "--isolate_layers", action="store_true", help="Isolate layer contributions"
+    )
+
+
+def _add_rl_args(parser: argparse.ArgumentParser) -> None:
+    """Add RL tuning arguments."""
+    parser.add_argument("--rl_tune", action="store_true", help="Enable RL auto-tuning")
+    parser.add_argument(
+        "--rl_episodes", type=int, default=100, help="RL episodes (default: 100)"
+    )
+    parser.add_argument(
+        "--adaptive", action="store_true", help="Enable adaptive depth/config"
+    )
+    parser.add_argument(
+        "--dynamic", action="store_true", help="Enable all dynamic features"
+    )
+    parser.add_argument("--tune_sweep", action="store_true", help="Run retention sweep")
+    parser.add_argument(
+        "--show_rl_history", action="store_true", help="Output RL history"
+    )
+    parser.add_argument(
+        "--validate_no_static", action="store_true", help="Verify no static configs"
+    )
+    parser.add_argument(
+        "--rl_info", action="store_true", help="Output RL tuning config"
+    )
+    parser.add_argument(
+        "--adaptive_info", action="store_true", help="Output adaptive config"
+    )
+    parser.add_argument(
+        "--rl_status", action="store_true", help="Output RL integration status"
+    )
+
+
+def _add_depth_args(parser: argparse.ArgumentParser) -> None:
+    """Add depth scaling arguments."""
+    parser.add_argument(
+        "--adaptive_depth_run", action="store_true", help="Run with adaptive depth"
+    )
+    parser.add_argument(
+        "--rl_sweep", type=int, default=500, help="Informed RL runs (default: 500)"
+    )
+    parser.add_argument(
+        "--depth_scaling_test", action="store_true", help="Run depth scaling test"
+    )
+    parser.add_argument(
+        "--compute_depth", action="store_true", help="Show computed depth"
+    )
+    parser.add_argument(
+        "--tree_size", type=int, default=int(1e6), help="Tree size (default: 1e6)"
+    )
+    parser.add_argument(
+        "--depth_scaling_info", action="store_true", help="Output depth scaling config"
+    )
+    parser.add_argument(
+        "--efficient_sweep_info", action="store_true", help="Output sweep config"
+    )
+
+
+def _add_sweep_args(parser: argparse.ArgumentParser) -> None:
+    """Add 500-run sweep arguments."""
+    parser.add_argument(
+        "--rl_500_sweep", action="store_true", help="Run 500-run RL sweep"
+    )
+    parser.add_argument(
+        "--lr_range",
+        nargs=2,
+        type=float,
+        default=None,
+        metavar=("MIN", "MAX"),
+        help="Override LR bounds",
+    )
+    parser.add_argument(
+        "--retention_target", type=float, default=1.05, help="Retention target"
+    )
+    parser.add_argument(
+        "--quantum_estimate", action="store_true", help="Show quantum estimate"
+    )
+    parser.add_argument(
+        "--rl_500_sweep_info", action="store_true", help="Output 500-run config"
+    )
+
+
+def _add_pipeline_args(parser: argparse.ArgumentParser) -> None:
+    """Add pipeline arguments."""
+    parser.add_argument(
+        "--lr_pilot",
+        type=int,
+        default=None,
+        const=50,
+        nargs="?",
+        metavar="RUNS",
+        help="Run LR pilot (default: 50 runs)",
+    )
+    parser.add_argument(
+        "--quantum_sim",
+        type=int,
+        default=None,
+        const=10,
+        nargs="?",
+        metavar="RUNS",
+        help="Run quantum sim (default: 10 runs)",
+    )
+    parser.add_argument(
+        "--post_tune_execute", action="store_true", help="Execute tuned sweep"
+    )
+    parser.add_argument(
+        "--full_pipeline", action="store_true", help="Run complete pipeline"
+    )
+    parser.add_argument(
+        "--show_bounds", action="store_true", help="Show LR bounds comparison"
+    )
+    parser.add_argument("--pilot_info", action="store_true", help="Output pilot config")
+    parser.add_argument(
+        "--quantum_rl_hybrid_info", action="store_true", help="Output quantum-RL config"
+    )
+    parser.add_argument(
+        "--pipeline_info", action="store_true", help="Output pipeline config"
+    )
+    parser.add_argument(
+        "--pilot_runs", type=int, default=50, help="Pilot runs (default: 50)"
+    )
+    parser.add_argument(
+        "--quantum_runs", type=int, default=10, help="Quantum runs (default: 10)"
+    )
+    parser.add_argument(
+        "--sweep_runs", type=int, default=500, help="Sweep runs (default: 500)"
+    )
+
+
+def _add_scale_args(parser: argparse.ArgumentParser) -> None:
+    """Add scale validation arguments."""
+    parser.add_argument(
+        "--multi_scale_sweep",
+        type=str,
+        default=None,
+        metavar="TYPE",
+        help='Run multi-scale sweep ("all" or "1e9")',
+    )
+    parser.add_argument(
+        "--scalability_gate_test",
+        action="store_true",
+        help="Test scalability gate status",
+    )
+    parser.add_argument(
+        "--scale_info", action="store_true", help="Show scale validation configuration"
+    )
+    parser.add_argument(
+        "--fractal_info", action="store_true", help="Show fractal layer configuration"
+    )
+
+
+def _add_fractal_args(parser: argparse.ArgumentParser) -> None:
+    """Add fractal ceiling breach arguments."""
+    parser.add_argument(
+        "--alpha_boost",
+        type=str,
+        default=None,
+        metavar="MODE",
+        help="Alpha boost mode (off, quantum, fractal, hybrid)",
+    )
+    parser.add_argument(
+        "--fractal_push", action="store_true", help="Run fractal ceiling breach"
+    )
+    parser.add_argument(
+        "--fractal_info_hybrid",
+        action="store_true",
+        help="Show fractal hybrid configuration",
+    )
+    parser.add_argument(
+        "--base_alpha",
+        type=float,
+        default=2.99,
+        help="Base alpha for fractal/hybrid (default: 2.99)",
+    )
+
+
+def _add_hybrid_args(parser: argparse.ArgumentParser) -> None:
+    """Add hybrid sweep arguments."""
+    parser.add_argument(
+        "--full_500_sweep",
+        action="store_true",
+        help="Run full 500-sweep with quantum-fractal hybrid",
+    )
+    parser.add_argument(
+        "--hybrid_boost_info",
+        action="store_true",
+        help="Show hybrid boost configuration",
+    )
+
+
+def _add_benchmark_args(parser: argparse.ArgumentParser) -> None:
+    """Add benchmark arguments."""
+    parser.add_argument(
+        "--hybrid_10e12", action="store_true", help="Run 10^12 hybrid benchmark"
+    )
+    parser.add_argument(
+        "--release_gate", action="store_true", help="Check release gate 3.1 status"
+    )
+    parser.add_argument(
+        "--fractal_recursion",
+        action="store_true",
+        help="Run fractal recursion ceiling breach",
+    )
+    parser.add_argument(
+        "--fractal_recursion_sweep",
+        action="store_true",
+        help="Sweep through all recursion depths",
+    )
+    parser.add_argument(
+        "--benchmark_info", action="store_true", help="Show benchmark configuration"
+    )
+    parser.add_argument(
+        "--recursion_depth",
+        type=int,
+        default=3,
+        help="Fractal recursion depth (1-5, default: 3)",
+    )
+
+
+def _add_path_args(parser: argparse.ArgumentParser) -> None:
+    """Add path exploration arguments."""
+    parser.add_argument(
+        "--d4_push", action="store_true", help="Run D4 recursion for alpha>=3.2"
+    )
+    parser.add_argument("--d4_info", action="store_true", help="Show D4 configuration")
+    parser.add_argument(
+        "--path",
+        type=str,
+        default=None,
+        help="Select exploration path (mars/multiplanet/agi)",
+    )
+    parser.add_argument(
+        "--path_status", action="store_true", help="Show all path statuses"
+    )
+    parser.add_argument(
+        "--path_list", action="store_true", help="List registered paths"
+    )
+    parser.add_argument(
+        "--path_cmd", type=str, default=None, help="Run command on selected path"
+    )
+    parser.add_argument(
+        "--mars_status",
+        action="store_true",
+        help="Shortcut: --path mars --path_cmd status",
+    )
+    parser.add_argument(
+        "--multiplanet_status",
+        action="store_true",
+        help="Shortcut: --path multiplanet --path_cmd status",
+    )
+    parser.add_argument(
+        "--agi_status",
+        action="store_true",
+        help="Shortcut: --path agi --path_cmd status",
+    )
+    parser.add_argument(
+        "--registry_info", action="store_true", help="Show path registry info"
+    )
+
+
+def _add_isru_args(parser: argparse.ArgumentParser) -> None:
+    """Add ISRU/D5 arguments."""
+    parser.add_argument(
+        "--d5_push", action="store_true", help="Run D5 recursion for alpha>=3.25"
+    )
+    parser.add_argument(
+        "--d5_info", action="store_true", help="Show D5 + ISRU configuration"
+    )
+    parser.add_argument(
+        "--d5_isru_hybrid", action="store_true", help="Run integrated D5+ISRU hybrid"
+    )
+    parser.add_argument(
+        "--moxie_info", action="store_true", help="Show MOXIE calibration data"
+    )
+    parser.add_argument(
+        "--isru_simulate", action="store_true", help="Run ISRU O2 production simulation"
+    )
+    parser.add_argument(
+        "--isru_closure", action="store_true", help="Show ISRU closure metrics"
+    )
+    parser.add_argument(
+        "--isru_info", action="store_true", help="Show ISRU module info"
+    )
+    parser.add_argument(
+        "--crew", type=int, default=4, help="Crew size for ISRU simulation (default: 4)"
+    )
+    parser.add_argument(
+        "--hours", type=int, default=24, help="Simulation hours for ISRU (default: 24)"
+    )
+    parser.add_argument(
+        "--moxie_units",
+        type=int,
+        default=10,
+        help="Number of MOXIE units (default: 10)",
+    )
+
+
+def _add_titan_args(parser: argparse.ArgumentParser) -> None:
+    """Add Titan/D6 arguments."""
+    parser.add_argument(
+        "--d6_push", action="store_true", help="Run D6 recursion for alpha>=3.33"
+    )
+    parser.add_argument(
+        "--d6_info", action="store_true", help="Show D6 + Titan configuration"
+    )
+    parser.add_argument(
+        "--d6_titan_hybrid", action="store_true", help="Run integrated D6+Titan hybrid"
+    )
+    parser.add_argument(
+        "--titan_info", action="store_true", help="Show Titan methane hybrid info"
+    )
+    parser.add_argument(
+        "--titan_config", action="store_true", help="Show Titan configuration from spec"
+    )
+    parser.add_argument(
+        "--titan_simulate",
+        action="store_true",
+        help="Run Titan methane harvest simulation",
+    )
+    parser.add_argument(
+        "--titan_duration",
+        type=int,
+        default=30,
+        help="Titan simulation duration in days (default: 30)",
+    )
+    parser.add_argument(
+        "--titan_extraction_rate",
+        type=float,
+        default=10.0,
+        help="Titan extraction rate kg/hr (default: 10.0)",
+    )
+    parser.add_argument(
+        "--perovskite_info",
+        action="store_true",
+        help="Show perovskite efficiency configuration",
+    )
+    parser.add_argument(
+        "--perovskite_project",
+        action="store_true",
+        help="Project perovskite efficiency timeline",
+    )
+    parser.add_argument(
+        "--perovskite_years",
+        type=int,
+        default=10,
+        help="Perovskite projection years (default: 10)",
+    )
+    parser.add_argument(
+        "--perovskite_growth",
+        type=float,
+        default=0.10,
+        help="Perovskite annual growth rate (default: 0.10)",
+    )
+
+
+def _add_audit_args(parser: argparse.ArgumentParser) -> None:
+    """Add adversarial audit arguments."""
+    parser.add_argument(
+        "--audit_info", action="store_true", help="Show adversarial audit configuration"
+    )
+    parser.add_argument(
+        "--audit_config", action="store_true", help="Show adversarial config from spec"
+    )
+    parser.add_argument(
+        "--audit_run", action="store_true", help="Run adversarial audit"
+    )
+    parser.add_argument(
+        "--audit_noise",
+        type=float,
+        default=0.05,
+        help="Adversarial noise level (default: 0.05)",
+    )
+    parser.add_argument(
+        "--audit_iterations",
+        type=int,
+        default=100,
+        help="Adversarial test iterations (default: 100)",
+    )
+    parser.add_argument(
+        "--audit_stress", action="store_true", help="Run adversarial stress test"
+    )
+    parser.add_argument(
+        "--audit_injection", action="store_true", help="Run injection attack audit"
+    )
+    parser.add_argument(
+        "--audit_poisoning", action="store_true", help="Run poisoning attack audit"
+    )
+    parser.add_argument(
+        "--audit_expanded", action="store_true", help="Run all expanded audits"
+    )
+
+
+def _add_europa_args(parser: argparse.ArgumentParser) -> None:
+    """Add Europa/D7 arguments."""
+    parser.add_argument(
+        "--d7_push", action="store_true", help="Run D7 recursion for alpha>=3.40"
+    )
+    parser.add_argument(
+        "--d7_info", action="store_true", help="Show D7 + Europa configuration"
+    )
+    parser.add_argument(
+        "--d7_europa_hybrid",
+        action="store_true",
+        help="Run integrated D7+Europa hybrid",
+    )
+    parser.add_argument(
+        "--europa_info", action="store_true", help="Show Europa ice drilling info"
+    )
+    parser.add_argument(
+        "--europa_config",
+        action="store_true",
+        help="Show Europa configuration from spec",
+    )
+    parser.add_argument(
+        "--europa_simulate",
+        action="store_true",
+        help="Run Europa ice drilling simulation",
+    )
+    parser.add_argument(
+        "--europa_depth",
+        type=int,
+        default=1000,
+        help="Europa drilling depth in meters (default: 1000)",
+    )
+    parser.add_argument(
+        "--europa_duration",
+        type=int,
+        default=30,
+        help="Europa simulation duration in days (default: 30)",
+    )
+    parser.add_argument(
+        "--europa_drill_rate",
+        type=float,
+        default=2.0,
+        help="Europa drill rate m/hr (default: 2.0)",
+    )
+    parser.add_argument(
+        "--europa_resupply",
+        type=float,
+        default=180.0,
+        help="Europa resupply interval in days (default: 180)",
+    )
+
+
+def _add_nrel_args(parser: argparse.ArgumentParser) -> None:
+    """Add NREL validation arguments."""
+    parser.add_argument(
+        "--nrel_info", action="store_true", help="Show NREL validation configuration"
+    )
+    parser.add_argument(
+        "--nrel_config", action="store_true", help="Show NREL configuration from spec"
+    )
+    parser.add_argument(
+        "--nrel_validate", action="store_true", help="Run NREL efficiency validation"
+    )
+    parser.add_argument(
+        "--nrel_efficiency",
+        type=float,
+        default=0.256,
+        help="NREL efficiency to validate (default: 0.256)",
+    )
+    parser.add_argument(
+        "--nrel_project", action="store_true", help="Project NREL degradation over time"
+    )
+    parser.add_argument(
+        "--nrel_years", type=int, default=25, help="NREL projection years (default: 25)"
+    )
+    parser.add_argument(
+        "--nrel_initial",
+        type=float,
+        default=0.0,
+        help="NREL initial efficiency for projection (default: lab value)",
+    )
+    parser.add_argument(
+        "--nrel_compare", action="store_true", help="Compare NREL to MOXIE efficiency"
+    )
+    parser.add_argument(
+        "--moxie_efficiency",
+        type=float,
+        default=0.0,
+        help="MOXIE efficiency for comparison (default: baseline)",
+    )
+
+
+def _add_d8_args(parser: argparse.ArgumentParser) -> None:
+    """Add D8 arguments."""
+    parser.add_argument(
+        "--d8_push", action="store_true", help="Run D8 recursion for alpha>=3.45"
+    )
+    parser.add_argument(
+        "--d8_info", action="store_true", help="Show D8 + unified RL configuration"
+    )
+    parser.add_argument(
+        "--d8_multi_sync", action="store_true", help="Run integrated D8+sync"
+    )
+    parser.add_argument(
+        "--sync_info", action="store_true", help="Show sync configuration"
+    )
+    parser.add_argument("--sync_run", action="store_true", help="Run sync cycle")
+    parser.add_argument(
+        "--sync_efficiency", action="store_true", help="Show efficiency metrics"
+    )
+    parser.add_argument(
+        "--atacama_info", action="store_true", help="Show Atacama configuration"
+    )
+    parser.add_argument(
+        "--atacama_validate", action="store_true", help="Run Atacama validation"
+    )
+    parser.add_argument(
+        "--encrypt_info", action="store_true", help="Show encryption configuration"
+    )
+    parser.add_argument(
+        "--encrypt_keygen", action="store_true", help="Generate fractal key"
+    )
+    parser.add_argument(
+        "--encrypt_audit", action="store_true", help="Run full encryption audit"
+    )
+    parser.add_argument(
+        "--encrypt_side_channel", action="store_true", help="Test side-channel defense"
+    )
+    parser.add_argument(
+        "--encrypt_inversion", action="store_true", help="Test model inversion defense"
+    )
+    parser.add_argument(
+        "--encrypt_key_depth",
+        type=int,
+        default=6,
+        help="Fractal key depth (default: 6)",
+    )
+    parser.add_argument(
+        "--encrypt_iterations",
+        type=int,
+        default=100,
+        help="Encryption test iterations (default: 100)",
+    )
+
+
+def _add_d9_args(parser: argparse.ArgumentParser) -> None:
+    """Add D9/Ganymede arguments."""
+    parser.add_argument(
+        "--d9_push", action="store_true", help="Run D9 recursion for alpha>=3.50"
+    )
+    parser.add_argument("--d9_info", action="store_true", help="Show D9 configuration")
+    parser.add_argument(
+        "--d9_ganymede_hybrid", action="store_true", help="Run integrated D9+Ganymede"
+    )
+    parser.add_argument(
+        "--ganymede_info", action="store_true", help="Show Ganymede configuration"
+    )
+    parser.add_argument(
+        "--ganymede_config", action="store_true", help="Show Ganymede config from spec"
+    )
+    parser.add_argument(
+        "--ganymede_navigate", action="store_true", help="Run navigation simulation"
+    )
+    parser.add_argument(
+        "--ganymede_nav_mode",
+        type=str,
+        default="field_following",
+        help="Navigation mode (field_following, magnetopause_crossing, polar_transit)",
+    )
+    parser.add_argument(
+        "--ganymede_duration",
+        type=int,
+        default=24,
+        help="Navigation duration in hours (default: 24)",
+    )
+    parser.add_argument(
+        "--ganymede_autonomy", action="store_true", help="Show autonomy metrics"
+    )
+
+
+def _add_drone_args(parser: argparse.ArgumentParser) -> None:
+    """Add drone array arguments."""
+    parser.add_argument(
+        "--drone_info", action="store_true", help="Show drone array configuration"
+    )
+    parser.add_argument(
+        "--drone_config", action="store_true", help="Show drone config from spec"
+    )
+    parser.add_argument(
+        "--drone_coverage", action="store_true", help="Run drone coverage simulation"
+    )
+    parser.add_argument(
+        "--drone_sample", action="store_true", help="Run drone dust sampling"
+    )
+    parser.add_argument(
+        "--drone_validate", action="store_true", help="Run full drone validation"
+    )
+    parser.add_argument(
+        "--drone_count", type=int, default=10, help="Number of drones (default: 10)"
+    )
+    parser.add_argument(
+        "--drone_area",
+        type=float,
+        default=1000.0,
+        help="Area to cover in km2 (default: 1000)",
+    )
+    parser.add_argument(
+        "--drone_duration",
+        type=int,
+        default=60,
+        help="Sampling duration in seconds (default: 60)",
+    )
+
+
+def _add_randomized_args(parser: argparse.ArgumentParser) -> None:
+    """Add randomized paths arguments."""
+    parser.add_argument(
+        "--randomized_info",
+        action="store_true",
+        help="Show randomized paths configuration",
+    )
+    parser.add_argument(
+        "--randomized_config",
+        action="store_true",
+        help="Show randomized config from spec",
+    )
+    parser.add_argument(
+        "--randomized_generate", action="store_true", help="Generate execution tree"
+    )
+    parser.add_argument(
+        "--randomized_audit", action="store_true", help="Run full randomized audit"
+    )
+    parser.add_argument(
+        "--randomized_timing", action="store_true", help="Test timing resilience"
+    )
+    parser.add_argument(
+        "--randomized_power", action="store_true", help="Test power resilience"
+    )
+    parser.add_argument(
+        "--randomized_cache", action="store_true", help="Test cache resilience"
+    )
+    parser.add_argument(
+        "--randomized_depth",
+        type=int,
+        default=8,
+        help="Execution tree depth (default: 8)",
+    )
+    parser.add_argument(
+        "--randomized_iterations",
+        type=int,
+        default=100,
+        help="Randomized test iterations (default: 100)",
+    )
+    parser.add_argument(
+        "--threat_level",
+        type=str,
+        default="medium",
+        help="Threat level for path depth recommendation (low, medium, high, critical)",
+    )
+
+
+def _add_d10_args(parser: argparse.ArgumentParser) -> None:
+    """Add D10/Jovian arguments."""
+    parser.add_argument(
+        "--d10_push", action="store_true", help="Run D10 recursion for alpha>=3.55"
+    )
+    parser.add_argument(
+        "--d10_info", action="store_true", help="Show D10 configuration"
+    )
+    parser.add_argument(
+        "--d10_jovian_hub", action="store_true", help="Run integrated D10+Jovian hub"
+    )
+    parser.add_argument(
+        "--jovian_info", action="store_true", help="Show Jovian hub configuration"
+    )
+    parser.add_argument(
+        "--jovian_sync", action="store_true", help="Run Jovian sync cycle"
+    )
+    parser.add_argument(
+        "--jovian_autonomy", action="store_true", help="Show Jovian system autonomy"
+    )
+    parser.add_argument(
+        "--jovian_coordinate", action="store_true", help="Run full Jovian coordination"
+    )
+
+
+def _add_callisto_args(parser: argparse.ArgumentParser) -> None:
+    """Add Callisto arguments."""
+    parser.add_argument(
+        "--callisto_info", action="store_true", help="Show Callisto configuration"
+    )
+    parser.add_argument(
+        "--callisto_config", action="store_true", help="Show Callisto config from spec"
+    )
+    parser.add_argument(
+        "--callisto_ice", action="store_true", help="Show Callisto ice availability"
+    )
+    parser.add_argument(
+        "--callisto_extract", action="store_true", help="Run Callisto extraction sim"
+    )
+    parser.add_argument(
+        "--callisto_radiation",
+        action="store_true",
+        help="Show Callisto radiation advantage",
+    )
+    parser.add_argument(
+        "--callisto_autonomy", action="store_true", help="Show Callisto autonomy"
+    )
+    parser.add_argument(
+        "--callisto_hub", action="store_true", help="Evaluate Callisto hub suitability"
+    )
+    parser.add_argument(
+        "--callisto_rate",
+        type=float,
+        default=100.0,
+        help="Callisto extraction rate kg/hr (default: 100)",
+    )
+    parser.add_argument(
+        "--callisto_duration",
+        type=int,
+        default=30,
+        help="Callisto extraction duration days (default: 30)",
+    )
+
+
+def _add_quantum_resist_args(parser: argparse.ArgumentParser) -> None:
+    """Add quantum-resistant arguments."""
+    parser.add_argument(
+        "--quantum_resist_info",
+        action="store_true",
+        help="Show quantum-resistant config",
+    )
+    parser.add_argument(
+        "--quantum_resist_config",
+        action="store_true",
+        help="Show quantum config from spec",
+    )
+    parser.add_argument(
+        "--quantum_keygen", action="store_true", help="Generate quantum-resistant key"
+    )
+    parser.add_argument(
+        "--quantum_key_size",
+        type=int,
+        default=256,
+        help="Quantum key size in bits (default: 256)",
+    )
+    parser.add_argument(
+        "--quantum_audit", action="store_true", help="Run full quantum-resistant audit"
+    )
+    parser.add_argument(
+        "--quantum_spectre", action="store_true", help="Test Spectre defense"
+    )
+    parser.add_argument(
+        "--quantum_cache", action="store_true", help="Test quantum cache timing defense"
+    )
+    parser.add_argument(
+        "--spectre_v1", action="store_true", help="Test Spectre v1 defense"
+    )
+    parser.add_argument(
+        "--spectre_v2", action="store_true", help="Test Spectre v2 defense"
+    )
+    parser.add_argument(
+        "--spectre_v4", action="store_true", help="Test Spectre v4 defense"
+    )
+    parser.add_argument(
+        "--quantum_iterations",
+        type=int,
+        default=100,
+        help="Quantum test iterations (default: 100)",
+    )
+
+
+def _add_dust_args(parser: argparse.ArgumentParser) -> None:
+    """Add dust dynamics arguments."""
+    parser.add_argument(
+        "--dust_info", action="store_true", help="Show dust dynamics configuration"
+    )
+    parser.add_argument(
+        "--dust_config", action="store_true", help="Show dust config from spec"
+    )
+    parser.add_argument(
+        "--dust_dynamics", action="store_true", help="Run dust dynamics validation"
+    )
+    parser.add_argument(
+        "--dust_settling", action="store_true", help="Simulate dust settling"
+    )
+    parser.add_argument(
+        "--dust_particle", action="store_true", help="Analyze particle distribution"
+    )
+    parser.add_argument(
+        "--dust_solar_impact", action="store_true", help="Compute solar panel impact"
+    )
+    parser.add_argument(
+        "--dust_mars", action="store_true", help="Project Mars conditions from Atacama"
+    )
+    parser.add_argument(
+        "--dust_depth_mm",
+        type=float,
+        default=1.0,
+        help="Dust depth in mm for solar impact (default: 1.0)",
+    )
+    parser.add_argument(
+        "--dust_duration",
+        type=int,
+        default=30,
+        help="Dust settling duration days (default: 30)",
+    )
