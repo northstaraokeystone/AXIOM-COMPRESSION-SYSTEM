@@ -220,6 +220,40 @@ from cli import (
     cmd_randomized_timing,
     cmd_randomized_power,
     cmd_randomized_cache,
+    # D10 + Jovian hub
+    cmd_d10_info,
+    cmd_d10_push,
+    cmd_d10_jovian_hub,
+    cmd_jovian_info,
+    cmd_jovian_sync,
+    cmd_jovian_autonomy,
+    cmd_jovian_coordinate,
+    # Callisto
+    cmd_callisto_info,
+    cmd_callisto_config,
+    cmd_callisto_ice,
+    cmd_callisto_extract,
+    cmd_callisto_radiation,
+    cmd_callisto_autonomy,
+    cmd_callisto_hub_suitability,
+    # Quantum-resistant
+    cmd_quantum_resist_info,
+    cmd_quantum_resist_config,
+    cmd_quantum_keygen,
+    cmd_quantum_resist_audit,
+    cmd_quantum_spectre,
+    cmd_quantum_resist_cache,
+    cmd_quantum_spectre_v1,
+    cmd_quantum_spectre_v2,
+    cmd_quantum_spectre_v4,
+    # Dust dynamics
+    cmd_dust_dynamics_info,
+    cmd_dust_dynamics_config,
+    cmd_dust_dynamics,
+    cmd_dust_settling,
+    cmd_dust_particle,
+    cmd_dust_solar_impact,
+    cmd_dust_mars_projection,
 )
 
 
@@ -1005,6 +1039,146 @@ def main():
         help="Threat level for path depth recommendation (low, medium, high, critical)",
     )
 
+    # D10 + Jovian hub flags
+    parser.add_argument(
+        "--d10_push", action="store_true", help="Run D10 recursion for alpha>=3.55"
+    )
+    parser.add_argument(
+        "--d10_info", action="store_true", help="Show D10 configuration"
+    )
+    parser.add_argument(
+        "--d10_jovian_hub", action="store_true", help="Run integrated D10+Jovian hub"
+    )
+    parser.add_argument(
+        "--jovian_info", action="store_true", help="Show Jovian hub configuration"
+    )
+    parser.add_argument(
+        "--jovian_sync", action="store_true", help="Run Jovian sync cycle"
+    )
+    parser.add_argument(
+        "--jovian_autonomy", action="store_true", help="Show Jovian system autonomy"
+    )
+    parser.add_argument(
+        "--jovian_coordinate", action="store_true", help="Run full Jovian coordination"
+    )
+
+    # Callisto flags
+    parser.add_argument(
+        "--callisto_info", action="store_true", help="Show Callisto configuration"
+    )
+    parser.add_argument(
+        "--callisto_config", action="store_true", help="Show Callisto config from spec"
+    )
+    parser.add_argument(
+        "--callisto_ice", action="store_true", help="Show Callisto ice availability"
+    )
+    parser.add_argument(
+        "--callisto_extract", action="store_true", help="Run Callisto extraction sim"
+    )
+    parser.add_argument(
+        "--callisto_radiation",
+        action="store_true",
+        help="Show Callisto radiation advantage",
+    )
+    parser.add_argument(
+        "--callisto_autonomy", action="store_true", help="Show Callisto autonomy"
+    )
+    parser.add_argument(
+        "--callisto_hub", action="store_true", help="Evaluate Callisto hub suitability"
+    )
+    parser.add_argument(
+        "--callisto_rate",
+        type=float,
+        default=100.0,
+        help="Callisto extraction rate kg/hr (default: 100)",
+    )
+    parser.add_argument(
+        "--callisto_duration",
+        type=int,
+        default=30,
+        help="Callisto extraction duration days (default: 30)",
+    )
+
+    # Quantum-resistant flags
+    parser.add_argument(
+        "--quantum_resist_info",
+        action="store_true",
+        help="Show quantum-resistant config",
+    )
+    parser.add_argument(
+        "--quantum_resist_config",
+        action="store_true",
+        help="Show quantum config from spec",
+    )
+    parser.add_argument(
+        "--quantum_keygen", action="store_true", help="Generate quantum-resistant key"
+    )
+    parser.add_argument(
+        "--quantum_key_size",
+        type=int,
+        default=256,
+        help="Quantum key size in bits (default: 256)",
+    )
+    parser.add_argument(
+        "--quantum_audit", action="store_true", help="Run full quantum-resistant audit"
+    )
+    parser.add_argument(
+        "--quantum_spectre", action="store_true", help="Test Spectre defense"
+    )
+    parser.add_argument(
+        "--quantum_cache", action="store_true", help="Test quantum cache timing defense"
+    )
+    parser.add_argument(
+        "--spectre_v1", action="store_true", help="Test Spectre v1 defense"
+    )
+    parser.add_argument(
+        "--spectre_v2", action="store_true", help="Test Spectre v2 defense"
+    )
+    parser.add_argument(
+        "--spectre_v4", action="store_true", help="Test Spectre v4 defense"
+    )
+    parser.add_argument(
+        "--quantum_iterations",
+        type=int,
+        default=100,
+        help="Quantum test iterations (default: 100)",
+    )
+
+    # Dust dynamics flags
+    parser.add_argument(
+        "--dust_info", action="store_true", help="Show dust dynamics configuration"
+    )
+    parser.add_argument(
+        "--dust_config", action="store_true", help="Show dust config from spec"
+    )
+    parser.add_argument(
+        "--dust_dynamics", action="store_true", help="Run dust dynamics validation"
+    )
+    parser.add_argument(
+        "--dust_settling", action="store_true", help="Simulate dust settling"
+    )
+    parser.add_argument(
+        "--dust_particle", action="store_true", help="Analyze particle distribution"
+    )
+    parser.add_argument(
+        "--dust_solar_impact", action="store_true", help="Compute solar panel impact"
+    )
+    parser.add_argument(
+        "--dust_mars", action="store_true", help="Project Mars conditions from Atacama"
+    )
+    parser.add_argument(
+        "--dust_depth_mm",
+        type=float,
+        default=1.0,
+        help="Dust depth in mm for solar impact (default: 1.0)",
+    )
+    parser.add_argument(
+        "--dust_duration",
+        type=int,
+        default=30,
+        help="Dust settling duration days (default: 30)",
+    )
+
     args = parser.parse_args()
     reroute_enabled = args.reroute or args.reroute_enabled
 
@@ -1255,6 +1429,76 @@ def main():
         return cmd_randomized_power(args.randomized_iterations, args.simulate)
     if args.randomized_cache:
         return cmd_randomized_cache(args.randomized_iterations, args.simulate)
+
+    # D10 + Jovian hub commands
+    if args.d10_info:
+        return cmd_d10_info()
+    if args.d10_push:
+        return cmd_d10_push(args.tree_size, args.base_alpha, args.simulate)
+    if args.d10_jovian_hub:
+        return cmd_d10_jovian_hub(args.tree_size, args.base_alpha, args.simulate)
+    if args.jovian_info:
+        return cmd_jovian_info()
+    if args.jovian_sync:
+        return cmd_jovian_sync(args.simulate)
+    if args.jovian_autonomy:
+        return cmd_jovian_autonomy(args.simulate)
+    if args.jovian_coordinate:
+        return cmd_jovian_coordinate(args.simulate)
+
+    # Callisto commands
+    if args.callisto_info:
+        return cmd_callisto_info()
+    if args.callisto_config:
+        return cmd_callisto_config()
+    if args.callisto_ice:
+        return cmd_callisto_ice(args.simulate)
+    if args.callisto_extract:
+        return cmd_callisto_extract(
+            args.callisto_duration, args.callisto_rate, args.simulate
+        )
+    if args.callisto_radiation:
+        return cmd_callisto_radiation(args.simulate)
+    if args.callisto_autonomy:
+        return cmd_callisto_autonomy(args.simulate)
+    if args.callisto_hub:
+        return cmd_callisto_hub_suitability(args.simulate)
+
+    # Quantum-resistant commands
+    if args.quantum_resist_info:
+        return cmd_quantum_resist_info()
+    if args.quantum_resist_config:
+        return cmd_quantum_resist_config()
+    if args.quantum_keygen:
+        return cmd_quantum_keygen(args.quantum_key_size)
+    if args.quantum_audit:
+        return cmd_quantum_resist_audit(args.quantum_iterations, args.simulate)
+    if args.quantum_spectre:
+        return cmd_quantum_spectre(args.quantum_iterations, args.simulate)
+    if args.quantum_cache:
+        return cmd_quantum_resist_cache(args.quantum_iterations, args.simulate)
+    if args.spectre_v1:
+        return cmd_quantum_spectre_v1(args.quantum_iterations, args.simulate)
+    if args.spectre_v2:
+        return cmd_quantum_spectre_v2(args.quantum_iterations, args.simulate)
+    if args.spectre_v4:
+        return cmd_quantum_spectre_v4(args.quantum_iterations, args.simulate)
+
+    # Dust dynamics commands
+    if args.dust_info:
+        return cmd_dust_dynamics_info()
+    if args.dust_config:
+        return cmd_dust_dynamics_config()
+    if args.dust_dynamics:
+        return cmd_dust_dynamics(args.simulate)
+    if args.dust_settling:
+        return cmd_dust_settling(args.dust_duration, args.simulate)
+    if args.dust_particle:
+        return cmd_dust_particle(args.simulate)
+    if args.dust_solar_impact:
+        return cmd_dust_solar_impact(args.dust_depth_mm, args.simulate)
+    if args.dust_mars:
+        return cmd_dust_mars_projection(args.simulate)
 
     # Expanded AGI audit commands
     if args.audit_expanded:

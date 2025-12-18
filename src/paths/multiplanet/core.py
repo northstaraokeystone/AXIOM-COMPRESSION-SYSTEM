@@ -1086,7 +1086,7 @@ def compute_system_autonomy(moons: Optional[List[str]] = None) -> float:
     """Compute system-level autonomy for all Jovian moons.
 
     Args:
-        moons: List of moons to include (default: titan, europa, ganymede)
+        moons: List of moons to include (default: titan, europa, ganymede, callisto)
 
     Returns:
         Combined autonomy score (0-1)
@@ -1094,7 +1094,7 @@ def compute_system_autonomy(moons: Optional[List[str]] = None) -> float:
     Receipt: mp_system_autonomy
     """
     if moons is None:
-        moons = ["titan", "europa", "ganymede"]
+        moons = ["titan", "europa", "ganymede", "callisto"]
 
     # Use compute_jovian_autonomy with full moon list
     combined = compute_jovian_autonomy(moons)
@@ -1102,9 +1102,236 @@ def compute_system_autonomy(moons: Optional[List[str]] = None) -> float:
     result = {
         "moons": moons,
         "system_autonomy": round(combined, 4),
-        "full_jovian": len(moons) == 3,
+        "full_jovian": len(moons) == 4,
         "tenant_id": MULTIPLANET_TENANT_ID,
     }
 
     emit_path_receipt("multiplanet", "system_autonomy", result)
     return combined
+
+
+# === CALLISTO INTEGRATION ===
+
+
+def integrate_callisto(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire Callisto ice operations to multi-planet path.
+
+    Args:
+        config: Optional Callisto config override
+
+    Returns:
+        Dict with Callisto integration results
+
+    Receipt: mp_callisto_integrate
+    """
+    # Import Callisto module
+    from ...callisto_ice import (
+        load_callisto_config,
+        simulate_extraction,
+        compute_autonomy,
+        CALLISTO_AUTONOMY_REQUIREMENT,
+    )
+
+    if config is None:
+        config = load_callisto_config()
+
+    # Get Callisto body config (add to sequence if not present)
+    if "callisto" not in EXPANSION_SEQUENCE:
+        EXPANSION_SEQUENCE.append("callisto")
+        LATENCY_BOUNDS_MIN["callisto"] = 33
+        LATENCY_BOUNDS_MAX["callisto"] = 53
+        AUTONOMY_REQUIREMENT["callisto"] = 0.98
+        BANDWIDTH_BUDGET_MBPS["callisto"] = 15
+
+    # Run extraction simulation
+    extraction = simulate_extraction(rate_kg_hr=100, duration_days=30)
+    autonomy = compute_autonomy(extraction)
+
+    result = {
+        "integrated": True,
+        "body": "callisto",
+        "callisto_config": config,
+        "extraction_simulation": {
+            "duration_days": extraction["duration_days"],
+            "total_extracted_kg": extraction["total_extracted_kg"],
+            "energy_kwh": extraction["energy_kwh"],
+            "autonomy_achieved": extraction["autonomy_achieved"],
+        },
+        "autonomy_requirement": CALLISTO_AUTONOMY_REQUIREMENT,
+        "autonomy_met": autonomy >= CALLISTO_AUTONOMY_REQUIREMENT,
+        "hub_suitability": "optimal",
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "callisto_integrate", result)
+    return result
+
+
+def compute_callisto_autonomy() -> float:
+    """Compute Callisto-specific autonomy metrics.
+
+    Returns:
+        Autonomy level (0-1)
+
+    Receipt: mp_callisto_autonomy
+    """
+    # Import Callisto module
+    from ...callisto_ice import (
+        load_callisto_config,
+        simulate_extraction,
+        compute_autonomy,
+    )
+
+    config = load_callisto_config()
+    extraction = simulate_extraction(rate_kg_hr=100, duration_days=30)
+    autonomy = compute_autonomy(extraction)
+
+    result = {
+        "body": "callisto",
+        "autonomy_achieved": autonomy,
+        "autonomy_required": config["autonomy_requirement"],
+        "autonomy_met": autonomy >= config["autonomy_requirement"],
+        "latency_min": config["latency_min"],
+        "earth_callback_max_pct": config["earth_callback_max_pct"],
+        "radiation_level": config["radiation_level"],
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "callisto_autonomy", result)
+    return autonomy
+
+
+# === FULL JOVIAN HUB INTEGRATION ===
+
+
+def integrate_jovian_hub(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire full Jovian multi-moon hub to multi-planet path.
+
+    Args:
+        config: Optional hub config override
+
+    Returns:
+        Dict with Jovian hub integration results
+
+    Receipt: mp_jovian_hub_integrate
+    """
+    # Import Jovian hub module
+    from ...jovian_multi_hub import (
+        load_jovian_hub_config,
+        coordinate_full_jovian,
+        JOVIAN_SYSTEM_AUTONOMY_TARGET,
+    )
+
+    if config is None:
+        config = load_jovian_hub_config()
+
+    # Run full Jovian coordination
+    coordination = coordinate_full_jovian()
+
+    result = {
+        "integrated": True,
+        "subsystem": "full_jovian_hub",
+        "hub_config": config,
+        "coordination_result": {
+            "system_autonomy": coordination["system_autonomy"],
+            "autonomy_target_met": coordination["autonomy_target_met"],
+            "hub_location": coordination["hub_location"],
+            "moons": coordination["moons"],
+        },
+        "autonomy_target": JOVIAN_SYSTEM_AUTONOMY_TARGET,
+        "autonomy_met": coordination["autonomy_target_met"],
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "jovian_hub_integrate", result)
+    return result
+
+
+def coordinate_four_moons(
+    titan: Optional[Dict[str, Any]] = None,
+    europa: Optional[Dict[str, Any]] = None,
+    ganymede: Optional[Dict[str, Any]] = None,
+    callisto: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Coordinate all four Jovian moons as complete system.
+
+    Args:
+        titan: Optional Titan state override
+        europa: Optional Europa state override
+        ganymede: Optional Ganymede state override
+        callisto: Optional Callisto state override
+
+    Returns:
+        Dict with four-moon coordination results
+
+    Receipt: mp_four_moon_coordinate
+    """
+    # Import Jovian hub module
+    from ...jovian_multi_hub import (
+        coordinate_full_jovian,
+        JOVIAN_SYSTEM_AUTONOMY_TARGET,
+    )
+
+    # Run full coordination
+    result = coordinate_full_jovian(titan, europa, ganymede, callisto)
+
+    # Add multiplanet wrapper
+    mp_result = {
+        "subsystem": "four_moon",
+        "moons": ["titan", "europa", "ganymede", "callisto"],
+        "titan_result": result.get("titan", {}),
+        "europa_result": result.get("europa", {}),
+        "ganymede_result": result.get("ganymede", {}),
+        "callisto_result": result.get("callisto", {}),
+        "system_autonomy": result["system_autonomy"],
+        "autonomy_target": JOVIAN_SYSTEM_AUTONOMY_TARGET,
+        "all_targets_met": result["autonomy_target_met"],
+        "hub_location": result["hub_location"],
+        "coordination_mode": result.get("coordination_mode", "unified_rl"),
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "four_moon_coordinate", mp_result)
+    return mp_result
+
+
+def select_hub_location(moons: Optional[List[str]] = None) -> str:
+    """Select optimal hub location from available moons.
+
+    Args:
+        moons: List of available moons
+
+    Returns:
+        Optimal hub location (moon name)
+
+    Receipt: mp_hub_select
+    """
+    if moons is None:
+        moons = ["titan", "europa", "ganymede", "callisto"]
+
+    # Hub scoring based on radiation (lower is better) and autonomy
+    hub_scores = {
+        "callisto": 10,  # Lowest radiation, optimal hub
+        "ganymede": 7,  # Low radiation, magnetic protection
+        "europa": 4,  # High radiation, ice resource
+        "titan": 6,  # Far, but good autonomy
+    }
+
+    # Find best hub among available moons
+    available_scores = {m: hub_scores.get(m, 0) for m in moons if m in hub_scores}
+    best_hub = (
+        max(available_scores, key=available_scores.get)
+        if available_scores
+        else "callisto"
+    )
+
+    result = {
+        "available_moons": moons,
+        "hub_scores": available_scores,
+        "selected_hub": best_hub,
+        "selection_rationale": "Lowest radiation, highest hub suitability score",
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "hub_select", result)
+    return best_hub
