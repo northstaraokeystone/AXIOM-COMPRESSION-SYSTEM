@@ -221,6 +221,37 @@ from cli.d8 import (
     cmd_d8_push,
 )
 
+# D9 + Ganymede + drone + randomized commands
+from cli.d9 import (
+    cmd_d9_info,
+    cmd_d9_push,
+    cmd_d9_ganymede_hybrid,
+)
+
+from cli.ganymede import (
+    cmd_ganymede_info,
+    cmd_ganymede_config,
+    cmd_ganymede_navigate,
+    cmd_ganymede_field,
+    cmd_ganymede_autonomy,
+    cmd_drone_info,
+    cmd_drone_config,
+    cmd_drone_coverage,
+    cmd_drone_sample,
+    cmd_drone_validate,
+)
+
+from cli.randomized import (
+    cmd_randomized_info,
+    cmd_randomized_config,
+    cmd_randomized_generate,
+    cmd_randomized_audit,
+    cmd_randomized_timing,
+    cmd_randomized_power,
+    cmd_randomized_cache,
+    cmd_randomized_recommend,
+)
+
 __all__ = [
     # Core
     "cmd_baseline",
@@ -367,4 +398,28 @@ __all__ = [
     # D8
     "cmd_d8_info",
     "cmd_d8_push",
+    # D9 + Ganymede
+    "cmd_d9_info",
+    "cmd_d9_push",
+    "cmd_d9_ganymede_hybrid",
+    "cmd_ganymede_info",
+    "cmd_ganymede_config",
+    "cmd_ganymede_navigate",
+    "cmd_ganymede_field",
+    "cmd_ganymede_autonomy",
+    # Atacama drone arrays
+    "cmd_drone_info",
+    "cmd_drone_config",
+    "cmd_drone_coverage",
+    "cmd_drone_sample",
+    "cmd_drone_validate",
+    # Randomized execution paths
+    "cmd_randomized_info",
+    "cmd_randomized_config",
+    "cmd_randomized_generate",
+    "cmd_randomized_audit",
+    "cmd_randomized_timing",
+    "cmd_randomized_power",
+    "cmd_randomized_cache",
+    "cmd_randomized_recommend",
 ]
