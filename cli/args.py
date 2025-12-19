@@ -2077,3 +2077,153 @@ def _add_federation_args(parser: argparse.ArgumentParser) -> None:
         default=4.24,
         help="Federation communication lag in years (default: 4.24)",
     )
+
+    # Live relay HIL flags
+    _add_live_relay_hil_args(parser)
+
+    # Lag consensus flags
+    _add_lag_consensus_args(parser)
+
+    # Pruning v4 flags
+    _add_pruning_v4_args(parser)
+
+    # Quantum refine flags
+    _add_quantum_refine_args(parser)
+
+
+def _add_live_relay_hil_args(parser: argparse.ArgumentParser) -> None:
+    """Add live relay hardware-in-loop arguments."""
+    parser.add_argument(
+        "--live_relay_info",
+        action="store_true",
+        help="Show live relay HIL configuration",
+    )
+    parser.add_argument(
+        "--live_relay_connect",
+        action="store_true",
+        help="Connect to Starlink analog",
+    )
+    parser.add_argument(
+        "--live_relay_test",
+        action="store_true",
+        help="Run HIL test",
+    )
+    parser.add_argument(
+        "--live_relay_mars",
+        action="store_true",
+        help="Run Mars HIL proof",
+    )
+    parser.add_argument(
+        "--live_relay_stress",
+        action="store_true",
+        help="Run HIL stress test",
+    )
+    parser.add_argument(
+        "--live_relay_status",
+        action="store_true",
+        help="Show HIL status",
+    )
+    parser.add_argument(
+        "--hil_duration",
+        type=int,
+        default=60,
+        help="HIL test duration in seconds (default: 60)",
+    )
+    parser.add_argument(
+        "--hil_iterations",
+        type=int,
+        default=100,
+        help="HIL stress test iterations (default: 100)",
+    )
+    parser.add_argument(
+        "--mars_proof_hours",
+        type=float,
+        default=1.0,
+        help="Mars HIL proof duration in hours (default: 1)",
+    )
+
+
+def _add_lag_consensus_args(parser: argparse.ArgumentParser) -> None:
+    """Add lag-tolerant consensus arguments."""
+    parser.add_argument(
+        "--consensus_info",
+        action="store_true",
+        help="Show lag-tolerant consensus configuration",
+    )
+    parser.add_argument(
+        "--consensus_init",
+        action="store_true",
+        help="Initialize consensus cluster",
+    )
+    parser.add_argument(
+        "--consensus_simulate",
+        action="store_true",
+        help="Run consensus simulation",
+    )
+    parser.add_argument(
+        "--consensus_election",
+        action="store_true",
+        help="Trigger leader election",
+    )
+    parser.add_argument(
+        "--consensus_status",
+        action="store_true",
+        help="Show consensus status",
+    )
+    parser.add_argument(
+        "--consensus_nodes",
+        type=int,
+        default=5,
+        help="Number of consensus nodes (default: 5)",
+    )
+    parser.add_argument(
+        "--consensus_latency",
+        type=float,
+        default=6300,
+        help="Latency multiplier for consensus (default: 6300)",
+    )
+
+
+def _add_pruning_v4_args(parser: argparse.ArgumentParser) -> None:
+    """Add pruning v4 arguments."""
+    parser.add_argument(
+        "--pruning_v4",
+        action="store_true",
+        help="Run pruning v4 for >99.5%% compression",
+    )
+    parser.add_argument(
+        "--pruning_v4_compare",
+        action="store_true",
+        help="Compare v3 vs v4 pruning",
+    )
+    parser.add_argument(
+        "--pruning_v4_status",
+        action="store_true",
+        help="Show pruning v4 status",
+    )
+    parser.add_argument(
+        "--pruning_v4_target",
+        type=float,
+        default=0.995,
+        help="Pruning v4 compression target (default: 0.995)",
+    )
+
+
+def _add_quantum_refine_args(parser: argparse.ArgumentParser) -> None:
+    """Add quantum refinement arguments."""
+    parser.add_argument(
+        "--quantum_refine",
+        action="store_true",
+        help="Run quantum correlation refinement",
+    )
+    parser.add_argument(
+        "--quantum_refine_info",
+        action="store_true",
+        help="Show quantum refinement configuration",
+    )
+    parser.add_argument(
+        "--quantum_refine_iterations",
+        type=int,
+        default=10,
+        help="Quantum refinement iterations (default: 10)",
+    )
