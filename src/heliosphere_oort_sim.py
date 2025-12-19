@@ -78,6 +78,22 @@ OORT_AUTONOMY_TARGET = 0.999
 OORT_COMPRESSION_RATIO_TARGET = 0.99
 """Compression ratio target (99%)."""
 
+# Aliases for test compatibility
+HELIOSPHERE_TERMINATION_SHOCK_AU = TERMINATION_SHOCK_AU
+"""Alias for TERMINATION_SHOCK_AU."""
+
+HELIOSPHERE_HELIOPAUSE_AU = HELIOPAUSE_AU
+"""Alias for HELIOPAUSE_AU."""
+
+HELIOSPHERE_BOW_SHOCK_AU = BOW_SHOCK_AU
+"""Alias for BOW_SHOCK_AU."""
+
+OORT_CLOUD_DISTANCE_AU = OORT_SIMULATION_AU
+"""Alias for OORT_SIMULATION_AU."""
+
+OORT_COMPRESSION_TARGET = OORT_COMPRESSION_RATIO_TARGET
+"""Alias for OORT_COMPRESSION_RATIO_TARGET."""
+
 OORT_COORDINATION_INTERVAL_DAYS = 365
 """Coordination interval in days (annual)."""
 
@@ -110,6 +126,13 @@ def load_heliosphere_config() -> Dict[str, Any]:
         spec = json.load(f)
 
     config = spec.get("heliosphere_config", {})
+
+    # Add zones for test compatibility
+    config["zones"] = {
+        "termination_shock": {"distance_au": config.get("termination_shock_au", TERMINATION_SHOCK_AU)},
+        "heliopause": {"distance_au": config.get("heliopause_au", HELIOPAUSE_AU)},
+        "bow_shock": {"distance_au": config.get("bow_shock_au", BOW_SHOCK_AU)},
+    }
 
     emit_receipt(
         "heliosphere_config",
@@ -241,6 +264,19 @@ def initialize_heliosphere_zones() -> Dict[str, Any]:
             "outer_au": float("inf"),
             "description": "True interstellar space",
         },
+        # Test-expected zone keys with distance_au
+        "termination_shock": {
+            "distance_au": config.get("termination_shock_au", TERMINATION_SHOCK_AU),
+            "description": "Solar wind termination boundary",
+        },
+        "heliopause": {
+            "distance_au": config.get("heliopause_au", HELIOPAUSE_AU),
+            "description": "Solar/interstellar boundary",
+        },
+        "bow_shock": {
+            "distance_au": config.get("bow_shock_au", BOW_SHOCK_AU),
+            "description": "Interstellar medium bow shock",
+        },
     }
 
     emit_receipt(
@@ -307,6 +343,9 @@ def initialize_oort_cloud(distance_au: float = OORT_SIMULATION_AU) -> Dict[str, 
 
     in_oort = inner <= distance_au <= outer
 
+    # Calculate light delay
+    light_delay = distance_au / LIGHT_SPEED_AU_PER_HOUR
+
     oort = {
         "distance_au": distance_au,
         "in_oort_cloud": in_oort,
@@ -314,6 +353,8 @@ def initialize_oort_cloud(distance_au: float = OORT_SIMULATION_AU) -> Dict[str, 
         "outer_edge_au": outer,
         "estimated_bodies": config.get("body_count_estimate", OORT_BODY_COUNT_ESTIMATE),
         "zone": get_zone_for_distance(distance_au),
+        "light_delay_hours": round(light_delay, 2),  # Tests expect this
+        "autonomy_target": config.get("autonomy_target", OORT_AUTONOMY_TARGET),  # Tests expect this
     }
 
     emit_receipt(

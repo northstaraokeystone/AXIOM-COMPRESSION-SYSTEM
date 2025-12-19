@@ -102,11 +102,11 @@ def get_d15_spec() -> Dict[str, Any]:
     return spec
 
 
-def get_d15_uplift(depth: int) -> float:
+def get_d15_uplift(depth: int = 15) -> float:
     """Get uplift value for depth from d15_spec.
 
     Args:
-        depth: Recursion depth (1-15)
+        depth: Recursion depth (1-15), default 15 for max uplift
 
     Returns:
         Cumulative uplift at depth
@@ -116,7 +116,11 @@ def get_d15_uplift(depth: int) -> float:
     return float(uplift_map.get(str(depth), 0.0))
 
 
-def compute_entanglement_correlation(state_a: Dict, state_b: Dict) -> float:
+def compute_entanglement_correlation(
+    state_a: Dict = None,
+    state_b: Dict = None,
+    depth: int = None,
+) -> Dict[str, Any]:
     """Compute quantum entanglement correlation between two states.
 
     Entanglement correlation measures the degree of quantum correlation
@@ -124,12 +128,21 @@ def compute_entanglement_correlation(state_a: Dict, state_b: Dict) -> float:
     stronger entanglement and more efficient compression.
 
     Args:
-        state_a: First fractal state dict with 'eff_alpha' and 'depth'
-        state_b: Second fractal state dict with 'eff_alpha' and 'depth'
+        state_a: First fractal state dict with 'eff_alpha' and 'depth' (optional)
+        state_b: Second fractal state dict with 'eff_alpha' and 'depth' (optional)
+        depth: Recursion depth for correlation computation (optional)
 
     Returns:
-        Correlation value in [0, 1], target is 0.99
+        Dict with correlation value in [0, 1], target is 0.99
     """
+    # Handle depth-only call
+    if depth is not None and state_a is None:
+        state_a = {"eff_alpha": 3.5, "depth": depth}
+        state_b = {"eff_alpha": 3.5, "depth": depth - 1 if depth > 1 else 1}
+    elif state_a is None:
+        state_a = {"eff_alpha": 3.5, "depth": 15}
+        state_b = {"eff_alpha": 3.5, "depth": 14}
+
     alpha_a = state_a.get("eff_alpha", 0.0)
     alpha_b = state_b.get("eff_alpha", 0.0)
     depth_a = state_a.get("depth", 1)
@@ -150,12 +163,18 @@ def compute_entanglement_correlation(state_a: Dict, state_b: Dict) -> float:
     if depth_a >= 14 and depth_b >= 14:
         correlation = min(correlation * 1.1, 1.0)
 
-    return round(correlation, 4)
+    return {
+        "correlation": round(correlation, 4),
+        "depth_a": depth_a,
+        "depth_b": depth_b,
+        "target": D15_ENTANGLEMENT_CORRELATION,
+        "target_met": correlation >= D15_ENTANGLEMENT_CORRELATION,
+    }
 
 
 def entangled_termination_check(
     correlation: float, threshold: float = D15_TERMINATION_THRESHOLD
-) -> bool:
+) -> Dict[str, Any]:
     """Check if entangled termination condition is met.
 
     Quantum entanglement allows for tighter termination thresholds
@@ -166,11 +185,19 @@ def entangled_termination_check(
         threshold: Termination threshold (default: 0.0005)
 
     Returns:
-        True if correlation variance < threshold (stable entanglement)
+        Dict with should_terminate and details
     """
     target = D15_ENTANGLEMENT_CORRELATION
     variance = abs(correlation - target)
-    return variance < threshold
+    should_terminate = variance < threshold
+
+    return {
+        "should_terminate": should_terminate,
+        "variance": round(variance, 6),
+        "threshold": threshold,
+        "target": target,
+        "correlation": correlation,
+    }
 
 
 def d15_quantum_push(

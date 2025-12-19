@@ -49,6 +49,9 @@ CHAOTIC_STABILITY_TARGET = 0.95
 NBODY_INTEGRATION_METHOD = "symplectic"
 """Energy-conserving integration."""
 
+SYMPLECTIC_INTEGRATION = True
+"""Flag indicating symplectic integration is enabled."""
+
 NBODY_TIMESTEP_DAYS = 0.1
 """High resolution timestep (0.1 days)."""
 
@@ -63,6 +66,7 @@ TENANT_ID = "axiom-colony"
 
 # Body orbital parameters (semi-major axis in AU, mass in solar masses)
 BODY_PARAMETERS = {
+    "sun": {"a": 0.0, "mass": 1.0, "type": "star"},  # Sun at center
     "titan": {"a": 0.00817, "mass": 2.25e-7, "type": "jovian"},
     "europa": {"a": 0.00449, "mass": 8.03e-8, "type": "jovian"},
     "ganymede": {"a": 0.00715, "mass": 2.48e-7, "type": "jovian"},
@@ -123,20 +127,22 @@ def load_chaos_config() -> Dict[str, Any]:
     return config
 
 
-def initialize_bodies(config: Dict[str, Any]) -> List[Dict[str, Any]]:
+def initialize_bodies(config: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """Set up initial conditions for n-body simulation.
 
     Creates body states with positions, velocities, and masses
     based on orbital parameters.
 
     Args:
-        config: Chaos configuration dict
+        config: Chaos configuration dict (optional, loads from file if not provided)
 
     Returns:
         List of body state dicts
 
     Receipt: chaotic_nbody_init_receipt
     """
+    if config is None:
+        config = load_chaos_config()
     body_count = config.get("body_count", NBODY_COUNT)
     bodies_spec = config.get("bodies", {"jovian": [], "inner": []})
 
@@ -144,9 +150,10 @@ def initialize_bodies(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     jovian_bodies = bodies_spec.get("jovian", ["titan", "europa", "ganymede", "callisto"])
     inner_bodies = bodies_spec.get("inner", ["venus", "mercury", "mars"])
 
-    all_body_names = jovian_bodies + inner_bodies
+    # Always start with Sun, then add other bodies
+    all_body_names = ["sun"] + jovian_bodies + inner_bodies
 
-    # Limit to specified count
+    # Limit to specified count (Sun counts as one of the bodies)
     body_names = all_body_names[:body_count]
 
     bodies = []
@@ -155,17 +162,21 @@ def initialize_bodies(config: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         # Initial position (circular orbit assumption)
         a = params["a"]
-        theta = random.uniform(0, 2 * math.pi)
-        x = a * math.cos(theta)
-        y = a * math.sin(theta)
-        z = 0.0  # Assume coplanar
+        if a == 0:  # Sun at center
+            x, y, z = 0.0, 0.0, 0.0
+            vx, vy, vz = 0.0, 0.0, 0.0
+        else:
+            theta = random.uniform(0, 2 * math.pi)
+            x = a * math.cos(theta)
+            y = a * math.sin(theta)
+            z = 0.0  # Assume coplanar
 
-        # Circular orbital velocity
-        # v = sqrt(G * M / r), normalized to AU/day
-        v_orbital = math.sqrt(1.0 / a) * 0.01720209895  # k = Gaussian gravitational constant
-        vx = -v_orbital * math.sin(theta)
-        vy = v_orbital * math.cos(theta)
-        vz = 0.0
+            # Circular orbital velocity
+            # v = sqrt(G * M / r), normalized to AU/day
+            v_orbital = math.sqrt(1.0 / a) * 0.01720209895  # k = Gaussian gravitational constant
+            vx = -v_orbital * math.sin(theta)
+            vy = v_orbital * math.cos(theta)
+            vz = 0.0
 
         bodies.append({
             "name": name,
@@ -340,55 +351,77 @@ def compute_total_energy(bodies: List[Dict[str, Any]]) -> float:
     return kinetic + potential
 
 
-def compute_lyapunov_exponent(trajectory: List[List[float]]) -> float:
+def compute_lyapunov_exponent(
+    trajectory: Optional[List[List[float]]] = None,
+    iterations: int = 100,
+) -> Dict[str, Any]:
     """Compute Lyapunov exponent from trajectory divergence.
 
     The Lyapunov exponent measures the rate of separation of
     infinitesimally close trajectories. Positive = chaotic.
 
     Args:
-        trajectory: List of state vectors over time
+        trajectory: List of state vectors over time (optional)
+        iterations: Number of iterations for simulation (used if trajectory not provided)
 
     Returns:
-        Lyapunov exponent estimate
+        Dict with lyapunov_exponent, threshold, is_stable
     """
+    # If no trajectory provided, simulate one
+    if trajectory is None:
+        bodies = initialize_bodies()
+        trajectory = []
+        for _ in range(iterations):
+            state = []
+            for b in bodies:
+                state.extend(b["position"])
+                state.extend(b["velocity"])
+            trajectory.append(state)
+            bodies = symplectic_integrate(bodies, NBODY_TIMESTEP_DAYS)
+
     if len(trajectory) < 10:
-        return 0.0
+        lyapunov = 0.0
+    else:
+        # Sample trajectory points
+        n_samples = min(100, len(trajectory) - 1)
+        step = max(1, len(trajectory) // n_samples)
 
-    # Sample trajectory points
-    n_samples = min(100, len(trajectory) - 1)
-    step = max(1, len(trajectory) // n_samples)
+        divergences = []
+        for i in range(0, len(trajectory) - step, step):
+            # Compute state difference
+            s1 = trajectory[i]
+            s2 = trajectory[i + step]
 
-    divergences = []
-    for i in range(0, len(trajectory) - step, step):
-        # Compute state difference
-        s1 = trajectory[i]
-        s2 = trajectory[i + step]
+            d = sum((a - b) ** 2 for a, b in zip(s1, s2))
+            if d > 1e-20:
+                divergences.append(math.log(math.sqrt(d)))
 
-        d = sum((a - b) ** 2 for a, b in zip(s1, s2))
-        if d > 1e-20:
-            divergences.append(math.log(math.sqrt(d)))
+        if not divergences:
+            lyapunov = 0.0
+        else:
+            # Linear fit to log-divergence gives Lyapunov exponent
+            n = len(divergences)
+            mean_y = sum(divergences) / n
+            mean_x = (n - 1) / 2.0
 
-    if not divergences:
-        return 0.0
+            numerator = sum((i - mean_x) * (divergences[i] - mean_y) for i in range(n))
+            denominator = sum((i - mean_x) ** 2 for i in range(n))
 
-    # Linear fit to log-divergence gives Lyapunov exponent
-    n = len(divergences)
-    mean_y = sum(divergences) / n
-    mean_x = (n - 1) / 2.0
+            if abs(denominator) < 1e-20:
+                lyapunov = 0.0
+            else:
+                slope = numerator / denominator
+                # Normalize by timestep
+                lyapunov = abs(slope) / (step * NBODY_TIMESTEP_DAYS)
 
-    numerator = sum((i - mean_x) * (divergences[i] - mean_y) for i in range(n))
-    denominator = sum((i - mean_x) ** 2 for i in range(n))
+    lyapunov = round(lyapunov, 6)
+    is_stable = lyapunov < LYAPUNOV_EXPONENT_THRESHOLD
 
-    if abs(denominator) < 1e-20:
-        return 0.0
-
-    slope = numerator / denominator
-
-    # Normalize by timestep
-    lyapunov = abs(slope) / (step * NBODY_TIMESTEP_DAYS)
-
-    return round(lyapunov, 6)
+    return {
+        "lyapunov_exponent": lyapunov,
+        "threshold": LYAPUNOV_EXPONENT_THRESHOLD,
+        "is_stable": is_stable,
+    }
 
 
 # === SIMULATION FUNCTIONS ===
@@ -445,7 +478,8 @@ def simulate_chaos(
 
     # Compute metrics
     energy_error = abs(final_energy - initial_energy) / abs(initial_energy + 1e-20)
-    lyapunov = compute_lyapunov_exponent(trajectory)
+    lyapunov_result = compute_lyapunov_exponent(trajectory)
+    lyapunov = lyapunov_result["lyapunov_exponent"]
     energy_conserved = energy_error < ENERGY_CONSERVATION_TOLERANCE
 
     # Check stability
@@ -500,17 +534,33 @@ def simulate_chaos(
     return result
 
 
-def check_stability(lyapunov: float, threshold: float = LYAPUNOV_EXPONENT_THRESHOLD) -> bool:
+def check_stability(
+    lyapunov: Optional[float] = None,
+    threshold: float = LYAPUNOV_EXPONENT_THRESHOLD,
+) -> Dict[str, Any]:
     """Check if Lyapunov exponent indicates stability.
 
     Args:
-        lyapunov: Computed Lyapunov exponent
+        lyapunov: Computed Lyapunov exponent (optional, computed if not provided)
         threshold: Stability threshold (default: 0.1)
 
     Returns:
-        True if system is stable (lyapunov < threshold)
+        Dict with is_stable, lyapunov_exponent, stability_margin
     """
-    return lyapunov < threshold
+    # If no lyapunov provided, compute it
+    if lyapunov is None:
+        lyap_result = compute_lyapunov_exponent()
+        lyapunov = lyap_result["lyapunov_exponent"]
+
+    is_stable = lyapunov < threshold
+    stability_margin = threshold - lyapunov if is_stable else 0.0
+
+    return {
+        "is_stable": is_stable,
+        "lyapunov_exponent": lyapunov,
+        "threshold": threshold,
+        "stability_margin": round(stability_margin, 6),
+    }
 
 
 def check_energy_conservation(
@@ -626,18 +676,22 @@ def run_monte_carlo_stability(n_runs: int = 100) -> Dict[str, Any]:
     return result
 
 
-def compute_backbone_chaos_tolerance(sim_results: Dict[str, Any]) -> float:
+def compute_backbone_chaos_tolerance(sim_results: Optional[Dict[str, Any]] = None) -> float:
     """Compute backbone chaos tolerance from simulation results.
 
     Combines stability, energy conservation, and Lyapunov exponent
     into a single tolerance metric.
 
     Args:
-        sim_results: Results from simulate_chaos()
+        sim_results: Results from simulate_chaos() (optional, runs sim if not provided)
 
     Returns:
         Tolerance value in [0, 1], target is >= 0.95
     """
+    # Run simulation if no results provided
+    if sim_results is None:
+        sim_results = simulate_chaos(duration_years=1)  # Quick 1-year sim
+
     # Weight factors
     stability_weight = 0.5
     energy_weight = 0.3
