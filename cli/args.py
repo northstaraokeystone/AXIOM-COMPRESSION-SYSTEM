@@ -1600,3 +1600,152 @@ def _add_atacama_200hz_args(parser: argparse.ArgumentParser) -> None:
         default=60.0,
         help="200Hz simulation duration in seconds (default: 60)",
     )
+
+    # D16 flags
+    _add_d16_args(parser)
+
+    # Kuiper 12-body flags
+    _add_kuiper_args(parser)
+
+    # Bulletproofs flags
+    _add_bulletproofs_args(parser)
+
+    # ML ensemble flags
+    _add_ml_ensemble_args(parser)
+
+
+def _add_d16_args(parser: argparse.ArgumentParser) -> None:
+    """Add D16 topological fractal recursion arguments."""
+    parser.add_argument(
+        "--d16_push", action="store_true", help="Run D16 recursion for alpha>=3.91"
+    )
+    parser.add_argument(
+        "--d16_info", action="store_true", help="Show D16 configuration"
+    )
+    parser.add_argument(
+        "--d16_topological",
+        action="store_true",
+        help="Show D16 topological metrics",
+    )
+    parser.add_argument(
+        "--d16_homology",
+        action="store_true",
+        help="Compute persistent homology",
+    )
+    parser.add_argument(
+        "--d16_kuiper_hybrid",
+        action="store_true",
+        help="Run integrated D16+Kuiper hybrid",
+    )
+
+
+def _add_kuiper_args(parser: argparse.ArgumentParser) -> None:
+    """Add Kuiper 12-body chaos arguments."""
+    parser.add_argument(
+        "--kuiper_info", action="store_true", help="Show Kuiper configuration"
+    )
+    parser.add_argument(
+        "--kuiper_bodies", action="store_true", help="List all 12 bodies"
+    )
+    parser.add_argument(
+        "--kuiper_simulate", action="store_true", help="Run 12-body simulation"
+    )
+    parser.add_argument(
+        "--kuiper_stability", action="store_true", help="Check Kuiper stability"
+    )
+    parser.add_argument(
+        "--kuiper_resonances", action="store_true", help="Analyze resonances"
+    )
+    parser.add_argument(
+        "--kuiper_encounters", action="store_true", help="Find close encounters"
+    )
+    parser.add_argument(
+        "--kuiper_monte_carlo",
+        action="store_true",
+        help="Run Monte Carlo stability analysis",
+    )
+    parser.add_argument(
+        "--kuiper_duration",
+        type=float,
+        default=10.0,
+        help="Kuiper simulation duration in years (default: 10)",
+    )
+
+
+def _add_bulletproofs_args(parser: argparse.ArgumentParser) -> None:
+    """Add Bulletproofs high-load stress testing arguments."""
+    parser.add_argument(
+        "--bulletproofs_info", action="store_true", help="Show Bulletproofs config"
+    )
+    parser.add_argument(
+        "--bulletproofs_prove", action="store_true", help="Generate Bulletproof"
+    )
+    parser.add_argument(
+        "--bulletproofs_verify", action="store_true", help="Verify Bulletproof"
+    )
+    parser.add_argument(
+        "--bulletproofs_aggregate",
+        action="store_true",
+        help="Aggregate Bulletproofs",
+    )
+    parser.add_argument(
+        "--bulletproofs_stress",
+        action="store_true",
+        help="Run high-load stress test",
+    )
+    parser.add_argument(
+        "--bulletproofs_chain",
+        action="store_true",
+        help="Generate proof chain",
+    )
+    parser.add_argument(
+        "--bulletproofs_audit",
+        action="store_true",
+        help="Run full Bulletproofs audit",
+    )
+    parser.add_argument(
+        "--bulletproofs_benchmark",
+        action="store_true",
+        help="Run performance benchmark",
+    )
+    parser.add_argument(
+        "--bulletproofs_compare",
+        action="store_true",
+        help="Compare Bulletproofs vs Halo2",
+    )
+    parser.add_argument(
+        "--bulletproofs_depth",
+        type=int,
+        default=100,
+        help="Bulletproofs stress test depth (default: 100)",
+    )
+
+
+def _add_ml_ensemble_args(parser: argparse.ArgumentParser) -> None:
+    """Add ML ensemble forecasting arguments."""
+    parser.add_argument(
+        "--ml_ensemble_info",
+        action="store_true",
+        help="Show ML ensemble configuration",
+    )
+    parser.add_argument(
+        "--ml_ensemble_train",
+        action="store_true",
+        help="Train ML ensemble",
+    )
+    parser.add_argument(
+        "--ml_ensemble_predict",
+        action="store_true",
+        help="Make 60s dust forecast",
+    )
+    parser.add_argument(
+        "--ml_ensemble_accuracy",
+        action="store_true",
+        help="Check forecast accuracy",
+    )
+    parser.add_argument(
+        "--ml_ensemble_horizon",
+        type=int,
+        default=60,
+        help="Prediction horizon in seconds (default: 60)",
+    )

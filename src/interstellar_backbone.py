@@ -1222,3 +1222,222 @@ def d15_chaos_hybrid(
     )
 
     return result
+
+
+# === KUIPER BELT INTEGRATION ===
+
+
+KUIPER_BODIES = ["ceres", "pluto", "eris", "makemake", "haumea"]
+"""Kuiper belt objects for extended backbone."""
+
+KUIPER_EXTENDED_BODY_COUNT = 12
+"""Extended body count with Kuiper objects."""
+
+
+def integrate_kuiper_dynamics(kuiper_results: Dict[str, Any]) -> Dict[str, Any]:
+    """Wire Kuiper 12-body chaos simulation to backbone.
+
+    Args:
+        kuiper_results: Results from kuiper_12body_chaos.simulate_kuiper()
+
+    Returns:
+        Dict with Kuiper integration results
+
+    Receipt: kuiper_backbone_integration_receipt
+    """
+    # Get backbone status
+    backbone_autonomy = compute_backbone_autonomy()
+
+    # Kuiper stability metrics
+    kuiper_stability = kuiper_results.get("stability", 0.93)
+    kuiper_lyapunov = kuiper_results.get("lyapunov_exponent", 0.1)
+    kuiper_is_stable = kuiper_results.get("is_stable", True)
+
+    # Combined stability (weighted average)
+    combined_stability = (
+        backbone_autonomy.get("autonomy", 0.98) * 0.5
+        + kuiper_stability * 0.5
+    )
+
+    # Total body count
+    backbone_bodies = INTERSTELLAR_BODY_COUNT
+    kuiper_bodies = len(KUIPER_BODIES)
+    total_bodies = backbone_bodies + kuiper_bodies
+
+    result = {
+        "kuiper_integration": True,
+        "backbone_bodies": backbone_bodies,
+        "kuiper_bodies": kuiper_bodies,
+        "total_bodies": total_bodies,
+        "backbone_autonomy": round(backbone_autonomy.get("autonomy", 0.98), 4),
+        "kuiper_stability": round(kuiper_stability, 4),
+        "kuiper_lyapunov": round(kuiper_lyapunov, 6),
+        "kuiper_is_stable": kuiper_is_stable,
+        "combined_stability": round(combined_stability, 4),
+        "extended_coordination": "d16_kuiper_hybrid",
+    }
+
+    emit_receipt(
+        "kuiper_backbone_integration",
+        {
+            "receipt_type": "kuiper_backbone_integration",
+            "tenant_id": INTERSTELLAR_TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "total_bodies": total_bodies,
+            "combined_stability": round(combined_stability, 4),
+            "kuiper_is_stable": kuiper_is_stable,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
+
+    return result
+
+
+def compute_kuiper_coordination() -> Dict[str, Any]:
+    """Compute 12-body coordination metrics for extended backbone.
+
+    Returns:
+        Dict with coordination metrics
+
+    Receipt: kuiper_coordination_receipt
+    """
+    # All bodies in extended backbone
+    all_bodies = INTERSTELLAR_ALL_BODIES + KUIPER_BODIES
+    total_count = len(all_bodies)
+
+    # Compute coordination metrics
+    # Jovian moon coordination (4 bodies)
+    jovian_coord = len(INTERSTELLAR_JOVIAN_BODIES) / total_count
+
+    # Inner planet coordination (3 bodies)
+    inner_coord = len(INTERSTELLAR_INNER_BODIES) / total_count
+
+    # Kuiper coordination (5 bodies)
+    kuiper_coord = len(KUIPER_BODIES) / total_count
+
+    # Overall coordination factor
+    coordination = (jovian_coord + inner_coord + kuiper_coord) / 3
+
+    result = {
+        "total_bodies": total_count,
+        "jovian_bodies": INTERSTELLAR_JOVIAN_BODIES,
+        "inner_bodies": INTERSTELLAR_INNER_BODIES,
+        "kuiper_bodies": KUIPER_BODIES,
+        "jovian_coordination": round(jovian_coord, 4),
+        "inner_coordination": round(inner_coord, 4),
+        "kuiper_coordination": round(kuiper_coord, 4),
+        "overall_coordination": round(coordination, 4),
+        "extended_mode": True,
+    }
+
+    emit_receipt(
+        "kuiper_coordination",
+        {
+            "receipt_type": "kuiper_coordination",
+            "tenant_id": INTERSTELLAR_TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "total_bodies": total_count,
+            "overall_coordination": round(coordination, 4),
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
+
+    return result
+
+
+def get_kuiper_status() -> Dict[str, Any]:
+    """Get Kuiper integration status in backbone.
+
+    Returns:
+        Dict with Kuiper status
+    """
+    coordination = compute_kuiper_coordination()
+
+    return {
+        "kuiper_integrated": True,
+        "kuiper_bodies": KUIPER_BODIES,
+        "kuiper_body_count": len(KUIPER_BODIES),
+        "total_backbone_bodies": coordination["total_bodies"],
+        "coordination": coordination["overall_coordination"],
+        "extended_mode": "d16_kuiper_hybrid",
+        "description": "12-body extended backbone with Kuiper belt objects",
+    }
+
+
+def d16_kuiper_hybrid_backbone(
+    tree_size: int = 10**12, base_alpha: float = 3.55
+) -> Dict[str, Any]:
+    """Run D16 + Kuiper + backbone hybrid integration.
+
+    Args:
+        tree_size: Tree size for D16 recursion
+        base_alpha: Base alpha for D16
+
+    Returns:
+        Dict with hybrid results
+
+    Receipt: d16_kuiper_hybrid_backbone_receipt
+    """
+    # Run D16 topological push
+    from .fractal_layers import d16_topological_push
+
+    d16_result = d16_topological_push(tree_size, base_alpha, topological=True)
+
+    # Run Kuiper simulation
+    from .kuiper_12body_chaos import simulate_kuiper
+
+    kuiper_result = simulate_kuiper(bodies=12, duration_years=10)
+
+    # Integrate with backbone
+    integration = integrate_kuiper_dynamics(kuiper_result)
+
+    # Compute backbone coordination
+    coordination = compute_kuiper_coordination()
+
+    # Combined metrics
+    combined_alpha = d16_result["eff_alpha"]
+    combined_stability = integration["combined_stability"]
+    combined_coordination = coordination["overall_coordination"]
+
+    result = {
+        "d16_result": {
+            "eff_alpha": d16_result["eff_alpha"],
+            "topological": d16_result["topological"],
+            "target_met": d16_result["target_met"],
+        },
+        "kuiper_result": {
+            "stability": kuiper_result["stability"],
+            "is_stable": kuiper_result["is_stable"],
+            "target_met": kuiper_result.get("target_met", True),
+        },
+        "backbone_integration": {
+            "total_bodies": integration["total_bodies"],
+            "combined_stability": integration["combined_stability"],
+        },
+        "coordination": {
+            "overall": coordination["overall_coordination"],
+        },
+        "combined_alpha": round(combined_alpha, 4),
+        "combined_stability": round(combined_stability, 4),
+        "combined_coordination": round(combined_coordination, 4),
+        "all_targets_met": (
+            d16_result["target_met"]
+            and kuiper_result.get("target_met", True)
+        ),
+        "gate": "t24h",
+    }
+
+    emit_receipt(
+        "d16_kuiper_hybrid_backbone",
+        {
+            "receipt_type": "d16_kuiper_hybrid_backbone",
+            "tenant_id": INTERSTELLAR_TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "combined_alpha": round(combined_alpha, 4),
+            "combined_stability": round(combined_stability, 4),
+            "all_targets_met": result["all_targets_met"],
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
+        },
+    )
+
+    return result

@@ -304,6 +304,24 @@ from cli.halo2 import (
     cmd_halo2_infinite_chain,
 )
 
+# D16 topological fractal + Kuiper commands
+from cli.d16 import (
+    cmd_d16_info,
+    cmd_d16_push,
+    cmd_d16_topological,
+    cmd_d16_homology,
+    cmd_d16_kuiper_hybrid,
+    cmd_kuiper_info,
+    cmd_kuiper_simulate,
+    cmd_kuiper_resonances,
+    cmd_bulletproofs_info,
+    cmd_bulletproofs_stress,
+    cmd_bulletproofs_chain,
+    cmd_ml_ensemble_info,
+    cmd_ml_ensemble_predict,
+    cmd_ml_ensemble_train,
+)
+
 
 def dispatch(args, docstring: str) -> None:
     """Dispatch command based on parsed arguments.
@@ -829,6 +847,36 @@ def dispatch(args, docstring: str) -> None:
         return cmd_halo2_compare(args)
     if args.halo2_infinite_chain:
         return cmd_halo2_infinite_chain(args)
+
+    # D16 topological fractal + Kuiper commands
+    if args.d16_info:
+        return cmd_d16_info(args)
+    if args.d16_push:
+        return cmd_d16_push(args)
+    if args.d16_topological:
+        return cmd_d16_topological(args)
+    if args.d16_homology:
+        return cmd_d16_homology(args)
+    if args.d16_kuiper_hybrid:
+        return cmd_d16_kuiper_hybrid(args)
+    if args.kuiper_info:
+        return cmd_kuiper_info(args)
+    if args.kuiper_simulate:
+        return cmd_kuiper_simulate(args)
+    if args.kuiper_resonances:
+        return cmd_kuiper_resonances(args)
+    if args.bulletproofs_info:
+        return cmd_bulletproofs_info(args)
+    if args.bulletproofs_stress:
+        return cmd_bulletproofs_stress(args)
+    if args.bulletproofs_chain:
+        return cmd_bulletproofs_chain(args)
+    if args.ml_ensemble_info:
+        return cmd_ml_ensemble_info(args)
+    if args.ml_ensemble_predict:
+        return cmd_ml_ensemble_predict(args)
+    if args.ml_ensemble_train:
+        return cmd_ml_ensemble_train(args)
 
     # Atacama 200Hz commands
     if args.atacama_200hz:

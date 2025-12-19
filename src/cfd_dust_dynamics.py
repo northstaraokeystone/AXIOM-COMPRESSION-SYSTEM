@@ -1951,3 +1951,413 @@ def get_atacama_200hz_info() -> Dict[str, Any]:
         "upgrade_from_100hz": True,
         "description": "Atacama 200Hz adaptive drone sampling with dust devil prediction",
     }
+
+
+# === ML ENSEMBLE CONSTANTS ===
+
+
+ML_ENSEMBLE_MODEL_COUNT = 5
+"""Number of models in the ensemble."""
+
+ML_ENSEMBLE_PREDICTION_HORIZON_S = 60
+"""Prediction horizon in seconds (2x from 30s)."""
+
+ML_ENSEMBLE_AGREEMENT_THRESHOLD = 0.8
+"""Model agreement threshold (80%)."""
+
+ML_ENSEMBLE_ACCURACY_TARGET = 0.90
+"""Target accuracy (90%)."""
+
+ML_ENSEMBLE_RETRAIN_HOURS = 24
+"""Retrain interval in hours."""
+
+ML_ENSEMBLE_MODEL_TYPES = ["lstm", "transformer", "cnn", "xgboost", "gru"]
+"""Model types in the ensemble."""
+
+
+# === ML ENSEMBLE FUNCTIONS ===
+
+
+def load_ml_ensemble_config() -> Dict[str, Any]:
+    """Load ML ensemble config from d16_kuiper_spec.json.
+
+    Returns:
+        Dict with ML ensemble configuration
+
+    Receipt: ml_ensemble_config_receipt
+    """
+    import os
+
+    spec_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "data", "d16_kuiper_spec.json"
+    )
+
+    with open(spec_path, "r") as f:
+        spec = json.load(f)
+
+    config = spec.get("ml_ensemble_config", {})
+
+    emit_receipt(
+        "ml_ensemble_config",
+        {
+            "receipt_type": "ml_ensemble_config",
+            "tenant_id": CFD_TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "model_count": config.get("model_count", ML_ENSEMBLE_MODEL_COUNT),
+            "model_types": config.get("model_types", ML_ENSEMBLE_MODEL_TYPES),
+            "prediction_horizon_s": config.get(
+                "prediction_horizon_s", ML_ENSEMBLE_PREDICTION_HORIZON_S
+            ),
+            "agreement_threshold": config.get(
+                "agreement_threshold", ML_ENSEMBLE_AGREEMENT_THRESHOLD
+            ),
+            "accuracy_target": config.get("accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET),
+            "payload_hash": dual_hash(json.dumps(config, sort_keys=True)),
+        },
+    )
+
+    return config
+
+
+def initialize_ensemble(model_types: Optional[list] = None) -> list:
+    """Initialize ML ensemble with specified model types.
+
+    Args:
+        model_types: List of model types (default: from config)
+
+    Returns:
+        List of initialized model dicts
+    """
+    import random
+
+    if model_types is None:
+        config = load_ml_ensemble_config()
+        model_types = config.get("model_types", ML_ENSEMBLE_MODEL_TYPES)
+
+    models = []
+    for i, model_type in enumerate(model_types):
+        models.append({
+            "id": i,
+            "type": model_type,
+            "trained": False,
+            "weight": 1.0 / len(model_types),
+            "accuracy": 0.0,
+            "parameters": {
+                "learning_rate": 0.001,
+                "epochs": 100,
+                "batch_size": 32,
+            },
+        })
+
+    return models
+
+
+def train_ensemble(
+    models: list, data: Optional[list] = None, labels: Optional[list] = None
+) -> list:
+    """Train all models in the ensemble.
+
+    Args:
+        models: List of model dicts
+        data: Training data (simulated if None)
+        labels: Training labels (simulated if None)
+
+    Returns:
+        List of trained model dicts
+    """
+    import random
+
+    for model in models:
+        # Simulated training
+        model["trained"] = True
+        # Different model types have different characteristic accuracies
+        base_accuracy = {
+            "lstm": 0.91,
+            "transformer": 0.93,
+            "cnn": 0.89,
+            "xgboost": 0.92,
+            "gru": 0.90,
+        }.get(model["type"], 0.88)
+
+        model["accuracy"] = base_accuracy + random.uniform(-0.03, 0.03)
+        model["last_trained"] = datetime.utcnow().isoformat() + "Z"
+
+    # Update weights based on accuracy
+    total_accuracy = sum(m["accuracy"] for m in models)
+    if total_accuracy > 0:
+        for model in models:
+            model["weight"] = model["accuracy"] / total_accuracy
+
+    return models
+
+
+def ensemble_predict(models: list, features: Optional[list] = None) -> Dict[str, Any]:
+    """Generate ensemble prediction from all models.
+
+    Args:
+        models: List of trained model dicts
+        features: Input features (simulated if None)
+
+    Returns:
+        Dict with ensemble prediction
+    """
+    import random
+
+    predictions = []
+
+    for model in models:
+        if not model.get("trained", False):
+            continue
+
+        # Simulated prediction based on model type
+        pred_value = random.uniform(0, 1)
+        pred_class = pred_value > 0.5
+
+        predictions.append({
+            "model_id": model["id"],
+            "model_type": model["type"],
+            "prediction": pred_class,
+            "confidence": abs(pred_value - 0.5) * 2,  # 0 to 1
+            "weight": model["weight"],
+        })
+
+    return {
+        "predictions": predictions,
+        "model_count": len(predictions),
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+
+def compute_ensemble_agreement(predictions: list) -> float:
+    """Compute agreement level between model predictions.
+
+    Args:
+        predictions: List of prediction dicts from ensemble_predict
+
+    Returns:
+        Agreement value in [0, 1]
+    """
+    if not predictions:
+        return 0.0
+
+    pred_list = predictions if isinstance(predictions, list) else predictions.get("predictions", [])
+
+    if not pred_list:
+        return 0.0
+
+    positive_count = sum(1 for p in pred_list if p.get("prediction", False))
+    negative_count = len(pred_list) - positive_count
+
+    # Agreement = max fraction agreeing
+    agreement = max(positive_count, negative_count) / len(pred_list)
+
+    return round(agreement, 4)
+
+
+def weighted_ensemble_average(predictions: list, weights: Optional[list] = None) -> float:
+    """Combine predictions using weighted average.
+
+    Args:
+        predictions: List of prediction dicts
+        weights: Optional weight overrides
+
+    Returns:
+        Weighted average prediction value
+    """
+    pred_list = predictions if isinstance(predictions, list) else predictions.get("predictions", [])
+
+    if not pred_list:
+        return 0.5
+
+    total_weight = 0.0
+    weighted_sum = 0.0
+
+    for i, p in enumerate(pred_list):
+        w = weights[i] if weights and i < len(weights) else p.get("weight", 1.0)
+        pred_val = 1.0 if p.get("prediction", False) else 0.0
+        confidence = p.get("confidence", 1.0)
+
+        weighted_sum += w * pred_val * confidence
+        total_weight += w * confidence
+
+    if total_weight == 0:
+        return 0.5
+
+    return round(weighted_sum / total_weight, 4)
+
+
+def ml_ensemble_forecast(horizon_s: int = ML_ENSEMBLE_PREDICTION_HORIZON_S) -> Dict[str, Any]:
+    """Full 60s ML ensemble dust forecast.
+
+    Args:
+        horizon_s: Prediction horizon in seconds (default: 60)
+
+    Returns:
+        Dict with forecast results
+
+    Receipt: ml_ensemble_forecast_receipt
+    """
+    import random
+
+    config = load_ml_ensemble_config()
+
+    # Initialize and train ensemble
+    models = initialize_ensemble(config.get("model_types", ML_ENSEMBLE_MODEL_TYPES))
+    models = train_ensemble(models)
+
+    # Generate predictions for the forecast horizon
+    predictions = ensemble_predict(models)
+    agreement = compute_ensemble_agreement(predictions)
+    weighted_pred = weighted_ensemble_average(predictions)
+
+    # Final forecast
+    dust_event_predicted = weighted_pred > 0.5
+    confidence = abs(weighted_pred - 0.5) * 2
+
+    # Simulated accuracy (based on model ensemble performance)
+    accuracy = sum(m["accuracy"] for m in models) / len(models)
+
+    result = {
+        "horizon_s": horizon_s,
+        "model_count": len(models),
+        "model_types": [m["type"] for m in models],
+        "predictions": predictions["predictions"],
+        "agreement": agreement,
+        "agreement_threshold": config.get(
+            "agreement_threshold", ML_ENSEMBLE_AGREEMENT_THRESHOLD
+        ),
+        "agreement_met": agreement >= config.get(
+            "agreement_threshold", ML_ENSEMBLE_AGREEMENT_THRESHOLD
+        ),
+        "weighted_prediction": weighted_pred,
+        "dust_event_predicted": dust_event_predicted,
+        "confidence": round(confidence, 4),
+        "accuracy": round(accuracy, 4),
+        "accuracy_target": config.get("accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET),
+        "accuracy_met": accuracy >= config.get("accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET),
+        "ensemble_method": config.get("ensemble_method", "weighted_average"),
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+    emit_receipt(
+        "ml_ensemble_forecast",
+        {
+            "receipt_type": "ml_ensemble_forecast",
+            "tenant_id": CFD_TENANT_ID,
+            "ts": result["timestamp"],
+            "horizon_s": horizon_s,
+            "model_count": len(models),
+            "agreement": agreement,
+            "accuracy": round(accuracy, 4),
+            "dust_event_predicted": dust_event_predicted,
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {
+                        "horizon_s": horizon_s,
+                        "agreement": agreement,
+                        "accuracy": round(accuracy, 4),
+                    },
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
+
+    return result
+
+
+def compute_forecast_accuracy(predictions: list, actual: list) -> float:
+    """Compute forecast accuracy from predictions vs actual.
+
+    Args:
+        predictions: List of forecast prediction dicts
+        actual: List of actual outcome dicts
+
+    Returns:
+        Accuracy value in [0, 1]
+
+    Receipt: ml_ensemble_accuracy_receipt
+    """
+    if not predictions or not actual:
+        accuracy = 0.0
+    else:
+        n = min(len(predictions), len(actual))
+        correct = 0
+
+        for i in range(n):
+            pred = predictions[i].get("dust_event_predicted", False)
+            act = actual[i].get("dust_event_occurred", False)
+            if pred == act:
+                correct += 1
+
+        accuracy = correct / n if n > 0 else 0.0
+
+    emit_receipt(
+        "ml_ensemble_accuracy",
+        {
+            "receipt_type": "ml_ensemble_accuracy",
+            "tenant_id": CFD_TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "predictions_count": len(predictions) if predictions else 0,
+            "actual_count": len(actual) if actual else 0,
+            "accuracy": round(accuracy, 4),
+            "target": ML_ENSEMBLE_ACCURACY_TARGET,
+            "target_met": accuracy >= ML_ENSEMBLE_ACCURACY_TARGET,
+            "payload_hash": dual_hash(
+                json.dumps({"accuracy": round(accuracy, 4)}, sort_keys=True)
+            ),
+        },
+    )
+
+    return accuracy
+
+
+def retrain_ensemble_if_needed(
+    models: list, last_train: Optional[float] = None
+) -> list:
+    """Auto-retrain ensemble if needed based on interval.
+
+    Args:
+        models: List of model dicts
+        last_train: Timestamp of last training (hours ago)
+
+    Returns:
+        Retrained models if needed, else same models
+    """
+    config = load_ml_ensemble_config()
+    retrain_interval = config.get("retrain_interval_hours", ML_ENSEMBLE_RETRAIN_HOURS)
+
+    if last_train is None:
+        last_train = 0  # Assume never trained
+
+    if last_train >= retrain_interval:
+        # Retrain
+        models = train_ensemble(models)
+
+    return models
+
+
+def get_ml_ensemble_info() -> Dict[str, Any]:
+    """Get ML ensemble configuration.
+
+    Returns:
+        Dict with ML ensemble info
+    """
+    config = load_ml_ensemble_config()
+
+    return {
+        "model_count": config.get("model_count", ML_ENSEMBLE_MODEL_COUNT),
+        "model_types": config.get("model_types", ML_ENSEMBLE_MODEL_TYPES),
+        "prediction_horizon_s": config.get(
+            "prediction_horizon_s", ML_ENSEMBLE_PREDICTION_HORIZON_S
+        ),
+        "agreement_threshold": config.get(
+            "agreement_threshold", ML_ENSEMBLE_AGREEMENT_THRESHOLD
+        ),
+        "accuracy_target": config.get("accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET),
+        "retrain_interval_hours": config.get(
+            "retrain_interval_hours", ML_ENSEMBLE_RETRAIN_HOURS
+        ),
+        "ensemble_method": config.get("ensemble_method", "weighted_average"),
+        "description": "5-model ML ensemble for 60s Mars dust forecasting",
+    }

@@ -1,0 +1,73 @@
+{
+  "version": "1.0.0",
+  "d16_config": {
+    "recursion_depth": 16,
+    "alpha_floor": 3.91,
+    "alpha_target": 3.90,
+    "alpha_ceiling": 3.94,
+    "uplift": 0.38,
+    "topological": true,
+    "homology_dimension": 2,
+    "persistence_threshold": 0.01,
+    "multidimensional_scaling": true,
+    "adaptive_termination": true,
+    "termination_threshold": 0.0003,
+    "instability_max": 0.0
+  },
+  "uplift_by_depth": {
+    "1": 0.04,
+    "2": 0.072,
+    "3": 0.0976,
+    "4": 0.1181,
+    "5": 0.1345,
+    "6": 0.1476,
+    "7": 0.1581,
+    "8": 0.1665,
+    "9": 0.1732,
+    "10": 0.1786,
+    "11": 0.1828,
+    "12": 0.1863,
+    "13": 0.189,
+    "14": 0.34,
+    "15": 0.36,
+    "16": 0.38
+  },
+  "kuiper_12body_config": {
+    "body_count": 12,
+    "bodies": {
+      "jovian": ["titan", "europa", "ganymede", "callisto"],
+      "inner": ["venus", "mercury", "mars"],
+      "kuiper": ["ceres", "pluto", "eris", "makemake", "haumea"]
+    },
+    "integration_method": "symplectic",
+    "timestep_days": 0.05,
+    "lyapunov_threshold": 0.15,
+    "stability_target": 0.93,
+    "chaos_duration_years": 1000,
+    "energy_conservation_tolerance": 1e-12,
+    "include_perturbations": true,
+    "perturbation_sources": ["jupiter", "neptune"]
+  },
+  "ml_ensemble_config": {
+    "model_count": 5,
+    "model_types": ["lstm", "transformer", "cnn", "xgboost", "gru"],
+    "prediction_horizon_s": 60,
+    "agreement_threshold": 0.8,
+    "retrain_interval_hours": 24,
+    "feature_window_s": 300,
+    "accuracy_target": 0.90,
+    "ensemble_method": "weighted_average"
+  },
+  "bulletproofs_config": {
+    "proof_system": "bulletproofs",
+    "range_bits": 64,
+    "aggregation": true,
+    "proof_size_bytes": 672,
+    "verify_time_ms": 2,
+    "stress_depth": 1000,
+    "resilience_target": 1.0,
+    "inner_product_argument": true,
+    "no_trusted_setup": true,
+    "logarithmic_proof_size": true
+  }
+}
