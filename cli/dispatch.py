@@ -353,6 +353,19 @@ from cli.d18 import (
     cmd_d18_interstellar_hybrid,
 )
 
+# D19 swarm intelligence commands
+from cli.d19 import (
+    cmd_d19_info,
+    cmd_d19_run,
+    cmd_d19_gate_1,
+    cmd_d19_gate_2,
+    cmd_d19_gate_1_2,
+    cmd_d19_gate_3,
+    cmd_d19_gate_4,
+    cmd_d19_gate_5,
+    cmd_d19_tweet,
+)
+
 # Interstellar relay commands
 from cli.relay import (
     cmd_relay_info,
@@ -1086,6 +1099,26 @@ def dispatch(args, docstring: str) -> None:
         return cmd_d18_compression(args)
     if args.d18_interstellar_hybrid:
         return cmd_d18_interstellar_hybrid(args)
+
+    # D19 swarm intelligence commands
+    if args.d19_info:
+        return cmd_d19_info(args)
+    if args.d19_run:
+        return cmd_d19_run(args)
+    if args.d19_gate_1:
+        return cmd_d19_gate_1(args)
+    if args.d19_gate_2:
+        return cmd_d19_gate_2(args)
+    if args.d19_gate_1_2:
+        return cmd_d19_gate_1_2(args)
+    if args.d19_gate_3:
+        return cmd_d19_gate_3(args)
+    if args.d19_gate_4:
+        return cmd_d19_gate_4(args)
+    if args.d19_gate_5:
+        return cmd_d19_gate_5(args)
+    if args.d19_tweet:
+        return cmd_d19_tweet(args)
 
     # Interstellar relay commands
     if args.relay_info:

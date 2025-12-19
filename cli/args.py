@@ -171,6 +171,9 @@ def create_parser() -> argparse.ArgumentParser:
     # Parallel testnet flags
     _add_testnet_args(parser)
 
+    # D19 swarm intelligence flags
+    _add_d19_args(parser)
+
     return parser
 
 
@@ -2609,4 +2612,43 @@ def _add_testnet_args(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=50,
         help="Testnet stress iterations (default: 50)",
+    )
+
+
+def _add_d19_args(parser: argparse.ArgumentParser) -> None:
+    """Add D19 swarm intelligence arguments."""
+    parser.add_argument(
+        "--d19_info", action="store_true", help="Show D19 configuration"
+    )
+    parser.add_argument(
+        "--d19_run", action="store_true", help="Run full D19 swarm intelligence"
+    )
+    parser.add_argument(
+        "--d19_gate_1", action="store_true", help="Run Gate 1: Swarm entropy engine"
+    )
+    parser.add_argument(
+        "--d19_gate_2", action="store_true", help="Run Gate 2: Law witness module"
+    )
+    parser.add_argument(
+        "--d19_gate_1_2",
+        action="store_true",
+        help="Run Gates 1+2 in parallel",
+    )
+    parser.add_argument(
+        "--d19_gate_3",
+        action="store_true",
+        help="Run Gate 3: Autocatalytic patterns",
+    )
+    parser.add_argument(
+        "--d19_gate_4",
+        action="store_true",
+        help="Run Gate 4: Multi-scale federation",
+    )
+    parser.add_argument(
+        "--d19_gate_5",
+        action="store_true",
+        help="Run Gate 5: Quantum consensus",
+    )
+    parser.add_argument(
+        "--d19_tweet", action="store_true", help="Generate D19 X thread"
     )

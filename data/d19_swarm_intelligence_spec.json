@@ -1,0 +1,109 @@
+{
+  "version": "19.0.0",
+  "depth": 19,
+  "scale": "swarm_intelligence",
+  "paradigm": "compression_as_coordination",
+  "baseline_from_d18": {
+    "mars_relay_nodes": 5,
+    "planet_federation": 4,
+    "swarm_testnet_nodes": 100,
+    "autonomy": 0.9995,
+    "quantum_correlation": 0.9999,
+    "cross_chain_bridges": 2
+  },
+  "d19_config": {
+    "recursion_depth": 19,
+    "alpha_floor": 3.93,
+    "alpha_target": 3.92,
+    "alpha_ceiling": 3.98,
+    "uplift": 0.44,
+    "instability_max": 0.00,
+    "paradigm": "compression_as_coordination",
+    "central_coordinator": false
+  },
+  "uplift_by_depth": {
+    "1": 0.04,
+    "2": 0.072,
+    "3": 0.0976,
+    "4": 0.1181,
+    "5": 0.1345,
+    "6": 0.1476,
+    "7": 0.1581,
+    "8": 0.1665,
+    "9": 0.1732,
+    "10": 0.1786,
+    "11": 0.1828,
+    "12": 0.1863,
+    "13": 0.189,
+    "14": 0.34,
+    "15": 0.36,
+    "16": 0.38,
+    "17": 0.40,
+    "18": 0.42,
+    "19": 0.44
+  },
+  "gate_1_config": {
+    "name": "swarm_entropy_engine",
+    "node_count": 100,
+    "entropy_sample_rate_hz": 10,
+    "gradient_threshold": 0.001,
+    "coordination_mode": "entropy_gradient",
+    "central_coordinator": false,
+    "convergence_target": 0.95,
+    "mesh_connections": 4950,
+    "retry_max": 2
+  },
+  "gate_2_config": {
+    "name": "law_witness_module",
+    "kan_architecture": [100, 20, 5, 1],
+    "mdl_alpha": 1.0,
+    "mdl_beta": 0.10,
+    "compression_target": 0.90,
+    "law_discovery_threshold": 0.85,
+    "max_laws_per_cycle": 3,
+    "retry_max": 2
+  },
+  "gate_3_config": {
+    "name": "autocatalytic_swarm_patterns",
+    "self_reference_threshold": 0.70,
+    "pattern_birth_fitness": 0.60,
+    "pattern_death_fitness": 0.20,
+    "migration_latency_tolerance_ms": 5000,
+    "cross_planet_sync_interval_s": 60,
+    "retry_max": 2
+  },
+  "gate_4_config": {
+    "name": "multi_scale_federation",
+    "hierarchy_levels": ["node", "cluster", "planet", "system"],
+    "cluster_size": 10,
+    "law_composition_mode": "bottom_up",
+    "constraint_propagation_mode": "top_down",
+    "arbitration_mode": "emergent",
+    "retry_max": 2
+  },
+  "gate_5_config": {
+    "name": "quantum_entangled_consensus",
+    "correlation_target": 0.9999,
+    "decoherence_threshold": 0.001,
+    "byzantine_detection_via_decoherence": true,
+    "entanglement_renewal_interval_s": 10,
+    "state_sync_mode": "correlation_verified",
+    "retry_max": 2
+  },
+  "stop_conditions": {
+    "entropy_divergence": true,
+    "swarm_fragmentation_threshold": 0.30,
+    "max_consecutive_failures": 2,
+    "law_discovery_stall_cycles": 100
+  },
+  "innovation_targets": {
+    "laws_discovered_per_hour": 1,
+    "pattern_birth_rate": 0.1,
+    "pattern_survival_rate": 0.7,
+    "cross_planet_migration_success": 0.90,
+    "emergent_arbitration_accuracy": 0.95,
+    "swarm_coherence": 0.95,
+    "quantum_consensus_latency_ms": 100,
+    "byzantine_detection_rate": 0.99
+  }
+}
