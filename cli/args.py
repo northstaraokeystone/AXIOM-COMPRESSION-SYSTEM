@@ -138,6 +138,21 @@ def create_parser() -> argparse.ArgumentParser:
     # Heliosphere-Oort flags
     _add_heliosphere_args(parser)
 
+    # D18 Interstellar relay flags
+    _add_d18_args(parser)
+
+    # Interstellar relay flags
+    _add_relay_args(parser)
+
+    # Quantum alternative flags
+    _add_quantum_alt_args(parser)
+
+    # Elon-sphere flags
+    _add_elonsphere_args(parser)
+
+    # Federation flags
+    _add_federation_args(parser)
+
     return parser
 
 
@@ -1852,4 +1867,363 @@ def _add_heliosphere_args(parser: argparse.ArgumentParser) -> None:
         type=float,
         default=50000,
         help="Oort simulation distance in AU (default: 50000)",
+    )
+
+
+def _add_d18_args(parser: argparse.ArgumentParser) -> None:
+    """Add D18 interstellar relay arguments."""
+    parser.add_argument(
+        "--d18_push", action="store_true", help="Run D18 recursion for alpha>=3.91"
+    )
+    parser.add_argument(
+        "--d18_info", action="store_true", help="Show D18 configuration"
+    )
+    parser.add_argument(
+        "--d18_pruning",
+        action="store_true",
+        help="Show D18 pruning v3 metrics",
+    )
+    parser.add_argument(
+        "--d18_compression",
+        action="store_true",
+        help="Show D18 compression metrics",
+    )
+    parser.add_argument(
+        "--d18_interstellar_hybrid",
+        action="store_true",
+        help="Run integrated D18+relay+quantum hybrid",
+    )
+
+
+def _add_relay_args(parser: argparse.ArgumentParser) -> None:
+    """Add interstellar relay arguments."""
+    parser.add_argument(
+        "--relay_info",
+        action="store_true",
+        help="Show interstellar relay configuration",
+    )
+    parser.add_argument(
+        "--relay_simulate",
+        action="store_true",
+        help="Run Proxima relay simulation",
+    )
+    parser.add_argument(
+        "--relay_latency",
+        action="store_true",
+        help="Show relay latency metrics",
+    )
+    parser.add_argument(
+        "--relay_nodes",
+        action="store_true",
+        help="List relay chain nodes",
+    )
+    parser.add_argument(
+        "--relay_stress",
+        action="store_true",
+        help="Run relay stress test",
+    )
+    parser.add_argument(
+        "--relay_duration",
+        type=int,
+        default=365,
+        help="Relay simulation duration in days (default: 365)",
+    )
+    parser.add_argument(
+        "--relay_distance",
+        type=float,
+        default=4.24,
+        help="Relay distance in light-years (default: 4.24)",
+    )
+    parser.add_argument(
+        "--relay_iterations",
+        type=int,
+        default=100,
+        help="Relay stress test iterations (default: 100)",
+    )
+
+
+def _add_quantum_alt_args(parser: argparse.ArgumentParser) -> None:
+    """Add quantum alternative arguments."""
+    parser.add_argument(
+        "--quantum_alt_info",
+        action="store_true",
+        help="Show quantum alternative configuration",
+    )
+    parser.add_argument(
+        "--quantum_alt_simulate",
+        action="store_true",
+        help="Run quantum non-local simulation",
+    )
+    parser.add_argument(
+        "--quantum_alt_correlation",
+        action="store_true",
+        help="Show quantum correlation metrics",
+    )
+    parser.add_argument(
+        "--quantum_alt_bell",
+        action="store_true",
+        help="Run Bell inequality check",
+    )
+    parser.add_argument(
+        "--quantum_pairs",
+        type=int,
+        default=1000,
+        help="Number of entanglement pairs (default: 1000)",
+    )
+
+
+def _add_elonsphere_args(parser: argparse.ArgumentParser) -> None:
+    """Add Elon-sphere arguments."""
+    # Starlink
+    parser.add_argument(
+        "--starlink_info",
+        action="store_true",
+        help="Show Starlink relay status",
+    )
+    parser.add_argument(
+        "--starlink_simulate",
+        action="store_true",
+        help="Run Starlink simulation",
+    )
+    parser.add_argument(
+        "--starlink_nodes",
+        type=int,
+        default=10,
+        help="Number of Starlink nodes (default: 10)",
+    )
+
+    # Grok
+    parser.add_argument(
+        "--grok_info",
+        action="store_true",
+        help="Show Grok inference status",
+    )
+    parser.add_argument(
+        "--grok_tune",
+        action="store_true",
+        help="Run Grok tuning",
+    )
+    parser.add_argument(
+        "--grok_agents",
+        type=int,
+        default=8,
+        help="Number of Grok agents (default: 8)",
+    )
+
+    # xAI
+    parser.add_argument(
+        "--xai_info",
+        action="store_true",
+        help="Show xAI compute status",
+    )
+    parser.add_argument(
+        "--xai_simulate",
+        action="store_true",
+        help="Run xAI quantum simulation",
+    )
+    parser.add_argument(
+        "--xai_pairs",
+        type=int,
+        default=1000,
+        help="xAI simulation pairs (default: 1000)",
+    )
+    parser.add_argument(
+        "--xai_iterations",
+        type=int,
+        default=100,
+        help="xAI simulation iterations (default: 100)",
+    )
+
+    # Dojo
+    parser.add_argument(
+        "--dojo_info",
+        action="store_true",
+        help="Show Dojo offload status",
+    )
+    parser.add_argument(
+        "--dojo_offload",
+        action="store_true",
+        help="Run Dojo offload",
+    )
+    parser.add_argument(
+        "--dojo_depth",
+        type=int,
+        default=18,
+        help="Dojo training depth (default: 18)",
+    )
+    parser.add_argument(
+        "--dojo_batch_size",
+        type=int,
+        default=1000000,
+        help="Dojo batch size (default: 1000000)",
+    )
+
+
+def _add_federation_args(parser: argparse.ArgumentParser) -> None:
+    """Add federation arguments."""
+    parser.add_argument(
+        "--federation_info",
+        action="store_true",
+        help="Show multi-star federation status",
+    )
+    parser.add_argument(
+        "--federation_consensus",
+        action="store_true",
+        help="Run federation consensus",
+    )
+    parser.add_argument(
+        "--federation_lag",
+        type=float,
+        default=4.24,
+        help="Federation communication lag in years (default: 4.24)",
+    )
+
+    # Live relay HIL flags
+    _add_live_relay_hil_args(parser)
+
+    # Lag consensus flags
+    _add_lag_consensus_args(parser)
+
+    # Pruning v4 flags
+    _add_pruning_v4_args(parser)
+
+    # Quantum refine flags
+    _add_quantum_refine_args(parser)
+
+
+def _add_live_relay_hil_args(parser: argparse.ArgumentParser) -> None:
+    """Add live relay hardware-in-loop arguments."""
+    parser.add_argument(
+        "--live_relay_info",
+        action="store_true",
+        help="Show live relay HIL configuration",
+    )
+    parser.add_argument(
+        "--live_relay_connect",
+        action="store_true",
+        help="Connect to Starlink analog",
+    )
+    parser.add_argument(
+        "--live_relay_test",
+        action="store_true",
+        help="Run HIL test",
+    )
+    parser.add_argument(
+        "--live_relay_mars",
+        action="store_true",
+        help="Run Mars HIL proof",
+    )
+    parser.add_argument(
+        "--live_relay_stress",
+        action="store_true",
+        help="Run HIL stress test",
+    )
+    parser.add_argument(
+        "--live_relay_status",
+        action="store_true",
+        help="Show HIL status",
+    )
+    parser.add_argument(
+        "--hil_duration",
+        type=int,
+        default=60,
+        help="HIL test duration in seconds (default: 60)",
+    )
+    parser.add_argument(
+        "--hil_iterations",
+        type=int,
+        default=100,
+        help="HIL stress test iterations (default: 100)",
+    )
+    parser.add_argument(
+        "--mars_proof_hours",
+        type=float,
+        default=1.0,
+        help="Mars HIL proof duration in hours (default: 1)",
+    )
+
+
+def _add_lag_consensus_args(parser: argparse.ArgumentParser) -> None:
+    """Add lag-tolerant consensus arguments."""
+    parser.add_argument(
+        "--consensus_info",
+        action="store_true",
+        help="Show lag-tolerant consensus configuration",
+    )
+    parser.add_argument(
+        "--consensus_init",
+        action="store_true",
+        help="Initialize consensus cluster",
+    )
+    parser.add_argument(
+        "--consensus_simulate",
+        action="store_true",
+        help="Run consensus simulation",
+    )
+    parser.add_argument(
+        "--consensus_election",
+        action="store_true",
+        help="Trigger leader election",
+    )
+    parser.add_argument(
+        "--consensus_status",
+        action="store_true",
+        help="Show consensus status",
+    )
+    parser.add_argument(
+        "--consensus_nodes",
+        type=int,
+        default=5,
+        help="Number of consensus nodes (default: 5)",
+    )
+    parser.add_argument(
+        "--consensus_latency",
+        type=float,
+        default=6300,
+        help="Latency multiplier for consensus (default: 6300)",
+    )
+
+
+def _add_pruning_v4_args(parser: argparse.ArgumentParser) -> None:
+    """Add pruning v4 arguments."""
+    parser.add_argument(
+        "--pruning_v4",
+        action="store_true",
+        help="Run pruning v4 for >99.5%% compression",
+    )
+    parser.add_argument(
+        "--pruning_v4_compare",
+        action="store_true",
+        help="Compare v3 vs v4 pruning",
+    )
+    parser.add_argument(
+        "--pruning_v4_status",
+        action="store_true",
+        help="Show pruning v4 status",
+    )
+    parser.add_argument(
+        "--pruning_v4_target",
+        type=float,
+        default=0.995,
+        help="Pruning v4 compression target (default: 0.995)",
+    )
+
+
+def _add_quantum_refine_args(parser: argparse.ArgumentParser) -> None:
+    """Add quantum refinement arguments."""
+    parser.add_argument(
+        "--quantum_refine",
+        action="store_true",
+        help="Run quantum correlation refinement",
+    )
+    parser.add_argument(
+        "--quantum_refine_info",
+        action="store_true",
+        help="Show quantum refinement configuration",
+    )
+    parser.add_argument(
+        "--quantum_refine_iterations",
+        type=int,
+        default=10,
+        help="Quantum refinement iterations (default: 10)",
     )

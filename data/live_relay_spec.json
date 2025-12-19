@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "live_relay_config": {
+    "enabled": true,
+    "mode": "hardware_in_loop",
+    "priority": "live_verifiability_before_recursion"
+  },
+  "starlink_analog_config": {
+    "latency_ms": 500,
+    "packet_loss_rate": 0.001,
+    "bandwidth_gbps": 100,
+    "laser_link": true,
+    "timeout_ms": 5000,
+    "retry_count": 3,
+    "failure_threshold": 0.01
+  },
+  "lag_consensus_config": {
+    "algorithm": "modified_raft",
+    "heartbeat_ms": 60000,
+    "election_timeout_ms": 300000,
+    "batch_size": 1000,
+    "quorum_fraction": 0.51,
+    "max_latency_years": 4.24,
+    "log_replication": "async_batched",
+    "snapshot_interval": 10000
+  },
+  "pruning_v4_config": {
+    "enabled": true,
+    "compression_target": 0.996,
+    "hole_threshold": 0.001,
+    "persistence_depth": 3,
+    "iterative_passes": 5,
+    "method": "enhanced_topological_hole_elimination"
+  },
+  "quantum_refine_config": {
+    "correlation_target": 0.99,
+    "decoherence_mitigation": true,
+    "error_correction": true,
+    "refinement_iterations": 10
+  },
+  "mars_hil_config": {
+    "enabled": true,
+    "latency_min_minutes": 3,
+    "latency_max_minutes": 22,
+    "proof_duration_hours": 24,
+    "autonomy_target": 0.999
+  },
+  "dynamic_batch_config": {
+    "enabled": true,
+    "min_size": 100,
+    "max_size": 10000,
+    "latency_adaptive": true,
+    "compression_aware": true
+  }
+}
