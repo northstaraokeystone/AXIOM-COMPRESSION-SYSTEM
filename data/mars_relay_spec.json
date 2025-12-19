@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "mars_relay_config": {
+    "enabled": true,
+    "node_count": 5,
+    "latency_opposition_min": 3,
+    "latency_conjunction_min": 22,
+    "autonomy_target": 0.9995,
+    "bandwidth_mbps": 100,
+    "packet_loss_rate": 0.0005,
+    "gravity_g": 0.38
+  },
+  "deployment_phases": {
+    "phase_1": "orbital_relay",
+    "phase_2": "surface_node",
+    "phase_3": "mesh_expansion"
+  },
+  "node_types": {
+    "orbital": {
+      "count": 3,
+      "altitude_km": 400,
+      "redundancy": 2
+    },
+    "surface": {
+      "count": 2,
+      "power_kw": 10,
+      "redundancy": 1
+    }
+  },
+  "proof_config": {
+    "duration_hours": 24,
+    "validation_cycles": 100,
+    "success_threshold": 0.999
+  },
+  "stress_test_config": {
+    "max_cycles": 1000,
+    "failure_injection_rate": 0.01,
+    "recovery_target_ms": 5000
+  }
+}

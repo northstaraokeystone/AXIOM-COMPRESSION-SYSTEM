@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "federation_config": {
+    "planets": ["mars", "venus", "mercury", "jovian_system"],
+    "consensus_lag_tolerance": true,
+    "autonomy_minimum": 0.995,
+    "sync_interval_hours": 24,
+    "arbitration_enabled": true
+  },
+  "planet_profiles": {
+    "mars": {
+      "gravity_g": 0.38,
+      "latency_min": 3,
+      "latency_max": 22,
+      "node_count": 5,
+      "autonomy_target": 0.9995
+    },
+    "venus": {
+      "gravity_g": 0.9,
+      "latency_min": 2,
+      "latency_max": 14,
+      "node_count": 3,
+      "autonomy_target": 0.998
+    },
+    "mercury": {
+      "gravity_g": 0.38,
+      "latency_min": 4,
+      "latency_max": 12,
+      "node_count": 2,
+      "autonomy_target": 0.997
+    },
+    "jovian_system": {
+      "gravity_g": 0.134,
+      "latency_min": 32,
+      "latency_max": 52,
+      "node_count": 8,
+      "autonomy_target": 0.9999,
+      "moons": ["io", "europa", "ganymede", "callisto"]
+    }
+  },
+  "protocol": {
+    "consensus": "modified_raft_federated",
+    "arbitration": "majority_with_lag",
+    "sync": "eventual_consistency",
+    "heartbeat_interval_sec": 60,
+    "election_timeout_sec": 300
+  },
+  "arbitration_config": {
+    "quorum_fraction": 0.51,
+    "lag_compensation": true,
+    "max_dispute_age_hours": 168,
+    "fallback_to_local": true
+  }
+}

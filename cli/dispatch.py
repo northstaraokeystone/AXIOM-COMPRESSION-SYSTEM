@@ -412,6 +412,75 @@ from cli.pruning import (
     cmd_quantum_refine_info,
 )
 
+# Mars relay commands
+from cli.mars_relay import (
+    cmd_mars_relay_info,
+    cmd_mars_relay_deploy,
+    cmd_mars_relay_mesh,
+    cmd_mars_relay_proof,
+    cmd_mars_relay_latency,
+    cmd_mars_relay_status,
+    cmd_mars_relay_opposition,
+    cmd_mars_relay_conjunction,
+    cmd_mars_relay_stress,
+)
+
+# Multi-planet federation commands
+from cli.federation_multiplanet import (
+    cmd_federation_multiplanet_info,
+    cmd_federation_multiplanet_init,
+    cmd_federation_multiplanet_add,
+    cmd_federation_multiplanet_sync,
+    cmd_federation_multiplanet_consensus,
+    cmd_federation_multiplanet_arbitrate,
+    cmd_federation_multiplanet_status,
+    cmd_federation_multiplanet_health,
+    cmd_federation_multiplanet_partition,
+    cmd_federation_multiplanet_recover,
+)
+
+# Gravity adaptive commands
+from cli.gravity_adaptive import (
+    cmd_gravity_info,
+    cmd_gravity_adjust,
+    cmd_gravity_consensus,
+    cmd_gravity_packet,
+    cmd_gravity_validate,
+    cmd_gravity_status,
+    cmd_gravity_all_planets,
+)
+
+# Quantum v2 commands
+from cli.quantum_v2 import (
+    cmd_quantum_v2_info,
+    cmd_quantum_v2_refine,
+    cmd_quantum_v2_iterative,
+    cmd_quantum_v2_compare,
+    cmd_quantum_v2_decoherence,
+    cmd_quantum_v2_correction,
+    cmd_quantum_v2_status,
+    cmd_quantum_v2_validate,
+)
+
+# Swarm testnet commands
+from cli.swarm import (
+    cmd_swarm_info,
+    cmd_swarm_init,
+    cmd_swarm_deploy,
+    cmd_swarm_mesh,
+    cmd_swarm_consensus,
+    cmd_swarm_stress,
+    cmd_swarm_status,
+    cmd_testnet_info,
+    cmd_testnet_ethereum,
+    cmd_testnet_solana,
+    cmd_testnet_bridge,
+    cmd_testnet_cross_chain,
+    cmd_testnet_sync,
+    cmd_testnet_status,
+    cmd_testnet_stress,
+)
+
 
 def dispatch(args, docstring: str) -> None:
     """Dispatch command based on parsed arguments.
@@ -1112,6 +1181,116 @@ def dispatch(args, docstring: str) -> None:
         return cmd_quantum_refine(args)
     if args.quantum_refine_info:
         return cmd_quantum_refine_info(args)
+
+    # Mars relay commands
+    if args.mars_relay_info:
+        return cmd_mars_relay_info(args)
+    if args.mars_relay_deploy:
+        return cmd_mars_relay_deploy(args)
+    if args.mars_relay_mesh:
+        return cmd_mars_relay_mesh(args)
+    if args.mars_relay_proof:
+        return cmd_mars_relay_proof(args)
+    if args.mars_relay_latency:
+        return cmd_mars_relay_latency(args)
+    if args.mars_relay_status:
+        return cmd_mars_relay_status(args)
+    if args.mars_relay_opposition:
+        return cmd_mars_relay_opposition(args)
+    if args.mars_relay_conjunction:
+        return cmd_mars_relay_conjunction(args)
+    if args.mars_relay_stress:
+        return cmd_mars_relay_stress(args)
+
+    # Multi-planet federation commands
+    if args.federation_multiplanet_info:
+        return cmd_federation_multiplanet_info(args)
+    if args.federation_multiplanet_init:
+        return cmd_federation_multiplanet_init(args)
+    if args.federation_multiplanet_add:
+        return cmd_federation_multiplanet_add(args)
+    if args.federation_multiplanet_sync:
+        return cmd_federation_multiplanet_sync(args)
+    if args.federation_multiplanet_consensus:
+        return cmd_federation_multiplanet_consensus(args)
+    if args.federation_multiplanet_arbitrate:
+        return cmd_federation_multiplanet_arbitrate(args)
+    if args.federation_multiplanet_status:
+        return cmd_federation_multiplanet_status(args)
+    if args.federation_multiplanet_health:
+        return cmd_federation_multiplanet_health(args)
+    if args.federation_multiplanet_partition:
+        return cmd_federation_multiplanet_partition(args)
+    if args.federation_multiplanet_recover:
+        return cmd_federation_multiplanet_recover(args)
+
+    # Gravity adaptive commands
+    if args.gravity_info:
+        return cmd_gravity_info(args)
+    if args.gravity_adjust:
+        return cmd_gravity_adjust(args)
+    if args.gravity_consensus:
+        return cmd_gravity_consensus(args)
+    if args.gravity_packet:
+        return cmd_gravity_packet(args)
+    if args.gravity_validate:
+        return cmd_gravity_validate(args)
+    if args.gravity_status:
+        return cmd_gravity_status(args)
+    if args.gravity_all_planets:
+        return cmd_gravity_all_planets(args)
+
+    # Quantum v2 commands
+    if args.quantum_v2_info:
+        return cmd_quantum_v2_info(args)
+    if args.quantum_v2_refine:
+        return cmd_quantum_v2_refine(args)
+    if args.quantum_v2_iterative:
+        return cmd_quantum_v2_iterative(args)
+    if args.quantum_v2_compare:
+        return cmd_quantum_v2_compare(args)
+    if args.quantum_v2_decoherence:
+        return cmd_quantum_v2_decoherence(args)
+    if args.quantum_v2_correction:
+        return cmd_quantum_v2_correction(args)
+    if args.quantum_v2_status:
+        return cmd_quantum_v2_status(args)
+    if args.quantum_v2_validate:
+        return cmd_quantum_v2_validate(args)
+
+    # Swarm testnet commands
+    if args.swarm_info:
+        return cmd_swarm_info(args)
+    if args.swarm_init:
+        return cmd_swarm_init(args)
+    if args.swarm_deploy:
+        return cmd_swarm_deploy(args)
+    if args.swarm_mesh:
+        return cmd_swarm_mesh(args)
+    if args.swarm_consensus:
+        return cmd_swarm_consensus(args)
+    if args.swarm_stress:
+        return cmd_swarm_stress(args)
+    if args.swarm_status:
+        return cmd_swarm_status(args)
+
+    # Parallel testnet commands
+    if args.testnet_info:
+        return cmd_testnet_info(args)
+    if args.testnet_ethereum:
+        return cmd_testnet_ethereum(args)
+    if args.testnet_solana:
+        return cmd_testnet_solana(args)
+    if args.testnet_bridge:
+        return cmd_testnet_bridge(args)
+    if args.testnet_cross_chain:
+        return cmd_testnet_cross_chain(args)
+    if args.testnet_sync:
+        return cmd_testnet_sync(args)
+    if args.testnet_status:
+        return cmd_testnet_status(args)
+    if args.testnet_stress:
+        return cmd_testnet_stress(args)
 
     # Atacama 200Hz commands
     if args.atacama_200hz:

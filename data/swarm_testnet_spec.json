@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "swarm_config": {
+    "node_count": 100,
+    "mesh_topology": "full_mesh",
+    "consensus_algorithm": "modified_raft",
+    "latency_simulation": true,
+    "packet_loss_rate": 0.001
+  },
+  "node_distribution": {
+    "orbital": 40,
+    "surface": 30,
+    "deep_space": 30
+  },
+  "node_types": {
+    "orbital": {
+      "bandwidth_mbps": 1000,
+      "latency_ms": 50,
+      "power_kw": 5
+    },
+    "surface": {
+      "bandwidth_mbps": 100,
+      "latency_ms": 10,
+      "power_kw": 10
+    },
+    "deep_space": {
+      "bandwidth_mbps": 10,
+      "latency_ms": 1000,
+      "power_kw": 2
+    }
+  },
+  "stress_test": {
+    "max_latency_multiplier": 10000,
+    "failure_injection_rate": 0.01,
+    "recovery_target_ms": 5000,
+    "max_concurrent_failures": 10
+  },
+  "testnet_chains": {
+    "ethereum": {
+      "enabled": true,
+      "rpc_simulation": true,
+      "block_time_sec": 12
+    },
+    "solana": {
+      "enabled": true,
+      "rpc_simulation": true,
+      "block_time_sec": 0.4
+    }
+  },
+  "bridge_config": {
+    "enabled": true,
+    "confirmation_blocks": 6,
+    "timeout_sec": 3600
+  }
+}

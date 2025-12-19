@@ -153,6 +153,24 @@ def create_parser() -> argparse.ArgumentParser:
     # Federation flags
     _add_federation_args(parser)
 
+    # Mars relay flags
+    _add_mars_relay_args(parser)
+
+    # Multi-planet federation flags
+    _add_federation_multiplanet_args(parser)
+
+    # Gravity adaptive flags
+    _add_gravity_args(parser)
+
+    # Quantum v2 flags
+    _add_quantum_v2_args(parser)
+
+    # Swarm testnet flags
+    _add_swarm_args(parser)
+
+    # Parallel testnet flags
+    _add_testnet_args(parser)
+
     return parser
 
 
@@ -2226,4 +2244,369 @@ def _add_quantum_refine_args(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=10,
         help="Quantum refinement iterations (default: 10)",
+    )
+
+
+def _add_mars_relay_args(parser: argparse.ArgumentParser) -> None:
+    """Add Mars relay node arguments."""
+    parser.add_argument(
+        "--mars_relay_info",
+        action="store_true",
+        help="Show Mars relay configuration",
+    )
+    parser.add_argument(
+        "--mars_relay_deploy",
+        action="store_true",
+        help="Deploy Mars relay node",
+    )
+    parser.add_argument(
+        "--mars_relay_mesh",
+        action="store_true",
+        help="Deploy Mars relay mesh",
+    )
+    parser.add_argument(
+        "--mars_relay_proof",
+        action="store_true",
+        help="Run Mars relay proof",
+    )
+    parser.add_argument(
+        "--mars_relay_latency",
+        action="store_true",
+        help="Measure Mars relay latency",
+    )
+    parser.add_argument(
+        "--mars_relay_status",
+        action="store_true",
+        help="Show Mars relay status",
+    )
+    parser.add_argument(
+        "--mars_relay_opposition",
+        action="store_true",
+        help="Simulate Mars opposition latency",
+    )
+    parser.add_argument(
+        "--mars_relay_conjunction",
+        action="store_true",
+        help="Simulate Mars conjunction latency",
+    )
+    parser.add_argument(
+        "--mars_relay_stress",
+        action="store_true",
+        help="Run Mars relay stress test",
+    )
+    parser.add_argument(
+        "--mars_node_count",
+        type=int,
+        default=5,
+        help="Number of Mars relay nodes (default: 5)",
+    )
+    parser.add_argument(
+        "--mars_proof_duration",
+        type=float,
+        default=1.0,
+        help="Mars proof duration in hours (default: 1.0)",
+    )
+    parser.add_argument(
+        "--mars_stress_cycles",
+        type=int,
+        default=100,
+        help="Mars stress test cycles (default: 100)",
+    )
+    parser.add_argument(
+        "--node_id",
+        type=str,
+        default=None,
+        help="Node ID for deployment",
+    )
+    parser.add_argument(
+        "--node_type",
+        type=str,
+        default="orbital",
+        help="Node type: orbital or surface (default: orbital)",
+    )
+
+
+def _add_federation_multiplanet_args(parser: argparse.ArgumentParser) -> None:
+    """Add multi-planet federation arguments."""
+    parser.add_argument(
+        "--federation_multiplanet_info",
+        action="store_true",
+        help="Show multi-planet federation configuration",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_init",
+        action="store_true",
+        help="Initialize multi-planet federation",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_add",
+        action="store_true",
+        help="Add planet to federation",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_sync",
+        action="store_true",
+        help="Sync multi-planet federation",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_consensus",
+        action="store_true",
+        help="Run federation consensus",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_arbitrate",
+        action="store_true",
+        help="Run federation arbitration",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_status",
+        action="store_true",
+        help="Show federation status",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_health",
+        action="store_true",
+        help="Measure federation health",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_partition",
+        action="store_true",
+        help="Simulate network partition",
+    )
+    parser.add_argument(
+        "--federation_multiplanet_recover",
+        action="store_true",
+        help="Recover from partition",
+    )
+    parser.add_argument(
+        "--federation_planets",
+        type=str,
+        default=None,
+        help="Comma-separated list of planets for federation",
+    )
+    parser.add_argument(
+        "--federation_planet",
+        type=str,
+        default="earth",
+        help="Planet name for federation operations (default: earth)",
+    )
+    parser.add_argument(
+        "--partition_planets",
+        type=str,
+        default="mars",
+        help="Comma-separated planets to partition (default: mars)",
+    )
+    parser.add_argument(
+        "--recover_planets",
+        type=str,
+        default="mars",
+        help="Comma-separated planets to recover (default: mars)",
+    )
+
+
+def _add_gravity_args(parser: argparse.ArgumentParser) -> None:
+    """Add gravity adaptive arguments."""
+    parser.add_argument(
+        "--gravity_info",
+        action="store_true",
+        help="Show gravity configuration",
+    )
+    parser.add_argument(
+        "--gravity_adjust",
+        action="store_true",
+        help="Adjust parameters for planet gravity",
+    )
+    parser.add_argument(
+        "--gravity_consensus",
+        action="store_true",
+        help="Show gravity-adjusted consensus timing",
+    )
+    parser.add_argument(
+        "--gravity_packet",
+        action="store_true",
+        help="Show gravity-adjusted packet timing",
+    )
+    parser.add_argument(
+        "--gravity_validate",
+        action="store_true",
+        help="Validate gravity adjustment for a planet",
+    )
+    parser.add_argument(
+        "--gravity_status",
+        action="store_true",
+        help="Show gravity status",
+    )
+    parser.add_argument(
+        "--gravity_all_planets",
+        action="store_true",
+        help="Show adjustments for all planets",
+    )
+    parser.add_argument(
+        "--gravity_planet",
+        type=str,
+        default="mars",
+        help="Planet for gravity operations (default: mars)",
+    )
+
+
+def _add_quantum_v2_args(parser: argparse.ArgumentParser) -> None:
+    """Add quantum v2 refinement arguments."""
+    parser.add_argument(
+        "--quantum_v2_info",
+        action="store_true",
+        help="Show quantum v2 configuration",
+    )
+    parser.add_argument(
+        "--quantum_v2_refine",
+        action="store_true",
+        help="Run quantum v2 refinement",
+    )
+    parser.add_argument(
+        "--quantum_v2_iterative",
+        action="store_true",
+        help="Run iterative v2 refinement",
+    )
+    parser.add_argument(
+        "--quantum_v2_compare",
+        action="store_true",
+        help="Compare v1 vs v2 refinement",
+    )
+    parser.add_argument(
+        "--quantum_v2_decoherence",
+        action="store_true",
+        help="Test advanced decoherence model",
+    )
+    parser.add_argument(
+        "--quantum_v2_correction",
+        action="store_true",
+        help="Test deep error correction",
+    )
+    parser.add_argument(
+        "--quantum_v2_status",
+        action="store_true",
+        help="Show quantum v2 status",
+    )
+    parser.add_argument(
+        "--quantum_v2_validate",
+        action="store_true",
+        help="Validate four-nines correlation",
+    )
+    parser.add_argument(
+        "--quantum_v2_iterations",
+        type=int,
+        default=20,
+        help="Quantum v2 iterations (default: 20)",
+    )
+    parser.add_argument(
+        "--correction_depth",
+        type=int,
+        default=3,
+        help="Error correction depth (default: 3)",
+    )
+
+
+def _add_swarm_args(parser: argparse.ArgumentParser) -> None:
+    """Add swarm testnet arguments."""
+    parser.add_argument(
+        "--swarm_info",
+        action="store_true",
+        help="Show swarm testnet configuration",
+    )
+    parser.add_argument(
+        "--swarm_init",
+        action="store_true",
+        help="Initialize swarm testnet",
+    )
+    parser.add_argument(
+        "--swarm_deploy",
+        action="store_true",
+        help="Deploy full swarm",
+    )
+    parser.add_argument(
+        "--swarm_mesh",
+        action="store_true",
+        help="Create mesh topology",
+    )
+    parser.add_argument(
+        "--swarm_consensus",
+        action="store_true",
+        help="Run swarm consensus",
+    )
+    parser.add_argument(
+        "--swarm_stress",
+        action="store_true",
+        help="Run swarm stress test",
+    )
+    parser.add_argument(
+        "--swarm_status",
+        action="store_true",
+        help="Show swarm status",
+    )
+    parser.add_argument(
+        "--swarm_node_count",
+        type=int,
+        default=100,
+        help="Number of swarm nodes (default: 100)",
+    )
+    parser.add_argument(
+        "--swarm_stress_iterations",
+        type=int,
+        default=100,
+        help="Swarm stress iterations (default: 100)",
+    )
+
+
+def _add_testnet_args(parser: argparse.ArgumentParser) -> None:
+    """Add parallel testnet arguments."""
+    parser.add_argument(
+        "--testnet_info",
+        action="store_true",
+        help="Show parallel testnet configuration",
+    )
+    parser.add_argument(
+        "--testnet_ethereum",
+        action="store_true",
+        help="Initialize Ethereum testnet",
+    )
+    parser.add_argument(
+        "--testnet_solana",
+        action="store_true",
+        help="Initialize Solana testnet",
+    )
+    parser.add_argument(
+        "--testnet_bridge",
+        action="store_true",
+        help="Create cross-chain bridge",
+    )
+    parser.add_argument(
+        "--testnet_cross_chain",
+        action="store_true",
+        help="Send cross-chain transaction",
+    )
+    parser.add_argument(
+        "--testnet_sync",
+        action="store_true",
+        help="Sync testnets",
+    )
+    parser.add_argument(
+        "--testnet_status",
+        action="store_true",
+        help="Show testnet status",
+    )
+    parser.add_argument(
+        "--testnet_stress",
+        action="store_true",
+        help="Run testnet stress test",
+    )
+    parser.add_argument(
+        "--testnet_tx_count",
+        type=int,
+        default=100,
+        help="Number of transactions (default: 100)",
+    )
+    parser.add_argument(
+        "--testnet_stress_iterations",
+        type=int,
+        default=50,
+        help="Testnet stress iterations (default: 50)",
     )
