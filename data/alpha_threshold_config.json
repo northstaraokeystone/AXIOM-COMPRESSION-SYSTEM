@@ -1,0 +1,19 @@
+{
+  "version": "19.1.0",
+  "alpha_law_threshold": 1.20,
+  "alpha_source": "neuron_ledger",
+  "law_discovery_cooldown_s": 60,
+  "compression_law_target": 0.95,
+  "threshold_config": {
+    "trigger_type": "crossing",
+    "direction": "above",
+    "hysteresis": 0.05,
+    "min_samples": 3
+  },
+  "law_enforcement": {
+    "mode": "receipt_chain",
+    "compression_equals_predictability": true,
+    "chain_causality_priority": true
+  },
+  "note": "Laws are not discovered—they are enforced by the receipt chain itself."
+}

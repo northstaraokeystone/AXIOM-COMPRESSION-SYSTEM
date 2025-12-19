@@ -1,8 +1,17 @@
 {
-  "version": "19.0.0",
+  "version": "19.1.0",
   "depth": 19,
   "scale": "swarm_intelligence",
   "paradigm": "compression_as_coordination",
+  "d19_1_config": {
+    "synthetic_enabled": false,
+    "entropy_source": "live_triad",
+    "alpha_law_threshold": 1.20,
+    "live_sources": ["agentproof_ledger", "neuron_ledger"],
+    "law_enforcement_mode": "receipt_chain",
+    "reality_only": true,
+    "note": "Laws are not discovered—they are enforced by the receipt chain itself"
+  },
   "baseline_from_d18": {
     "mars_relay_nodes": 5,
     "planet_federation": 4,
