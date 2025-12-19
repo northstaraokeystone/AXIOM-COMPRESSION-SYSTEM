@@ -384,6 +384,34 @@ from cli.elonsphere import (
     cmd_federation_consensus,
 )
 
+# Live relay HIL commands
+from cli.live_relay import (
+    cmd_live_relay_info,
+    cmd_live_relay_connect,
+    cmd_live_relay_test,
+    cmd_live_relay_mars,
+    cmd_live_relay_stress,
+    cmd_live_relay_status,
+)
+
+# Lag consensus commands
+from cli.consensus import (
+    cmd_consensus_info,
+    cmd_consensus_init,
+    cmd_consensus_simulate,
+    cmd_consensus_election,
+    cmd_consensus_status,
+)
+
+# Pruning v4 + quantum refine commands
+from cli.pruning import (
+    cmd_pruning_v4,
+    cmd_pruning_v4_compare,
+    cmd_pruning_v4_status,
+    cmd_quantum_refine,
+    cmd_quantum_refine_info,
+)
+
 
 def dispatch(args, docstring: str) -> None:
     """Dispatch command based on parsed arguments.
@@ -1035,6 +1063,55 @@ def dispatch(args, docstring: str) -> None:
         return cmd_federation_info(args)
     if args.federation_consensus:
         return cmd_federation_consensus(args)
+
+    # Live relay HIL commands
+    if args.live_relay_info:
+        return cmd_live_relay_info(args)
+    if args.live_relay_connect:
+        return cmd_live_relay_connect(args)
+    if args.live_relay_test:
+        args.duration = args.hil_duration
+        return cmd_live_relay_test(args)
+    if args.live_relay_mars:
+        args.duration = args.mars_proof_hours
+        return cmd_live_relay_mars(args)
+    if args.live_relay_stress:
+        args.iterations = args.hil_iterations
+        return cmd_live_relay_stress(args)
+    if args.live_relay_status:
+        return cmd_live_relay_status(args)
+
+    # Lag consensus commands
+    if args.consensus_info:
+        return cmd_consensus_info(args)
+    if args.consensus_init:
+        args.nodes = args.consensus_nodes
+        return cmd_consensus_init(args)
+    if args.consensus_simulate:
+        args.nodes = args.consensus_nodes
+        args.latency = args.consensus_latency
+        return cmd_consensus_simulate(args)
+    if args.consensus_election:
+        args.nodes = args.consensus_nodes
+        return cmd_consensus_election(args)
+    if args.consensus_status:
+        return cmd_consensus_status(args)
+
+    # Pruning v4 commands
+    if args.pruning_v4:
+        args.target = args.pruning_v4_target
+        return cmd_pruning_v4(args)
+    if args.pruning_v4_compare:
+        return cmd_pruning_v4_compare(args)
+    if args.pruning_v4_status:
+        return cmd_pruning_v4_status(args)
+
+    # Quantum refine commands
+    if args.quantum_refine:
+        args.iterations = args.quantum_refine_iterations
+        return cmd_quantum_refine(args)
+    if args.quantum_refine_info:
+        return cmd_quantum_refine_info(args)
 
     # Atacama 200Hz commands
     if args.atacama_200hz:
