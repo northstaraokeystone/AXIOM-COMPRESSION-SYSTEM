@@ -146,3 +146,139 @@ def cmd_quantum_rl_hybrid_info():
 
     print("\n[quantum_rl_hybrid_info receipt emitted above]")
     print("=" * 60)
+
+
+# === D18 QUANTUM ALTERNATIVE COMMANDS ===
+
+
+def cmd_quantum_alt_info(args):
+    """Show quantum alternative configuration.
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with quantum config
+    """
+    from src.quantum_alternative import load_quantum_config
+
+    config = load_quantum_config()
+
+    print("\n=== QUANTUM ALTERNATIVE CONFIGURATION ===")
+    print(f"Enabled: {config.get('enabled', True)}")
+    print(f"Non-local simulation: {config.get('nonlocal_simulation', True)}")
+    print(f"Correlation target: {config.get('correlation_target', 0.98)}")
+    print(f"Entanglement pairs: {config.get('entanglement_pairs', 1000)}")
+    print(f"Decoherence tolerance: {config.get('decoherence_tolerance', 0.01)}")
+    print(f"Bell violation check: {config.get('bell_violation_check', True)}")
+    print(f"No FTL constraint: {config.get('no_ftl_constraint', True)}")
+
+    return config
+
+
+def cmd_quantum_alt_simulate(args):
+    """Run non-local simulation.
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with simulation results
+    """
+    from src.quantum_alternative import (
+        initialize_entanglement_pairs,
+        simulate_nonlocal_correlation,
+    )
+
+    pairs_count = getattr(args, "quantum_pairs", 1000)
+
+    pairs = initialize_entanglement_pairs(count=pairs_count)
+    result = simulate_nonlocal_correlation(pairs)
+
+    print("\n=== QUANTUM NON-LOCAL SIMULATION ===")
+    print(f"Pairs measured: {result.get('pairs_measured', 0)}")
+    print(f"Mean correlation: {result.get('mean_correlation', 0):.4f}")
+    print(f"Max correlation: {result.get('max_correlation', 0):.4f}")
+    print(f"Min correlation: {result.get('min_correlation', 0):.4f}")
+    print(f"Correlation target: {result.get('correlation_target', 0.98)}")
+    print(f"Target met: {result.get('target_met', False)}")
+    print(f"Non-local viable: {result.get('nonlocal_viable', False)}")
+
+    return result
+
+
+def cmd_quantum_alt_correlation(args):
+    """Show correlation metrics.
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with correlation metrics
+    """
+    from src.quantum_alternative import (
+        initialize_entanglement_pairs,
+        measure_correlation,
+    )
+
+    pairs_count = getattr(args, "quantum_pairs", 100)
+
+    pairs = initialize_entanglement_pairs(count=pairs_count)
+    correlations = [measure_correlation(p) for p in pairs]
+
+    mean_corr = sum(correlations) / len(correlations)
+    max_corr = max(correlations)
+    min_corr = min(correlations)
+
+    result = {
+        "pairs_count": pairs_count,
+        "mean_correlation": round(mean_corr, 4),
+        "max_correlation": round(max_corr, 4),
+        "min_correlation": round(min_corr, 4),
+        "target": 0.98,
+        "target_met": mean_corr >= 0.98,
+    }
+
+    print("\n=== QUANTUM CORRELATION METRICS ===")
+    print(f"Pairs: {result['pairs_count']}")
+    print(f"Mean correlation: {result['mean_correlation']:.4f}")
+    print(f"Max correlation: {result['max_correlation']:.4f}")
+    print(f"Min correlation: {result['min_correlation']:.4f}")
+    print(f"Target: {result['target']}")
+    print(f"Target met: {result['target_met']}")
+
+    return result
+
+
+def cmd_quantum_alt_bell(args):
+    """Run Bell check.
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with Bell check results
+    """
+    from src.quantum_alternative import (
+        initialize_entanglement_pairs,
+        measure_correlation,
+        check_bell_violation,
+    )
+
+    pairs_count = getattr(args, "quantum_pairs", 100)
+
+    pairs = initialize_entanglement_pairs(count=pairs_count)
+    correlations = [measure_correlation(p) for p in pairs]
+    result = check_bell_violation(correlations)
+
+    print("\n=== BELL INEQUALITY CHECK ===")
+    print(f"Correlations count: {result.get('correlations_count', 0)}")
+    print(f"Average correlation: {result.get('avg_correlation', 0):.4f}")
+    print(f"S value: {result.get('s_value', 0):.4f}")
+    print(f"Classical limit: {result.get('classical_limit', 2.0)}")
+    print(f"Quantum limit: {result.get('quantum_limit', 2.828):.4f}")
+    print(f"Bell violated: {result.get('bell_violated', False)}")
+    print(f"Within quantum limit: {result.get('within_quantum_limit', False)}")
+    print(f"Quantum signature detected: {result.get('quantum_signature_detected', False)}")
+
+    return result

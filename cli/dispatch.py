@@ -344,6 +344,46 @@ from cli.d17 import (
     cmd_ml_ensemble_90s_info,
 )
 
+# D18 interstellar relay commands
+from cli.d18 import (
+    cmd_d18_info,
+    cmd_d18_push,
+    cmd_d18_pruning,
+    cmd_d18_compression,
+    cmd_d18_interstellar_hybrid,
+)
+
+# Interstellar relay commands
+from cli.relay import (
+    cmd_relay_info,
+    cmd_relay_simulate,
+    cmd_relay_latency,
+    cmd_relay_nodes,
+    cmd_relay_stress,
+)
+
+# Quantum alternative commands
+from cli.quantum import (
+    cmd_quantum_alt_info,
+    cmd_quantum_alt_simulate,
+    cmd_quantum_alt_correlation,
+    cmd_quantum_alt_bell,
+)
+
+# Elon-sphere commands
+from cli.elonsphere import (
+    cmd_starlink_info,
+    cmd_starlink_simulate,
+    cmd_grok_info,
+    cmd_grok_tune,
+    cmd_xai_info,
+    cmd_xai_simulate,
+    cmd_dojo_info,
+    cmd_dojo_offload,
+    cmd_federation_info,
+    cmd_federation_consensus,
+)
+
 
 def dispatch(args, docstring: str) -> None:
     """Dispatch command based on parsed arguments.
@@ -937,6 +977,64 @@ def dispatch(args, docstring: str) -> None:
         return cmd_ml_ensemble_90s(args)
     if args.ml_ensemble_90s_info:
         return cmd_ml_ensemble_90s_info(args)
+
+    # D18 interstellar relay commands
+    if args.d18_info:
+        return cmd_d18_info(args)
+    if args.d18_push:
+        return cmd_d18_push(args)
+    if args.d18_pruning:
+        return cmd_d18_pruning(args)
+    if args.d18_compression:
+        return cmd_d18_compression(args)
+    if args.d18_interstellar_hybrid:
+        return cmd_d18_interstellar_hybrid(args)
+
+    # Interstellar relay commands
+    if args.relay_info:
+        return cmd_relay_info(args)
+    if args.relay_simulate:
+        return cmd_relay_simulate(args)
+    if args.relay_latency:
+        return cmd_relay_latency(args)
+    if args.relay_nodes:
+        return cmd_relay_nodes(args)
+    if args.relay_stress:
+        return cmd_relay_stress(args)
+
+    # Quantum alternative commands
+    if args.quantum_alt_info:
+        return cmd_quantum_alt_info(args)
+    if args.quantum_alt_simulate:
+        return cmd_quantum_alt_simulate(args)
+    if args.quantum_alt_correlation:
+        return cmd_quantum_alt_correlation(args)
+    if args.quantum_alt_bell:
+        return cmd_quantum_alt_bell(args)
+
+    # Elon-sphere commands
+    if args.starlink_info:
+        return cmd_starlink_info(args)
+    if args.starlink_simulate:
+        return cmd_starlink_simulate(args)
+    if args.grok_info:
+        return cmd_grok_info(args)
+    if args.grok_tune:
+        return cmd_grok_tune(args)
+    if args.xai_info:
+        return cmd_xai_info(args)
+    if args.xai_simulate:
+        return cmd_xai_simulate(args)
+    if args.dojo_info:
+        return cmd_dojo_info(args)
+    if args.dojo_offload:
+        return cmd_dojo_offload(args)
+
+    # Federation commands
+    if args.federation_info:
+        return cmd_federation_info(args)
+    if args.federation_consensus:
+        return cmd_federation_consensus(args)
 
     # Atacama 200Hz commands
     if args.atacama_200hz:
