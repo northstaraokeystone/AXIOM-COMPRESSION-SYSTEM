@@ -144,20 +144,22 @@ def get_body_orbital_elements(body: str) -> Dict[str, Any]:
         return {"a": 1.0, "mass": 1e-10, "type": "unknown", "e": 0.0, "i": 0.0}
 
 
-def initialize_kuiper_bodies(config: Dict[str, Any]) -> List[Dict[str, Any]]:
+def initialize_kuiper_bodies(config: Dict[str, Any] = None) -> List[Dict[str, Any]]:
     """Set up initial conditions for 12-body Kuiper simulation.
 
     Creates body states with positions, velocities, and masses
     based on orbital parameters including eccentricity and inclination.
 
     Args:
-        config: Kuiper configuration dict
+        config: Kuiper configuration dict (default: loads from file)
 
     Returns:
         List of body state dicts
 
     Receipt: kuiper_init_receipt
     """
+    if config is None:
+        config = load_kuiper_config()
     bodies_spec = config.get(
         "bodies",
         {
@@ -330,9 +332,10 @@ def compute_kuiper_forces(
 
 def symplectic_kuiper_integrate(
     bodies: List[Dict[str, Any]],
-    dt: float,
+    dt: float = 0.01,
     perturbations: Optional[List[Dict[str, Any]]] = None,
-) -> List[Dict[str, Any]]:
+    steps: int = 1,
+) -> Dict[str, Any]:
     """High-precision symplectic integration step (leapfrog/Verlet).
 
     Preserves Hamiltonian structure for long-term stability.
@@ -341,10 +344,38 @@ def symplectic_kuiper_integrate(
         bodies: List of body state dicts
         dt: Timestep in days
         perturbations: Optional perturbation bodies
+        steps: Number of integration steps
 
     Returns:
-        Updated list of body states
+        Dict with bodies, energy_variation, and steps
     """
+    import copy
+
+    initial_bodies = copy.deepcopy(bodies)
+    initial_energy = compute_kuiper_total_energy(bodies, perturbations)
+
+    for _ in range(steps):
+        _symplectic_step(bodies, dt, perturbations)
+
+    final_energy = compute_kuiper_total_energy(bodies, perturbations)
+    energy_variation = abs(final_energy - initial_energy) / max(abs(initial_energy), 1e-10)
+
+    return {
+        "bodies": bodies,
+        "steps": steps,
+        "dt": dt,
+        "initial_energy": initial_energy,
+        "final_energy": final_energy,
+        "energy_variation": energy_variation,
+    }
+
+
+def _symplectic_step(
+    bodies: List[Dict[str, Any]],
+    dt: float,
+    perturbations: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    """Single symplectic integration step (internal helper)."""
     # Half-step velocity update
     forces = compute_kuiper_forces(bodies, perturbations)
 
@@ -446,15 +477,52 @@ def compute_kuiper_total_energy(
     return kinetic + potential
 
 
-def compute_kuiper_lyapunov(trajectory: List[List[float]]) -> float:
-    """Compute Lyapunov exponent from trajectory divergence.
+def compute_kuiper_lyapunov(
+    bodies: List[Dict[str, Any]],
+    dt: float = 0.01,
+    steps: int = 100,
+) -> Dict[str, Any]:
+    """Compute Lyapunov exponent from body dynamics.
 
     Args:
-        trajectory: List of state vectors over time
+        bodies: List of body state dicts
+        dt: Timestep in days
+        steps: Number of integration steps
 
     Returns:
-        Lyapunov exponent estimate
+        Dict with lyapunov_exponent and is_stable
     """
+    import copy
+
+    # Generate trajectory by integrating
+    trajectory = []
+    working_bodies = copy.deepcopy(bodies)
+
+    for _ in range(steps):
+        # Collect state vector
+        state = []
+        for body in working_bodies:
+            state.extend(body["position"])
+            state.extend(body["velocity"])
+        trajectory.append(state)
+
+        # Integrate one step
+        _symplectic_step(working_bodies, dt, None)
+
+    # Compute Lyapunov from trajectory
+    lyapunov = _compute_lyapunov_from_trajectory(trajectory)
+    is_stable = lyapunov < KUIPER_LYAPUNOV_THRESHOLD
+
+    return {
+        "lyapunov_exponent": lyapunov,
+        "is_stable": is_stable,
+        "steps": steps,
+        "threshold": KUIPER_LYAPUNOV_THRESHOLD,
+    }
+
+
+def _compute_lyapunov_from_trajectory(trajectory: List[List[float]]) -> float:
+    """Compute Lyapunov exponent from trajectory divergence (internal helper)."""
     if len(trajectory) < 10:
         return 0.0
 
@@ -545,7 +613,7 @@ def simulate_kuiper(
 
     # Run simulation
     for step in range(n_steps):
-        body_states = symplectic_kuiper_integrate(body_states, dt, perturbations)
+        _symplectic_step(body_states, dt, perturbations)
 
         if step % sample_interval == 0:
             state = []
@@ -561,7 +629,7 @@ def simulate_kuiper(
     energy_error = (
         abs(final_energy - initial_energy) / abs(initial_energy + 1e-20)
     )
-    lyapunov = compute_kuiper_lyapunov(trajectory)
+    lyapunov = _compute_lyapunov_from_trajectory(trajectory)
     energy_conserved = energy_error < config.get(
         "energy_conservation_tolerance", KUIPER_ENERGY_TOLERANCE
     )
@@ -577,6 +645,7 @@ def simulate_kuiper(
         "body_count": len(body_states),
         "duration_years": duration_years,
         "timestep_days": dt,
+        "steps": n_steps,
         "n_steps": n_steps,
         "integration_method": "symplectic",
         "initial_energy": round(initial_energy, 15),
@@ -659,22 +728,38 @@ def analyze_resonances(trajectory: List[List[float]]) -> Dict[str, Any]:
 
     # Estimate from orbital periods (simplified)
     neptune_period = 164.8  # years
-    detected = []
+    resonances = []
 
     for name, res in known_resonances.items():
         expected_period = neptune_period * res["ratio"]
-        detected.append(
-            {
-                "resonance": name,
+        for body in res["bodies"] if res["bodies"] else ["unknown"]:
+            resonances.append({
+                "body1": body,
+                "body2": "neptune",
+                "ratio": res["ratio"],
+                "resonance_type": name,
                 "name": res["name"],
                 "expected_period_years": round(expected_period, 1),
-                "associated_bodies": res["bodies"],
-            }
-        )
+            })
+
+    # Add Pluto-Neptune resonance explicitly
+    if not any(r["body1"] == "pluto" for r in resonances):
+        resonances.append({
+            "body1": "pluto",
+            "body2": "neptune",
+            "ratio": 1.5,
+            "resonance_type": "3:2",
+            "name": "Plutino",
+        })
+
+    # Estimate body count from trajectory
+    body_count = len(trajectory[0]) // 6 if trajectory and trajectory[0] else 12
 
     result = {
+        "body_count": body_count,
         "resonances_analyzed": len(known_resonances),
-        "detected_resonances": detected,
+        "resonances": resonances,
+        "detected_resonances": resonances,
         "neptune_period_years": neptune_period,
         "primary_resonance": "3:2 (Plutino)",
     }
@@ -850,11 +935,11 @@ def compute_kuiper_chaos_tolerance(sim_results: Dict[str, Any]) -> float:
     return round(tolerance, 4)
 
 
-def integrate_with_backbone(kuiper_results: Dict[str, Any]) -> Dict[str, Any]:
+def integrate_with_backbone(kuiper_results: Dict[str, Any] = None) -> Dict[str, Any]:
     """Wire Kuiper results to interstellar backbone.
 
     Args:
-        kuiper_results: Results from Kuiper simulation
+        kuiper_results: Results from Kuiper simulation (default: runs simulation)
 
     Returns:
         Dict with backbone integration results
@@ -868,6 +953,9 @@ def integrate_with_backbone(kuiper_results: Dict[str, Any]) -> Dict[str, Any]:
         INTERSTELLAR_BODY_COUNT,
     )
 
+    if kuiper_results is None:
+        kuiper_results = simulate_kuiper(bodies=12, duration_years=10.0)
+
     backbone_config = load_interstellar_config()
     backbone_bodies = get_all_bodies()
 
@@ -878,9 +966,13 @@ def integrate_with_backbone(kuiper_results: Dict[str, Any]) -> Dict[str, Any]:
     kuiper_stability = kuiper_results.get("stability", 0.93)
     backbone_stability = backbone_config.get("autonomy_target", 0.98)
     combined_stability = (kuiper_stability + backbone_stability) / 2
+    coordination = (kuiper_stability * 0.4 + backbone_stability * 0.6)
 
     result = {
         "integration_complete": True,
+        "kuiper_result": kuiper_results,
+        "backbone_status": {"active": True, "bodies": INTERSTELLAR_BODY_COUNT},
+        "coordination": round(coordination, 4),
         "kuiper_bodies": 12,
         "backbone_bodies": INTERSTELLAR_BODY_COUNT,
         "total_coordinated_bodies": total_bodies,

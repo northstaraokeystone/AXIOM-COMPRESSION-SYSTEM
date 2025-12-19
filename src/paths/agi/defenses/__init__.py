@@ -41,6 +41,12 @@ from .enclave import (
     measure_defense_overhead,
     compute_enclave_alignment,
 )
+from .audits import (
+    integrate_expanded_audits,
+    run_injection_stress_test,
+    run_poisoning_stress_test,
+    compute_expanded_alignment,
+)
 
 __all__ = [
     # Adversarial
@@ -57,6 +63,9 @@ __all__ = [
     # Enclave
     "integrate_secure_enclave", "run_btb_stress_test", "run_pht_stress_test",
     "run_rsb_stress_test", "measure_defense_overhead", "compute_enclave_alignment",
+    # Audits
+    "integrate_expanded_audits", "run_injection_stress_test",
+    "run_poisoning_stress_test", "compute_expanded_alignment",
 ]
 
 RECEIPT_SCHEMA = {

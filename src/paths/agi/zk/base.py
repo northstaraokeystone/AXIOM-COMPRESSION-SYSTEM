@@ -5,8 +5,8 @@ Placeholder - functions imported from parent modules.
 
 from ....zk_proof_audit import (
     load_zk_config,
-    run_zk_proof_audit,
-    compare_attestation,
+    run_zk_audit,
+    compare_to_traditional,
 )
 
 AGI_TENANT_ID = "axiom-agi"
@@ -21,12 +21,12 @@ def integrate_zk_proofs(config=None):
 
 def run_zk_stress_test(iterations=100):
     """Run ZK stress test."""
-    return run_zk_proof_audit(iterations=iterations)
+    return run_zk_audit(attestation_count=iterations)
 
 
 def compare_attestation_methods():
     """Compare attestation methods."""
-    return compare_attestation()
+    return compare_to_traditional({"type": "test"})
 
 
 def measure_zk_overhead():

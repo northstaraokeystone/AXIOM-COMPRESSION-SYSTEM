@@ -5,9 +5,9 @@ Placeholder - functions imported from parent modules.
 
 from ....secure_enclave_audit import (
     load_enclave_config,
-    run_btb_audit,
-    run_pht_audit,
-    run_rsb_audit,
+    test_btb_injection,
+    test_pht_poisoning,
+    test_rsb_stuffing,
 )
 
 AGI_TENANT_ID = "axiom-agi"
@@ -22,17 +22,17 @@ def integrate_secure_enclave(config=None):
 
 def run_btb_stress_test(iterations=100):
     """Run BTB stress test."""
-    return run_btb_audit(iterations=iterations)
+    return test_btb_injection(iterations=iterations)
 
 
 def run_pht_stress_test(iterations=100):
     """Run PHT stress test."""
-    return run_pht_audit(iterations=iterations)
+    return test_pht_poisoning(iterations=iterations)
 
 
 def run_rsb_stress_test(iterations=100):
     """Run RSB stress test."""
-    return run_rsb_audit(iterations=iterations)
+    return test_rsb_stuffing(iterations=iterations)
 
 
 def measure_defense_overhead():

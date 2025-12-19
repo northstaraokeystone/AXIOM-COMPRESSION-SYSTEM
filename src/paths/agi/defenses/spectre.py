@@ -6,9 +6,9 @@ Placeholder - functions imported from parent modules.
 
 from ....quantum_resist_random import (
     load_quantum_resist_config,
-    run_spectre_audit,
-    run_quantum_cache_audit,
-    run_branch_prediction_audit,
+    test_spectre_defense,
+    test_cache_timing,
+    test_spectre_v2,
 )
 
 AGI_TENANT_ID = "axiom-agi"
@@ -24,17 +24,17 @@ def integrate_quantum_resist(config=None):
 
 def run_spectre_stress_test(iterations=100):
     """Run Spectre stress test."""
-    return run_spectre_audit(iterations=iterations)
+    return test_spectre_defense(iterations=iterations)
 
 
 def run_quantum_cache_stress_test(iterations=100):
     """Run quantum cache stress test."""
-    return run_quantum_cache_audit(iterations=iterations)
+    return test_cache_timing(iterations=iterations)
 
 
 def run_branch_stress_test(iterations=100):
     """Run branch prediction stress test."""
-    return run_branch_prediction_audit(iterations=iterations)
+    return test_spectre_v2(iterations=iterations)
 
 
 def compute_quantum_alignment():

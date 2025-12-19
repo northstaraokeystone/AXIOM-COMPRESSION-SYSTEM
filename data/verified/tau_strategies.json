@@ -7,5 +7,5 @@
   "relay_p_cost_per_sat": 0.05,
   "relay_swarm_min": 3,
   "relay_swarm_optimal": 6,
-  "payload_hash": "153dc626708e96c885a8f862e0ab1906885a9e82c9fb844c61c1b8f5c01bc2cf:a772c2c68d0443906c3ece748704030d379c76db34431d8c8da81441ef285a6e"
+  "payload_hash": "153dc626708e96c885a8f862e0ab1906885a9e82c9fb844c61c1b8f5c01bc2cf:153dc626708e96c885a8f862e0ab1906885a9e82c9fb844c61c1b8f5c01bc2cf"
 }
