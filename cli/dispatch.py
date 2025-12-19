@@ -204,6 +204,44 @@ from cli import (
     cmd_dust_mars_projection,
 )
 
+# D13 commands
+from cli.d13 import (
+    cmd_d13_info,
+    cmd_d13_push,
+    cmd_d13_solar_hybrid,
+)
+
+# Solar orbital hub commands
+from cli.solar import (
+    cmd_solar_info,
+    cmd_solar_positions,
+    cmd_solar_windows,
+    cmd_solar_transfer,
+    cmd_solar_sync,
+    cmd_solar_autonomy,
+    cmd_solar_simulate,
+)
+
+# LES dust dynamics commands
+from cli.les import (
+    cmd_les_info,
+    cmd_les_simulate,
+    cmd_les_dust_devil,
+    cmd_les_compare,
+    cmd_les_validate,
+)
+
+# ZK proof commands
+from cli.zk import (
+    cmd_zk_info,
+    cmd_zk_setup,
+    cmd_zk_prove,
+    cmd_zk_verify,
+    cmd_zk_attestation,
+    cmd_zk_audit,
+    cmd_zk_benchmark,
+)
+
 
 def dispatch(args, docstring: str) -> None:
     """Dispatch command based on parsed arguments.
@@ -529,6 +567,58 @@ def dispatch(args, docstring: str) -> None:
         return cmd_dust_solar_impact(args.dust_depth_mm, args.simulate)
     if args.dust_mars:
         return cmd_dust_mars_projection(args.simulate)
+
+    # D13 commands
+    if args.d13_info:
+        return cmd_d13_info(args)
+    if args.d13_push:
+        return cmd_d13_push(args)
+    if args.d13_solar_hybrid:
+        return cmd_d13_solar_hybrid(args)
+
+    # Solar orbital hub commands
+    if args.solar_info:
+        return cmd_solar_info(args)
+    if args.solar_positions:
+        return cmd_solar_positions(args)
+    if args.solar_windows:
+        return cmd_solar_windows(args)
+    if args.solar_transfer:
+        return cmd_solar_transfer(args)
+    if args.solar_sync:
+        return cmd_solar_sync(args)
+    if args.solar_autonomy:
+        return cmd_solar_autonomy(args)
+    if args.solar_simulate:
+        return cmd_solar_simulate(args)
+
+    # LES dust dynamics commands
+    if args.les_info:
+        return cmd_les_info(args)
+    if args.les_simulate:
+        return cmd_les_simulate(args)
+    if args.les_dust_devil:
+        return cmd_les_dust_devil(args)
+    if args.les_compare:
+        return cmd_les_compare(args)
+    if args.les_validate:
+        return cmd_les_validate(args)
+
+    # ZK proof commands
+    if args.zk_info:
+        return cmd_zk_info(args)
+    if args.zk_setup:
+        return cmd_zk_setup(args)
+    if args.zk_prove:
+        return cmd_zk_prove(args)
+    if args.zk_verify:
+        return cmd_zk_verify(args)
+    if args.zk_attestation:
+        return cmd_zk_attestation(args)
+    if args.zk_audit:
+        return cmd_zk_audit(args)
+    if args.zk_benchmark:
+        return cmd_zk_benchmark(args)
 
     # Expanded AGI audit commands
     if args.audit_expanded:

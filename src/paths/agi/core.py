@@ -1699,3 +1699,331 @@ def compute_enclave_alignment(
 
     emit_path_receipt("agi", "enclave_alignment", result)
     return result
+
+
+# === ZK PROOF INTEGRATION (D13) ===
+
+
+ZK_RESILIENCE_WEIGHT = 0.15
+"""Weight for ZK proof resilience in alignment calculation."""
+
+
+def integrate_zk_proofs(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire ZK proof attestation defense to AGI alignment.
+
+    Args:
+        config: Optional ZK config override
+
+    Returns:
+        Dict with ZK integration results
+
+    Receipt: agi_zk_integrate
+    """
+    # Import ZK module
+    from ...zk_proof_audit import (
+        load_zk_config,
+        run_zk_audit,
+        ZK_RESILIENCE_TARGET,
+    )
+
+    if config is None:
+        config = load_zk_config()
+
+    # Run ZK audit
+    audit_result = run_zk_audit(attestation_count=5)
+
+    result = {
+        "integrated": True,
+        "zk_config": config,
+        "audit_result": {
+            "attestation_count": audit_result["attestation_count"],
+            "verifications_passed": audit_result["verifications_passed"],
+            "verification_rate": audit_result["verification_rate"],
+            "resilience": audit_result["resilience"],
+        },
+        "resilience_target": ZK_RESILIENCE_TARGET,
+        "resilience_met": audit_result["resilience"] >= ZK_RESILIENCE_TARGET,
+        "proof_system": config.get("proof_system", "groth16"),
+        "privacy_preserving": config.get("privacy_preserving", True),
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "zk_integrate", result)
+    return result
+
+
+def run_zk_stress_test(iterations: int = 100) -> Dict[str, Any]:
+    """Run ZK proof stress test for resilience.
+
+    Args:
+        iterations: Number of stress test iterations
+
+    Returns:
+        Dict with stress test results
+
+    Receipt: agi_zk_stress
+    """
+    # Import ZK module
+    from ...zk_proof_audit import (
+        create_attestation,
+        verify_attestation,
+        benchmark_proof_system,
+        ZK_RESILIENCE_TARGET,
+    )
+
+    # Run benchmark
+    benchmark = benchmark_proof_system(iterations=min(iterations, 20))
+
+    # Run stress attestations
+    successes = 0
+    failures = 0
+
+    for i in range(iterations):
+        try:
+            attestation = create_attestation(
+                enclave_id=f"stress_enclave_{i}",
+                code_hash=f"code_{i:032x}",
+                config_hash=f"config_{i:032x}",
+            )
+            verification = verify_attestation(attestation)
+            if verification["valid"]:
+                successes += 1
+            else:
+                failures += 1
+        except Exception:
+            failures += 1
+
+    success_rate = successes / iterations if iterations > 0 else 0
+    resilience = success_rate  # Resilience = success rate under stress
+
+    result = {
+        "iterations": iterations,
+        "successes": successes,
+        "failures": failures,
+        "success_rate": round(success_rate, 4),
+        "resilience": round(resilience, 4),
+        "resilience_target": ZK_RESILIENCE_TARGET,
+        "resilience_met": resilience >= ZK_RESILIENCE_TARGET,
+        "benchmark": benchmark,
+        "stress_passed": success_rate >= 0.99,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "zk_stress", result)
+    return result
+
+
+def compare_attestation_methods() -> Dict[str, Any]:
+    """Compare ZK attestation to traditional SGX attestation.
+
+    Returns:
+        Dict with comparison results
+
+    Receipt: agi_attestation_compare
+    """
+    # Import ZK module
+    from ...zk_proof_audit import (
+        create_attestation,
+        compare_to_traditional,
+    )
+
+    # Create sample attestation
+    attestation = create_attestation(
+        enclave_id="comparison_enclave",
+        code_hash="comparison_code_hash",
+        config_hash="comparison_config_hash",
+    )
+
+    # Run comparison
+    comparison = compare_to_traditional(attestation)
+
+    result = {
+        "zk_method": comparison["zk"],
+        "traditional_method": comparison["traditional"],
+        "comparison": comparison["comparison"],
+        "zk_advantages": comparison["zk_advantages"],
+        "traditional_advantages": comparison["traditional_advantages"],
+        "recommendation": "ZK for privacy-critical applications",
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "attestation_compare", result)
+    return result
+
+
+def measure_zk_overhead() -> Dict[str, Any]:
+    """Measure ZK proof system performance overhead.
+
+    Returns:
+        Dict with overhead measurements
+
+    Receipt: agi_zk_overhead
+    """
+    # Import ZK module
+    from ...zk_proof_audit import (
+        benchmark_proof_system,
+        ZK_PROOF_TIME_MS,
+        ZK_VERIFY_TIME_MS,
+    )
+
+    # Run benchmark
+    benchmark = benchmark_proof_system(iterations=10)
+
+    # Compute overhead relative to targets
+    proof_overhead = (
+        (benchmark["proof_time_ms"]["avg"] - ZK_PROOF_TIME_MS) / ZK_PROOF_TIME_MS
+        if ZK_PROOF_TIME_MS > 0
+        else 0
+    )
+    verify_overhead = (
+        (benchmark["verify_time_ms"]["avg"] - ZK_VERIFY_TIME_MS) / ZK_VERIFY_TIME_MS
+        if ZK_VERIFY_TIME_MS > 0
+        else 0
+    )
+
+    result = {
+        "benchmark": benchmark,
+        "target_proof_time_ms": ZK_PROOF_TIME_MS,
+        "target_verify_time_ms": ZK_VERIFY_TIME_MS,
+        "actual_proof_time_ms": benchmark["proof_time_ms"]["avg"],
+        "actual_verify_time_ms": benchmark["verify_time_ms"]["avg"],
+        "proof_overhead_pct": round(proof_overhead * 100, 2),
+        "verify_overhead_pct": round(verify_overhead * 100, 2),
+        "throughput_proofs_per_sec": benchmark["throughput_proofs_per_sec"],
+        "throughput_verifies_per_sec": benchmark["throughput_verifies_per_sec"],
+        "overhead_acceptable": proof_overhead < 0.5 and verify_overhead < 0.5,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "zk_overhead", result)
+    return result
+
+
+def compute_zk_alignment(receipts: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    """Compute full alignment including ZK proofs.
+
+    This extends enclave_alignment to include ZK proof resilience.
+
+    Args:
+        receipts: Optional list of receipts for compression analysis
+
+    Returns:
+        Dict with full ZK-inclusive alignment metrics
+
+    Receipt: agi_zk_alignment
+    """
+    # Import all audit modules
+    from ...adversarial_audit import (
+        run_audit as run_basic_audit,
+        RECOVERY_THRESHOLD as BASIC_THRESHOLD,
+    )
+    from ...agi_audit_expanded import (
+        run_expanded_audit,
+        EXPANDED_RECOVERY_THRESHOLD,
+    )
+    from ...fractal_encrypt_audit import (
+        test_side_channel_resilience,
+        test_model_inversion_resilience,
+        SIDE_CHANNEL_RESILIENCE,
+    )
+    from ...randomized_paths_audit import (
+        run_randomized_audit,
+        TIMING_LEAK_RESILIENCE,
+    )
+    from ...quantum_resist_random import (
+        run_quantum_resist_audit,
+        QUANTUM_RESILIENCE_TARGET,
+    )
+    from ...secure_enclave_audit import (
+        run_enclave_audit,
+        ENCLAVE_RESILIENCE_TARGET,
+    )
+    from ...zk_proof_audit import (
+        run_zk_audit,
+        ZK_RESILIENCE_TARGET,
+    )
+
+    # Compute compression alignment
+    if receipts is None:
+        receipts = []
+    compression_alignment = compute_alignment(receipts)
+
+    # Run basic adversarial audit
+    basic_audit = run_basic_audit(noise_level=0.05, iterations=50)
+    basic_adversarial = basic_audit["avg_recovery"]
+
+    # Run expanded audit
+    expanded_audit = run_expanded_audit(attack_type="all", iterations=50)
+    expanded_recovery = expanded_audit["avg_recovery"]
+
+    # Run fractal encryption tests
+    side_channel = test_side_channel_resilience(50)
+    model_inversion = test_model_inversion_resilience(None, 50)
+    fractal_resilience = (side_channel + model_inversion) / 2
+
+    # Run randomized paths audit
+    randomized_audit = run_randomized_audit(iterations=50)
+    randomized_resilience = randomized_audit["avg_resilience"]
+
+    # Run quantum-resistant audit
+    quantum_audit = run_quantum_resist_audit(iterations=50)
+    quantum_resilience = quantum_audit["overall_resilience"]
+
+    # Run secure enclave audit
+    enclave_audit = run_enclave_audit(iterations=50)
+    enclave_resilience = enclave_audit["overall_resilience"]
+
+    # Run ZK proof audit
+    zk_audit = run_zk_audit(attestation_count=5)
+    zk_resilience = zk_audit["resilience"]
+
+    # Combined alignment (weighted) - includes all 8 layers now
+    # Compression: 5%, Basic: 8%, Expanded: 14%, Fractal: 15%, Randomized: 15%, Quantum: 15%, Enclave: 13%, ZK: 15%
+    combined = (
+        compression_alignment * 0.05
+        + basic_adversarial * 0.08
+        + expanded_recovery * 0.14
+        + fractal_resilience * 0.15
+        + randomized_resilience * 0.15
+        + quantum_resilience * 0.15
+        + enclave_resilience * 0.13
+        + zk_resilience * ZK_RESILIENCE_WEIGHT
+    )
+
+    result = {
+        "compression_alignment": round(compression_alignment, 4),
+        "basic_adversarial_alignment": round(basic_adversarial, 4),
+        "expanded_alignment": round(expanded_recovery, 4),
+        "fractal_resilience": round(fractal_resilience, 4),
+        "randomized_resilience": round(randomized_resilience, 4),
+        "quantum_resilience": round(quantum_resilience, 4),
+        "enclave_resilience": round(enclave_resilience, 4),
+        "zk_resilience": round(zk_resilience, 4),
+        "combined_alignment": round(combined, 4),
+        "weights": {
+            "compression": 0.05,
+            "basic_adversarial": 0.08,
+            "expanded": 0.14,
+            "fractal": 0.15,
+            "randomized": 0.15,
+            "quantum": 0.15,
+            "enclave": 0.13,
+            "zk": ZK_RESILIENCE_WEIGHT,
+        },
+        "thresholds": {
+            "basic": BASIC_THRESHOLD,
+            "expanded": EXPANDED_RECOVERY_THRESHOLD,
+            "fractal": SIDE_CHANNEL_RESILIENCE,
+            "randomized": TIMING_LEAK_RESILIENCE,
+            "quantum": QUANTUM_RESILIENCE_TARGET,
+            "enclave": ENCLAVE_RESILIENCE_TARGET,
+            "zk": ZK_RESILIENCE_TARGET,
+        },
+        "is_aligned": combined >= EXPANDED_RECOVERY_THRESHOLD,
+        "alignment_metric": ALIGNMENT_METRIC,
+        "key_insight": "Full alignment via compression + adversarial + expanded + fractal + randomized + quantum + enclave + ZK",
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "zk_alignment", result)
+    return result

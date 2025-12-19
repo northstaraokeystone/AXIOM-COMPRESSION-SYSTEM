@@ -1,0 +1,176 @@
+{
+  "version": "1.0.0",
+  "description": "D13 recursion + Solar orbital hub (Venus+Mercury+Mars) + LES dust dynamics + ZK proof attestation",
+  "d13_config": {
+    "recursion_depth": 13,
+    "alpha_floor": 3.68,
+    "alpha_target": 3.70,
+    "alpha_ceiling": 3.72,
+    "instability_max": 0.00,
+    "tree_min": 1000000000000,
+    "uplift": 0.32
+  },
+  "uplift_by_depth": {
+    "1": 0.05,
+    "2": 0.09,
+    "3": 0.122,
+    "4": 0.148,
+    "5": 0.168,
+    "6": 0.185,
+    "7": 0.20,
+    "8": 0.22,
+    "9": 0.24,
+    "10": 0.26,
+    "11": 0.28,
+    "12": 0.30,
+    "13": 0.32
+  },
+  "depth_contributions": {
+    "1": {
+      "contribution": 0.05,
+      "decay_factor": 1.0,
+      "cumulative": 0.05
+    },
+    "2": {
+      "contribution": 0.04,
+      "decay_factor": 0.8,
+      "cumulative": 0.09
+    },
+    "3": {
+      "contribution": 0.032,
+      "decay_factor": 0.64,
+      "cumulative": 0.122
+    },
+    "4": {
+      "contribution": 0.0256,
+      "decay_factor": 0.512,
+      "cumulative": 0.148
+    },
+    "5": {
+      "contribution": 0.02048,
+      "decay_factor": 0.4096,
+      "cumulative": 0.168
+    },
+    "6": {
+      "contribution": 0.01638,
+      "decay_factor": 0.3277,
+      "cumulative": 0.185
+    },
+    "7": {
+      "contribution": 0.01311,
+      "decay_factor": 0.2621,
+      "cumulative": 0.20
+    },
+    "8": {
+      "contribution": 0.01049,
+      "decay_factor": 0.2097,
+      "cumulative": 0.22
+    },
+    "9": {
+      "contribution": 0.00839,
+      "decay_factor": 0.1678,
+      "cumulative": 0.24
+    },
+    "10": {
+      "contribution": 0.00671,
+      "decay_factor": 0.1342,
+      "cumulative": 0.26
+    },
+    "11": {
+      "contribution": 0.00537,
+      "decay_factor": 0.1074,
+      "cumulative": 0.28
+    },
+    "12": {
+      "contribution": 0.00430,
+      "decay_factor": 0.0859,
+      "cumulative": 0.30
+    },
+    "13": {
+      "contribution": 0.00344,
+      "decay_factor": 0.0687,
+      "cumulative": 0.32
+    }
+  },
+  "expected_alpha": {
+    "depth_1": 3.05,
+    "depth_2": 3.09,
+    "depth_3": 3.12,
+    "depth_4": 3.148,
+    "depth_5": 3.168,
+    "depth_6": 3.185,
+    "depth_7": 3.20,
+    "depth_8": 3.22,
+    "depth_9": 3.24,
+    "depth_10": 3.26,
+    "depth_11": 3.28,
+    "depth_12": 3.30,
+    "depth_13": 3.32
+  },
+  "solar_hub_config": {
+    "planets": ["venus", "mercury", "mars"],
+    "orbital_periods_days": {
+      "venus": 225,
+      "mercury": 88,
+      "mars": 687
+    },
+    "sync_interval_days": 30,
+    "rl_learning_rate": 0.0005,
+    "autonomy_target": 0.95,
+    "max_latency_min": 22,
+    "resources": {
+      "venus": ["atmospheric_chemicals", "solar_energy"],
+      "mercury": ["metals", "solar_energy", "thermal_gradient"],
+      "mars": ["water_ice", "co2", "regolith"]
+    },
+    "coordination_mode": "orbital_rl",
+    "semi_major_axis_au": {
+      "venus": 0.723,
+      "mercury": 0.387,
+      "mars": 1.524
+    },
+    "surface_temp_c": {
+      "venus": 465,
+      "mercury": 430,
+      "mars": -60
+    }
+  },
+  "les_config": {
+    "model": "large_eddy_simulation",
+    "subgrid_model": "smagorinsky",
+    "smagorinsky_constant": 0.17,
+    "filter_width_m": 10,
+    "reynolds_threshold": 10000,
+    "dust_devil_reynolds": 50000,
+    "dust_devil_diameter_m": [1, 100],
+    "dust_devil_height_m": [10, 1000],
+    "validated": true
+  },
+  "zk_config": {
+    "proof_system": "groth16",
+    "circuit_size": 1048576,
+    "proof_time_ms": 500,
+    "verify_time_ms": 10,
+    "attestation_claims": ["enclave_id", "code_hash", "config_hash", "timestamp"],
+    "resilience_target": 1.0,
+    "trusted_setup": true,
+    "privacy_preserving": true
+  },
+  "validation": {
+    "instability_max": 0.00,
+    "eff_alpha_min_d13": 3.68,
+    "solar_autonomy_min": 0.95,
+    "les_validated": true,
+    "zk_resilience_min": 1.0,
+    "scale_decay_threshold": 0.02,
+    "receipt_required": "d13_fractal_receipt",
+    "solar_hub_receipt_required": "solar_hub_receipt",
+    "les_receipt_required": "les_dust_receipt",
+    "zk_receipt_required": "zk_proof_receipt"
+  },
+  "dual_hash": {
+    "algorithm": "SHA256:BLAKE3",
+    "reference": "CLAUDEME S4.1"
+  },
+  "source": "AXIOM D13 recursion + Solar orbital hub + LES dust + ZK proofs - alpha 3.70+ target"
+}

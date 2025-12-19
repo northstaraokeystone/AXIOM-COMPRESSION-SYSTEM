@@ -1511,3 +1511,269 @@ def compute_solar_system_coverage(planets: Optional[List[str]] = None) -> Dict[s
 
     emit_path_receipt("multiplanet", "coverage", result)
     return result
+
+
+# === SOLAR ORBITAL HUB INTEGRATION (D13) ===
+
+
+SOLAR_HUB_AUTONOMY_TARGET = 0.95
+"""Solar hub system autonomy target (95%)."""
+
+MERCURY_AUTONOMY_REQUIREMENT = 0.97
+"""Mercury operations autonomy requirement (97%)."""
+
+
+def integrate_solar_hub(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire Solar orbital hub (Venus+Mercury+Mars) to multi-planet path.
+
+    Args:
+        config: Optional Solar hub config override
+
+    Returns:
+        Dict with Solar hub integration results
+
+    Receipt: mp_solar_hub_integrate
+    """
+    # Import Solar hub module
+    from ...solar_orbital_hub import (
+        load_solar_hub_config,
+        simulate_hub_operations,
+        compute_hub_autonomy,
+        SOLAR_HUB_PLANETS,
+        SOLAR_HUB_AUTONOMY_TARGET as HUB_TARGET,
+    )
+
+    if config is None:
+        config = load_solar_hub_config()
+
+    # Run hub operations simulation
+    hub_result = simulate_hub_operations(duration_days=365)
+    autonomy = compute_hub_autonomy()
+
+    result = {
+        "integrated": True,
+        "subsystem": "solar_orbital_hub",
+        "hub_config": config,
+        "planets": SOLAR_HUB_PLANETS,
+        "hub_simulation": {
+            "duration_days": hub_result["duration_days"],
+            "sync_cycles": hub_result["sync_cycles"],
+            "autonomy": hub_result["autonomy"],
+            "hub_operational": hub_result["hub_operational"],
+        },
+        "autonomy_target": HUB_TARGET,
+        "autonomy_achieved": autonomy,
+        "autonomy_met": autonomy >= HUB_TARGET,
+        "inner_system": True,
+        "coordination_mode": config.get("coordination_mode", "orbital_rl"),
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "solar_hub_integrate", result)
+    return result
+
+
+def compute_solar_hub_autonomy() -> float:
+    """Compute Solar hub-specific autonomy metrics.
+
+    Returns:
+        Hub autonomy level (0-1)
+
+    Receipt: mp_solar_hub_autonomy
+    """
+    # Import Solar hub module
+    from ...solar_orbital_hub import (
+        compute_hub_autonomy,
+        SOLAR_HUB_AUTONOMY_TARGET as HUB_TARGET,
+    )
+
+    autonomy = compute_hub_autonomy()
+
+    result = {
+        "subsystem": "solar_hub",
+        "autonomy": autonomy,
+        "requirement": HUB_TARGET,
+        "met": autonomy >= HUB_TARGET,
+        "inner_system": True,
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "solar_hub_autonomy", result)
+    return autonomy
+
+
+def coordinate_inner_system(
+    venus: Optional[Dict[str, Any]] = None,
+    mercury: Optional[Dict[str, Any]] = None,
+    mars: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Coordinate inner Solar system operations (Venus+Mercury+Mars).
+
+    Args:
+        venus: Optional Venus state override
+        mercury: Optional Mercury state override
+        mars: Optional Mars state override
+
+    Returns:
+        Dict with inner system coordination results
+
+    Receipt: mp_inner_system_coordinate
+    """
+    # Import Solar hub module
+    from ...solar_orbital_hub import (
+        load_solar_hub_config,
+        simulate_hub_operations,
+        compute_hub_autonomy,
+        SOLAR_HUB_PLANETS,
+    )
+
+    # Import Venus module
+    from ...venus_acid_hybrid import (
+        simulate_cloud_ops,
+        VENUS_AUTONOMY_REQUIREMENT as VENUS_REQ,
+    )
+
+    config = load_solar_hub_config()
+
+    # Venus operations
+    if venus is None:
+        venus_ops = simulate_cloud_ops(duration_days=30, altitude_km=55.0)
+        venus = {"autonomy": venus_ops["autonomy"], "autonomy_met": venus_ops["autonomy_met"]}
+
+    # Mercury operations (simulated for now)
+    if mercury is None:
+        mercury = {
+            "autonomy": 0.97,
+            "autonomy_met": True,
+            "surface_temp_c": 430,
+            "resources": ["metals", "solar_energy", "thermal_gradient"],
+        }
+
+    # Mars operations
+    if mars is None:
+        mars = {
+            "autonomy": 0.85,
+            "autonomy_met": True,
+            "resources": ["water_ice", "co2", "regolith"],
+        }
+
+    # Run hub simulation
+    hub_result = simulate_hub_operations(duration_days=365)
+    hub_autonomy = compute_hub_autonomy()
+
+    # Combined inner system autonomy
+    venus_auto = venus.get("autonomy", 0.99)
+    mercury_auto = mercury.get("autonomy", 0.97)
+    mars_auto = mars.get("autonomy", 0.85)
+
+    # Weighted by environment harshness
+    combined_autonomy = (venus_auto * 0.35 + mercury_auto * 0.30 + mars_auto * 0.35)
+
+    result = {
+        "subsystem": "inner_system",
+        "planets": SOLAR_HUB_PLANETS,
+        "venus": {
+            "autonomy": venus_auto,
+            "requirement": VENUS_REQ,
+            "met": venus_auto >= VENUS_REQ,
+        },
+        "mercury": {
+            "autonomy": mercury_auto,
+            "requirement": MERCURY_AUTONOMY_REQUIREMENT,
+            "met": mercury_auto >= MERCURY_AUTONOMY_REQUIREMENT,
+        },
+        "mars": {
+            "autonomy": mars_auto,
+            "requirement": AUTONOMY_REQUIREMENT.get("mars", 0.85),
+            "met": mars_auto >= AUTONOMY_REQUIREMENT.get("mars", 0.85),
+        },
+        "hub_autonomy": hub_autonomy,
+        "combined_autonomy": round(combined_autonomy, 4),
+        "hub_operational": hub_result["hub_operational"],
+        "all_targets_met": (
+            venus.get("autonomy_met", False)
+            and mercury.get("autonomy_met", False)
+            and mars.get("autonomy_met", False)
+        ),
+        "coordination_mode": "orbital_rl",
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "inner_system_coordinate", result)
+    return result
+
+
+def compute_full_system_coverage(
+    inner: Optional[Dict[str, Any]] = None,
+    outer: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Compute full Solar system coverage (Inner + Jovian).
+
+    Args:
+        inner: Optional inner system state
+        outer: Optional Jovian system state
+
+    Returns:
+        Dict with full system coverage analysis
+
+    Receipt: mp_full_system_coverage
+    """
+    # Import Solar hub module
+    from ...solar_orbital_hub import (
+        compute_hub_autonomy,
+        SOLAR_HUB_PLANETS,
+        SOLAR_HUB_AUTONOMY_TARGET as HUB_TARGET,
+    )
+
+    # Inner system
+    if inner is None:
+        inner_autonomy = compute_hub_autonomy()
+        inner = {
+            "planets": SOLAR_HUB_PLANETS,
+            "autonomy": inner_autonomy,
+            "autonomy_met": inner_autonomy >= HUB_TARGET,
+        }
+
+    # Outer system (Jovian)
+    if outer is None:
+        outer_autonomy = compute_jovian_autonomy()
+        outer = {
+            "moons": ["titan", "europa", "ganymede", "callisto"],
+            "autonomy": outer_autonomy,
+            "autonomy_met": outer_autonomy >= 0.95,
+        }
+
+    # Full system coverage
+    inner_coverage = len(inner.get("planets", [])) / 3  # Venus, Mercury, Mars
+    outer_coverage = len(outer.get("moons", [])) / 4  # 4 Jovian moons
+
+    # Combined autonomy (inner systems need more Earth support)
+    combined_autonomy = (
+        inner.get("autonomy", 0.95) * 0.4 + outer.get("autonomy", 0.97) * 0.6
+    )
+
+    result = {
+        "inner_system": {
+            "planets": inner.get("planets", []),
+            "autonomy": inner.get("autonomy", 0),
+            "autonomy_met": inner.get("autonomy_met", False),
+            "coverage": inner_coverage,
+        },
+        "outer_system": {
+            "moons": outer.get("moons", []),
+            "autonomy": outer.get("autonomy", 0),
+            "autonomy_met": outer.get("autonomy_met", False),
+            "coverage": outer_coverage,
+        },
+        "total_bodies": len(inner.get("planets", [])) + len(outer.get("moons", [])),
+        "combined_autonomy": round(combined_autonomy, 4),
+        "overall_coverage": (inner_coverage + outer_coverage) / 2,
+        "full_system_operational": (
+            inner.get("autonomy_met", False) and outer.get("autonomy_met", False)
+        ),
+        "next_phase": "Full Solar System extremes (include outer planets)",
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "full_system_coverage", result)
+    return result

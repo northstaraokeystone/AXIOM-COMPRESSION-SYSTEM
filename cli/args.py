@@ -108,6 +108,18 @@ def create_parser() -> argparse.ArgumentParser:
     # Dust dynamics flags
     _add_dust_args(parser)
 
+    # D13 flags
+    _add_d13_args(parser)
+
+    # Solar hub flags
+    _add_solar_args(parser)
+
+    # LES flags
+    _add_les_args(parser)
+
+    # ZK flags
+    _add_zk_args(parser)
+
     return parser
 
 
@@ -1072,4 +1084,188 @@ def _add_dust_args(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=30,
         help="Dust settling duration days (default: 30)",
+    )
+
+
+def _add_d13_args(parser: argparse.ArgumentParser) -> None:
+    """Add D13 recursion arguments."""
+    parser.add_argument(
+        "--d13_push", action="store_true", help="Run D13 recursion for alpha>=3.70"
+    )
+    parser.add_argument(
+        "--d13_info", action="store_true", help="Show D13 configuration"
+    )
+    parser.add_argument(
+        "--d13_solar_hybrid", action="store_true", help="Run integrated D13+Solar hub"
+    )
+
+
+def _add_solar_args(parser: argparse.ArgumentParser) -> None:
+    """Add Solar orbital hub arguments."""
+    parser.add_argument(
+        "--solar_info", action="store_true", help="Show Solar hub configuration"
+    )
+    parser.add_argument(
+        "--solar_positions", action="store_true", help="Show orbital positions"
+    )
+    parser.add_argument(
+        "--solar_windows", action="store_true", help="Show communication windows"
+    )
+    parser.add_argument(
+        "--solar_transfer", action="store_true", help="Simulate resource transfer"
+    )
+    parser.add_argument(
+        "--solar_sync", action="store_true", help="Run coordination sync"
+    )
+    parser.add_argument(
+        "--solar_autonomy", action="store_true", help="Show Solar hub autonomy"
+    )
+    parser.add_argument(
+        "--solar_simulate", action="store_true", help="Run full Solar hub simulation"
+    )
+    parser.add_argument(
+        "--solar_timestamp",
+        type=float,
+        default=0.0,
+        help="Days since epoch for orbital positions (default: 0)",
+    )
+    parser.add_argument(
+        "--solar_duration",
+        type=int,
+        default=365,
+        help="Duration in days for Solar sim (default: 365)",
+    )
+    parser.add_argument(
+        "--from_planet",
+        type=str,
+        default="mars",
+        help="Source planet for transfer (default: mars)",
+    )
+    parser.add_argument(
+        "--to_planet",
+        type=str,
+        default="venus",
+        help="Destination planet for transfer (default: venus)",
+    )
+    parser.add_argument(
+        "--resource",
+        type=str,
+        default="water_ice",
+        help="Resource to transfer (default: water_ice)",
+    )
+    parser.add_argument(
+        "--amount",
+        type=float,
+        default=1000.0,
+        help="Amount to transfer in kg (default: 1000)",
+    )
+
+
+def _add_les_args(parser: argparse.ArgumentParser) -> None:
+    """Add LES (Large Eddy Simulation) arguments."""
+    parser.add_argument(
+        "--les_info", action="store_true", help="Show LES configuration"
+    )
+    parser.add_argument(
+        "--les_simulate", action="store_true", help="Run LES simulation"
+    )
+    parser.add_argument(
+        "--les_dust_devil", action="store_true", help="Simulate Mars dust devil"
+    )
+    parser.add_argument(
+        "--les_compare", action="store_true", help="Compare LES vs RANS"
+    )
+    parser.add_argument(
+        "--les_validate", action="store_true", help="Run full LES validation"
+    )
+    parser.add_argument(
+        "--les_reynolds",
+        type=float,
+        default=50000,
+        help="Reynolds number for LES (default: 50000)",
+    )
+    parser.add_argument(
+        "--les_duration",
+        type=float,
+        default=100.0,
+        help="LES simulation duration in seconds (default: 100)",
+    )
+    parser.add_argument(
+        "--dust_devil_diameter",
+        type=float,
+        default=50.0,
+        help="Dust devil diameter in meters (default: 50)",
+    )
+    parser.add_argument(
+        "--dust_devil_height",
+        type=float,
+        default=500.0,
+        help="Dust devil height in meters (default: 500)",
+    )
+    parser.add_argument(
+        "--dust_devil_intensity",
+        type=float,
+        default=0.7,
+        help="Dust devil intensity 0-1 (default: 0.7)",
+    )
+
+
+def _add_zk_args(parser: argparse.ArgumentParser) -> None:
+    """Add ZK (Zero-Knowledge) proof arguments."""
+    parser.add_argument(
+        "--zk_info", action="store_true", help="Show ZK configuration"
+    )
+    parser.add_argument(
+        "--zk_setup", action="store_true", help="Run ZK trusted setup"
+    )
+    parser.add_argument(
+        "--zk_prove", action="store_true", help="Generate ZK proof"
+    )
+    parser.add_argument(
+        "--zk_verify", action="store_true", help="Verify ZK proof"
+    )
+    parser.add_argument(
+        "--zk_attestation", action="store_true", help="Create ZK attestation"
+    )
+    parser.add_argument(
+        "--zk_audit", action="store_true", help="Run full ZK audit"
+    )
+    parser.add_argument(
+        "--zk_benchmark", action="store_true", help="Benchmark ZK proof system"
+    )
+    parser.add_argument(
+        "--zk_circuit_size",
+        type=int,
+        default=2**20,
+        help="ZK circuit size in constraints (default: 2^20)",
+    )
+    parser.add_argument(
+        "--zk_iterations",
+        type=int,
+        default=10,
+        help="ZK benchmark iterations (default: 10)",
+    )
+    parser.add_argument(
+        "--zk_attestation_count",
+        type=int,
+        default=5,
+        help="ZK audit attestation count (default: 5)",
+    )
+    parser.add_argument(
+        "--enclave_id",
+        type=str,
+        default="test_enclave",
+        help="Enclave ID for attestation (default: test_enclave)",
+    )
+    parser.add_argument(
+        "--code_hash",
+        type=str,
+        default="test_code_hash",
+        help="Code hash for attestation (default: test_code_hash)",
+    )
+    parser.add_argument(
+        "--config_hash",
+        type=str,
+        default="test_config_hash",
+        help="Config hash for attestation (default: test_config_hash)",
     )
