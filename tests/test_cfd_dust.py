@@ -80,7 +80,7 @@ class TestReynoldsNumber:
 
     def test_reynolds_laminar_regime(self):
         """Test Reynolds number indicates laminar regime."""
-        from src.cfd_dust_dynamics import compute_reynolds_number, CFD_REYNOLDS_NUMBER_MARS
+        from src.cfd_dust_dynamics import compute_reynolds_number
 
         re = compute_reynolds_number(velocity=1.0, length=0.001)
         # Should be well below turbulent transition (2300)

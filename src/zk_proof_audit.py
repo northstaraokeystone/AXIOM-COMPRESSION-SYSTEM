@@ -216,36 +216,44 @@ def generate_attestation_circuit(claims: Optional[List[str]] = None) -> Dict[str
     for claim in claims:
         if claim == "enclave_id":
             # Identity verification: ~10K constraints
-            constraints.append({
-                "type": "identity",
-                "claim": claim,
-                "constraints": 10000,
-                "description": "Verify enclave identity without revealing ID"
-            })
+            constraints.append(
+                {
+                    "type": "identity",
+                    "claim": claim,
+                    "constraints": 10000,
+                    "description": "Verify enclave identity without revealing ID",
+                }
+            )
         elif claim == "code_hash":
             # Code integrity: ~50K constraints (SHA256)
-            constraints.append({
-                "type": "hash",
-                "claim": claim,
-                "constraints": 50000,
-                "description": "Verify code hash without revealing code"
-            })
+            constraints.append(
+                {
+                    "type": "hash",
+                    "claim": claim,
+                    "constraints": 50000,
+                    "description": "Verify code hash without revealing code",
+                }
+            )
         elif claim == "config_hash":
             # Config integrity: ~50K constraints (SHA256)
-            constraints.append({
-                "type": "hash",
-                "claim": claim,
-                "constraints": 50000,
-                "description": "Verify config hash without revealing config"
-            })
+            constraints.append(
+                {
+                    "type": "hash",
+                    "claim": claim,
+                    "constraints": 50000,
+                    "description": "Verify config hash without revealing config",
+                }
+            )
         elif claim == "timestamp":
             # Timestamp range: ~1K constraints
-            constraints.append({
-                "type": "range",
-                "claim": claim,
-                "constraints": 1000,
-                "description": "Verify timestamp within valid range"
-            })
+            constraints.append(
+                {
+                    "type": "range",
+                    "claim": claim,
+                    "constraints": 1000,
+                    "description": "Verify timestamp within valid range",
+                }
+            )
 
     total_constraints = sum(c["constraints"] for c in constraints)
 
@@ -435,7 +443,9 @@ def create_attestation(
         "code_hash_private": code_hash,
         "code_hash_commitment_public": hashlib.sha256(code_hash.encode()).hexdigest(),
         "config_hash_private": config_hash,
-        "config_hash_commitment_public": hashlib.sha256(config_hash.encode()).hexdigest(),
+        "config_hash_commitment_public": hashlib.sha256(
+            config_hash.encode()
+        ).hexdigest(),
         "timestamp_public": timestamp,
     }
 
@@ -532,8 +542,13 @@ def verify_attestation(attestation: Dict[str, Any]) -> Dict[str, Any]:
     timestamp_str = public_inputs.get("timestamp", "")
     if timestamp_str:
         try:
-            attestation_time = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-            age_hours = (datetime.utcnow().replace(tzinfo=attestation_time.tzinfo) - attestation_time).total_seconds() / 3600
+            attestation_time = datetime.fromisoformat(
+                timestamp_str.replace("Z", "+00:00")
+            )
+            age_hours = (
+                datetime.utcnow().replace(tzinfo=attestation_time.tzinfo)
+                - attestation_time
+            ).total_seconds() / 3600
             timestamp_fresh = age_hours < 24
         except (ValueError, TypeError):
             timestamp_fresh = False
@@ -622,8 +637,12 @@ def benchmark_proof_system(iterations: int = 10) -> Dict[str, Any]:
             "max": round(max(verify_times), 2),
             "avg": round(sum(verify_times) / len(verify_times), 2),
         },
-        "throughput_proofs_per_sec": round(1000 / (sum(proof_times) / len(proof_times)), 2),
-        "throughput_verifies_per_sec": round(1000 / (sum(verify_times) / len(verify_times)), 2),
+        "throughput_proofs_per_sec": round(
+            1000 / (sum(proof_times) / len(proof_times)), 2
+        ),
+        "throughput_verifies_per_sec": round(
+            1000 / (sum(verify_times) / len(verify_times)), 2
+        ),
         "proof_system": ZK_PROOF_SYSTEM,
         "circuit_size": ZK_CIRCUIT_SIZE,
     }
@@ -686,7 +705,9 @@ def run_zk_audit(attestation_count: int = 5) -> Dict[str, Any]:
 
     # Compute audit metrics
     total_verified = sum(1 for v in verifications if v["valid"])
-    verification_rate = total_verified / attestation_count if attestation_count > 0 else 0
+    verification_rate = (
+        total_verified / attestation_count if attestation_count > 0 else 0
+    )
 
     # Resilience check
     resilience = ZK_RESILIENCE_TARGET if verification_rate == 1.0 else verification_rate

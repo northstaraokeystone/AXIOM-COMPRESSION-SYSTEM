@@ -157,7 +157,9 @@ def cmd_solar_sync(args: Namespace) -> Dict[str, Any]:
     result = orbital_rl_step(state, action)
 
     print("\n=== ORBITAL RL SYNC ===")
-    print(f"State: efficiency={state['efficiency']}, latency={state['latency_min']} min")
+    print(
+        f"State: efficiency={state['efficiency']}, latency={state['latency_min']} min"
+    )
     print("Action: sync")
 
     print("\nResults:")

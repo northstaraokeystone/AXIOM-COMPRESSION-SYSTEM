@@ -197,7 +197,10 @@ class TestProofGeneration:
         from src.zk_proof_audit import generate_attestation_circuit, generate_proof
 
         circuit = generate_attestation_circuit()
-        witness = {"enclave_id_private": "test", "timestamp_public": "2024-01-01T00:00:00Z"}
+        witness = {
+            "enclave_id_private": "test",
+            "timestamp_public": "2024-01-01T00:00:00Z",
+        }
         proof = generate_proof(circuit, witness)
         # Groth16 proofs should be around 192 bytes
         assert proof["proof_size_bytes"] <= 256

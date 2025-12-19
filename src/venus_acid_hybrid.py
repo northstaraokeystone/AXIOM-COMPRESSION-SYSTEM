@@ -89,8 +89,12 @@ def load_venus_config() -> Dict[str, Any]:
             "ts": datetime.utcnow().isoformat() + "Z",
             "body": config.get("body", "venus"),
             "surface_temp_c": config.get("surface_temp_c", VENUS_SURFACE_TEMP_C),
-            "cloud_altitude_km": config.get("cloud_altitude_km", list(VENUS_CLOUD_ALTITUDE_KM)),
-            "autonomy_requirement": config.get("autonomy_requirement", VENUS_AUTONOMY_REQUIREMENT),
+            "cloud_altitude_km": config.get(
+                "cloud_altitude_km", list(VENUS_CLOUD_ALTITUDE_KM)
+            ),
+            "autonomy_requirement": config.get(
+                "autonomy_requirement", VENUS_AUTONOMY_REQUIREMENT
+            ),
             "payload_hash": dual_hash(json.dumps(config, sort_keys=True)),
         },
     )
@@ -152,14 +156,18 @@ def compute_cloud_zone(altitude_km: float) -> Dict[str, Any]:
     Receipt: venus_cloud_receipt
     """
     # Check if in habitable zone
-    in_habitable_zone = VENUS_CLOUD_ALTITUDE_KM[0] <= altitude_km <= VENUS_CLOUD_ALTITUDE_KM[1]
+    in_habitable_zone = (
+        VENUS_CLOUD_ALTITUDE_KM[0] <= altitude_km <= VENUS_CLOUD_ALTITUDE_KM[1]
+    )
 
     # Compute temperature at altitude (linear interpolation in cloud zone)
     if in_habitable_zone:
         normalized = (altitude_km - VENUS_CLOUD_ALTITUDE_KM[0]) / (
             VENUS_CLOUD_ALTITUDE_KM[1] - VENUS_CLOUD_ALTITUDE_KM[0]
         )
-        temp_c = VENUS_CLOUD_TEMP_C[1] - normalized * (VENUS_CLOUD_TEMP_C[1] - VENUS_CLOUD_TEMP_C[0])
+        temp_c = VENUS_CLOUD_TEMP_C[1] - normalized * (
+            VENUS_CLOUD_TEMP_C[1] - VENUS_CLOUD_TEMP_C[0]
+        )
     elif altitude_km < VENUS_CLOUD_ALTITUDE_KM[0]:
         # Below cloud zone - hotter
         temp_c = VENUS_CLOUD_TEMP_C[1] + (VENUS_CLOUD_ALTITUDE_KM[0] - altitude_km) * 10
@@ -206,7 +214,9 @@ def compute_cloud_zone(altitude_km: float) -> Dict[str, Any]:
 # === ACID RESISTANCE TESTING ===
 
 
-def simulate_acid_resistance(material: str, concentration: float = VENUS_ACID_CONCENTRATION) -> Dict[str, Any]:
+def simulate_acid_resistance(
+    material: str, concentration: float = VENUS_ACID_CONCENTRATION
+) -> Dict[str, Any]:
     """Simulate material resistance to sulfuric acid.
 
     Args:
@@ -220,22 +230,26 @@ def simulate_acid_resistance(material: str, concentration: float = VENUS_ACID_CO
     """
     # Material resistance coefficients (higher = better)
     material_resistance = {
-        "ptfe": 0.99,      # Teflon - excellent
-        "pvdf": 0.95,      # PVDF - very good
+        "ptfe": 0.99,  # Teflon - excellent
+        "pvdf": 0.95,  # PVDF - very good
         "titanium": 0.90,  # Titanium - good
-        "hastelloy": 0.85, # Hastelloy - good
-        "stainless": 0.70, # Stainless steel - moderate
+        "hastelloy": 0.85,  # Hastelloy - good
+        "stainless": 0.70,  # Stainless steel - moderate
         "aluminum": 0.30,  # Aluminum - poor
         "default": 0.50,
     }
 
-    resistance = material_resistance.get(material.lower(), material_resistance["default"])
+    resistance = material_resistance.get(
+        material.lower(), material_resistance["default"]
+    )
 
     # Degradation rate based on concentration and resistance
     degradation_rate_per_day = (1 - resistance) * concentration * 0.01
 
     # Lifetime estimate (days until 50% degradation)
-    lifetime_days = 0.5 / degradation_rate_per_day if degradation_rate_per_day > 0 else float("inf")
+    lifetime_days = (
+        0.5 / degradation_rate_per_day if degradation_rate_per_day > 0 else float("inf")
+    )
 
     result = {
         "material": material,
@@ -358,14 +372,16 @@ def evaluate_aerostat_design(volume_m3: float, payload_kg: float) -> Dict[str, A
 
     # Envelope mass estimate (0.1 kg/m^2 * surface area)
     # Simplified: surface area ~ 4.84 * volume^(2/3)
-    surface_area_m2 = 4.84 * (volume_m3 ** (2/3))
+    surface_area_m2 = 4.84 * (volume_m3 ** (2 / 3))
     envelope_mass_kg = surface_area_m2 * 0.1
 
     # Available payload
     available_payload_kg = lift_kg - envelope_mass_kg
 
     # Design margin
-    design_margin = available_payload_kg / payload_kg if payload_kg > 0 else float("inf")
+    design_margin = (
+        available_payload_kg / payload_kg if payload_kg > 0 else float("inf")
+    )
 
     result = {
         "volume_m3": volume_m3,
@@ -420,7 +436,11 @@ def hazard_assessment(hazards: Optional[List[str]] = None) -> Dict[str, Any]:
         "individual_severities": {h: hazard_severity.get(h, 0.5) for h in hazards},
         "combined_severity": round(combined_severity, 3),
         "required_mitigations": [mitigations.get(h, "unknown") for h in hazards],
-        "risk_level": "extreme" if combined_severity > 0.95 else "high" if combined_severity > 0.8 else "moderate",
+        "risk_level": "extreme"
+        if combined_severity > 0.95
+        else "high"
+        if combined_severity > 0.8
+        else "moderate",
     }
 
     emit_receipt(
@@ -484,7 +504,9 @@ def simulate_cloud_ops(
     # Minor environmental adjustments (materials assumed to handle acid/temp)
     # At habitable zone, these factors have minimal impact due to proper design
     acid_penalty = cloud_zone["acid_concentration"] * 0.001  # 0.1% per unit acid
-    temp_penalty = abs(cloud_zone["temperature_c"] - 30) * 0.0001  # 0.01% per degree off 30°C
+    temp_penalty = (
+        abs(cloud_zone["temperature_c"] - 30) * 0.0001
+    )  # 0.01% per degree off 30°C
 
     # Combined success rate
     success_rate = success_rate - acid_penalty - temp_penalty
@@ -493,7 +515,9 @@ def simulate_cloud_ops(
     # Compute successful days - use rounding for fairness at boundary
     successful_days = round(duration_days * success_rate)
     successful_days = min(successful_days, duration_days)  # Cap at max days
-    failures = list(range(successful_days, duration_days))  # Remaining days are failures
+    failures = list(
+        range(successful_days, duration_days)
+    )  # Remaining days are failures
 
     # Compute autonomy (successful autonomous operation rate)
     autonomy = successful_days / duration_days if duration_days > 0 else 0.0
@@ -551,7 +575,9 @@ def compute_autonomy(ops_results: Dict[str, Any]) -> float:
             "autonomy": autonomy,
             "requirement": VENUS_AUTONOMY_REQUIREMENT,
             "met": autonomy >= VENUS_AUTONOMY_REQUIREMENT,
-            "payload_hash": dual_hash(json.dumps({"autonomy": autonomy}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"autonomy": autonomy}, sort_keys=True)
+            ),
         },
     )
 

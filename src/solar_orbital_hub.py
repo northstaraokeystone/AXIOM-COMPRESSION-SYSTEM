@@ -453,7 +453,9 @@ class OrbitalRLNetwork:
 
     def __init__(self, learning_rate: float = ORBITAL_RL_LEARNING_RATE):
         self.learning_rate = learning_rate
-        self.policy_weights = {planet: 1.0 / len(SOLAR_HUB_PLANETS) for planet in SOLAR_HUB_PLANETS}
+        self.policy_weights = {
+            planet: 1.0 / len(SOLAR_HUB_PLANETS) for planet in SOLAR_HUB_PLANETS
+        }
         self.value_estimates = {planet: 0.5 for planet in SOLAR_HUB_PLANETS}
         self.episode_count = 0
 
@@ -612,9 +614,7 @@ def compute_hub_autonomy(sync_results: Optional[Dict[str, Any]] = None) -> float
         "mars": 0.35,
     }
 
-    weighted_autonomy = sum(
-        planet_autonomy[p] * weights[p] for p in SOLAR_HUB_PLANETS
-    )
+    weighted_autonomy = sum(planet_autonomy[p] * weights[p] for p in SOLAR_HUB_PLANETS)
 
     # Apply sync efficiency bonus if provided
     if sync_results:
@@ -790,7 +790,9 @@ def d13_solar_hybrid(
 # === JOVIAN COORDINATION (FUTURE) ===
 
 
-def coordinate_with_jovian(jovian_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def coordinate_with_jovian(
+    jovian_state: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """Coordinate inner Solar hub with Jovian moons (future phase).
 
     Args:
@@ -880,8 +882,7 @@ def emergency_protocol(failure_planet: str) -> Dict[str, Any]:
         "reroute_plan": reroute_plan,
         "system_operational": degraded_autonomy >= 0.80,
         "recovery_actions": [
-            f"Reroute {r} from {failure_planet} to {p}"
-            for r, p in reroute_plan.items()
+            f"Reroute {r} from {failure_planet} to {p}" for r, p in reroute_plan.items()
         ],
     }
 

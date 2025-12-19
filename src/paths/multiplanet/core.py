@@ -1466,7 +1466,9 @@ def coordinate_inner_planets(venus: Optional[Dict[str, Any]] = None) -> Dict[str
     return result
 
 
-def compute_solar_system_coverage(planets: Optional[List[str]] = None) -> Dict[str, Any]:
+def compute_solar_system_coverage(
+    planets: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     """Compute solar system coverage across all integrated bodies.
 
     Args:
@@ -1478,13 +1480,23 @@ def compute_solar_system_coverage(planets: Optional[List[str]] = None) -> Dict[s
     Receipt: mp_coverage
     """
     if planets is None:
-        planets = ["asteroid", "mars", "europa", "titan", "ganymede", "callisto", "venus"]
+        planets = [
+            "asteroid",
+            "mars",
+            "europa",
+            "titan",
+            "ganymede",
+            "callisto",
+            "venus",
+        ]
 
     # Categorize by region
     inner_planets = [p for p in planets if p in ["venus", "mercury"]]
     asteroid_belt = [p for p in planets if p in ["asteroid"]]
     mars_system = [p for p in planets if p in ["mars"]]
-    jovian_moons = [p for p in planets if p in ["europa", "titan", "ganymede", "callisto"]]
+    jovian_moons = [
+        p for p in planets if p in ["europa", "titan", "ganymede", "callisto"]
+    ]
 
     # Compute coverage
     total_bodies = len(planets)
@@ -1505,7 +1517,15 @@ def compute_solar_system_coverage(planets: Optional[List[str]] = None) -> Dict[s
             "jovian": jovian_coverage,
         },
         "overall_coverage": (inner_coverage + mars_coverage + jovian_coverage) / 3,
-        "expansion_sequence": ["asteroid", "mars", "europa", "titan", "ganymede", "callisto", "venus"],
+        "expansion_sequence": [
+            "asteroid",
+            "mars",
+            "europa",
+            "titan",
+            "ganymede",
+            "callisto",
+            "venus",
+        ],
         "tenant_id": MULTIPLANET_TENANT_ID,
     }
 
@@ -1633,12 +1653,15 @@ def coordinate_inner_system(
         VENUS_AUTONOMY_REQUIREMENT as VENUS_REQ,
     )
 
-    config = load_solar_hub_config()
+    _config = load_solar_hub_config()  # noqa: F841 - loaded for future use
 
     # Venus operations
     if venus is None:
         venus_ops = simulate_cloud_ops(duration_days=30, altitude_km=55.0)
-        venus = {"autonomy": venus_ops["autonomy"], "autonomy_met": venus_ops["autonomy_met"]}
+        venus = {
+            "autonomy": venus_ops["autonomy"],
+            "autonomy_met": venus_ops["autonomy_met"],
+        }
 
     # Mercury operations (simulated for now)
     if mercury is None:
@@ -1667,7 +1690,7 @@ def coordinate_inner_system(
     mars_auto = mars.get("autonomy", 0.85)
 
     # Weighted by environment harshness
-    combined_autonomy = (venus_auto * 0.35 + mercury_auto * 0.30 + mars_auto * 0.35)
+    combined_autonomy = venus_auto * 0.35 + mercury_auto * 0.30 + mars_auto * 0.35
 
     result = {
         "subsystem": "inner_system",
@@ -1776,4 +1799,223 @@ def compute_full_system_coverage(
     }
 
     emit_path_receipt("multiplanet", "full_system_coverage", result)
+    return result
+
+
+# === INTERSTELLAR BACKBONE INTEGRATION (D14) ===
+
+
+INTERSTELLAR_AUTONOMY_TARGET = 0.98
+"""Interstellar backbone autonomy target (98%)."""
+
+
+def integrate_interstellar_backbone(
+    config: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Wire interstellar backbone (Jovian+Inner) to multi-planet path.
+
+    Args:
+        config: Optional interstellar backbone config override
+
+    Returns:
+        Dict with interstellar backbone integration results
+
+    Receipt: mp_interstellar_integrate
+    """
+    # Import interstellar backbone module
+    from ...interstellar_backbone import (
+        load_interstellar_config,
+        get_all_bodies,
+        compute_backbone_autonomy,
+        simulate_backbone_operations,
+        INTERSTELLAR_BODY_COUNT,
+        INTERSTELLAR_AUTONOMY_TARGET as BACKBONE_TARGET,
+    )
+
+    if config is None:
+        config = load_interstellar_config()
+
+    # Get all bodies
+    bodies = get_all_bodies()
+
+    # Run backbone simulation
+    sim_result = simulate_backbone_operations(duration_days=60)
+
+    # Compute autonomy
+    autonomy_result = compute_backbone_autonomy()
+
+    result = {
+        "integrated": True,
+        "subsystem": "interstellar_backbone",
+        "backbone_config": config,
+        "bodies": bodies,
+        "body_count": INTERSTELLAR_BODY_COUNT,
+        "simulation": {
+            "duration_days": sim_result["duration_days"],
+            "sync_cycles": sim_result["sync_cycles"],
+            "final_autonomy": sim_result["final_autonomy"],
+            "target_met": sim_result["target_met"],
+        },
+        "autonomy_target": BACKBONE_TARGET,
+        "autonomy_achieved": autonomy_result["autonomy"],
+        "autonomy_met": autonomy_result["target_met"],
+        "coordination_mode": config.get("coordination_mode", "interstellar_rl"),
+        "full_solar_system": True,
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "interstellar_integrate", result)
+    return result
+
+
+def compute_interstellar_autonomy() -> float:
+    """Compute interstellar backbone-specific autonomy metrics.
+
+    Returns:
+        Backbone autonomy level (0-1)
+
+    Receipt: mp_interstellar_autonomy
+    """
+    # Import interstellar backbone module
+    from ...interstellar_backbone import (
+        compute_backbone_autonomy,
+        INTERSTELLAR_AUTONOMY_TARGET as BACKBONE_TARGET,
+    )
+
+    autonomy_result = compute_backbone_autonomy()
+    autonomy = autonomy_result["autonomy"]
+
+    result = {
+        "subsystem": "interstellar_backbone",
+        "autonomy": autonomy,
+        "requirement": BACKBONE_TARGET,
+        "met": autonomy >= BACKBONE_TARGET,
+        "body_count": autonomy_result["body_count"],
+        "full_solar_system": True,
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "interstellar_autonomy", result)
+    return autonomy
+
+
+def coordinate_full_system(
+    jovian: Optional[Dict[str, Any]] = None,
+    inner: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Coordinate full Solar System (Jovian + Inner) via interstellar backbone.
+
+    Args:
+        jovian: Optional Jovian system state
+        inner: Optional Inner system state
+
+    Returns:
+        Dict with full system coordination results
+
+    Receipt: mp_full_system_coordinate
+    """
+    # Import interstellar backbone module
+    from ...interstellar_backbone import (
+        load_interstellar_config,
+        get_all_bodies,
+        compute_backbone_autonomy,
+        jovian_inner_handoff,
+        INTERSTELLAR_JOVIAN_BODIES,
+        INTERSTELLAR_INNER_BODIES,
+        INTERSTELLAR_AUTONOMY_TARGET as BACKBONE_TARGET,
+    )
+
+    config = load_interstellar_config()
+    bodies = get_all_bodies()
+
+    # Compute Jovian autonomy
+    if jovian is None:
+        jovian_auto = compute_jovian_autonomy()
+        jovian = {
+            "moons": INTERSTELLAR_JOVIAN_BODIES,
+            "autonomy": jovian_auto,
+        }
+
+    # Compute Inner autonomy
+    if inner is None:
+        inner_auto = compute_solar_hub_autonomy()
+        inner = {
+            "planets": INTERSTELLAR_INNER_BODIES,
+            "autonomy": inner_auto,
+        }
+
+    # Test cross-system handoff
+    handoff = jovian_inner_handoff({"test": "data"}, "jovian_to_inner")
+
+    # Compute backbone autonomy
+    backbone_autonomy = compute_backbone_autonomy()
+
+    result = {
+        "subsystem": "full_solar_system",
+        "bodies": bodies,
+        "body_count": len(bodies),
+        "jovian": {
+            "moons": jovian["moons"],
+            "autonomy": jovian["autonomy"],
+        },
+        "inner": {
+            "planets": inner["planets"],
+            "autonomy": inner["autonomy"],
+        },
+        "handoff": {
+            "direction": handoff["direction"],
+            "latency_min": handoff["light_time_latency_min"],
+            "success": handoff["handoff_success"],
+        },
+        "backbone_autonomy": backbone_autonomy["autonomy"],
+        "autonomy_target": BACKBONE_TARGET,
+        "autonomy_met": backbone_autonomy["target_met"],
+        "coordination_mode": config.get("coordination_mode", "interstellar_rl"),
+        "integration_status": "operational"
+        if backbone_autonomy["target_met"]
+        else "partial",
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "full_system_coordinate", result)
+    return result
+
+
+def get_backbone_status() -> Dict[str, Any]:
+    """Get interstellar backbone health and status.
+
+    Returns:
+        Dict with backbone status
+
+    Receipt: mp_backbone_status
+    """
+    # Import interstellar backbone module
+    from ...interstellar_backbone import (
+        load_interstellar_config,
+        get_all_bodies,
+        compute_backbone_autonomy,
+        get_interstellar_info,
+        INTERSTELLAR_AUTONOMY_TARGET as BACKBONE_TARGET,
+    )
+
+    config = load_interstellar_config()
+    bodies = get_all_bodies()
+    autonomy = compute_backbone_autonomy()
+    info = get_interstellar_info()
+
+    result = {
+        "subsystem": "interstellar_backbone",
+        "status": "operational" if autonomy["target_met"] else "degraded",
+        "bodies": bodies,
+        "body_count": len(bodies),
+        "autonomy": autonomy["autonomy"],
+        "autonomy_target": BACKBONE_TARGET,
+        "autonomy_met": autonomy["target_met"],
+        "sync_interval_days": info["sync_interval_days"],
+        "max_latency_min": info["max_latency_min"],
+        "coordination_mode": config.get("coordination_mode", "interstellar_rl"),
+        "tenant_id": MULTIPLANET_TENANT_ID,
+    }
+
+    emit_path_receipt("multiplanet", "backbone_status", result)
     return result

@@ -1,0 +1,70 @@
+{
+  "version": "1.0.0",
+  "d14_config": {
+    "recursion_depth": 14,
+    "alpha_floor": 3.73,
+    "alpha_target": 3.75,
+    "alpha_ceiling": 3.77,
+    "uplift": 0.34,
+    "adaptive_termination": true,
+    "termination_threshold": 0.001,
+    "instability_max": 0.0
+  },
+  "uplift_by_depth": {
+    "1": 0.04,
+    "2": 0.072,
+    "3": 0.0976,
+    "4": 0.1181,
+    "5": 0.1345,
+    "6": 0.1476,
+    "7": 0.1581,
+    "8": 0.1665,
+    "9": 0.1732,
+    "10": 0.1786,
+    "11": 0.1828,
+    "12": 0.1863,
+    "13": 0.189,
+    "14": 0.34
+  },
+  "interstellar_config": {
+    "bodies": {
+      "jovian": ["titan", "europa", "ganymede", "callisto"],
+      "inner": ["venus", "mercury", "mars"]
+    },
+    "body_count": 7,
+    "sync_interval_days": 60,
+    "rl_learning_rate": 0.0001,
+    "autonomy_target": 0.98,
+    "max_latency_min": 90,
+    "coordination_mode": "interstellar_rl",
+    "resource_pooling": true,
+    "emergency_failover": true
+  },
+  "atacama_realtime_config": {
+    "enabled": true,
+    "drone_sampling_hz": 100,
+    "les_correlation_target": 0.95,
+    "dust_devil_tracking": true,
+    "realtime_feedback": true,
+    "reynolds_number": 1090000
+  },
+  "plonk_config": {
+    "proof_system": "plonk",
+    "circuit_size": 4194304,
+    "proof_time_ms": 200,
+    "verify_time_ms": 5,
+    "universal_setup": true,
+    "recursion_capable": true,
+    "resilience_target": 1.0,
+    "trusted_setup_participants": 1000
+  },
+  "les_config": {
+    "model": "large_eddy_simulation",
+    "subgrid_model": "smagorinsky",
+    "reynolds_number": 1090000,
+    "grid_resolution": "fine",
+    "time_stepping": "adaptive",
+    "dust_devil_simulation": true,
+    "terrain_model": "atacama"
+  }
+}

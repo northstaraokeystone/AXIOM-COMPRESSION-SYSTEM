@@ -61,7 +61,9 @@ def cmd_les_simulate(args: Namespace) -> Dict[str, Any]:
     print(f"Use LES: {result.get('use_les', False)}")
 
     print("\nFlow Properties:")
-    print(f"  Characteristic velocity: {result.get('characteristic_velocity_m_s', 0):.4f} m/s")
+    print(
+        f"  Characteristic velocity: {result.get('characteristic_velocity_m_s', 0):.4f} m/s"
+    )
     print(f"  Strain rate: {result.get('strain_rate_1_s', 0):.4f} 1/s")
 
     print("\nSubgrid-scale:")

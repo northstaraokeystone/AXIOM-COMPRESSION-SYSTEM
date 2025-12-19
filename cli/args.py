@@ -120,6 +120,18 @@ def create_parser() -> argparse.ArgumentParser:
     # ZK flags
     _add_zk_args(parser)
 
+    # D14 flags
+    _add_d14_args(parser)
+
+    # Interstellar backbone flags
+    _add_interstellar_args(parser)
+
+    # Atacama real-time flags
+    _add_atacama_args(parser)
+
+    # PLONK flags
+    _add_plonk_args(parser)
+
     return parser
 
 
@@ -1212,24 +1224,14 @@ def _add_les_args(parser: argparse.ArgumentParser) -> None:
 
 def _add_zk_args(parser: argparse.ArgumentParser) -> None:
     """Add ZK (Zero-Knowledge) proof arguments."""
-    parser.add_argument(
-        "--zk_info", action="store_true", help="Show ZK configuration"
-    )
-    parser.add_argument(
-        "--zk_setup", action="store_true", help="Run ZK trusted setup"
-    )
-    parser.add_argument(
-        "--zk_prove", action="store_true", help="Generate ZK proof"
-    )
-    parser.add_argument(
-        "--zk_verify", action="store_true", help="Verify ZK proof"
-    )
+    parser.add_argument("--zk_info", action="store_true", help="Show ZK configuration")
+    parser.add_argument("--zk_setup", action="store_true", help="Run ZK trusted setup")
+    parser.add_argument("--zk_prove", action="store_true", help="Generate ZK proof")
+    parser.add_argument("--zk_verify", action="store_true", help="Verify ZK proof")
     parser.add_argument(
         "--zk_attestation", action="store_true", help="Create ZK attestation"
     )
-    parser.add_argument(
-        "--zk_audit", action="store_true", help="Run full ZK audit"
-    )
+    parser.add_argument("--zk_audit", action="store_true", help="Run full ZK audit")
     parser.add_argument(
         "--zk_benchmark", action="store_true", help="Benchmark ZK proof system"
     )
@@ -1268,4 +1270,171 @@ def _add_zk_args(parser: argparse.ArgumentParser) -> None:
         type=str,
         default="test_config_hash",
         help="Config hash for attestation (default: test_config_hash)",
+    )
+
+
+def _add_d14_args(parser: argparse.ArgumentParser) -> None:
+    """Add D14 fractal recursion arguments."""
+    parser.add_argument(
+        "--d14_push", action="store_true", help="Run D14 recursion for alpha>=3.75"
+    )
+    parser.add_argument(
+        "--d14_info", action="store_true", help="Show D14 configuration"
+    )
+    parser.add_argument(
+        "--d14_interstellar_hybrid",
+        action="store_true",
+        help="Run integrated D14+interstellar hybrid",
+    )
+
+
+def _add_interstellar_args(parser: argparse.ArgumentParser) -> None:
+    """Add interstellar backbone arguments."""
+    parser.add_argument(
+        "--interstellar_info",
+        action="store_true",
+        help="Show interstellar backbone configuration",
+    )
+    parser.add_argument(
+        "--interstellar_bodies",
+        action="store_true",
+        help="List all 7 bodies in the backbone",
+    )
+    parser.add_argument(
+        "--interstellar_positions",
+        action="store_true",
+        help="Show current body positions",
+    )
+    parser.add_argument(
+        "--interstellar_windows",
+        action="store_true",
+        help="Show communication windows between bodies",
+    )
+    parser.add_argument(
+        "--interstellar_sync",
+        action="store_true",
+        help="Run backbone coordination sync",
+    )
+    parser.add_argument(
+        "--interstellar_autonomy",
+        action="store_true",
+        help="Show backbone autonomy metrics",
+    )
+    parser.add_argument(
+        "--interstellar_failover",
+        action="store_true",
+        help="Test emergency failover for a body",
+    )
+    parser.add_argument(
+        "--interstellar_body",
+        type=str,
+        default="europa",
+        help="Body for failover test (default: europa)",
+    )
+    parser.add_argument(
+        "--interstellar_timestamp",
+        type=float,
+        default=0.0,
+        help="Timestamp for positions/windows (default: 0)",
+    )
+    parser.add_argument(
+        "--interstellar_duration",
+        type=int,
+        default=60,
+        help="Duration for sync in days (default: 60)",
+    )
+
+
+def _add_atacama_args(parser: argparse.ArgumentParser) -> None:
+    """Add Atacama real-time LES arguments."""
+    parser.add_argument(
+        "--atacama_realtime",
+        action="store_true",
+        help="Run Atacama real-time LES mode",
+    )
+    parser.add_argument(
+        "--atacama_dust_devil",
+        action="store_true",
+        help="Track dust devil in real-time",
+    )
+    parser.add_argument(
+        "--atacama_correlation",
+        action="store_true",
+        help="Compute real-time correlation",
+    )
+    parser.add_argument(
+        "--atacama_full_validation",
+        action="store_true",
+        help="Run full Atacama validation",
+    )
+    parser.add_argument(
+        "--atacama_sampling_hz",
+        type=int,
+        default=100,
+        help="Drone sampling rate in Hz (default: 100)",
+    )
+    parser.add_argument(
+        "--atacama_realtime_duration",
+        type=float,
+        default=60.0,
+        help="Real-time simulation duration in seconds (default: 60)",
+    )
+
+
+def _add_plonk_args(parser: argparse.ArgumentParser) -> None:
+    """Add PLONK ZK proof arguments."""
+    parser.add_argument(
+        "--plonk_info", action="store_true", help="Show PLONK configuration"
+    )
+    parser.add_argument(
+        "--plonk_setup", action="store_true", help="Run universal trusted setup"
+    )
+    parser.add_argument(
+        "--plonk_prove", action="store_true", help="Generate PLONK proof"
+    )
+    parser.add_argument(
+        "--plonk_verify", action="store_true", help="Verify PLONK proof"
+    )
+    parser.add_argument(
+        "--plonk_recursive",
+        action="store_true",
+        help="Generate recursive proof (proof of proofs)",
+    )
+    parser.add_argument(
+        "--plonk_attestation",
+        action="store_true",
+        help="Create PLONK attestation",
+    )
+    parser.add_argument(
+        "--plonk_audit", action="store_true", help="Run full PLONK audit"
+    )
+    parser.add_argument(
+        "--plonk_benchmark", action="store_true", help="Benchmark PLONK proof system"
+    )
+    parser.add_argument(
+        "--plonk_compare", action="store_true", help="Compare PLONK vs Groth16"
+    )
+    parser.add_argument(
+        "--plonk_participants",
+        type=int,
+        default=10,
+        help="Number of setup participants (default: 10)",
+    )
+    parser.add_argument(
+        "--plonk_recursive_count",
+        type=int,
+        default=3,
+        help="Number of proofs to aggregate (default: 3)",
+    )
+    parser.add_argument(
+        "--plonk_iterations",
+        type=int,
+        default=10,
+        help="Benchmark iterations (default: 10)",
+    )
+    parser.add_argument(
+        "--plonk_attestation_count",
+        type=int,
+        default=5,
+        help="PLONK audit attestation count (default: 5)",
     )

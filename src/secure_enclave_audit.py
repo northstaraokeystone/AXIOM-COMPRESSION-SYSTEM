@@ -89,7 +89,9 @@ def load_enclave_config() -> Dict[str, Any]:
             "type": config.get("type", ENCLAVE_TYPE),
             "memory_mb": config.get("memory_mb", ENCLAVE_MEMORY_MB),
             "branch_prediction_defense": config.get("branch_prediction_defense", True),
-            "resilience_target": config.get("resilience_target", ENCLAVE_RESILIENCE_TARGET),
+            "resilience_target": config.get(
+                "resilience_target", ENCLAVE_RESILIENCE_TARGET
+            ),
             "payload_hash": dual_hash(json.dumps(config, sort_keys=True)),
         },
     )
@@ -430,7 +432,9 @@ def test_branch_defense(iterations: int = 100) -> Dict[str, Any]:
         "pht_resilience": pht_result["resilience"],
         "rsb_resilience": rsb_result["resilience"],
         "resilience": round(overall_resilience, 4),
-        "all_passed": btb_result["passed"] and pht_result["passed"] and rsb_result["passed"],
+        "all_passed": btb_result["passed"]
+        and pht_result["passed"]
+        and rsb_result["passed"],
     }
 
     return result
@@ -526,12 +530,12 @@ def measure_enclave_overhead() -> Dict[str, Any]:
     # Real implementations would measure actual timing
 
     overhead = {
-        "BTB_flush_ns": 50,      # 50 nanoseconds per flush
+        "BTB_flush_ns": 50,  # 50 nanoseconds per flush
         "PHT_isolation_ns": 100,  # 100 ns for isolation
-        "RSB_fill_ns": 75,       # 75 ns for RSB fill
-        "IBRS_overhead_pct": 2.0, # 2% overall overhead
-        "STIBP_overhead_pct": 1.5, # 1.5% overall overhead
-        "total_overhead_pct": 5.0, # ~5% total overhead
+        "RSB_fill_ns": 75,  # 75 ns for RSB fill
+        "IBRS_overhead_pct": 2.0,  # 2% overall overhead
+        "STIBP_overhead_pct": 1.5,  # 1.5% overall overhead
+        "total_overhead_pct": 5.0,  # ~5% total overhead
     }
 
     result = {

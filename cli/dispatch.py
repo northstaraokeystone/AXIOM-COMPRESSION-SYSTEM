@@ -242,6 +242,37 @@ from cli.zk import (
     cmd_zk_benchmark,
 )
 
+# D14 fractal recursion commands
+from cli.d14 import (
+    cmd_d14_info,
+    cmd_d14_push,
+    cmd_d14_interstellar_hybrid,
+)
+
+# Interstellar backbone commands
+from cli.interstellar import (
+    cmd_interstellar_info,
+    cmd_interstellar_bodies,
+    cmd_interstellar_positions,
+    cmd_interstellar_windows,
+    cmd_interstellar_sync,
+    cmd_interstellar_autonomy,
+    cmd_interstellar_failover,
+)
+
+# PLONK ZK proof commands
+from cli.plonk import (
+    cmd_plonk_info,
+    cmd_plonk_setup,
+    cmd_plonk_prove,
+    cmd_plonk_verify,
+    cmd_plonk_recursive,
+    cmd_plonk_attestation,
+    cmd_plonk_audit,
+    cmd_plonk_benchmark,
+    cmd_plonk_compare,
+)
+
 
 def dispatch(args, docstring: str) -> None:
     """Dispatch command based on parsed arguments.
@@ -619,6 +650,108 @@ def dispatch(args, docstring: str) -> None:
         return cmd_zk_audit(args)
     if args.zk_benchmark:
         return cmd_zk_benchmark(args)
+
+    # D14 fractal recursion commands
+    if args.d14_info:
+        return cmd_d14_info(args)
+    if args.d14_push:
+        return cmd_d14_push(args)
+    if args.d14_interstellar_hybrid:
+        return cmd_d14_interstellar_hybrid(args)
+
+    # Interstellar backbone commands
+    if args.interstellar_info:
+        return cmd_interstellar_info(args)
+    if args.interstellar_bodies:
+        return cmd_interstellar_bodies(args)
+    if args.interstellar_positions:
+        # Use interstellar_timestamp for positions
+        args.timestamp = args.interstellar_timestamp
+        return cmd_interstellar_positions(args)
+    if args.interstellar_windows:
+        # Use interstellar_timestamp for windows
+        args.timestamp = args.interstellar_timestamp
+        return cmd_interstellar_windows(args)
+    if args.interstellar_sync:
+        # Use interstellar_duration for sync
+        args.duration_days = args.interstellar_duration
+        return cmd_interstellar_sync(args)
+    if args.interstellar_autonomy:
+        return cmd_interstellar_autonomy(args)
+    if args.interstellar_failover:
+        # Use interstellar_body for failover
+        args.body = args.interstellar_body
+        return cmd_interstellar_failover(args)
+
+    # Atacama real-time commands
+    if args.atacama_realtime:
+        from src.cfd_dust_dynamics import atacama_les_realtime
+        import json
+
+        result = atacama_les_realtime(
+            duration_sec=args.atacama_realtime_duration,
+            sampling_hz=args.atacama_sampling_hz,
+        )
+        print("\n=== ATACAMA REAL-TIME LES ===")
+        print(f"Duration: {result.get('duration_sec', 0)} sec")
+        print(f"Sampling: {result.get('sampling_hz', 0)} Hz")
+        print(f"Samples collected: {result.get('samples_collected', 0)}")
+        print(f"Correlation: {result.get('correlation', 0):.4f}")
+        print(f"Target met: {result.get('target_met', False)}")
+        return
+    if args.atacama_dust_devil:
+        from src.cfd_dust_dynamics import track_dust_devil
+        import json
+
+        result = track_dust_devil(duration_sec=args.atacama_realtime_duration)
+        print("\n=== ATACAMA DUST DEVIL TRACKING ===")
+        print(f"Duration: {result.get('duration_sec', 0)} sec")
+        print(f"Samples: {result.get('samples_collected', 0)}")
+        print(f"Max velocity: {result.get('max_velocity_ms', 0):.2f} m/s")
+        print(f"Max diameter: {result.get('max_diameter_m', 0):.1f} m")
+        print(f"Max height: {result.get('max_height_m', 0):.1f} m")
+        return
+    if args.atacama_correlation:
+        from src.cfd_dust_dynamics import compute_realtime_correlation
+
+        result = compute_realtime_correlation()
+        print("\n=== ATACAMA CORRELATION ===")
+        print(f"Correlation: {result.get('correlation', 0):.4f}")
+        print(f"Target: {result.get('target', 0):.4f}")
+        print(f"Target met: {result.get('target_met', False)}")
+        return
+    if args.atacama_full_validation:
+        from src.cfd_dust_dynamics import run_atacama_validation
+        import json
+
+        result = run_atacama_validation()
+        print("\n=== ATACAMA FULL VALIDATION ===")
+        print(json.dumps(result, indent=2))
+        return
+
+    # PLONK ZK proof commands
+    if args.plonk_info:
+        return cmd_plonk_info(args)
+    if args.plonk_setup:
+        args.participants = args.plonk_participants
+        return cmd_plonk_setup(args)
+    if args.plonk_prove:
+        return cmd_plonk_prove(args)
+    if args.plonk_verify:
+        return cmd_plonk_verify(args)
+    if args.plonk_recursive:
+        args.count = args.plonk_recursive_count
+        return cmd_plonk_recursive(args)
+    if args.plonk_attestation:
+        return cmd_plonk_attestation(args)
+    if args.plonk_audit:
+        args.count = args.plonk_attestation_count
+        return cmd_plonk_audit(args)
+    if args.plonk_benchmark:
+        args.iterations = args.plonk_iterations
+        return cmd_plonk_benchmark(args)
+    if args.plonk_compare:
+        return cmd_plonk_compare(args)
 
     # Expanded AGI audit commands
     if args.audit_expanded:

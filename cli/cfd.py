@@ -16,7 +16,12 @@ def cmd_cfd_reynolds(velocity: float = 1.0, length: float = 0.001):
     from src.cfd_dust_dynamics import compute_reynolds_number
 
     re = compute_reynolds_number(velocity, length)
-    print(json.dumps({"velocity_m_s": velocity, "length_m": length, "reynolds_number": re}, indent=2))
+    print(
+        json.dumps(
+            {"velocity_m_s": velocity, "length_m": length, "reynolds_number": re},
+            indent=2,
+        )
+    )
 
 
 def cmd_cfd_settling(particle_size_um: float = 10.0):
@@ -24,7 +29,12 @@ def cmd_cfd_settling(particle_size_um: float = 10.0):
     from src.cfd_dust_dynamics import stokes_settling
 
     v_s = stokes_settling(particle_size_um)
-    print(json.dumps({"particle_size_um": particle_size_um, "settling_velocity_m_s": v_s}, indent=2))
+    print(
+        json.dumps(
+            {"particle_size_um": particle_size_um, "settling_velocity_m_s": v_s},
+            indent=2,
+        )
+    )
 
 
 def cmd_cfd_storm(intensity: float = 0.5, duration_hrs: float = 24.0):

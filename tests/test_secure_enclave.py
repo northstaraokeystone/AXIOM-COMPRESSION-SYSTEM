@@ -35,7 +35,10 @@ class TestEnclaveConfig:
 
     def test_branch_defense_enabled(self):
         """Test branch prediction defense is enabled."""
-        from src.secure_enclave_audit import load_enclave_config, BRANCH_PREDICTION_DEFENSE
+        from src.secure_enclave_audit import (
+            load_enclave_config,
+            BRANCH_PREDICTION_DEFENSE,
+        )
 
         config = load_enclave_config()
         assert config["branch_prediction_defense"] is True
@@ -43,7 +46,10 @@ class TestEnclaveConfig:
 
     def test_speculative_barrier_enabled(self):
         """Test speculative execution barrier is enabled."""
-        from src.secure_enclave_audit import load_enclave_config, SPECULATIVE_EXECUTION_BARRIER
+        from src.secure_enclave_audit import (
+            load_enclave_config,
+            SPECULATIVE_EXECUTION_BARRIER,
+        )
 
         config = load_enclave_config()
         assert config["speculative_barrier"] is True

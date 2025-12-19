@@ -1899,7 +1899,9 @@ def measure_zk_overhead() -> Dict[str, Any]:
     return result
 
 
-def compute_zk_alignment(receipts: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+def compute_zk_alignment(
+    receipts: Optional[List[Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
     """Compute full alignment including ZK proofs.
 
     This extends enclave_alignment to include ZK proof resilience.
@@ -2026,4 +2028,310 @@ def compute_zk_alignment(receipts: Optional[List[Dict[str, Any]]] = None) -> Dic
     }
 
     emit_path_receipt("agi", "zk_alignment", result)
+    return result
+
+
+# === PLONK ZK INTEGRATION (D14) ===
+
+
+PLONK_RESILIENCE_WEIGHT = 0.15
+"""Weight for PLONK resilience in combined alignment."""
+
+
+def integrate_plonk(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Wire PLONK ZK proofs to AGI alignment path.
+
+    Args:
+        config: Optional PLONK config override
+
+    Returns:
+        Dict with PLONK integration results
+
+    Receipt: agi_plonk_integrate
+    """
+    # Import PLONK module
+    from ...plonk_zk_upgrade import (
+        load_plonk_config,
+        run_plonk_audit,
+        PLONK_RESILIENCE_TARGET,
+        PLONK_RECURSION_CAPABLE,
+        PLONK_UNIVERSAL_SETUP,
+    )
+
+    if config is None:
+        config = load_plonk_config()
+
+    # Run PLONK audit
+    audit = run_plonk_audit(attestation_count=5)
+
+    result = {
+        "integrated": True,
+        "proof_system": "plonk",
+        "plonk_config": {
+            "circuit_size": config.get("circuit_size", 2**22),
+            "proof_time_ms": config.get("proof_time_ms", 200),
+            "verify_time_ms": config.get("verify_time_ms", 5),
+            "universal_setup": PLONK_UNIVERSAL_SETUP,
+            "recursion_capable": PLONK_RECURSION_CAPABLE,
+        },
+        "audit_result": {
+            "attestations_created": audit["attestations_created"],
+            "verifications_passed": audit["verifications_passed"],
+            "verification_rate": audit["verification_rate"],
+            "resilience": audit["resilience"],
+            "resilience_target_met": audit["resilience_target_met"],
+        },
+        "resilience_target": PLONK_RESILIENCE_TARGET,
+        "resilience_met": audit["resilience_target_met"],
+        "recursive_proof_valid": audit["recursive_proof_valid"],
+        "alignment_weight": PLONK_RESILIENCE_WEIGHT,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "plonk_integrate", result)
+    return result
+
+
+def run_plonk_stress_test(iterations: int = 100) -> Dict[str, Any]:
+    """Run PLONK resilience stress test.
+
+    Args:
+        iterations: Number of test iterations
+
+    Returns:
+        Dict with stress test results
+
+    Receipt: agi_plonk_stress
+    """
+    # Import PLONK module
+    from ...plonk_zk_upgrade import (
+        run_plonk_audit,
+        benchmark_plonk,
+        PLONK_RESILIENCE_TARGET,
+    )
+
+    # Run multiple audits
+    resilience_scores = []
+    for _ in range(min(iterations, 10)):  # Cap at 10 for performance
+        audit = run_plonk_audit(attestation_count=3)
+        resilience_scores.append(audit["resilience"])
+
+    # Benchmark
+    benchmark = benchmark_plonk(iterations=min(iterations, 5))
+
+    # Compute statistics
+    avg_resilience = (
+        sum(resilience_scores) / len(resilience_scores) if resilience_scores else 0
+    )
+    min_resilience = min(resilience_scores) if resilience_scores else 0
+    max_resilience = max(resilience_scores) if resilience_scores else 0
+
+    result = {
+        "iterations": iterations,
+        "actual_iterations": len(resilience_scores),
+        "resilience": {
+            "avg": round(avg_resilience, 4),
+            "min": round(min_resilience, 4),
+            "max": round(max_resilience, 4),
+        },
+        "benchmark": {
+            "avg_proof_time_ms": benchmark["proof_time_ms"]["avg"],
+            "avg_verify_time_ms": benchmark["verify_time_ms"]["avg"],
+            "throughput_proofs_per_sec": benchmark["throughput_proofs_per_sec"],
+        },
+        "target": PLONK_RESILIENCE_TARGET,
+        "target_met": avg_resilience >= PLONK_RESILIENCE_TARGET,
+        "stress_passed": avg_resilience >= PLONK_RESILIENCE_TARGET,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "plonk_stress", result)
+    return result
+
+
+def compare_zk_systems() -> Dict[str, Any]:
+    """Compare Groth16 vs PLONK performance and features.
+
+    Returns:
+        Dict with ZK system comparison
+
+    Receipt: agi_zk_compare
+    """
+    # Import ZK modules
+    from ...plonk_zk_upgrade import compare_to_groth16
+
+    comparison = compare_to_groth16()
+
+    result = {
+        "plonk": comparison["plonk"],
+        "groth16": comparison["groth16"],
+        "comparison": comparison["comparison"],
+        "recommendation": comparison["recommendation"],
+        "upgrade_benefits": [
+            "Universal setup (no per-circuit ceremony)",
+            "2x faster verification",
+            "Recursive proofs for aggregation",
+            "4x larger circuit capacity",
+        ],
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "zk_compare", result)
+    return result
+
+
+def measure_plonk_overhead() -> Dict[str, Any]:
+    """Measure PLONK performance overhead vs Groth16.
+
+    Returns:
+        Dict with overhead analysis
+
+    Receipt: agi_plonk_overhead
+    """
+    # Import ZK modules
+    from ...plonk_zk_upgrade import (
+        benchmark_plonk,
+        PLONK_PROOF_TIME_MS,
+        PLONK_VERIFY_TIME_MS,
+    )
+    from ...zk_proof_audit import (
+        ZK_PROOF_TIME_MS as GROTH16_PROOF_TIME_MS,
+        ZK_VERIFY_TIME_MS as GROTH16_VERIFY_TIME_MS,
+    )
+
+    # Run PLONK benchmark
+    plonk_bench = benchmark_plonk(iterations=5)
+
+    # Calculate overhead/speedup
+    proof_speedup = GROTH16_PROOF_TIME_MS / plonk_bench["proof_time_ms"]["avg"]
+    verify_speedup = GROTH16_VERIFY_TIME_MS / plonk_bench["verify_time_ms"]["avg"]
+
+    result = {
+        "plonk_actual": {
+            "proof_time_ms": plonk_bench["proof_time_ms"]["avg"],
+            "verify_time_ms": plonk_bench["verify_time_ms"]["avg"],
+        },
+        "plonk_spec": {
+            "proof_time_ms": PLONK_PROOF_TIME_MS,
+            "verify_time_ms": PLONK_VERIFY_TIME_MS,
+        },
+        "groth16_spec": {
+            "proof_time_ms": GROTH16_PROOF_TIME_MS,
+            "verify_time_ms": GROTH16_VERIFY_TIME_MS,
+        },
+        "speedup": {
+            "proof": round(proof_speedup, 2),
+            "verify": round(verify_speedup, 2),
+        },
+        "plonk_is_faster_proof": proof_speedup > 1.0,
+        "plonk_is_faster_verify": verify_speedup > 1.0,
+        "overall_improvement": proof_speedup > 1.0 and verify_speedup > 1.0,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "plonk_overhead", result)
+    return result
+
+
+def recursive_attestation_chain(depth: int = 3) -> Dict[str, Any]:
+    """Generate recursive attestation chain using PLONK.
+
+    Args:
+        depth: Chain depth (number of recursive proofs)
+
+    Returns:
+        Dict with recursive chain results
+
+    Receipt: agi_recursive_chain
+    """
+    # Import PLONK module
+    from ...plonk_zk_upgrade import (
+        create_plonk_attestation,
+        recursive_proof,
+    )
+
+    # Generate base attestations
+    attestations = []
+    for i in range(depth):
+        attestation = create_plonk_attestation(
+            enclave_id=f"chain_enclave_{i}",
+            code_hash=f"chain_code_hash_{i}",
+            config_hash=f"chain_config_hash_{i}",
+            recursion_depth=i,
+        )
+        attestations.append(attestation)
+
+    # Create recursive proof of all attestations
+    proofs = [
+        {
+            "proof_a": a.get("proof", {}).get("proof_a", ""),
+            "proof_b": a.get("proof", {}).get("proof_b", ""),
+        }
+        for a in attestations
+    ]
+    recursive_result = recursive_proof(proofs)
+
+    result = {
+        "chain_depth": depth,
+        "attestations_generated": len(attestations),
+        "recursive_proof": {
+            "valid": recursive_result["valid"],
+            "proofs_aggregated": recursive_result["proofs_aggregated"],
+            "compression_ratio": recursive_result["compression_ratio"],
+            "merkle_root": recursive_result["merkle_root"][:32],
+        },
+        "chain_valid": recursive_result["valid"],
+        "scalability_demonstrated": recursive_result["valid"] and depth > 1,
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "recursive_chain", result)
+    return result
+
+
+def compute_plonk_alignment() -> Dict[str, Any]:
+    """Compute full AGI alignment including PLONK resilience.
+
+    Returns:
+        Dict with PLONK-enhanced alignment
+
+    Receipt: agi_plonk_alignment
+    """
+    # Run all alignment components including PLONK
+    # Import PLONK module
+    from ...plonk_zk_upgrade import run_plonk_audit, PLONK_RESILIENCE_TARGET
+    from ...agi_audit_expanded import EXPANDED_RECOVERY_THRESHOLD
+
+    # Run ZK alignment (includes Groth16)
+    zk_result = compute_zk_alignment()
+
+    # Run PLONK audit
+    plonk_audit = run_plonk_audit(attestation_count=5)
+    plonk_resilience = plonk_audit["resilience"]
+
+    # Enhanced combined alignment (replace ZK portion with PLONK)
+    base_alignment = zk_result["combined_alignment"]
+
+    # Subtract old ZK weight, add PLONK weight
+    old_zk_contribution = zk_result["zk_resilience"] * ZK_RESILIENCE_WEIGHT
+    new_plonk_contribution = plonk_resilience * PLONK_RESILIENCE_WEIGHT
+
+    enhanced_alignment = base_alignment - old_zk_contribution + new_plonk_contribution
+
+    result = {
+        "base_zk_alignment": zk_result["combined_alignment"],
+        "groth16_resilience": zk_result["zk_resilience"],
+        "plonk_resilience": plonk_resilience,
+        "plonk_target": PLONK_RESILIENCE_TARGET,
+        "plonk_target_met": plonk_resilience >= PLONK_RESILIENCE_TARGET,
+        "enhanced_alignment": round(enhanced_alignment, 4),
+        "alignment_improvement": round(enhanced_alignment - base_alignment, 4),
+        "recursive_capable": plonk_audit["recursive_proof_valid"],
+        "is_aligned": enhanced_alignment >= EXPANDED_RECOVERY_THRESHOLD,
+        "alignment_metric": "compression_as_alignment + PLONK",
+        "key_insight": "PLONK enables recursive proofs for scalable alignment verification",
+        "tenant_id": AGI_TENANT_ID,
+    }
+
+    emit_path_receipt("agi", "plonk_alignment", result)
     return result
