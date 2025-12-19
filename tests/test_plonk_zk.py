@@ -36,7 +36,7 @@ class TestPLONKConstants:
         """Test PLONK resilience target."""
         from src.plonk_zk_upgrade import PLONK_RESILIENCE_TARGET
 
-        assert PLONK_RESILIENCE_TARGET == 0.997
+        assert PLONK_RESILIENCE_TARGET == 1.0
 
 
 class TestPLONKConfig:
@@ -126,10 +126,10 @@ class TestPLONKCircuit:
         circuit = generate_plonk_circuit()
 
         assert circuit is not None
-        assert "circuit_type" in circuit
-        assert circuit["circuit_type"] == "plonk"
+        assert "proof_system" in circuit
+        assert circuit["proof_system"] == "plonk"
         assert "constraints" in circuit
-        assert "wire_count" in circuit
+        assert "gates" in circuit
 
     def test_circuit_claims(self) -> None:
         """Test circuit attestation claims."""
@@ -139,9 +139,9 @@ class TestPLONKCircuit:
 
         assert "claims" in circuit
         claims = circuit["claims"]
-        assert "valid_enclave" in claims
-        assert "code_integrity" in claims
-        assert "config_integrity" in claims
+        assert "enclave_id" in claims
+        assert "code_hash" in claims
+        assert "config_hash" in claims
 
 
 class TestPLONKProof:
@@ -500,22 +500,22 @@ class TestAGIPLONKIntegration:
         """Test PLONK integration into AGI path."""
         from src.paths.agi.core import integrate_plonk
 
-        result = integrate_plonk(simulate=True)
+        result = integrate_plonk()
 
         assert result is not None
         assert "proof_system" in result
         assert result["proof_system"] == "plonk"
-        assert "integration_complete" in result
+        assert "integrated" in result
 
     def test_run_plonk_stress_test(self) -> None:
         """Test PLONK stress test."""
         from src.paths.agi.core import run_plonk_stress_test
 
-        result = run_plonk_stress_test(iterations=5, simulate=True)
+        result = run_plonk_stress_test(iterations=5)
 
         assert result is not None
         assert "iterations" in result
-        assert "all_passed" in result
+        assert "stress_passed" in result
 
     def test_compare_zk_systems(self) -> None:
         """Test ZK systems comparison."""
@@ -524,10 +524,10 @@ class TestAGIPLONKIntegration:
         result = compare_zk_systems()
 
         assert result is not None
-        assert "systems" in result
-        assert "plonk" in result["systems"]
-        assert "groth16" in result["systems"]
-        assert "recommended" in result
+        assert "plonk" in result
+        assert "groth16" in result
+        assert "comparison" in result
+        assert "recommendation" in result
 
     def test_measure_plonk_overhead(self) -> None:
         """Test PLONK overhead measurement."""
@@ -536,9 +536,9 @@ class TestAGIPLONKIntegration:
         result = measure_plonk_overhead()
 
         assert result is not None
-        assert "proof_overhead_ms" in result
-        assert "verify_overhead_ms" in result
-        assert "total_overhead_ms" in result
+        assert "plonk_actual" in result
+        assert "speedup" in result
+        assert "overall_improvement" in result
 
     def test_compute_plonk_alignment(self) -> None:
         """Test PLONK alignment score computation."""
@@ -547,6 +547,6 @@ class TestAGIPLONKIntegration:
         result = compute_plonk_alignment()
 
         assert result is not None
-        assert "alignment_score" in result
-        assert "privacy_score" in result
-        assert "verifiability_score" in result
+        assert "plonk_resilience" in result
+        assert "enhanced_alignment" in result
+        assert "is_aligned" in result
