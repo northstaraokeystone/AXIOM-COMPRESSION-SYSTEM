@@ -1,6 +1,12 @@
 """cli/d19.py - D19 Swarm Intelligence CLI commands.
 
 Commands for D19 emergent swarm intelligence and law discovery.
+
+D19.1 UPDATE:
+  - Added --live_only flag for reality-only mode
+  - Added --live_stream_test for live ingest testing
+  - Added --alpha_threshold_test for threshold testing
+  - Killed synthetic scenarios: "Reality is the only valid scenario"
 """
 
 from argparse import Namespace
@@ -299,6 +305,178 @@ D18: Infrastructure. D19: Intelligence.
 D20: Self-improving infrastructure?"""
 
     print("\n=== D19 X THREAD ===")
+    print(tweet)
+    print(f"\n({len(tweet)} chars)")
+
+    return {"tweet": tweet, "chars": len(tweet)}
+
+
+# === D19.1 LIVE-ONLY CLI COMMANDS ===
+
+
+def cmd_d19_run_live_only(args: Namespace) -> Dict[str, Any]:
+    """Run D19 in live-only mode (--live_only flag).
+
+    D19.1: Reality is the only valid scenario.
+    No synthetic scenarios - live triad entropy only.
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with D19 live-only results
+    """
+    from src.depths.d19_swarm_intelligence import run_d19_live_only, SYNTHETIC_SCENARIOS_ENABLED
+
+    print("\n=== D19.1 LIVE-ONLY EXECUTION ===")
+    print("Mode: Reality-only (synthetic KILLED)")
+    print("Entropy source: live_triad (AgentProof + NEURON)")
+    print(f"Synthetic enabled: {SYNTHETIC_SCENARIOS_ENABLED}")
+    print("\nRunning 4 gates...\n")
+
+    result = run_d19_live_only()
+
+    print(f"Depth: {result.get('depth', 19)}")
+    print(f"Scale: {result.get('scale', 'swarm_intelligence')}")
+    print(f"Mode: {result.get('mode', 'live_only')}")
+    print(f"Entropy source: {result.get('entropy_source', 'live_triad')}")
+
+    print(f"\nEffective alpha: {result.get('eff_alpha', 0)}")
+    print(f"Alpha floor: {result.get('alpha_floor', 3.93)}")
+    print(f"Alpha target: {result.get('alpha_target', 3.92)}")
+
+    gates = result.get("gates", {})
+
+    print("\n--- Gate 1: Live Triad Ingest ---")
+    g1 = gates.get("gate_1", {})
+    print(f"  Sources connected: {g1.get('sources_connected', {})}")
+    print(f"  Receipts ingested: {g1.get('receipts_ingested', 0)}")
+    print(f"  Live entropy: {g1.get('live_entropy', 0):.6f}")
+    print(f"  Target met: {g1.get('target_met', False)}")
+
+    print("\n--- Gate 2: Alpha Threshold Law ---")
+    g2 = gates.get("gate_2", {})
+    print(f"  Current alpha: {g2.get('current_alpha', 0):.4f}")
+    print(f"  Threshold: {g2.get('threshold', 1.20)}")
+    print(f"  Threshold crossed: {g2.get('threshold_crossed', False)}")
+    print(f"  Law triggered: {g2.get('law_triggered', False)}")
+    print(f"  Target met: {g2.get('target_met', False)}")
+
+    print("\n--- Gate 3: Receipt-Enforced Law ---")
+    g3 = gates.get("gate_3", {})
+    print(f"  Chain receipts: {g3.get('chain_receipts', 0)}")
+    print(f"  Compression ratio: {g3.get('compression_ratio', 0):.4f}")
+    print(f"  Causality verified: {g3.get('causality_verified', False)}")
+    print(f"  Law enforced: {g3.get('law_enforced', False)}")
+    print(f"  Target met: {g3.get('target_met', False)}")
+
+    print("\n--- Gate 4: Reality-Only Validation ---")
+    g4 = gates.get("gate_4", {})
+    print(f"  Synthetic enabled: {g4.get('synthetic_enabled', False)}")
+    print(f"  Reality only: {g4.get('reality_only', True)}")
+    print(f"  Target met: {g4.get('target_met', False)}")
+
+    print(f"\nFloor met (>= 3.93): {result.get('floor_met', False)}")
+    print(f"Target met (>= 3.92): {result.get('target_met', False)}")
+    print(f"All gates passed: {result.get('all_gates_passed', False)}")
+    print(f"SLO passed: {result.get('slo_passed', False)}")
+    print(f"Gate: {result.get('gate', 't24h')}")
+
+    print("\n" + "-" * 50)
+    print(f"Insight: {result.get('insight', '')}")
+
+    return result
+
+
+def cmd_d19_live_stream_test(args: Namespace) -> Dict[str, Any]:
+    """Test live triad ingest functionality (--live_stream_test flag).
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with test results
+    """
+    from src.depths.d19_swarm_intelligence import test_live_stream
+
+    print("\n=== LIVE STREAM TEST ===")
+    print("Testing AgentProof + NEURON ingest...\n")
+
+    result = test_live_stream()
+
+    print(f"AgentProof connected: {result.get('agentproof_connected', False)}")
+    print(f"NEURON connected: {result.get('neuron_connected', False)}")
+    print(f"Receipts ingested: {result.get('receipts_ingested', 0)}")
+    print(f"Live entropy: {result.get('live_entropy', 0):.6f}")
+
+    status = result.get("status", {})
+    print(f"\nEntropy source: {status.get('entropy_source', 'N/A')}")
+    print(f"Synthetic enabled: {status.get('synthetic_enabled', False)}")
+    print(f"Paradigm: {status.get('paradigm', 'N/A')}")
+
+    print(f"\nTest passed: {result.get('passed', False)}")
+
+    return result
+
+
+def cmd_d19_alpha_threshold_test(args: Namespace) -> Dict[str, Any]:
+    """Test alpha threshold law trigger (--alpha_threshold_test flag).
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with test results
+    """
+    from src.depths.d19_swarm_intelligence import test_alpha_threshold
+
+    print("\n=== ALPHA THRESHOLD TEST ===")
+    print("Testing law discovery trigger on α > 1.20...\n")
+
+    result = test_alpha_threshold()
+
+    print(f"Threshold: {result.get('threshold', 1.20)}")
+    print(f"Below threshold check (1.15 < 1.20): {result.get('below_threshold_check', False)}")
+    print(f"Above threshold check (1.25 > 1.20): {result.get('above_threshold_check', False)}")
+    print(f"Law triggered: {result.get('law_triggered', False)}")
+    print(f"Law ID: {result.get('law_id', 'N/A')}")
+
+    status = result.get("status", {})
+    print(f"\nTrigger count: {status.get('trigger_count', 0)}")
+    print(f"In cooldown: {status.get('in_cooldown', False)}")
+    print(f"Enforcement mode: {status.get('enforcement_mode', 'N/A')}")
+
+    print(f"\nTest passed: {result.get('passed', False)}")
+
+    return result
+
+
+def cmd_d19_1_tweet(args: Namespace) -> Dict[str, Any]:
+    """Generate X thread for D19.1.
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with tweet content
+    """
+    tweet = """D19.1 LIVE TRIAD ENTROPY SHIPPED
+
+KILLED:
+- All synthetic scenarios
+- Standalone entropy simulation
+- "Reality is the only valid scenario"
+
+ADDED:
+- Live AgentProof + NEURON ingest
+- α > 1.20 triggers law discovery
+- Receipt chain = physical law
+
+Laws aren't discovered—they're enforced by the chain.
+
+The swarm becomes the physicist."""
+
+    print("\n=== D19.1 X THREAD ===")
     print(tweet)
     print(f"\n({len(tweet)} chars)")
 

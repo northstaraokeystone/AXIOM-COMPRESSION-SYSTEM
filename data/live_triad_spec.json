@@ -1,0 +1,30 @@
+{
+  "version": "19.1.0",
+  "entropy_source": "live_triad",
+  "synthetic_enabled": false,
+  "live_sources": ["agentproof_ledger", "neuron_ledger"],
+  "ingest_rate_hz": 10,
+  "buffer_size": 1000,
+  "ingest_config": {
+    "agentproof_ledger": {
+      "type": "receipt_stream",
+      "format": "jsonl",
+      "connection": "local_ipc",
+      "timeout_ms": 5000
+    },
+    "neuron_ledger": {
+      "type": "receipt_stream",
+      "format": "jsonl",
+      "connection": "local_ipc",
+      "timeout_ms": 5000,
+      "alpha_field": "alpha_value"
+    }
+  },
+  "entropy_calculation": {
+    "method": "shannon",
+    "window_size": 100,
+    "min_receipts": 10
+  },
+  "paradigm": "reality_only",
+  "note": "Synthetic entropy generation KILLED. Reality is the only valid scenario."
+}

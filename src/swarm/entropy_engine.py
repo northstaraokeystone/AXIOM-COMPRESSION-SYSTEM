@@ -6,6 +6,11 @@ The SWARM thinks, not any individual node.
 
 Key insight: No node knows the global state. Each node measures LOCAL entropy.
 Gradients between neighbors guide coordination. Entropy IS the coordinator.
+
+D19.1 UPDATE:
+  - Live triad ingest mode replaces synthetic generation
+  - No synthetic entropy - reality only
+  - "Reality is the only valid scenario"
 """
 
 import json
@@ -456,7 +461,7 @@ def get_engine_status() -> Dict[str, Any]:
     """
     return {
         "module": "swarm.entropy_engine",
-        "version": "19.0.0",
+        "version": "19.1.0",
         "node_count": NODE_COUNT,
         "sample_rate_hz": ENTROPY_SAMPLE_RATE_HZ,
         "gradient_threshold": GRADIENT_THRESHOLD,
@@ -464,4 +469,113 @@ def get_engine_status() -> Dict[str, Any]:
         "mesh_connections": MESH_CONNECTIONS,
         "coordination_mode": "entropy_gradient",
         "central_coordinator": False,
+        "live_ingest_mode": True,
+        "synthetic_enabled": False,
+    }
+
+
+# === D19.1 LIVE INGEST MODE ===
+
+# KILLED: generate_synthetic_disruption() - NO SYNTHETIC GENERATION
+# KILLED: batch_generate() - NO SYNTHETIC GENERATION
+
+
+def ingest_live_entropy(engine: EntropyEngine, live_receipts: List[Dict]) -> Dict[str, Any]:
+    """Ingest live receipts for entropy measurement.
+
+    D19.1: Replaces synthetic entropy generation.
+    Real disruptions only - reality is the only valid scenario.
+
+    Args:
+        engine: EntropyEngine instance
+        live_receipts: Live receipt stream from AgentProof + NEURON
+
+    Returns:
+        Live ingest result dict
+
+    Receipt: live_entropy_ingest_receipt
+    """
+    if not live_receipts:
+        return {"error": "empty_live_stream", "entropy": 0.0}
+
+    # Distribute receipts to nodes based on receipt content
+    for i, receipt in enumerate(live_receipts):
+        node_id = f"node_{i % len(engine.nodes):03d}"
+        if node_id in engine.nodes:
+            engine.nodes[node_id].receipts.append(receipt)
+
+    # Measure entropy at each node from live receipts
+    for node_id, node in engine.nodes.items():
+        if node.receipts:
+            node.entropy = measure_local_entropy(node_id, node.receipts)
+
+    # Compute global entropy
+    entropies = [n.entropy for n in engine.nodes.values()]
+    engine.global_entropy = sum(entropies) / len(entropies) if entropies else 0.0
+
+    result = {
+        "source": "live_triad",
+        "receipts_ingested": len(live_receipts),
+        "nodes_updated": len(engine.nodes),
+        "global_entropy": round(engine.global_entropy, 6),
+        "synthetic": False,
+    }
+
+    emit_receipt(
+        "live_entropy_ingest",
+        {
+            "receipt_type": "live_entropy_ingest",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "engine_id": engine.engine_id,
+            "receipts_ingested": len(live_receipts),
+            "nodes_updated": len(engine.nodes),
+            "global_entropy": round(engine.global_entropy, 6),
+            "synthetic": False,
+            "payload_hash": dual_hash(
+                json.dumps(result, sort_keys=True)
+            ),
+        },
+    )
+
+    return result
+
+
+def coordinate_from_live_stream(engine: EntropyEngine, live_receipts: List[Dict]) -> Dict[str, Any]:
+    """Coordinate swarm from live receipt stream.
+
+    D19.1: Full coordination cycle using live data only.
+
+    Args:
+        engine: EntropyEngine instance
+        live_receipts: Live receipt stream
+
+    Returns:
+        Coordination result dict
+    """
+    # Ingest live receipts
+    ingest_result = ingest_live_entropy(engine, live_receipts)
+
+    # Compute gradients
+    gradients = {}
+    for node_id, node in engine.nodes.items():
+        gradients[node_id] = compute_gradient(node_id, node.neighbors, engine)
+
+    # Propagate gradients
+    prop_result = propagate_gradient(engine, gradients)
+
+    # Measure coherence
+    coherence = measure_swarm_coherence(engine)
+
+    # Coordinate action
+    coord_result = coordinate_via_gradient(engine, "live_coordination")
+
+    return {
+        "mode": "live_stream",
+        "synthetic": False,
+        "ingest": ingest_result,
+        "propagation": prop_result,
+        "coherence": coherence,
+        "coordination": coord_result,
+        "success": coherence >= CONVERGENCE_TARGET * 0.8,
     }

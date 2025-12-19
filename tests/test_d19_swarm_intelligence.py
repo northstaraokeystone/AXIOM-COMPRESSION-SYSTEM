@@ -27,7 +27,7 @@ class TestD19SpecLoading:
 
         config = load_d19_config()
 
-        assert config["version"] == "19.0.0"
+        assert config["version"] == "19.1.0"
 
     def test_d19_spec_has_gates(self):
         """Test D19 spec has all gate configs."""
