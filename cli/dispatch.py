@@ -364,6 +364,12 @@ from cli.d19 import (
     cmd_d19_gate_4,
     cmd_d19_gate_5,
     cmd_d19_tweet,
+    # D19.3 Live Causality Oracle commands
+    cmd_d19_run_oracle_mode,
+    cmd_d19_verify_projection_killed,
+    cmd_d19_live_oracle_test,
+    cmd_d19_gap_silence_test,
+    cmd_d19_3_tweet,
 )
 
 # Darwinian enforcer commands (AXIOM v2)
@@ -1129,6 +1135,18 @@ def dispatch(args, docstring: str) -> None:
         return cmd_d19_gate_5(args)
     if args.d19_tweet:
         return cmd_d19_tweet(args)
+
+    # D19.3 Live Causality Oracle commands
+    if args.live_oracle_mode:
+        return cmd_d19_run_oracle_mode(args)
+    if args.verify_projection_killed:
+        return cmd_d19_verify_projection_killed(args)
+    if args.live_oracle_test:
+        return cmd_d19_live_oracle_test(args)
+    if args.gap_silence_test:
+        return cmd_d19_gap_silence_test(args)
+    if args.d19_3_tweet:
+        return cmd_d19_3_tweet(args)
 
     # Darwinian enforcer commands (AXIOM v2)
     if args.darwinian_info:
