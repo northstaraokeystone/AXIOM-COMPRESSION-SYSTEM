@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "amplify_factor": 2.0,
+  "starve_threshold": 0.8,
+  "high_compression_threshold": 0.9,
+  "latency_primary": true,
+  "generations_per_cycle": 10,
+  "max_survival_cycles": 5,
+  "real_entropy_only": true,
+  "paradigm": {
+    "old": "Laws witnessed through compression observation",
+    "new": "Laws causally enforced by selective receipt amplification"
+  },
+  "insight": "The receipt chain is a Darwinian replicator",
+  "physics": {
+    "high_compression": "Amplify x2 weight, duplicate, replicate",
+    "low_compression": "Starve, prune, delay, die after 5 cycles",
+    "real_entropy": "Selection pressure - no synthetic",
+    "latency": "Primary selector - distance evolves tolerance",
+    "survivors": "Imposed laws after 10 generations"
+  }
+}

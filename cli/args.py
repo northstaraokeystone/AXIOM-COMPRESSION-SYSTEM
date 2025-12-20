@@ -2652,3 +2652,52 @@ def _add_d19_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--d19_tweet", action="store_true", help="Generate D19 X thread"
     )
+
+    # Darwinian enforcer flags (v2)
+    _add_darwinian_args(parser)
+
+
+def _add_darwinian_args(parser: argparse.ArgumentParser) -> None:
+    """Add Darwinian enforcer arguments (AXIOM v2)."""
+    parser.add_argument(
+        "--darwinian_mode",
+        action="store_true",
+        help="Enable Darwinian selection mode",
+    )
+    parser.add_argument(
+        "--darwinian_info",
+        action="store_true",
+        help="Show Darwinian enforcer configuration",
+    )
+    parser.add_argument(
+        "--darwinian_simulate",
+        action="store_true",
+        help="Run selection cycle, emit amplification receipt",
+    )
+    parser.add_argument(
+        "--latency_selection_test",
+        action="store_true",
+        help="Test latency selection with Mars params",
+    )
+    parser.add_argument(
+        "--show_laws",
+        action="store_true",
+        help="Display active imposed laws",
+    )
+    parser.add_argument(
+        "--evolve",
+        action="store_true",
+        help="Run evolution under latency pressure",
+    )
+    parser.add_argument(
+        "--evolve_generations",
+        type=int,
+        default=10,
+        help="Number of generations to evolve (default: 10)",
+    )
+    parser.add_argument(
+        "--evolve_latency_ms",
+        type=int,
+        default=1320000,  # Mars max
+        help="Latency in ms for evolution (default: 1320000 = Mars max)",
+    )

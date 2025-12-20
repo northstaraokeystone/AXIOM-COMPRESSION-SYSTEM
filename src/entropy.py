@@ -1,9 +1,15 @@
-"""entropy.py - Entropy calculations with uncertainty propagation.
+"""entropy.py - Entropy calculations with uncertainty propagation and SELECTION PRESSURE.
 
 THE ENTROPY INSIGHT:
     Entropy is the universal accounting system.
     Landauer's limit converts bits to energy.
     Energy converts to mass. Mass is payload.
+
+THE DARWINIAN INSIGHT (v2):
+    Real entropy events become SELECTION PRESSURE.
+    Synthetic entropy is REJECTED (stoprule).
+    Latency is the PRIMARY selector - distance evolves tolerance.
+    Weak receipts die under pressure; strong ones survive.
 
 v2 FIX #2: MOXIE uncertainty propagation (10-15% variance)
     - MOXIE_EFFICIENCY_VARIANCE_PCT = 0.12 (from 16 runs)
@@ -16,9 +22,9 @@ Source: NASA/TM-2010-216130 (Stuster 2010) for psychology constants
 
 import math
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, List, Optional
 
-from .core import emit_receipt
+from .core import emit_receipt, StopRule
 
 # === CONSTANTS ===
 
@@ -328,3 +334,381 @@ def validate_landauer_calibration() -> Dict:
         "uncertainty_valid": uncertainty_valid,
         "validation_passed": baseline_in_ci and uncertainty_valid,
     }
+
+
+# === DARWINIAN SELECTION PRESSURE (v2) ===
+
+# Selection pressure constants
+SELECTION_PRESSURE_LATENCY = True
+"""Latency is primary selector - distance evolves tolerance."""
+
+REAL_ENTROPY_ONLY = True
+"""Reject synthetic entropy sources - real constraints only."""
+
+DISRUPTION_WEIGHT = 1.5
+"""Disruption has stronger selection effect than baseline entropy."""
+
+# Latency constants (for Gate 4)
+MARS_MIN_LATENCY_MS = 180000  # 3 minutes (Mars opposition)
+"""Minimum Earth-Mars communication latency in milliseconds."""
+
+MARS_MAX_LATENCY_MS = 1320000  # 22 minutes (Mars conjunction)
+"""Maximum Earth-Mars communication latency in milliseconds."""
+
+JUPITER_MIN_LATENCY_MS = 1980000  # 33 minutes
+"""Minimum Earth-Jupiter communication latency in milliseconds."""
+
+JUPITER_MAX_LATENCY_MS = 3180000  # 53 minutes
+"""Maximum Earth-Jupiter communication latency in milliseconds."""
+
+
+def validate_entropy_source(event: Dict) -> bool:
+    """Return True only if event source is real, else trigger stoprule.
+
+    AXIOM v2: Real entropy events become selection pressure.
+    Synthetic entropy is REJECTED - we enforce under real constraints only.
+
+    Args:
+        event: Entropy event dict, must contain 'source' field.
+
+    Returns:
+        True if source is "real".
+
+    Raises:
+        StopRule: If source is not "real" (synthetic, mock, test, etc.)
+    """
+    source = event.get("source", "unknown")
+
+    if source == "real":
+        return True
+
+    # Trigger stoprule for non-real sources
+    stoprule_synthetic_entropy(event, source)
+    return False
+
+
+def stoprule_synthetic_entropy(event: Dict, source: str) -> None:
+    """Reject synthetic entropy sources with stoprule.
+
+    Args:
+        event: The rejected entropy event.
+        source: The invalid source type.
+
+    Emits:
+        anomaly_receipt with synthetic entropy rejection.
+
+    Raises:
+        StopRule: Always - synthetic entropy is a fatal error.
+    """
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": TENANT_ID,
+            "metric": "synthetic_entropy",
+            "baseline": 0.0,
+            "delta": -1.0,
+            "classification": "violation",
+            "action": "halt",
+            "rejected_source": source,
+            "event_id": event.get("id", "unknown"),
+            "reason": "AXIOM v2 requires real entropy - synthetic rejected",
+        },
+    )
+    raise StopRule(f"Synthetic entropy rejected: source='{source}' (must be 'real')")
+
+
+def stoprule_no_entropy(cycle_id: str = "unknown") -> None:
+    """Emit warning when no entropy events in cycle.
+
+    Args:
+        cycle_id: Identifier for the cycle.
+
+    Emits:
+        Warning receipt (does not raise - allows recovery).
+    """
+    emit_receipt(
+        "anomaly",
+        {
+            "tenant_id": TENANT_ID,
+            "metric": "no_entropy",
+            "baseline": 1.0,
+            "delta": -1.0,
+            "classification": "deviation",
+            "action": "alert",
+            "cycle_id": cycle_id,
+            "reason": "No entropy events in selection cycle",
+        },
+    )
+
+
+def calculate_selection_pressure(event: Dict) -> float:
+    """Convert event magnitude to pressure scalar 0-1.
+
+    Higher magnitude = higher selection pressure = more elimination.
+
+    Args:
+        event: Entropy event with 'magnitude', 'severity', or 'intensity' field.
+
+    Returns:
+        Selection pressure scalar in [0, 1].
+    """
+    # Try various magnitude field names
+    magnitude = None
+    for field in ["magnitude", "severity", "intensity", "pressure", "value"]:
+        if field in event:
+            magnitude = event[field]
+            break
+
+    if magnitude is None:
+        magnitude = 0.5  # Default to medium pressure
+
+    # Normalize to [0, 1]
+    if isinstance(magnitude, (int, float)):
+        magnitude = float(magnitude)
+        # Clamp to reasonable range
+        if magnitude > 10:
+            magnitude = magnitude / 10.0
+        magnitude = max(0.0, min(1.0, magnitude))
+    else:
+        magnitude = 0.5
+
+    # Apply disruption weight if event is disruptive
+    if event.get("disruption", False) or event.get("type") == "disruption":
+        magnitude = min(1.0, magnitude * DISRUPTION_WEIGHT)
+
+    return magnitude
+
+
+def apply_selection_pressure(pressure: float, population: List[Dict]) -> List[Dict]:
+    """Eliminate receipts that fail under selection pressure.
+
+    Receipts with low compression scores fail under high pressure.
+    This is Darwinian selection in action.
+
+    Args:
+        pressure: Selection pressure scalar in [0, 1].
+        population: List of receipts to test.
+
+    Returns:
+        List of survivors (receipts that passed selection).
+
+    Emits:
+        selection_pressure_receipt with results.
+    """
+    if not population:
+        return []
+
+    survivors = []
+    eliminated = 0
+
+    for receipt in population:
+        # Extract compression/fitness score
+        score = 0.85  # Default
+        for field in ["compression", "score", "fitness", "r_squared"]:
+            if field in receipt:
+                score = receipt[field]
+                break
+
+        # Survival threshold based on pressure
+        # Higher pressure = higher threshold needed to survive
+        survival_threshold = pressure * 0.9
+
+        if score >= survival_threshold:
+            survivors.append(receipt)
+        else:
+            eliminated += 1
+
+    # Emit selection pressure receipt
+    emit_receipt(
+        "selection_pressure",
+        {
+            "tenant_id": TENANT_ID,
+            "pressure": pressure,
+            "input_count": len(population),
+            "survivor_count": len(survivors),
+            "eliminated_count": eliminated,
+            "survival_rate": len(survivors) / len(population) if population else 0,
+        },
+    )
+
+    return survivors
+
+
+def ingest_real_entropy(event: Dict) -> Dict:
+    """Validate source, calculate pressure, emit receipt.
+
+    Main entry point for real entropy ingestion in Darwinian mode.
+
+    Args:
+        event: Entropy event dict with 'source' field.
+
+    Returns:
+        Processed event dict with pressure calculated.
+
+    Raises:
+        StopRule: If event source is not "real".
+    """
+    # Validate source (raises StopRule if synthetic)
+    validate_entropy_source(event)
+
+    # Calculate selection pressure
+    pressure = calculate_selection_pressure(event)
+
+    # Build processed event
+    processed = event.copy()
+    processed["_validated"] = True
+    processed["_selection_pressure"] = pressure
+
+    # Emit entropy event receipt
+    emit_receipt(
+        "entropy_event",
+        {
+            "tenant_id": TENANT_ID,
+            "event_id": event.get("id", "unknown"),
+            "source": event.get("source"),
+            "selection_pressure": pressure,
+            "event_type": event.get("type", "unknown"),
+        },
+    )
+
+    return processed
+
+
+# === LATENCY SELECTION (GATE 4) ===
+
+
+def calculate_latency_pressure(latency_ms: int) -> float:
+    """Higher latency = higher pressure (0-1).
+
+    Interstellar latency is the PRIMARY selector.
+    Distance doesn't degrade - it SELECTS for delay-tolerant primitives.
+
+    Args:
+        latency_ms: Communication latency in milliseconds.
+
+    Returns:
+        Latency pressure scalar in [0, 1].
+    """
+    # Normalize against Jupiter max (extreme case)
+    max_latency = JUPITER_MAX_LATENCY_MS
+    pressure = min(1.0, latency_ms / max_latency)
+    return pressure
+
+
+def is_delay_tolerant(receipt: Dict, latency_ms: int) -> bool:
+    """True if receipt survives the given latency pressure.
+
+    Receipts requiring fast response die under high latency.
+    Only delay-tolerant patterns survive.
+
+    Args:
+        receipt: Receipt to test.
+        latency_ms: Latency in milliseconds.
+
+    Returns:
+        True if receipt is delay-tolerant at this latency.
+    """
+    # Get tolerance from receipt if specified
+    tolerance = receipt.get("_delay_tolerance", receipt.get("tolerance", 0.5))
+
+    # Calculate pressure from latency
+    pressure = calculate_latency_pressure(latency_ms)
+
+    # Survival check
+    return tolerance >= pressure
+
+
+def apply_latency_selection(population: List[Dict], latency_ms: int) -> List[Dict]:
+    """Eliminate latency-sensitive receipts.
+
+    Args:
+        population: List of receipts to test.
+        latency_ms: Latency pressure in milliseconds.
+
+    Returns:
+        List of delay-tolerant survivors.
+
+    Emits:
+        latency_selection_receipt.
+    """
+    survivors = []
+    eliminated = 0
+
+    for receipt in population:
+        if is_delay_tolerant(receipt, latency_ms):
+            survivors.append(receipt)
+        else:
+            eliminated += 1
+
+    # Emit latency selection receipt
+    emit_receipt(
+        "latency_selection",
+        {
+            "tenant_id": TENANT_ID,
+            "latency_ms": latency_ms,
+            "pressure": calculate_latency_pressure(latency_ms),
+            "input_count": len(population),
+            "survivor_count": len(survivors),
+            "eliminated_count": eliminated,
+        },
+    )
+
+    return survivors
+
+
+def evolve_under_latency(
+    population: List[Dict], generations: int, latency_ms: int
+) -> List[Dict]:
+    """Run N generations with latency pressure.
+
+    Over generations, the population becomes more delay-tolerant.
+    This is evolution under real constraints.
+
+    Args:
+        population: Initial population of receipts.
+        generations: Number of generations to evolve.
+        latency_ms: Latency pressure in milliseconds.
+
+    Returns:
+        Evolved population after N generations.
+
+    Emits:
+        delay_tolerant_receipt for final survivors.
+    """
+    current_pop = population.copy()
+
+    for gen in range(generations):
+        # Apply latency selection
+        survivors = apply_latency_selection(current_pop, latency_ms)
+
+        if not survivors:
+            # Population went extinct
+            current_pop = []
+            break
+
+        # Increase tolerance of survivors (evolution)
+        evolved = []
+        for survivor in survivors:
+            evolved_receipt = survivor.copy()
+            current_tolerance = evolved_receipt.get("tolerance", 0.5)
+            # Gradually increase tolerance (max 0.05 per generation)
+            evolved_receipt["tolerance"] = min(1.0, current_tolerance + 0.05)
+            evolved_receipt["_generation"] = gen + 1
+            evolved.append(evolved_receipt)
+
+        current_pop = evolved
+
+    # Emit delay-tolerant receipt for final survivors
+    if current_pop:
+        emit_receipt(
+            "delay_tolerant",
+            {
+                "tenant_id": TENANT_ID,
+                "generations_evolved": generations,
+                "latency_ms": latency_ms,
+                "survivor_count": len(current_pop),
+                "avg_tolerance": sum(r.get("tolerance", 0) for r in current_pop) / len(current_pop),
+            },
+        )
+
+    return current_pop

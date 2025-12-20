@@ -366,6 +366,16 @@ from cli.d19 import (
     cmd_d19_tweet,
 )
 
+# Darwinian enforcer commands (AXIOM v2)
+from cli.darwinian import (
+    cmd_darwinian_info,
+    cmd_darwinian_simulate,
+    cmd_latency_selection_test,
+    cmd_show_laws,
+    cmd_evolve,
+    cmd_darwinian_mode,
+)
+
 # Interstellar relay commands
 from cli.relay import (
     cmd_relay_info,
@@ -1119,6 +1129,20 @@ def dispatch(args, docstring: str) -> None:
         return cmd_d19_gate_5(args)
     if args.d19_tweet:
         return cmd_d19_tweet(args)
+
+    # Darwinian enforcer commands (AXIOM v2)
+    if args.darwinian_info:
+        return cmd_darwinian_info()
+    if args.darwinian_simulate:
+        return cmd_darwinian_simulate(args.simulate)
+    if args.latency_selection_test:
+        return cmd_latency_selection_test()
+    if args.show_laws:
+        return cmd_show_laws()
+    if args.evolve:
+        return cmd_evolve(args.evolve_generations, args.evolve_latency_ms, args.simulate)
+    if args.darwinian_mode:
+        return cmd_darwinian_mode(args, args.simulate)
 
     # Interstellar relay commands
     if args.relay_info:
