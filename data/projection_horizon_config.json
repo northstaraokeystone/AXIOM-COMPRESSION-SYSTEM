@@ -1,0 +1,76 @@
+{
+  "version": "19.2.0",
+  "module": "future_path_projection",
+  "description": "Configuration for light-speed constrained future path projection",
+  "insight": "We're not predicting - we're calculating deterministic trajectories through spacetime given known constraints",
+  "projection_parameters": {
+    "horizon_years": 10,
+    "horizon_seconds": 315360000,
+    "projection_granularity_days": 1,
+    "projection_granularity_seconds": 86400,
+    "path_divergence_tolerance": 0.001,
+    "max_paths_per_projection": 1000,
+    "projection_mode": "deterministic"
+  },
+  "light_speed_binding": {
+    "enabled": true,
+    "c_km_s": 299792.458,
+    "c_m_s": 299792458,
+    "c_ly_year": 1.0,
+    "ftl_paths_allowed": false,
+    "violation_action": "stoprule"
+  },
+  "gravitational_model": {
+    "type": "n_body_simplified",
+    "bodies": [
+      {"name": "sun", "mass_kg": 1.989e30, "position_model": "kepler"},
+      {"name": "earth", "mass_kg": 5.972e24, "orbit_model": "earth_orbit"},
+      {"name": "mars", "mass_kg": 6.417e23, "orbit_model": "mars_orbit"},
+      {"name": "jupiter", "mass_kg": 1.898e27, "orbit_model": "jupiter_orbit"}
+    ],
+    "include_gravitational_bending": true,
+    "schwarzschild_correction": false,
+    "notes": "Simplified n-body for path bending near massive objects"
+  },
+  "path_projection_settings": {
+    "initial_state_source": "receipt_chain",
+    "projection_algorithm": "forward_propagation",
+    "entropy_projection_mode": "impending",
+    "compression_estimation_method": "mdl_projected",
+    "arrival_time_calculation": "geodesic"
+  },
+  "validation_settings": {
+    "light_speed_validation": true,
+    "causality_validation": true,
+    "energy_conservation_check": false,
+    "path_continuity_check": true,
+    "divergence_detection": true
+  },
+  "output_settings": {
+    "emit_projection_receipts": true,
+    "emit_per_path_receipts": false,
+    "emit_summary_receipt": true,
+    "include_arrival_times": true,
+    "include_entropy_estimates": true
+  },
+  "interstellar_targets": {
+    "proxima_centauri": {
+      "distance_ly": 4.24,
+      "rtt_years": 8.48,
+      "projection_required_years": 10,
+      "weave_template_priority": 1
+    },
+    "mars_relay": {
+      "distance_au_avg": 1.52,
+      "rtt_minutes_avg": 25,
+      "projection_required_years": 1,
+      "weave_template_priority": 2
+    }
+  },
+  "stop_conditions": {
+    "light_speed_violation": true,
+    "path_divergence_exceeded": true,
+    "projection_horizon_exceeded": true,
+    "entropy_unbounded": true
+  }
+}

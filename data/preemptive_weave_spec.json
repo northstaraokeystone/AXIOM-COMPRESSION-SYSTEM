@@ -1,0 +1,106 @@
+{
+  "version": "19.2.0",
+  "module": "preemptive_weave",
+  "paradigm": "future_projection_weaving",
+  "insight": "Laws are not enforced reactively - they are woven preemptively from projected future entropy trajectories",
+  "d19_2_config": {
+    "future_projection_mode": true,
+    "simulation_enabled": false,
+    "reactive_mode_enabled": false,
+    "projection_horizon_years": 10,
+    "light_speed_latency_binding": true,
+    "weave_horizon": "interstellar",
+    "note": "Future projection replaces all forward modeling - simulation fully killed"
+  },
+  "projection_constants": {
+    "light_speed_c_km_s": 299792.458,
+    "proxima_centauri_ly": 4.24,
+    "proxima_rtt_years": 8.48,
+    "projection_window_years": 10,
+    "gravitational_model": "n_body_simplified",
+    "path_divergence_tolerance": 0.001
+  },
+  "preemptive_thresholds": {
+    "preemptive_amplify_threshold": 0.85,
+    "preemptive_starve_threshold": 0.50,
+    "high_future_compression_floor": 0.85,
+    "low_future_compression_ceiling": 0.50,
+    "amplification_factor": 2.0,
+    "starvation_factor": 0.1
+  },
+  "weave_parameters": {
+    "impending_entropy_pattern": "known_latency",
+    "delay_nullification_mode": "preemptive",
+    "weave_template_source": "latency_catalog",
+    "law_insertion_mode": "before_delay_arrival"
+  },
+  "killed_modes": {
+    "reactive_law_enforcement": "KILLED - replaced by preemptive weaving",
+    "alpha_threshold_triggers": "KILLED - replaced by projected future paths",
+    "simulation_forward_modeling": "KILLED - future projection replaces all",
+    "post_event_pattern_detection": "KILLED - pre-amplify/starve BEFORE",
+    "latency_as_obstacle": "KILLED - latency is design INPUT"
+  },
+  "gate_architecture": {
+    "gate_1": {
+      "name": "latency_bound_future_projection",
+      "description": "Project receipt paths forward with light-speed constraints",
+      "pass_criteria": "paths_projected_with_latency_bounds",
+      "retry_max": 2
+    },
+    "gate_2": {
+      "name": "preemptive_amplify_starve",
+      "description": "Calculate projected compression, pre-amplify high, pre-starve low",
+      "pass_criteria": "selection_on_future_not_past",
+      "retry_max": 2
+    },
+    "gate_3": {
+      "name": "impending_entropy_weave",
+      "description": "Known latency (Proxima 8.48yr) as weave template",
+      "pass_criteria": "delay_nullification_laws_generated",
+      "retry_max": 2
+    },
+    "gate_4": {
+      "name": "delay_nullification",
+      "description": "Preemptive laws woven into current chain",
+      "pass_criteria": "future_projected_state_matches",
+      "retry_max": 2
+    },
+    "gate_5": {
+      "name": "simulation_kill_verification",
+      "description": "Verify zero simulation and reactive receipts",
+      "pass_criteria": "projection_only_mode_confirmed",
+      "retry_max": 1
+    }
+  },
+  "receipt_types": {
+    "future_path_projection_receipt": {
+      "fields": ["paths_projected", "horizon_years", "latency_bounds", "ts"]
+    },
+    "preemptive_weave_receipt": {
+      "fields": ["amplified_paths", "starved_paths", "compression_projected", "ts"]
+    },
+    "impending_entropy_weave_receipt": {
+      "fields": ["latency_pattern", "weave_template", "nullification_laws", "ts"]
+    },
+    "delay_nullification_receipt": {
+      "fields": ["delay_nullified_years", "preemptive_laws", "ts"]
+    },
+    "projection_only_receipt": {
+      "fields": ["simulation_killed", "projection_mode", "ts"]
+    }
+  },
+  "stop_conditions": {
+    "projection_diverges_from_light_speed": true,
+    "any_simulation_receipt_emitted": true,
+    "any_reactive_trigger_fires": true,
+    "consecutive_gate_failures_gt_2": true
+  },
+  "physics_validation": {
+    "block_universe": "future constrains present",
+    "time_symmetric": "future already exists, we access it",
+    "light_speed_absolute": "c is constraint, not obstacle",
+    "latency_as_information": "known delay is design INPUT",
+    "retrocausal_selection": "entropy gradient from FUTURE, not past"
+  }
+}

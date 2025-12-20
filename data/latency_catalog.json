@@ -1,0 +1,127 @@
+{
+  "version": "19.2.0",
+  "description": "Catalog of known latencies as weave templates - latency is design INPUT, not obstacle",
+  "insight": "When we know the delay, we can weave laws that compensate for it BEFORE it arrives",
+  "interstellar": {
+    "proxima_centauri": {
+      "name": "Proxima Centauri",
+      "distance_ly": 4.24,
+      "distance_km": 4.013e13,
+      "one_way_years": 4.24,
+      "rtt_years": 8.48,
+      "rtt_seconds": 267667200,
+      "status": "known_fixed",
+      "uncertainty_percent": 0.001,
+      "use_as_weave_template": true,
+      "notes": "Nearest star system - primary interstellar weave template"
+    },
+    "alpha_centauri_ab": {
+      "name": "Alpha Centauri A/B",
+      "distance_ly": 4.37,
+      "distance_km": 4.136e13,
+      "one_way_years": 4.37,
+      "rtt_years": 8.74,
+      "rtt_seconds": 275760000,
+      "status": "known_fixed",
+      "uncertainty_percent": 0.001,
+      "use_as_weave_template": true
+    },
+    "barnards_star": {
+      "name": "Barnard's Star",
+      "distance_ly": 5.96,
+      "distance_km": 5.639e13,
+      "one_way_years": 5.96,
+      "rtt_years": 11.92,
+      "rtt_seconds": 376185600,
+      "status": "known_fixed",
+      "uncertainty_percent": 0.002,
+      "use_as_weave_template": true
+    }
+  },
+  "solar_system": {
+    "earth_moon": {
+      "name": "Earth-Moon",
+      "distance_ls": 1.28,
+      "distance_km": 384400,
+      "one_way_seconds": 1.28,
+      "rtt_seconds": 2.56,
+      "status": "known_fixed",
+      "uncertainty_percent": 0.01,
+      "use_as_weave_template": true
+    },
+    "earth_mars_opposition": {
+      "name": "Earth-Mars (Opposition)",
+      "distance_au": 0.52,
+      "distance_km": 77800000,
+      "one_way_minutes": 4.33,
+      "rtt_minutes": 8.66,
+      "rtt_seconds": 520,
+      "status": "known_variable",
+      "min_rtt_minutes": 6.0,
+      "max_rtt_minutes": 44.0,
+      "notes": "Best case - Mars at closest approach"
+    },
+    "earth_mars_conjunction": {
+      "name": "Earth-Mars (Conjunction)",
+      "distance_au": 2.52,
+      "distance_km": 377000000,
+      "one_way_minutes": 21.0,
+      "rtt_minutes": 42.0,
+      "rtt_seconds": 2520,
+      "status": "known_variable",
+      "notes": "Worst case - Mars on far side of Sun"
+    },
+    "earth_mars_average": {
+      "name": "Earth-Mars (Average)",
+      "distance_au": 1.52,
+      "distance_km": 225000000,
+      "one_way_minutes": 12.5,
+      "rtt_minutes": 25.0,
+      "rtt_seconds": 1500,
+      "status": "known_variable"
+    },
+    "earth_jupiter": {
+      "name": "Earth-Jupiter",
+      "distance_au_min": 4.2,
+      "distance_au_max": 6.2,
+      "one_way_minutes_min": 35.0,
+      "one_way_minutes_max": 52.0,
+      "rtt_minutes_avg": 87.0,
+      "rtt_seconds_avg": 5220,
+      "status": "known_variable"
+    },
+    "earth_saturn": {
+      "name": "Earth-Saturn",
+      "distance_au_min": 8.5,
+      "distance_au_max": 10.5,
+      "one_way_minutes_min": 71.0,
+      "one_way_minutes_max": 88.0,
+      "rtt_minutes_avg": 159.0,
+      "rtt_seconds_avg": 9540,
+      "status": "known_variable"
+    },
+    "sun_voyager_1": {
+      "name": "Voyager 1",
+      "distance_au": 163.0,
+      "one_way_hours": 22.7,
+      "rtt_hours": 45.4,
+      "rtt_seconds": 163440,
+      "status": "known_increasing",
+      "rate_au_per_year": 3.6,
+      "notes": "Most distant human-made object"
+    }
+  },
+  "physics_constants": {
+    "light_speed_km_s": 299792.458,
+    "light_speed_m_s": 299792458,
+    "light_speed_au_min": 0.00200399,
+    "light_year_km": 9.461e12,
+    "au_km": 149597870.7
+  },
+  "weave_template_priorities": {
+    "priority_1": "proxima_centauri",
+    "priority_2": "earth_mars_average",
+    "priority_3": "earth_moon",
+    "notes": "Weave templates ordered by strategic importance for AXIOM"
+  }
+}

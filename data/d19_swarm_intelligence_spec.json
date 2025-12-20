@@ -1,8 +1,8 @@
 {
-  "version": "19.1.0",
+  "version": "19.2.0",
   "depth": 19,
   "scale": "swarm_intelligence",
-  "paradigm": "compression_as_coordination",
+  "paradigm": "future_projection_weaving",
   "d19_1_config": {
     "synthetic_enabled": false,
     "entropy_source": "live_triad",
@@ -11,6 +11,25 @@
     "law_enforcement_mode": "receipt_chain",
     "reality_only": true,
     "note": "Laws are not discovered—they are enforced by the receipt chain itself"
+  },
+  "d19_2_config": {
+    "future_projection_mode": true,
+    "simulation_enabled": false,
+    "reactive_mode_enabled": false,
+    "projection_horizon_years": 10,
+    "light_speed_latency_binding": true,
+    "weave_horizon": "interstellar",
+    "preemptive_amplify_threshold": 0.85,
+    "preemptive_starve_threshold": 0.50,
+    "proxima_rtt_years": 8.48,
+    "note": "Laws are woven preemptively from projected future entropy trajectories",
+    "killed": {
+      "reactive_law_enforcement": true,
+      "alpha_threshold_triggers": true,
+      "simulation_forward_modeling": true,
+      "post_event_pattern_detection": true,
+      "latency_as_obstacle": true
+    }
   },
   "baseline_from_d18": {
     "mars_relay_nodes": 5,

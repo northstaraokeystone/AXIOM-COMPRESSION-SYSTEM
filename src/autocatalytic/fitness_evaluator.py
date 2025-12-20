@@ -6,10 +6,38 @@ Implements QED v12 fitness model:
 - Stability
 - Diversity contribution
 - Recency bonus
+
+D19.2 UPDATE - PROJECTED FUTURE FITNESS:
+  OLD: "Darwinian selection on OBSERVED fitness"
+  NEW: "Selection on PROJECTED future fitness"
+
+  Grok's Core Insight:
+    "High-future-compression paths are pre-amplified in today's selection.
+     Low-future paths pre-starved before they waste cycles."
+
+  Selection is on PROJECTED future, not observed past.
 """
 
+import math
 import random
 from typing import Any, Dict, List
+
+# === D19.2 PROJECTED FITNESS CONSTANTS ===
+
+PROJECTED_FITNESS_WEIGHT = 0.60
+"""Weight for projected future fitness (vs current observed)."""
+
+OBSERVED_FITNESS_WEIGHT = 0.40
+"""Weight for current observed fitness."""
+
+SELECTION_ON_PAST = False
+"""Selection on past KILLED - projected future only."""
+
+HIGH_FUTURE_FITNESS_THRESHOLD = 0.85
+"""Threshold for pre-amplification."""
+
+LOW_FUTURE_FITNESS_THRESHOLD = 0.50
+"""Threshold for pre-starvation."""
 
 
 def compute_pattern_fitness(
@@ -160,3 +188,128 @@ def compute_recency_bonus(cycles_since_birth: int, decay_rate: float = 0.01) -> 
     """
     bonus = max(0.0, 1.0 - (cycles_since_birth * decay_rate))
     return round(bonus, 4)
+
+
+# === D19.2 PROJECTED FUTURE FITNESS ===
+
+
+def compute_projected_fitness(
+    pattern: Dict,
+    projection_years: float = 10.0,
+    entropy_growth_rate: float = 0.05,
+) -> Dict[str, Any]:
+    """Compute PROJECTED future fitness for a pattern.
+
+    D19.2: Selection on PROJECTED future, not observed past.
+
+    Args:
+        pattern: Pattern dict with current fitness metrics
+        projection_years: Years into future to project
+        entropy_growth_rate: Annual entropy growth rate
+
+    Returns:
+        Dict with projected fitness metrics
+    """
+    # Get current observed fitness
+    current_fitness = pattern.get("fitness", 0.5)
+    current_entropy = pattern.get("entropy", 1.0)
+    stability = pattern.get("stability", 0.5)
+
+    # Project entropy into future
+    entropy_growth_factor = 1 + (projection_years * entropy_growth_rate)
+    projected_entropy = current_entropy * entropy_growth_factor
+
+    # Projected entropy reduction (inverse of entropy growth)
+    projected_entropy_reduction = max(0.0, 1.0 - (projected_entropy / 10.0))
+
+    # Stability decay over projection window
+    stability_decay = math.exp(-projection_years * 0.1)
+    projected_stability = stability * stability_decay
+
+    # Projected fitness combines current and projected
+    projected_fitness = (
+        OBSERVED_FITNESS_WEIGHT * current_fitness +
+        PROJECTED_FITNESS_WEIGHT * (
+            0.50 * projected_entropy_reduction +
+            0.50 * projected_stability
+        )
+    )
+    projected_fitness = max(0.0, min(1.0, projected_fitness))
+
+    # Classify for preemptive selection
+    if projected_fitness >= HIGH_FUTURE_FITNESS_THRESHOLD:
+        classification = "high_future"
+        recommendation = "amplify"
+    elif projected_fitness <= LOW_FUTURE_FITNESS_THRESHOLD:
+        classification = "low_future"
+        recommendation = "starve"
+    else:
+        classification = "medium_future"
+        recommendation = "neutral"
+
+    return {
+        "current_fitness": round(current_fitness, 4),
+        "projected_fitness": round(projected_fitness, 4),
+        "projection_years": projection_years,
+        "projected_entropy": round(projected_entropy, 6),
+        "projected_entropy_reduction": round(projected_entropy_reduction, 4),
+        "projected_stability": round(projected_stability, 4),
+        "classification": classification,
+        "recommendation": recommendation,
+        "selection_on_past": SELECTION_ON_PAST,
+    }
+
+
+def select_by_projected_fitness(
+    patterns: List[Dict],
+    k: int = 1,
+    projection_years: float = 10.0,
+) -> List[Dict]:
+    """Select patterns based on PROJECTED future fitness.
+
+    D19.2: Pre-amplify high-future-compression, pre-starve low-future.
+
+    Args:
+        patterns: List of patterns to select from
+        k: Number of patterns to select
+        projection_years: Years into future to project
+
+    Returns:
+        Selected patterns (highest projected fitness)
+    """
+    if not patterns:
+        return []
+
+    # Compute projected fitness for all patterns
+    projections = []
+    for pattern in patterns:
+        projected = compute_projected_fitness(pattern, projection_years)
+        projections.append({
+            **pattern,
+            "projected_fitness": projected["projected_fitness"],
+            "classification": projected["classification"],
+            "recommendation": projected["recommendation"],
+        })
+
+    # Sort by projected fitness descending
+    projections.sort(key=lambda x: x.get("projected_fitness", 0), reverse=True)
+
+    return projections[:k]
+
+
+def get_fitness_status() -> Dict[str, Any]:
+    """Get fitness evaluator status.
+
+    Returns:
+        Status dict
+    """
+    return {
+        "module": "autocatalytic.fitness_evaluator",
+        "version": "19.2.0",
+        "projected_fitness_weight": PROJECTED_FITNESS_WEIGHT,
+        "observed_fitness_weight": OBSERVED_FITNESS_WEIGHT,
+        "selection_on_past": SELECTION_ON_PAST,
+        "high_future_threshold": HIGH_FUTURE_FITNESS_THRESHOLD,
+        "low_future_threshold": LOW_FUTURE_FITNESS_THRESHOLD,
+        "insight": "Selection on PROJECTED future, not observed past",
+    }
