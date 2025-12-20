@@ -6,6 +6,12 @@ D19.1 UPDATE:
   - Alpha threshold trigger for law discovery
   - Live stream only (no synthetic patterns)
   - "Laws are not discovered—they are enforced by the receipt chain itself"
+
+D19.3 UPDATE - LIVE CAUSALITY ORACLE:
+  - Laws are oracled from chain history, not projected
+  - Projection and simulation KILLED
+  - discover_from_oracle() replaces all projection-based discovery
+  - Grok's Insight: "Laws are oracled directly from the live chain's emergent causality"
 """
 
 import json
@@ -607,3 +613,107 @@ def discover_from_live_stream(ld: LawDiscovery, receipts: List[Dict]) -> Dict[st
     )
 
     return law
+
+
+# === D19.3 ORACLE-BASED LAW DISCOVERY ===
+
+
+def discover_from_oracle(ld: LawDiscovery, oracle: Any = None) -> Dict[str, Any]:
+    """Discover laws from oracle (history), not projection.
+
+    D19.3: Laws are oracled directly from the live chain's emergent causality.
+    Projection KILLED. Simulation KILLED. History is the only truth.
+
+    Args:
+        ld: LawDiscovery instance
+        oracle: LiveHistoryOracle instance (optional)
+
+    Returns:
+        Discovery result dict
+
+    Receipt: oracle_law_discovery_receipt
+    """
+    now = datetime.utcnow().isoformat() + "Z"
+
+    # Import oracle if not provided
+    if oracle is None:
+        try:
+            from ..oracle import init_oracle, load_chain_history, extract_laws_from_history
+            oracle = init_oracle()
+            oracle.history = load_chain_history()
+        except ImportError:
+            return {
+                "error": "oracle_not_available",
+                "message": "Oracle package not found",
+                "projection_used": False,
+                "simulation_used": False,
+            }
+
+    # Extract laws from history
+    try:
+        from ..oracle import extract_laws_from_history, compute_history_compression
+        history = oracle.history if hasattr(oracle, 'history') else []
+        laws = extract_laws_from_history(history)
+        compression = compute_history_compression(history)
+    except ImportError:
+        laws = []
+        compression = 0.0
+
+    # Promote high-fitness laws
+    promoted_laws = []
+    for law in laws:
+        fitness = law.get("compression_contribution", 0) + law.get("frequency", 0) * 0.5
+        if fitness >= 0.3:
+            law["status"] = "active"
+            law["fitness_score"] = round(fitness, 4)
+            promoted_laws.append(law)
+
+    result = {
+        "discovery_mode": "oracle",
+        "projection_used": False,
+        "simulation_used": False,
+        "history_size": len(oracle.history) if hasattr(oracle, 'history') else 0,
+        "laws_discovered": len(promoted_laws),
+        "compression_ratio": compression,
+        "laws": promoted_laws,
+        "source": "chain_history_only",
+        "ts": now,
+    }
+
+    emit_receipt(
+        "oracle_law_discovery",
+        {
+            "receipt_type": "oracle_law_discovery",
+            "tenant_id": TENANT_ID,
+            "ts": now,
+            "discovery_id": ld.discovery_id,
+            "laws_discovered": len(promoted_laws),
+            "compression_ratio": compression,
+            "projection_used": False,
+            "simulation_used": False,
+            "source": "chain_history_only",
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"laws": len(promoted_laws), "compression": compression},
+                    sort_keys=True,
+                )
+            ),
+        },
+    )
+
+    return result
+
+
+# D19.2 FUNCTIONS KILLED - These now redirect to oracle
+def discover_from_projected_paths(*args, **kwargs) -> Dict[str, Any]:
+    """KILLED in D19.3 - Projection eliminated.
+
+    This function now returns an error indicating projection is disabled.
+    Use discover_from_oracle() instead.
+    """
+    return {
+        "error": "projection_killed",
+        "message": "D19.3: Projection KILLED. Use discover_from_oracle() instead.",
+        "projection_enabled": False,
+        "redirect_to": "discover_from_oracle",
+    }

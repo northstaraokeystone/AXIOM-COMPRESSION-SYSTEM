@@ -1,0 +1,33 @@
+{
+  "oracle_mode": "live_history_only",
+  "projection_enabled": false,
+  "simulation_enabled": false,
+  "preemptive_weave_enabled": false,
+  "gap_silence_law_emergence": true,
+  "instant_incorporation": true,
+  "compression_source": "chain_history_only",
+  "law_extraction_method": "maximal_causal_subgraph",
+  "latency_silence_threshold_seconds": 60,
+  "interstellar_silence_threshold_years": 4.0,
+  "incorporation_latency_max_ms": 100,
+  "version": "19.3.0",
+  "paradigm": "live_causality_oracle",
+  "note": "Laws are oracled directly from the live chain's emergent causality. The chain history is the only truth.",
+  "killed": {
+    "projection_package": true,
+    "weave_package": true,
+    "future_path_projection": true,
+    "preemptive_weave": true,
+    "latency_bound_model": true,
+    "path_compression_estimator": true,
+    "impending_entropy_weave": true,
+    "delay_nullification": true,
+    "weave_to_chain": true
+  },
+  "gap_thresholds": {
+    "normal_seconds": 60,
+    "extended_seconds": 3600,
+    "interstellar_years": 4.0,
+    "proxima_years": 8.48
+  }
+}

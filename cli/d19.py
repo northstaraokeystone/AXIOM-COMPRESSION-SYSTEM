@@ -695,3 +695,227 @@ The delay appears to vanish."""
     print(f"\n({len(tweet)} chars)")
 
     return {"tweet": tweet, "chars": len(tweet)}
+
+
+# === D19.3 LIVE CAUSALITY ORACLE CLI COMMANDS ===
+
+
+def cmd_d19_run_oracle_mode(args: Namespace) -> Dict[str, Any]:
+    """Run D19 in live causality oracle mode (--live_oracle_mode flag).
+
+    D19.3: Laws are oracled directly from the live chain's emergent causality.
+    Projection KILLED. Preemptive weave KILLED. History is the only truth.
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with D19.3 oracle mode results
+    """
+    from src.depths.d19_swarm_intelligence import (
+        run_d19_oracle_mode,
+        ORACLE_MODE,
+        PROJECTION_ENABLED,
+        SIMULATION_ENABLED,
+        PREEMPTIVE_WEAVE_ENABLED,
+        GAP_SILENCE_LAW_EMERGENCE,
+        INSTANT_INCORPORATION,
+    )
+
+    print("\n=== D19.3 LIVE CAUSALITY ORACLE EXECUTION ===")
+    print("Mode: Live History Oracle")
+    print("Paradigm: Laws oracled directly from chain's emergent causality")
+    print(f"Oracle mode: {ORACLE_MODE}")
+    print(f"Projection enabled: {PROJECTION_ENABLED} (KILLED)")
+    print(f"Simulation enabled: {SIMULATION_ENABLED} (KILLED)")
+    print(f"Preemptive weave enabled: {PREEMPTIVE_WEAVE_ENABLED} (KILLED)")
+    print(f"Gap-silence law emergence: {GAP_SILENCE_LAW_EMERGENCE}")
+    print(f"Instant incorporation: {INSTANT_INCORPORATION}")
+    print("\nRunning 5 gates...\n")
+
+    result = run_d19_oracle_mode()
+
+    print(f"Depth: {result.get('depth', 19)}")
+    print(f"Scale: {result.get('scale', 'swarm_intelligence')}")
+    print(f"Paradigm: {result.get('paradigm', 'live_causality_oracle')}")
+    print(f"Mode: {result.get('mode', 'oracle_mode')}")
+
+    print(f"\nEffective alpha: {result.get('eff_alpha', 0)}")
+    print(f"Alpha floor: {result.get('alpha_floor', 3.93)}")
+    print(f"Alpha target: {result.get('alpha_target', 3.92)}")
+
+    gates = result.get("gates", {})
+
+    print("\n--- Gate 1: Projection Kill Verification ---")
+    g1 = gates.get("gate_1", {})
+    print(f"  Projection killed: {g1.get('projection_killed', False)}")
+    print(f"  Simulation killed: {g1.get('simulation_killed', False)}")
+    print(f"  Preemptive weave killed: {g1.get('preemptive_weave_killed', False)}")
+    print(f"  Future path receipts: {g1.get('future_path_receipts_emitted', 0)}")
+    print(f"  Target met: {g1.get('target_met', False)}")
+
+    print("\n--- Gate 2: Live History Oracle ---")
+    g2 = gates.get("gate_2", {})
+    print(f"  History size: {g2.get('history_size', 0)}")
+    print(f"  Compression ratio: {g2.get('compression_ratio', 0):.6f}")
+    print(f"  Laws discovered: {g2.get('laws_discovered', 0)}")
+    print(f"  Oracle mode: {g2.get('oracle_mode', 'N/A')}")
+    print(f"  Target met: {g2.get('target_met', False)}")
+
+    print("\n--- Gate 3: Maximal Causal Subgraph Extraction ---")
+    g3 = gates.get("gate_3", {})
+    print(f"  Node count: {g3.get('node_count', 0)}")
+    print(f"  Edge count: {g3.get('edge_count', 0)}")
+    print(f"  Subgraphs found: {g3.get('subgraphs_found', 0)}")
+    print(f"  Laws extracted: {g3.get('laws_extracted', 0)}")
+    print(f"  Target met: {g3.get('target_met', False)}")
+
+    print("\n--- Gate 4: Instant Incorporation ---")
+    g4 = gates.get("gate_4", {})
+    print(f"  Incorporation count: {g4.get('incorporation_count', 0)}")
+    print(f"  Latency: {g4.get('latency_ms', 0):.4f}ms")
+    print(f"  Latency OK (<100ms): {g4.get('latency_ok', False)}")
+    print(f"  Batch processing: {g4.get('batch_processing', False)}")
+    print(f"  Target met: {g4.get('target_met', False)}")
+
+    print("\n--- Gate 5: Gap-Silence Law Emergence ---")
+    g5 = gates.get("gate_5", {})
+    print(f"  Gap type: {g5.get('gap_type', 'N/A')}")
+    print(f"  Gap seconds: {g5.get('gap_seconds', 0):.2f}")
+    print(f"  Emerged laws: {g5.get('emerged_laws', 0)}")
+    print(f"  Selection pressure: {g5.get('selection_pressure', 'silence')}")
+    print(f"  Target met: {g5.get('target_met', False)}")
+
+    print(f"\nFloor met (>= 3.93): {result.get('floor_met', False)}")
+    print(f"Target met (>= 3.92): {result.get('target_met', False)}")
+    print(f"All gates passed: {result.get('all_gates_passed', False)}")
+    print(f"SLO passed: {result.get('slo_passed', False)}")
+    print(f"Gate: {result.get('gate', 't24h')}")
+
+    print("\n" + "-" * 50)
+    print(f"Insight: {result.get('insight', '')}")
+
+    return result
+
+
+def cmd_d19_verify_projection_killed(args: Namespace) -> Dict[str, Any]:
+    """Verify all projection code is killed (--verify_projection_killed flag).
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with verification results
+    """
+    from src.depths.d19_swarm_intelligence import verify_projection_killed
+
+    print("\n=== PROJECTION KILL VERIFICATION ===")
+    print("Verifying projection, simulation, and weave are KILLED...\n")
+
+    result = verify_projection_killed()
+
+    print(f"PROJECTION_ENABLED: {result.get('projection_enabled', True)}")
+    print(f"SIMULATION_ENABLED: {result.get('simulation_enabled', True)}")
+    print(f"PREEMPTIVE_WEAVE_ENABLED: {result.get('preemptive_weave_enabled', True)}")
+    print(f"\nProjection killed: {result.get('projection_killed', False)}")
+    print(f"Simulation killed: {result.get('simulation_killed', False)}")
+    print(f"Preemptive weave killed: {result.get('preemptive_weave_killed', False)}")
+    print(f"\nProjection dir exists: {result.get('projection_dir_exists', True)}")
+    print(f"Weave dir exists: {result.get('weave_dir_exists', True)}")
+    print(f"Killed dir exists: {result.get('killed_dir_exists', False)}")
+    print(f"\nVerification passed: {result.get('passed', False)}")
+
+    return result
+
+
+def cmd_d19_live_oracle_test(args: Namespace) -> Dict[str, Any]:
+    """Test live history oracle functionality (--live_oracle_test flag).
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with test results
+    """
+    from src.depths.d19_swarm_intelligence import test_live_oracle
+
+    print("\n=== LIVE ORACLE TEST ===")
+    print("Testing history-only oracle (no projection)...\n")
+
+    result = test_live_oracle()
+
+    print(f"History size: {result.get('history_size', 0)}")
+    print(f"Compression ratio: {result.get('compression_ratio', 0):.6f}")
+    print(f"Laws discovered: {result.get('laws_discovered', 0)}")
+    print(f"Oracle mode: {result.get('oracle_mode', 'N/A')}")
+    print(f"Projection enabled: {result.get('projection_enabled', True)}")
+    print(f"Simulation enabled: {result.get('simulation_enabled', True)}")
+    print(f"\nTest passed: {result.get('passed', False)}")
+
+    return result
+
+
+def cmd_d19_gap_silence_test(args: Namespace) -> Dict[str, Any]:
+    """Test gap-silence law emergence (--gap_silence_test flag).
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with test results
+    """
+    from src.depths.d19_swarm_intelligence import test_gap_silence
+
+    print("\n=== GAP-SILENCE LAW EMERGENCE TEST ===")
+    print("Testing minimal-sync law selection under silence...\n")
+
+    result = test_gap_silence()
+
+    print(f"Normal gap type: {result.get('normal_gap_type', 'N/A')}")
+    print(f"Extended gap type: {result.get('extended_gap_type', 'N/A')}")
+    print(f"Normal gap seconds: {result.get('normal_gap_seconds', 0):.2f}")
+    print(f"Extended gap seconds: {result.get('extended_gap_seconds', 0):.2f}")
+    print(f"\nLaws survive normal gap: {result.get('laws_survive_normal', 0)}")
+    print(f"Laws survive extended gap: {result.get('laws_survive_extended', 0)}")
+    print(f"Interstellar threshold: {result.get('interstellar_threshold_years', 4.0)} years")
+    print(f"\nTest passed: {result.get('passed', False)}")
+
+    return result
+
+
+def cmd_d19_3_tweet(args: Namespace) -> Dict[str, Any]:
+    """Generate X thread for D19.3.
+
+    Args:
+        args: CLI arguments
+
+    Returns:
+        Dict with tweet content
+    """
+    tweet = """D19.3 LIVE CAUSALITY ORACLE SHIPPED
+
+KILLED:
+- All projection (future paths)
+- All preemptive weaving
+- All simulation
+
+ADDED:
+- Live history oracle (chain is truth)
+- Maximal causal subgraph laws
+- Instant incorporation (<100ms)
+- Gap-silence law emergence
+
+D19.1: Live entropy.
+D19.2: Projected entropy (KILLED).
+D19.3: History as sole oracle.
+
+Interstellar silence selects invariants.
+Laws survive the gaps.
+
+Next: What emerges when Proxima goes silent for 8.48yr?"""
+
+    print("\n=== D19.3 X THREAD ===")
+    print(tweet)
+    print(f"\n({len(tweet)} chars)")
+
+    return {"tweet": tweet, "chars": len(tweet)}

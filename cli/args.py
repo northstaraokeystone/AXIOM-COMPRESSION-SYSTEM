@@ -2653,6 +2653,38 @@ def _add_d19_args(parser: argparse.ArgumentParser) -> None:
         "--d19_tweet", action="store_true", help="Generate D19 X thread"
     )
 
+    # D19.3 Live Causality Oracle flags
+    parser.add_argument(
+        "--live_oracle_mode",
+        action="store_true",
+        help="Run D19.3 live causality oracle mode",
+    )
+    parser.add_argument(
+        "--verify_projection_killed",
+        action="store_true",
+        help="Verify projection/weave packages are killed",
+    )
+    parser.add_argument(
+        "--live_oracle_test",
+        action="store_true",
+        help="Test live history oracle functionality",
+    )
+    parser.add_argument(
+        "--gap_silence_test",
+        action="store_true",
+        help="Test gap-silence law emergence",
+    )
+    parser.add_argument(
+        "--instant_incorporate",
+        action="store_true",
+        help="Enable real-time instant incorporation",
+    )
+    parser.add_argument(
+        "--d19_3_tweet",
+        action="store_true",
+        help="Generate D19.3 X thread",
+    )
+
     # Darwinian enforcer flags (v2)
     _add_darwinian_args(parser)
 
