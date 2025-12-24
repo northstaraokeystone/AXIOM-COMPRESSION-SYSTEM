@@ -1,6 +1,6 @@
 """cli/darwinian.py - Darwinian enforcer CLI commands.
 
-AXIOM v2: The receipt chain is a Darwinian replicator.
+SpaceProof v2: The receipt chain is a Darwinian replicator.
 """
 
 import json

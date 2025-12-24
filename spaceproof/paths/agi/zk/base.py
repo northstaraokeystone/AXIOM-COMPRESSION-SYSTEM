@@ -9,7 +9,7 @@ from ....zk_proof_audit import (
     compare_to_traditional,
 )
 
-AGI_TENANT_ID = "axiom-agi"
+AGI_TENANT_ID = "spaceproof-agi"
 
 
 def integrate_zk_proofs(config=None):

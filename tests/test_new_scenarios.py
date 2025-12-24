@@ -2,7 +2,7 @@
 
 Tests for RADIATION, BLACKOUT, PSYCHOLOGY, and REALDATA scenarios.
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 import pytest

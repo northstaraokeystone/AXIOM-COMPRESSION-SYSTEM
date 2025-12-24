@@ -1,7 +1,7 @@
 """config.py - Generic configuration loading utilities.
 
 Provides unified config loading with dual-hash verification.
-Reduces boilerplate across all AXIOM modules.
+Reduces boilerplate across all SpaceProof modules.
 """
 
 import json
@@ -29,7 +29,7 @@ def get_spec_path(spec_name: str) -> str:
 def load_spec(
     spec_name: str,
     config_key: Optional[str] = None,
-    tenant_id: str = "axiom-core",
+    tenant_id: str = "spaceproof-core",
     emit: bool = True,
 ) -> Dict[str, Any]:
     """Load a spec file with optional config key extraction.
@@ -78,7 +78,7 @@ def load_spec_with_defaults(
     spec_name: str,
     config_key: str,
     defaults: Dict[str, Any],
-    tenant_id: str = "axiom-core",
+    tenant_id: str = "spaceproof-core",
 ) -> Dict[str, Any]:
     """Load a spec config with defaults applied.
 

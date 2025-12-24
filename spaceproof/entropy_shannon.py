@@ -303,7 +303,7 @@ def emit_entropy_receipt(
     return emit_receipt(
         "entropy_calculation",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "crew": crew,
             "bandwidth_mbps": bandwidth_mbps,
             "delay_s": delay_s,

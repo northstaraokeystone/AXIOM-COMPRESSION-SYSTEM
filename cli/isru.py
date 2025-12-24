@@ -1,4 +1,4 @@
-"""ISRU hybrid CLI commands for AXIOM-CORE.
+"""ISRU hybrid CLI commands for SpaceProof-CORE.
 
 Commands for D5+ISRU hybrid operations:
 - cmd_moxie_info: Show MOXIE calibration data

@@ -7,7 +7,7 @@ KEY INSIGHT: "Audit trail IS alignment"
 - Compression as alignment metric
 - Fractal policies are self-similar at all scales
 
-Source: AXIOM scalable paths architecture - AGI ethics modeling
+Source: SpaceProof scalable paths architecture - AGI ethics modeling
 """
 
 from .core import (

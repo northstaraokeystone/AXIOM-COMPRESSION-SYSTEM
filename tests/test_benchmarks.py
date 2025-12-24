@@ -1,8 +1,8 @@
 """test_benchmarks.py - Tests for Benchmark Comparison Suite
 
-Tests for AXIOM vs pySR comparison and symbolic baselines.
+Tests for SpaceProof vs pySR comparison and symbolic baselines.
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 import pytest
@@ -83,12 +83,12 @@ class TestSimpleKAN:
         assert compression <= 1
 
 
-class TestAXIOMRunner:
-    """Tests for run_axiom function."""
+class TestSpaceProofRunner:
+    """Tests for run_spaceproof function."""
 
-    def test_run_axiom_returns_results(self):
-        """run_axiom() should return benchmark results."""
-        from benchmarks.pysr_comparison import run_axiom
+    def test_run_spaceproof_returns_results(self):
+        """run_spaceproof() should return benchmark results."""
+        from benchmarks.pysr_comparison import run_spaceproof
 
         data = {
             "id": "TEST001",
@@ -96,7 +96,7 @@ class TestAXIOMRunner:
             "v": 100 * np.sqrt(1 / np.linspace(1, 10, 20)),
         }
 
-        result = run_axiom(data, epochs=20)
+        result = run_spaceproof(data, epochs=20)
 
         assert "equation" in result
         assert "mse" in result
@@ -104,12 +104,12 @@ class TestAXIOMRunner:
         assert "r_squared" in result
         assert "time_ms" in result
         assert "tool" in result
-        assert result["tool"] == "AXIOM_KAN"
+        assert result["tool"] == "SpaceProof_KAN"
         assert result["success"]
 
-    def test_run_axiom_r_squared_reasonable(self):
-        """run_axiom() should achieve reasonable R² on simple data."""
-        from benchmarks.pysr_comparison import run_axiom
+    def test_run_spaceproof_r_squared_reasonable(self):
+        """run_spaceproof() should achieve reasonable R² on simple data."""
+        from benchmarks.pysr_comparison import run_spaceproof
 
         r = np.linspace(1, 10, 20)
         data = {
@@ -118,7 +118,7 @@ class TestAXIOMRunner:
             "v": 100 * np.sqrt(1 / r),
         }
 
-        result = run_axiom(data, epochs=100)
+        result = run_spaceproof(data, epochs=100)
 
         # Should fit simple Newtonian curve well
         assert result["r_squared"] > 0.9
@@ -180,11 +180,11 @@ class TestComparison:
 
         assert "galaxy_id" in result
         assert "pysr" in result
-        assert "axiom" in result
+        assert "spaceproof" in result
         assert "comparison" in result
 
         assert result["pysr"]["success"]
-        assert result["axiom"]["success"]
+        assert result["spaceproof"]["success"]
 
     def test_compare_identifies_winner(self):
         """compare() should identify MSE winner."""
@@ -199,7 +199,7 @@ class TestComparison:
         result = compare(galaxy)
 
         assert "winner_mse" in result["comparison"]
-        assert result["comparison"]["winner_mse"] in ["axiom", "pysr"]
+        assert result["comparison"]["winner_mse"] in ["spaceproof", "pysr"]
 
     def test_batch_compare_aggregates(self):
         """batch_compare() should aggregate multiple galaxies."""
@@ -303,22 +303,22 @@ class TestReport:
             "individual_results": [
                 {
                     "galaxy_id": "NGC_RPT",
-                    "axiom": {"compression": 0.85, "r_squared": 0.95, "mse": 10.0},
+                    "spaceproof": {"compression": 0.85, "r_squared": 0.95, "mse": 10.0},
                     "pysr": {"mse": 12.0},
-                    "comparison": {"winner_mse": "axiom"},
+                    "comparison": {"winner_mse": "spaceproof"},
                 }
             ],
             "summary": {
                 "n_galaxies": 1,
-                "axiom": {"mean_compression": 0.85, "mean_r_squared": 0.95},
-                "axiom_wins_mse": 1,
-                "axiom_wins_time": 1,
+                "spaceproof": {"mean_compression": 0.85, "mean_r_squared": 0.95},
+                "spaceproof_wins_mse": 1,
+                "spaceproof_wins_time": 1,
             },
         }
 
         table = format_comparison_table(results)
 
-        assert "# AXIOM Benchmark Results" in table
+        assert "# SpaceProof Benchmark Results" in table
         assert "NGC_RPT" in table
         assert "85" in table or "0.85" in table  # Compression
 
@@ -329,8 +329,8 @@ class TestReport:
         results = {
             "summary": {
                 "n_galaxies": 5,
-                "axiom": {"mean_compression": 0.90, "mean_r_squared": 0.97},
-                "axiom_wins_mse": 3,
+                "spaceproof": {"mean_compression": 0.90, "mean_r_squared": 0.97},
+                "spaceproof_wins_mse": 3,
             }
         }
 

@@ -150,7 +150,7 @@ def measure_sim_fidelity(
     emit_receipt(
         "leading_indicator",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "indicator_type": LeadingIndicator.SIM_FIDELITY.value,
             "current_value": fidelity,
             "target_value": SIM_FIDELITY_TARGET,
@@ -212,7 +212,7 @@ def measure_fleet_learning_rate(
     emit_receipt(
         "leading_indicator",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "indicator_type": LeadingIndicator.FLEET_LEARNING_RATE.value,
             "current_value": current_alpha,
             "target_value": FLEET_LEARNING_ALPHA_TARGET,
@@ -314,7 +314,7 @@ def measure_tau_velocity(
     emit_receipt(
         "leading_indicator",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "indicator_type": LeadingIndicator.TAU_VELOCITY.value,
             "current_value": velocity_pct,
             "target_value": TAU_VELOCITY_TARGET,
@@ -537,7 +537,7 @@ def emit_leading_indicator_receipt(measurement: IndicatorMeasurement) -> dict:
     return emit_receipt(
         "leading_indicator",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "indicator_type": measurement.indicator_type.value,
             "current_value": measurement.current_value,
             "target_value": measurement.target_value,

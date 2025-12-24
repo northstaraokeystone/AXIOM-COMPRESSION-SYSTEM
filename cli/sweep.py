@@ -1,4 +1,4 @@
-"""Full sweep CLI commands for AXIOM-CORE.
+"""Full sweep CLI commands for SpaceProof-CORE.
 
 Commands: full_500_sweep (combined quantum-fractal sweep)
 """

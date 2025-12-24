@@ -49,7 +49,7 @@ QUANTUM_TARGET_RETENTION = 1.07
 QUANTUM_IMPLEMENTED = False
 """Stub indicator - not yet implemented."""
 
-TENANT_ID = "axiom-colony"
+TENANT_ID = "spaceproof-colony"
 """Tenant ID for receipts."""
 
 

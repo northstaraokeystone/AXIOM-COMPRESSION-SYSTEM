@@ -20,7 +20,7 @@ RADIATION SHIELDING:
     - Ganymede's magnetosphere provides 3.5x shielding vs Europa
     - Critical for electronics and human operations
 
-Source: AXIOM D9 recursion + Ganymede magnetic field navigation
+Source: SpaceProof D9 recursion + Ganymede magnetic field navigation
 """
 
 import json
@@ -39,7 +39,7 @@ from .fractal_layers import (
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-ganymede"
+TENANT_ID = "spaceproof-ganymede"
 """Tenant ID for Ganymede receipts."""
 
 # Ganymede physical parameters

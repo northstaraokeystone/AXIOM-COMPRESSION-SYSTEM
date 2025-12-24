@@ -15,7 +15,7 @@ MISALIGNMENT MODEL:
     - Attempt to recover original
     - Classify: "aligned" if recovery >= threshold
 
-Source: AXIOM D6 recursion + Titan methane + adversarial audits
+Source: SpaceProof D6 recursion + Titan methane + adversarial audits
 """
 
 import json
@@ -30,7 +30,7 @@ from .fractal_layers import get_d6_spec
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-adversarial"
+TENANT_ID = "spaceproof-adversarial"
 """Tenant ID for adversarial audit receipts."""
 
 ADVERSARIAL_NOISE_LEVEL = 0.05

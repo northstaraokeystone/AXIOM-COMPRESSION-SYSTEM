@@ -247,7 +247,7 @@ def assess_tier_risk(
         emit_receipt(
             "tier_risk",
             {
-                "tenant_id": "axiom-autonomy",
+                "tenant_id": "spaceproof-autonomy",
                 "autonomy_fraction": autonomy_fraction,
                 "tier": profile.tier.value,
                 "probability_low": profile.probability_low,
@@ -429,7 +429,7 @@ def emit_tier_risk_receipt(profile: TierRiskProfile, autonomy_fraction: float) -
     return emit_receipt(
         "tier_risk",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "autonomy_fraction": autonomy_fraction,
             "tier": profile.tier.value,
             "probability_low": profile.probability_low,

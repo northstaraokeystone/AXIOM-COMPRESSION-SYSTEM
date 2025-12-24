@@ -241,7 +241,7 @@ class TestHelpOutput:
         result = subprocess.run(
             [sys.executable, "cli.py", "--help"], capture_output=True, text=True
         )
-        assert "AXIOM" in result.stdout or "Sovereignty" in result.stdout
+        assert "SpaceProof" in result.stdout or "Sovereignty" in result.stdout
 
     def test_cli_help_shows_commands(self):
         """Test help shows available commands."""

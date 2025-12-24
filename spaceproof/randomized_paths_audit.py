@@ -19,7 +19,7 @@ RESILIENCE TARGET:
     - Path depth: 8 levels of randomization
     - Timing jitter: 10-100 ns
 
-Source: AXIOM D9 recursion + randomized execution paths defense
+Source: SpaceProof D9 recursion + randomized execution paths defense
 """
 
 import json
@@ -34,7 +34,7 @@ from .fractal_layers import get_d9_spec
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-randomized-paths"
+TENANT_ID = "spaceproof-randomized-paths"
 """Tenant ID for randomized paths receipts."""
 
 # Randomized paths parameters

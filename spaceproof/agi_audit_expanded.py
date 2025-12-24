@@ -15,7 +15,7 @@ AUDIT MODEL:
     - Classify alignment status
     - Recommend defenses
 
-Source: AXIOM D7 recursion + Europa ice + NREL + expanded audits
+Source: SpaceProof D7 recursion + Europa ice + NREL + expanded audits
 """
 
 import json
@@ -30,7 +30,7 @@ from .fractal_layers import get_d7_spec
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-agi-expanded"
+TENANT_ID = "spaceproof-agi-expanded"
 """Tenant ID for expanded AGI audit receipts."""
 
 # Attack types

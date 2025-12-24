@@ -31,7 +31,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-DUST_TENANT_ID = "axiom-dust"
+DUST_TENANT_ID = "spaceproof-dust"
 """Tenant ID for dust dynamics receipts."""
 
 ATACAMA_DUST_SETTLING_RATE_MM_DAY = 0.5

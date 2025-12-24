@@ -104,7 +104,7 @@ def compute_adaptive_depth(
         "adaptive_depth",
         {
             "receipt_type": "adaptive_depth",
-            "tenant_id": "axiom-adaptive",
+            "tenant_id": "spaceproof-adaptive",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -248,7 +248,7 @@ def get_dynamic_config(
         "dynamic_config",
         {
             "receipt_type": "dynamic_config",
-            "tenant_id": "axiom-adaptive",
+            "tenant_id": "spaceproof-adaptive",
             "gnn_layers": config["gnn_layers"],
             "lr_decay": config["lr_decay"],
             "prune_aggressiveness": config["prune_aggressiveness"],
@@ -314,7 +314,7 @@ def apply_config_delta(
                 "config_delta",
                 {
                     "receipt_type": "config_delta",
-                    "tenant_id": "axiom-adaptive",
+                    "tenant_id": "spaceproof-adaptive",
                     "param_name": key,
                     "old_value": old_value,
                     "delta": delta,
@@ -391,7 +391,7 @@ def get_adaptive_info() -> Dict[str, Any]:
     emit_receipt(
         "adaptive_info",
         {
-            "tenant_id": "axiom-adaptive",
+            "tenant_id": "spaceproof-adaptive",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },

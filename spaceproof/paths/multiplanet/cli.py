@@ -6,7 +6,7 @@ Commands:
 - cmd_multiplanet_body: Show body configuration
 - cmd_multiplanet_simulate: Run body simulation
 
-Source: AXIOM scalable paths architecture - Multi-planet expansion
+Source: SpaceProof scalable paths architecture - Multi-planet expansion
 """
 
 import json

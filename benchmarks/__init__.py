@@ -1,16 +1,16 @@
 """benchmarks - Compression Benchmark Suite
 
-Compare AXIOM KAN witness against:
+Compare SpaceProof KAN witness against:
     - pySR (2024 SOTA symbolic regression)
     - AI Feynman
     - Eureqa (legacy)
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 from .pysr_comparison import (
     run_pysr,
-    run_axiom,
+    run_spaceproof,
     compare,
     batch_compare,
     generate_table,
@@ -29,7 +29,7 @@ from .report import (
 __all__ = [
     # pySR
     "run_pysr",
-    "run_axiom",
+    "run_spaceproof",
     "compare",
     "batch_compare",
     "generate_table",

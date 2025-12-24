@@ -1,4 +1,4 @@
-"""Scale validation CLI commands for AXIOM-CORE.
+"""Scale validation CLI commands for SpaceProof-CORE.
 
 Commands: multi_scale_sweep, scalability_gate_test, scale_info
 """

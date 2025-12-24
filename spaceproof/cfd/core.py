@@ -33,22 +33,22 @@ from .constants import (
 
 RECEIPT_SCHEMA: Dict[str, Any] = {
     "cfd_config": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_config",
         "description": "CFD configuration loaded",
     },
     "cfd_info": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_info",
         "description": "CFD configuration summary",
     },
     "cfd_reynolds": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_reynolds",
         "description": "Reynolds number computation",
     },
     "cfd_dust": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_dust",
         "description": "Full CFD validation",
     },

@@ -9,7 +9,7 @@ Receipt types:
 
 KEY INSIGHT: "Audit trail IS alignment"
 
-Source: AXIOM scalable paths architecture - AGI ethics modeling
+Source: SpaceProof scalable paths architecture - AGI ethics modeling
 """
 
 from typing import Dict, Any

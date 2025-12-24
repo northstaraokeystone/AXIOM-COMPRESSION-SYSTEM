@@ -10,7 +10,7 @@ THE DARWINIAN INSIGHT:
     Physics emerges not from observation but from survival.
     Laws are not discovered - they are the survivors of selection.
 
-Source: AXIOM v2 - Darwinian Causal Enforcer
+Source: SpaceProof v2 - Darwinian Causal Enforcer
 """
 
 import json
@@ -22,7 +22,7 @@ from .core import dual_hash, emit_receipt, StopRule
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-darwinian"
+TENANT_ID = "spaceproof-darwinian"
 """Tenant for Darwinian enforcement receipts."""
 
 # Selection parameters (from darwinian_spec.json)

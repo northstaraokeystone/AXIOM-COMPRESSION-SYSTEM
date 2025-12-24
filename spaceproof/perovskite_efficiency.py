@@ -9,7 +9,7 @@ PHYSICS NOTE:
     This is a STUB module for efficiency projection.
     Actual physics validation is separate.
 
-Source: AXIOM D6 recursion + Titan methane + adversarial audits
+Source: SpaceProof D6 recursion + Titan methane + adversarial audits
 """
 
 import json
@@ -22,7 +22,7 @@ from .fractal_layers import get_d6_spec
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-perovskite"
+TENANT_ID = "spaceproof-perovskite"
 """Tenant ID for perovskite receipts."""
 
 MOXIE_EFFICIENCY = 0.06

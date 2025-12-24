@@ -1,11 +1,11 @@
-"""Shared CLI utilities for AXIOM-CORE.
+"""Shared CLI utilities for SpaceProof-CORE.
 
 This module provides shared utilities, constants, and decorators
 used across all CLI command modules.
 """
 
 # Shared constants
-TENANT_ID = "axiom-colony"
+TENANT_ID = "spaceproof-colony"
 
 
 def print_header(title: str):

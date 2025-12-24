@@ -46,47 +46,47 @@ from .constants import (
 
 RECEIPT_SCHEMA: Dict[str, Any] = {
     "atacama_realtime_config": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "atacama_realtime_config",
         "description": "Atacama real-time configuration",
     },
     "atacama_realtime_info": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "atacama_realtime_info",
         "description": "Atacama real-time info",
     },
     "atacama_les_realtime": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "atacama_les_realtime",
         "description": "Atacama real-time LES simulation",
     },
     "atacama_track": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "atacama_track",
         "description": "Dust devil tracking",
     },
     "atacama_feedback": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "atacama_feedback",
         "description": "Real-time feedback loop",
     },
     "atacama_correlation": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "atacama_correlation",
         "description": "LES-field correlation",
     },
     "atacama_validation": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "atacama_validation",
         "description": "Full Atacama validation",
     },
     "cfd_validation": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_validation",
         "description": "CFD validation against Atacama",
     },
     "cfd_mars": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_mars",
         "description": "Mars dynamics projection",
     },

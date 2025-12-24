@@ -34,7 +34,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-PLONK_TENANT_ID = "axiom-plonk"
+PLONK_TENANT_ID = "spaceproof-plonk"
 """Tenant ID for PLONK receipts."""
 
 PLONK_PROOF_SYSTEM = "plonk"

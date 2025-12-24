@@ -1,4 +1,4 @@
-"""Adaptive depth CLI commands for AXIOM-CORE.
+"""Adaptive depth CLI commands for SpaceProof-CORE.
 
 Commands: adaptive_depth_run, depth_scaling_test, compute_depth_single,
           depth_scaling_info, efficient_sweep_info

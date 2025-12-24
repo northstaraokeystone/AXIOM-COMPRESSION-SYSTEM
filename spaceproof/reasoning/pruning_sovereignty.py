@@ -124,7 +124,7 @@ def extended_250d_sovereignty(
     emit_receipt(
         "extended_250d_sovereignty",
         {
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -237,7 +237,7 @@ def validate_pruning_slos(
     emit_receipt(
         "pruning_slo_validation",
         {
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **validation,
             "payload_hash": dual_hash(json.dumps(validation, sort_keys=True)),
         },

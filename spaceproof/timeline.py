@@ -377,7 +377,7 @@ def project_timeline(
     emit_receipt(
         "timeline",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "autonomy_fraction": autonomy_fraction,
             "alpha": alpha,
             "c_base": c_base,
@@ -613,7 +613,7 @@ def emit_timeline_receipt(
     return emit_receipt(
         "timeline",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "autonomy_fraction": projection.allocation_fraction,
             "alpha": ALPHA_DEFAULT,
             "c_base": projection.c_base,
@@ -849,7 +849,7 @@ def sovereignty_timeline(
 
     # Emit sovereignty projection receipt
     receipt_data = {
-        "tenant_id": "axiom-autonomy",
+        "tenant_id": "spaceproof-autonomy",
         "c_base": c_base,
         "p_factor": p_factor,
         "alpha": alpha,

@@ -15,7 +15,7 @@ from typing import Any, Dict
 
 RECEIPT_SCHEMA: Dict[str, Any] = {
     "cfd_constants": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_constants",
         "description": "CFD and LES constants",
     }
@@ -23,7 +23,7 @@ RECEIPT_SCHEMA: Dict[str, Any] = {
 
 # === CFD CONSTANTS ===
 
-CFD_TENANT_ID = "axiom-cfd"
+CFD_TENANT_ID = "spaceproof-cfd"
 """Tenant ID for CFD receipts."""
 
 CFD_REYNOLDS_NUMBER_MARS = 50

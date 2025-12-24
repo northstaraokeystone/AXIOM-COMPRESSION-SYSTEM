@@ -59,7 +59,7 @@ def dedup_prune(merkle_tree: Dict[str, Any]) -> Dict[str, Any]:
         emit_receipt(
             "dedup_prune",
             {
-                "tenant_id": "axiom-pruning",
+                "tenant_id": "spaceproof-pruning",
                 **result,
                 "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
             },
@@ -103,7 +103,7 @@ def dedup_prune(merkle_tree: Dict[str, Any]) -> Dict[str, Any]:
     emit_receipt(
         "dedup_prune",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "duplicates_found": duplicates_found,
             "duplicates_removed": duplicates_removed,
             "space_saved_pct": space_saved_pct,

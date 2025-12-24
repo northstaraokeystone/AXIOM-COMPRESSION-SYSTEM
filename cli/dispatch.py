@@ -1,4 +1,4 @@
-"""cli/dispatch.py - Command dispatch logic for AXIOM CLI.
+"""cli/dispatch.py - Command dispatch logic for SpaceProof CLI.
 
 Extracted from cli.py to keep main entry point under 600 lines.
 """
@@ -372,7 +372,7 @@ from cli.d19 import (
     cmd_d19_3_tweet,
 )
 
-# Darwinian enforcer commands (AXIOM v2)
+# Darwinian enforcer commands (SpaceProof v2)
 from cli.darwinian import (
     cmd_darwinian_info,
     cmd_darwinian_simulate,
@@ -1148,7 +1148,7 @@ def dispatch(args, docstring: str) -> None:
     if args.d19_3_tweet:
         return cmd_d19_3_tweet(args)
 
-    # Darwinian enforcer commands (AXIOM v2)
+    # Darwinian enforcer commands (SpaceProof v2)
     if args.darwinian_info:
         return cmd_darwinian_info()
     if args.darwinian_simulate:

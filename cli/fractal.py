@@ -1,4 +1,4 @@
-"""Fractal ceiling breach CLI commands for AXIOM-CORE.
+"""Fractal ceiling breach CLI commands for SpaceProof-CORE.
 
 Commands: fractal_push, alpha_boost, fractal_info_hybrid
 """

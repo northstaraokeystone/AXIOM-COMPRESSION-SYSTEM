@@ -11,7 +11,7 @@ from ....quantum_resist_random import (
     test_spectre_v2,
 )
 
-AGI_TENANT_ID = "axiom-agi"
+AGI_TENANT_ID = "spaceproof-agi"
 ALIGNMENT_METRIC = "compression_as_alignment"
 
 

@@ -1,6 +1,6 @@
 """constants.py - Centralized Physics Constants
 
-ALL physics constants for AXIOM live here. Single source of truth.
+ALL physics constants for SpaceProof live here. Single source of truth.
 
 Organization:
     - SHANNON: Entropy bounds and rates

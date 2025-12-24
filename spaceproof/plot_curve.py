@@ -242,7 +242,7 @@ def emit_curve_receipt(knee: int, uncertainty: float, output_path: str) -> dict:
     return emit_receipt(
         "sovereignty_curve",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "threshold_crew": knee,
             "uncertainty": uncertainty,
             "output_path": output_path,
@@ -531,7 +531,7 @@ def emit_heatmap_receipt(output_path: str) -> dict:
     return emit_receipt(
         "sensitivity_heatmap",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "output_path": output_path,
             "bandwidth_range_mbps": [2.0, 10.0],
             "delay_range_s": [180, 1320],
@@ -988,7 +988,7 @@ def emit_roi_visualization_receipt(output_path: str) -> dict:
     return emit_receipt(
         "roi_visualization",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "output_path": output_path,
             "finding": "autonomy_roi_dominates_at_mars",
         },

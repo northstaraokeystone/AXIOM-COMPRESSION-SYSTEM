@@ -101,7 +101,7 @@ def predictive_prune(
         emit_receipt(
             "predictive_prune",
             {
-                "tenant_id": "axiom-pruning",
+                "tenant_id": "spaceproof-pruning",
                 **result,
                 "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
             },
@@ -117,7 +117,7 @@ def predictive_prune(
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-pruning",
+                "tenant_id": "spaceproof-pruning",
                 "metric": "predictive_confidence",
                 "baseline": MIN_CONFIDENCE_THRESHOLD,
                 "delta": avg_confidence - MIN_CONFIDENCE_THRESHOLD,
@@ -194,7 +194,7 @@ def predictive_prune(
     emit_receipt(
         "predictive_prune",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "predictions_made": len(gnn_predictions),
             "branches_pruned": branches_pruned,
             "confidence_score": round(avg_confidence, 4),

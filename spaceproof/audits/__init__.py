@@ -1,4 +1,4 @@
-"""AXIOM Audits Package - Consolidated AGI audit modules.
+"""SpaceProof Audits Package - Consolidated AGI audit modules.
 
 This package consolidates:
 - agi_audit_expanded.py -> audits.adversarial

@@ -14,7 +14,7 @@ from ..base import emit_path_receipt, load_path_spec
 
 # === CONSTANTS ===
 
-AGI_TENANT_ID = "axiom-agi"
+AGI_TENANT_ID = "spaceproof-agi"
 """Tenant ID for AGI path receipts."""
 
 POLICY_DEPTH_DEFAULT = 3

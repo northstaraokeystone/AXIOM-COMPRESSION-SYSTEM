@@ -132,7 +132,7 @@ def sovereignty_timeline_dynamic(
         "sovereignty_timeline_dynamic",
         {
             "receipt_type": "sovereignty_timeline_dynamic",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **{k: v for k, v in result.items() if v is not None},
             "payload_hash": dual_hash(
                 json.dumps(
@@ -252,7 +252,7 @@ def continued_ablation_loop(
         "continued_ablation_loop",
         {
             "receipt_type": "continued_ablation_loop",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -330,7 +330,7 @@ def validate_no_static_configs() -> Dict[str, bool]:
         "no_static_configs_validation",
         {
             "receipt_type": "no_static_configs_validation",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **validations,
             "all_pass": all_pass,
             "payload_hash": dual_hash(json.dumps(validations, sort_keys=True)),
@@ -401,7 +401,7 @@ def get_rl_integration_status() -> Dict[str, Any]:
         "rl_integration_status",
         {
             "receipt_type": "rl_integration_status",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **status,
             "payload_hash": dual_hash(json.dumps(status, sort_keys=True)),
         },

@@ -6,7 +6,7 @@ Compare against:
 
 These are historical baselines. pySR is the primary comparison.
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 import time
@@ -26,7 +26,7 @@ except ImportError:
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-benchmarks"
+TENANT_ID = "spaceproof-benchmarks"
 
 # AI Feynman physics-based priors
 AI_FEYNMAN_OPERATORS = {
@@ -192,18 +192,18 @@ def compare_all_baselines(galaxy: Dict) -> Dict:
     Returns:
         Dict with all baseline results
     """
-    from .pysr_comparison import run_pysr, run_axiom
+    from .pysr_comparison import run_pysr, run_spaceproof
 
     results = {
         "galaxy_id": galaxy.get("id", "unknown"),
         "pysr": run_pysr(galaxy),
         "ai_feynman": run_ai_feynman(galaxy),
         "eureqa": run_eureqa_stub(galaxy),
-        "axiom": run_axiom(galaxy),
+        "spaceproof": run_spaceproof(galaxy),
     }
 
     # Rank by MSE
-    methods = ["pysr", "ai_feynman", "axiom"]
+    methods = ["pysr", "ai_feynman", "spaceproof"]
     mses = [(m, results[m]["mse"]) for m in methods if results[m]["success"]]
     mses.sort(key=lambda x: x[1])
 
@@ -232,7 +232,7 @@ def batch_compare_baselines(galaxies: List[Dict]) -> Dict:
         Dict with aggregated results
     """
     all_results = []
-    method_wins = {"pysr": 0, "ai_feynman": 0, "axiom": 0}
+    method_wins = {"pysr": 0, "ai_feynman": 0, "spaceproof": 0}
 
     for galaxy in galaxies:
         result = compare_all_baselines(galaxy)
@@ -248,7 +248,7 @@ def batch_compare_baselines(galaxies: List[Dict]) -> Dict:
         "best_overall": max(method_wins, key=method_wins.get),
     }
 
-    for method in ["pysr", "ai_feynman", "axiom"]:
+    for method in ["pysr", "ai_feynman", "spaceproof"]:
         mses = [r[method]["mse"] for r in all_results if r[method]["success"]]
         if mses:
             summary[f"{method}_mean_mse"] = float(np.mean(mses))
@@ -281,7 +281,7 @@ def generate_baseline_table(results: List[Dict]) -> str:
         Markdown table string
     """
     lines = [
-        "| Galaxy | pySR MSE | AI Feynman MSE | AXIOM MSE | AXIOM R² | Best |",
+        "| Galaxy | pySR MSE | AI Feynman MSE | SpaceProof MSE | SpaceProof R² | Best |",
         "|--------|----------|----------------|-----------|----------|------|",
     ]
 
@@ -289,13 +289,13 @@ def generate_baseline_table(results: List[Dict]) -> str:
         galaxy_id = r.get("galaxy_id", "unknown")
         pysr_mse = r["pysr"]["mse"]
         ai_mse = r["ai_feynman"]["mse"]
-        axiom_mse = r["axiom"]["mse"]
-        axiom_r2 = r["axiom"].get("r_squared", 0)
+        spaceproof_mse = r["spaceproof"]["mse"]
+        spaceproof_r2 = r["spaceproof"].get("r_squared", 0)
         best = r.get("best_method", "unknown")
 
         lines.append(
             f"| {galaxy_id} | {pysr_mse:.4f} | {ai_mse:.4f} | "
-            f"{axiom_mse:.4f} | {axiom_r2:.4f} | {best} |"
+            f"{spaceproof_mse:.4f} | {spaceproof_r2:.4f} | {best} |"
         )
 
     return "\n".join(lines)

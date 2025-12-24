@@ -124,7 +124,7 @@ def load_entropy_pruning_spec(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "entropy_pruning_spec_ingest",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "file_path": path,
             "entropy_asymptote_e": data["entropy_asymptote_e"],
             "pruning_target_alpha": data["pruning_target_alpha"],
@@ -177,7 +177,7 @@ def stoprule_over_prune(trim_factor: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-pruning",
+                "tenant_id": "spaceproof-pruning",
                 "metric": "trim_factor",
                 "baseline": OVER_PRUNE_STOPRULE_THRESHOLD,
                 "delta": trim_factor - OVER_PRUNE_STOPRULE_THRESHOLD,
@@ -237,7 +237,7 @@ def get_retention_factor_prune_isolated(
     emit_receipt(
         "retention_prune_isolated",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -296,7 +296,7 @@ def entropy_prune(
         emit_receipt(
             "entropy_pruning",
             {
-                "tenant_id": "axiom-pruning",
+                "tenant_id": "spaceproof-pruning",
                 "receipt_type": "entropy_pruning",
                 **{k: v for k, v in result.items() if k != "pruned_tree"},
                 "payload_hash": dual_hash(
@@ -398,7 +398,7 @@ def entropy_prune(
     emit_receipt(
         "entropy_pruning",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "receipt_type": "entropy_pruning",
             "merkle_root_before": original_root[:32],
             "merkle_root_after": pruned_root[:32],
@@ -464,7 +464,7 @@ def extended_250d_projection(
     emit_receipt(
         "extended_250d",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "receipt_type": "extended_250d",
             "blackout_days": BLACKOUT_PRUNING_TARGET_DAYS,
             "eff_alpha": enhanced_alpha,
@@ -557,7 +557,7 @@ def get_pruning_info() -> Dict[str, Any]:
     emit_receipt(
         "pruning_info",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
@@ -599,7 +599,7 @@ def apply_dynamic_aggressiveness(aggr: float) -> float:
         "dynamic_aggressiveness_applied",
         {
             "receipt_type": "dynamic_aggressiveness_applied",
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "old_value": old_value if old_value is not None else LN_N_TRIM_FACTOR_BASE,
             "new_value": clamped,
             "clamped_from": aggr,
@@ -638,7 +638,7 @@ def reset_dynamic_aggressiveness() -> None:
         "dynamic_aggressiveness_reset",
         {
             "receipt_type": "dynamic_aggressiveness_reset",
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "reason": "reset_to_static",
             "default_value": LN_N_TRIM_FACTOR_BASE,
             "payload_hash": dual_hash(json.dumps({"reset": True})),
@@ -692,7 +692,7 @@ def entropy_prune_dynamic(
         "entropy_prune_dynamic",
         {
             "receipt_type": "entropy_prune_dynamic",
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "trim_factor": trim_factor,
             "dynamic_config_applied": dynamic_applied,
             "branches_pruned": result["branches_pruned"],
@@ -736,7 +736,7 @@ def get_pruning_dynamic_info() -> Dict[str, Any]:
     emit_receipt(
         "pruning_dynamic_info",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             **{k: v for k, v in info.items() if k not in ["description", "kill_list"]},
             "payload_hash": dual_hash(
                 json.dumps(

@@ -219,7 +219,7 @@ def emit_sovereignty_receipt(config: SovereigntyConfig) -> dict:
     return emit_receipt(
         "sovereignty_calculation",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "crew": config.crew,
             "compute_flops": config.compute_flops,
             "bandwidth_mbps": config.bandwidth_mbps,
@@ -579,7 +579,7 @@ def emit_sensitivity_receipt() -> dict:
     return emit_receipt(
         "sensitivity_analysis",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             **sensitivity,
             "conjunction_opposition": scenarios,
             "finding": "latency_limited"
@@ -962,7 +962,7 @@ def emit_roi_receipt(
     return emit_receipt(
         "roi_comparison",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             **comparison,
             "breakeven_delay_s": breakeven,
             "breakeven_delay_min": breakeven / 60,
@@ -1330,7 +1330,7 @@ def emit_sweep_receipt(
     return emit_receipt(
         "cost_function_sweep",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "spend_range_m": spend_range,
             "bandwidth_mbps": bw_mbps,
             "delay_s": delay_s,
@@ -1510,7 +1510,7 @@ def emit_sovereignty_v2_receipt(
     return emit_receipt(
         "sovereignty_v2",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "person_equivalent": person_equivalent,
             "threshold_person_equivalent": THRESHOLD_PERSON_EQUIVALENT,
             "meets_threshold": check_sovereignty_threshold(person_equivalent),

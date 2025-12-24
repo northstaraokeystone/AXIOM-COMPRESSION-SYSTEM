@@ -7,7 +7,7 @@ THE GALAXY INSIGHT:
     Newtonian at small r, dark matter at large r.
     The crossover encodes information about mass distribution.
 
-Source: AXIOM D20 Production Evolution
+Source: SpaceProof D20 Production Evolution
 """
 
 from dataclasses import dataclass
@@ -19,7 +19,7 @@ from ..core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-domain-galaxy"
+TENANT_ID = "spaceproof-domain-galaxy"
 
 # Physical constants
 G = 4.302e-6  # Gravitational constant in kpc * (km/s)^2 / M_sun

@@ -32,7 +32,7 @@ def emit_with_hash(
 
     Args:
         receipt_type: Receipt type string (e.g., "entropy_pruning")
-        tenant_id: Tenant identifier (e.g., "axiom-pruning")
+        tenant_id: Tenant identifier (e.g., "spaceproof-pruning")
         data: Receipt payload data
         extra_fields: Optional additional fields to include in receipt
 
@@ -40,7 +40,7 @@ def emit_with_hash(
         Complete receipt dict
 
     Example:
-        emit_with_hash("cache_depth", "axiom-gnn-cache", {
+        emit_with_hash("cache_depth", "spaceproof-gnn-cache", {
             "blackout_days": 90,
             "utilization_pct": 0.45
         })
@@ -82,7 +82,7 @@ def emit_anomaly(
 
     Example:
         emit_anomaly(
-            "axiom-pruning",
+            "spaceproof-pruning",
             metric="trim_factor",
             baseline=0.6,
             delta=0.1,
@@ -126,7 +126,7 @@ def emit_spec_ingest(
     Example:
         emit_spec_ingest(
             "gnn_cache_spec_ingest",
-            "axiom-gnn-cache",
+            "spaceproof-gnn-cache",
             "/path/to/spec.json",
             loaded_data,
             key_fields=["asymptote_alpha", "overflow_threshold_days"]
@@ -166,7 +166,7 @@ def emit_result(
         Complete receipt dict
 
     Example:
-        emit_result("entropy_pruning", "axiom-pruning", result,
+        emit_result("entropy_pruning", "spaceproof-pruning", result,
             hash_fields=["merkle_root_before", "merkle_root_after", "branches_pruned"]
         )
     """

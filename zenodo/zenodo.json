@@ -1,7 +1,7 @@
 {
-  "title": "AXIOM: Compression-Discovered Physics Laws via Kolmogorov-Arnold Networks",
+  "title": "SpaceProof: Compression-Discovered Physics Laws via Kolmogorov-Arnold Networks",
   "upload_type": "software",
-  "description": "AXIOM witnesses physics laws through data compression. When a KAN achieves high compression on rotation curves, the spline coefficients ARE the equation. Includes receipts-native provenance for all claims.",
+  "description": "SpaceProof witnesses physics laws through data compression. When a KAN achieves high compression on rotation curves, the spline coefficients ARE the equation. Includes receipts-native provenance for all claims.",
   "creators": [
     {
       "name": "Northstar AOKeystone",
@@ -19,7 +19,7 @@
   ],
   "related_identifiers": [
     {
-      "identifier": "https://github.com/northstaraokeystone/axiom",
+      "identifier": "https://github.com/northstaraokeystone/spaceproof",
       "relation": "isSupplementTo",
       "scheme": "url"
     }

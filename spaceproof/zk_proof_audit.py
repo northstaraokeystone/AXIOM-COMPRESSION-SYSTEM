@@ -32,7 +32,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-ZK_TENANT_ID = "axiom-zk"
+ZK_TENANT_ID = "spaceproof-zk"
 """Tenant ID for ZK receipts."""
 
 ZK_PROOF_SYSTEM = "groth16"

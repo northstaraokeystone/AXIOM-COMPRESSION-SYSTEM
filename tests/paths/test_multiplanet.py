@@ -8,7 +8,7 @@ Tests:
 - test_multiplanet_receipt_emitted: assert mp_status_receipt emitted
 - test_multiplanet_cli_routes: assert CLI commands route correctly
 
-Source: AXIOM scalable paths architecture - Multi-planet expansion
+Source: SpaceProof scalable paths architecture - Multi-planet expansion
 """
 
 

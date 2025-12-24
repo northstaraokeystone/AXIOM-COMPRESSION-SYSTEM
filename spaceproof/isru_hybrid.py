@@ -40,7 +40,7 @@ from .fractal_layers import (
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-isru"
+TENANT_ID = "spaceproof-isru"
 """Tenant ID for ISRU receipts."""
 
 # MOXIE Calibration Constants (NASA Perseverance Dec 2025)

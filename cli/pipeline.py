@@ -1,4 +1,4 @@
-"""Pipeline execution CLI commands for AXIOM-CORE.
+"""Pipeline execution CLI commands for SpaceProof-CORE.
 
 Commands: lr_pilot, post_tune_execute, full_pipeline, pilot_info, pipeline_info
 """

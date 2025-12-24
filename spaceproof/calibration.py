@@ -427,7 +427,7 @@ def estimate_alpha(
     emit_receipt(
         "calibration",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "alpha_estimate": alpha_est,
             "confidence_interval_low": ci[0],
             "confidence_interval_high": ci[1],
@@ -503,7 +503,7 @@ def estimate_alpha_from_lists(
     emit_receipt(
         "calibration",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "alpha_estimate": alpha_est,
             "confidence_interval_low": ci[0],
             "confidence_interval_high": ci[1],
@@ -533,7 +533,7 @@ def emit_calibration_receipt(
         Receipt dict
     """
     receipt_data = {
-        "tenant_id": "axiom-autonomy",
+        "tenant_id": "spaceproof-autonomy",
         "alpha_estimate": output.alpha_estimate,
         "confidence_interval_low": output.confidence_interval[0],
         "confidence_interval_high": output.confidence_interval[1],
@@ -637,7 +637,7 @@ def load_fsd_empirical(path: str = None) -> Dict[str, Any]:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-autonomy",
+                "tenant_id": "spaceproof-autonomy",
                 "metric": "hash_mismatch",
                 "classification": "violation",
                 "action": "halt",
@@ -662,7 +662,7 @@ def load_fsd_empirical(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "fsd_empirical_ingest",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "file_path": path,
             "mpi_v13": mpi_v13,
             "mpi_v14": mpi_v14,
@@ -727,7 +727,7 @@ def fit_alpha_empirical(fsd_data: Dict[str, Any]) -> Dict[str, Any]:
     emit_receipt(
         "alpha_calibration",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "alpha_estimate": result["alpha_estimate"],
             "confidence_interval_low": ALPHA_EMPIRICAL_LOW,
             "confidence_interval_high": ALPHA_EMPIRICAL_HIGH,

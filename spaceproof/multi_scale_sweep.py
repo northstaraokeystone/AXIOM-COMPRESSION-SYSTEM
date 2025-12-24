@@ -58,7 +58,7 @@ SCALABILITY_GATE_THRESHOLD = 3.06
 INSTABILITY_TOLERANCE = 0.00
 """Zero tolerance for instability."""
 
-TENANT_ID = "axiom-colony"
+TENANT_ID = "spaceproof-colony"
 """Tenant ID for receipts."""
 
 

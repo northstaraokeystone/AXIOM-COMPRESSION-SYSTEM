@@ -17,7 +17,7 @@ DRILLING MODEL:
     - Water extraction from melted ice
     - Energy from ice-to-water conversion
 
-Source: AXIOM D7 recursion + Europa ice + NREL + expanded audits
+Source: SpaceProof D7 recursion + Europa ice + NREL + expanded audits
 """
 
 import json
@@ -35,7 +35,7 @@ from .fractal_layers import (
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-europa"
+TENANT_ID = "spaceproof-europa"
 """Tenant ID for Europa receipts."""
 
 # Europa physical parameters

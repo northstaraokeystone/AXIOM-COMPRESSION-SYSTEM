@@ -6,7 +6,7 @@ All exploration paths (Mars, Multi-planet, AGI) share this infrastructure:
 - get_path_status(): Return path readiness status
 - PathStopRule: Path-specific exception class
 
-Source: AXIOM scalable paths architecture
+Source: SpaceProof scalable paths architecture
 """
 
 import json
@@ -25,7 +25,7 @@ REGISTERED_PATHS = ["mars", "multiplanet", "agi"]
 PATH_RECEIPT_PREFIX = {"mars": "mars_", "multiplanet": "mp_", "agi": "agi_"}
 """Receipt type prefix for each path."""
 
-PATH_TENANT_ID = "axiom-paths"
+PATH_TENANT_ID = "spaceproof-paths"
 """Tenant ID for path receipts."""
 
 

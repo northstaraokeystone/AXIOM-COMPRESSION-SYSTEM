@@ -31,7 +31,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-CALLISTO_TENANT_ID = "axiom-callisto"
+CALLISTO_TENANT_ID = "spaceproof-callisto"
 """Tenant ID for Callisto receipts."""
 
 CALLISTO_ICE_DEPTH_KM = 200

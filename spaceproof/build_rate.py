@@ -146,7 +146,7 @@ def compute_build_rate(
     emit_receipt(
         "build_rate",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "autonomy_level": autonomy,
             "propulsion_level": propulsion,
             "alpha": alpha,
@@ -409,7 +409,7 @@ def emit_build_rate_receipt(
     return emit_receipt(
         "build_rate",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "cycle": cycle,
             "autonomy_level": state.autonomy_level,
             "propulsion_level": state.propulsion_level,

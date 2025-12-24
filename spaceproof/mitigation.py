@@ -235,7 +235,7 @@ def compute_reroute_mitigation(
     emit_receipt(
         "reroute_mitigation",
         {
-            "tenant_id": "axiom-mitigation",
+            "tenant_id": "spaceproof-mitigation",
             "reroute_enabled": reroute_enabled,
             "score": round(score, 4),
             "recovery_factor": reroute_result.get("recovery_factor", 0.0)
@@ -292,7 +292,7 @@ def compute_blackout_factor(
     emit_receipt(
         "blackout_factor",
         {
-            "tenant_id": "axiom-mitigation",
+            "tenant_id": "spaceproof-mitigation",
             "blackout_days": blackout_days,
             "reroute_enabled": reroute_enabled,
             "factor": round(max(0.0, factor), 4),
@@ -370,7 +370,7 @@ def apply_duration_degradation(
         "model_type": model_type,
     }
 
-    emit_receipt("duration_degradation", {"tenant_id": "axiom-mitigation", **result})
+    emit_receipt("duration_degradation", {"tenant_id": "spaceproof-mitigation", **result})
 
     return result
 
@@ -430,7 +430,7 @@ def apply_pruning_boost(
     }
 
     emit_receipt(
-        "pruning_boost_mitigation", {"tenant_id": "axiom-mitigation", **result}
+        "pruning_boost_mitigation", {"tenant_id": "spaceproof-mitigation", **result}
     )
 
     return result
@@ -489,7 +489,7 @@ def apply_reroute_mitigation(
     }
 
     emit_receipt(
-        "reroute_enhanced_mitigation", {"tenant_id": "axiom-mitigation", **result}
+        "reroute_enhanced_mitigation", {"tenant_id": "spaceproof-mitigation", **result}
     )
 
     return result
@@ -587,7 +587,7 @@ def compute_mitigation_score(
     emit_receipt(
         "mitigation_score",
         {
-            "tenant_id": "axiom-mitigation",
+            "tenant_id": "spaceproof-mitigation",
             "loss_pct": loss_pct,
             "nodes_surviving": nodes_surviving,
             "receipt_integrity": receipt_integrity,
@@ -645,7 +645,7 @@ def apply_mitigation_to_projection(
         "cycles_saved_by_mitigation": cycles_saved,
     }
 
-    emit_receipt("mitigated_projection", {"tenant_id": "axiom-mitigation", **result})
+    emit_receipt("mitigated_projection", {"tenant_id": "spaceproof-mitigation", **result})
 
     return result
 
@@ -695,7 +695,7 @@ def get_mitigation_summary(
         else ("degraded" if score.combined_score >= 0.4 else "critical"),
     }
 
-    emit_receipt("mitigation_summary", {"tenant_id": "axiom-mitigation", **summary})
+    emit_receipt("mitigation_summary", {"tenant_id": "spaceproof-mitigation", **summary})
 
     return summary
 
@@ -770,7 +770,7 @@ def get_mitigation_layer_contributions(
         "mitigation_layer_contributions",
         {
             "receipt_type": "mitigation_layer_contributions",
-            "tenant_id": "axiom-mitigation",
+            "tenant_id": "spaceproof-mitigation",
             **{k: v for k, v in result.items() if k != "ceiling_analysis"},
             "gap_to_ceiling_pct": result["ceiling_analysis"]["gap_pct"],
             "payload_hash": None,  # Computed at emit time

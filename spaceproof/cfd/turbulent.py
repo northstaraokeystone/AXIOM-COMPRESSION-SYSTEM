@@ -20,7 +20,7 @@ from .constants import CFD_TENANT_ID
 
 RECEIPT_SCHEMA: Dict[str, Any] = {
     "cfd_storm": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_storm",
         "description": "Dust storm simulation",
     },

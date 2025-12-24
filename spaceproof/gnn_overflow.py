@@ -63,7 +63,7 @@ def cache_depth_check(
     emit_receipt(
         "cache_depth",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -159,7 +159,7 @@ def extreme_blackout_sweep(
             emit_receipt(
                 "extreme_blackout",
                 {
-                    "tenant_id": "axiom-gnn-cache",
+                    "tenant_id": "spaceproof-gnn-cache",
                     **result,
                     "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
                 },
@@ -245,7 +245,7 @@ def validate_gnn_nonlinear_slos(sweep_results: List[Dict[str, Any]]) -> Dict[str
     emit_receipt(
         "gnn_nonlinear_slo_validation",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **validation,
             "payload_hash": dual_hash(json.dumps(validation, sort_keys=True)),
         },

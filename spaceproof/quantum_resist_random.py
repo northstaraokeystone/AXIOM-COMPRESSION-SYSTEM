@@ -33,7 +33,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-QUANTUM_TENANT_ID = "axiom-quantum"
+QUANTUM_TENANT_ID = "spaceproof-quantum"
 """Tenant ID for quantum-resistant receipts."""
 
 QUANTUM_KEY_SIZE_BITS = 256

@@ -1,4 +1,4 @@
-"""prove.py - Receipt Chain & Merkle Proofs (Updated for axiom-core)
+"""prove.py - Receipt Chain & Merkle Proofs (Updated for spaceproof-core)
 
 THE PROOF INFRASTRUCTURE:
     Every calculation is verifiable.
@@ -17,7 +17,7 @@ from .core import dual_hash, emit_receipt, merkle
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-core"
+TENANT_ID = "spaceproof-core"
 """Receipt tenant isolation."""
 
 

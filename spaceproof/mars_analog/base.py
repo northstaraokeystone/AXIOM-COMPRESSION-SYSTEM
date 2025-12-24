@@ -37,7 +37,7 @@ class MarsAnalogBase(ABC):
 
     # Class-level defaults (overridden by subclasses)
     MODULE_NAME: str = ""
-    TENANT_ID: str = "axiom-mars"
+    TENANT_ID: str = "spaceproof-mars"
 
     def __init__(self):
         """Initialize Mars analog instance."""

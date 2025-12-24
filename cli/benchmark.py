@@ -1,4 +1,4 @@
-"""Benchmark CLI commands for AXIOM-CORE.
+"""Benchmark CLI commands for SpaceProof-CORE.
 
 Commands: hybrid_10e12, release_gate, fractal_recursion, benchmark_info
 

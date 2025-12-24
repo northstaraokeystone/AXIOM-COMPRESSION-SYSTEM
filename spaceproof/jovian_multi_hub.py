@@ -31,7 +31,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-JOVIAN_TENANT_ID = "axiom-jovian"
+JOVIAN_TENANT_ID = "spaceproof-jovian"
 """Tenant ID for Jovian hub receipts."""
 
 JOVIAN_MOONS = ["titan", "europa", "ganymede", "callisto"]

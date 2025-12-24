@@ -28,7 +28,7 @@ from .core import emit_receipt, StopRule
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-entropy"
+TENANT_ID = "spaceproof-entropy"
 """Tenant for entropy receipts."""
 
 # Thermodynamic constants
@@ -365,7 +365,7 @@ JUPITER_MAX_LATENCY_MS = 3180000  # 53 minutes
 def validate_entropy_source(event: Dict) -> bool:
     """Return True only if event source is real, else trigger stoprule.
 
-    AXIOM v2: Real entropy events become selection pressure.
+    SpaceProof v2: Real entropy events become selection pressure.
     Synthetic entropy is REJECTED - we enforce under real constraints only.
 
     Args:
@@ -411,7 +411,7 @@ def stoprule_synthetic_entropy(event: Dict, source: str) -> None:
             "action": "halt",
             "rejected_source": source,
             "event_id": event.get("id", "unknown"),
-            "reason": "AXIOM v2 requires real entropy - synthetic rejected",
+            "reason": "SpaceProof v2 requires real entropy - synthetic rejected",
         },
     )
     raise StopRule(f"Synthetic entropy rejected: source='{source}' (must be 'real')")

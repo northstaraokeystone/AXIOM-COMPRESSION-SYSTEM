@@ -126,7 +126,7 @@ def blackout_sweep(
         else base_alpha,
     }
 
-    emit_receipt("blackout_sweep", {"tenant_id": "axiom-reasoning", **report})
+    emit_receipt("blackout_sweep", {"tenant_id": "spaceproof-reasoning", **report})
 
     return report
 
@@ -209,7 +209,7 @@ def project_with_reroute(
         "reroute_validated": boosted_alpha >= 2.70,
     }
 
-    emit_receipt("reroute_projection", {"tenant_id": "axiom-reasoning", **projection})
+    emit_receipt("reroute_projection", {"tenant_id": "spaceproof-reasoning", **projection})
 
     return projection
 
@@ -291,7 +291,7 @@ def sovereignty_timeline(
         "min_eff_alpha_floor": MIN_EFF_ALPHA_FLOOR,
     }
 
-    emit_receipt("sovereignty_timeline", {"tenant_id": "axiom-reasoning", **result})
+    emit_receipt("sovereignty_timeline", {"tenant_id": "spaceproof-reasoning", **result})
 
     return result
 
@@ -407,7 +407,7 @@ def extended_blackout_sweep(
     emit_receipt(
         "extended_blackout_sweep",
         {
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -467,7 +467,7 @@ def extreme_blackout_sweep_200d(
     emit_receipt(
         "extreme_blackout_sweep_200d",
         {
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -537,7 +537,7 @@ def project_with_asymptote(
     emit_receipt(
         "asymptote_projection",
         {
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **projection,
             "payload_hash": dual_hash(json.dumps(projection, sort_keys=True)),
         },
@@ -628,7 +628,7 @@ def project_with_degradation(
     emit_receipt(
         "degradation_projection",
         {
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **projection,
             "payload_hash": dual_hash(
                 json.dumps(

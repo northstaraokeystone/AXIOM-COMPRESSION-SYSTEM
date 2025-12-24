@@ -148,7 +148,7 @@ def evaluate_gate(
     emit_receipt(
         "stage_gate",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "current_autonomy_fraction": new_fraction,
             "alpha_measured": alpha_measured,
             "alpha_confidence": alpha_confidence,
@@ -359,7 +359,7 @@ def emit_stage_gate_receipt(
     return emit_receipt(
         "stage_gate",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "current_autonomy_fraction": state.current_autonomy_fraction,
             "current_propulsion_fraction": propulsion,
             "alpha_measured": state.alpha_measured,

@@ -7,7 +7,7 @@ Receipt types:
 - mars_sovereignty_receipt: Sovereignty threshold results
 - mars_optimize_receipt: Optimization suggestions
 
-Source: AXIOM scalable paths architecture - Mars autonomous habitat
+Source: SpaceProof scalable paths architecture - Mars autonomous habitat
 """
 
 from typing import Dict, Any

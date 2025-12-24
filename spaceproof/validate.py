@@ -245,7 +245,7 @@ def emit_statistical_receipt(test_name: str, result: Dict) -> Dict:
     """
     return emit_receipt(
         "statistical_test",
-        {"tenant_id": "axiom-core", "test_name": test_name, **result},
+        {"tenant_id": "spaceproof-core", "test_name": test_name, **result},
     )
 
 
@@ -455,7 +455,7 @@ def emit_model_comparison_receipt() -> Dict:
     return emit_receipt(
         "model_comparison",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "comparison": comparison,
             "grok_validation": grok_validation,
             "variance_analysis": variance,

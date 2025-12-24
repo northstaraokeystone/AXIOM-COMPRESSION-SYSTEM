@@ -1,4 +1,4 @@
-"""AXIOM Exploration Paths - Parallel path registry and discovery.
+"""SpaceProof Exploration Paths - Parallel path registry and discovery.
 
 This package provides modular exploration paths:
 - mars: Mars habitat autonomous optimization
@@ -12,7 +12,7 @@ Each path follows the ProofPack module pattern:
     ├── receipts.py        # Path-specific receipts
     └── cli.py             # Path CLI commands
 
-Source: AXIOM scalable paths architecture
+Source: SpaceProof scalable paths architecture
 """
 
 from .base import (

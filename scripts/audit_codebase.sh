@@ -1,7 +1,7 @@
 #!/bin/bash
 # CLAUDEME Guardrail: Codebase Audit Script
 
-echo "=== AXIOM Codebase Audit ==="
+echo "=== SpaceProof Codebase Audit ==="
 echo "Date: $(date -Iseconds)"
 echo ""
 

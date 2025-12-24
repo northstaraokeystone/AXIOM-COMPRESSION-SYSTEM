@@ -1,4 +1,4 @@
-"""Quantum hybrid CLI commands for AXIOM-CORE.
+"""Quantum hybrid CLI commands for SpaceProof-CORE.
 
 Commands: quantum_estimate, quantum_sim, quantum_rl_hybrid_info
 """

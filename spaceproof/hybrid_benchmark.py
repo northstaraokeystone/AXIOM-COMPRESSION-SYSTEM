@@ -55,7 +55,7 @@ SCALE_DECAY_MAX = 0.02
 INSTABILITY_MAX = 0.00
 """Zero instability tolerance for gate pass."""
 
-TENANT_ID = "axiom-benchmark"
+TENANT_ID = "spaceproof-benchmark"
 """Tenant ID for benchmark receipts."""
 
 

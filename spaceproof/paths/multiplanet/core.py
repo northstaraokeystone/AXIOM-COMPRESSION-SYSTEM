@@ -12,7 +12,7 @@ KEY INSIGHT:
 Autonomy requirement INCREASES with distance/latency.
 Each body builds on capabilities proven at previous body.
 
-Source: AXIOM scalable paths architecture - Multi-planet expansion
+Source: SpaceProof scalable paths architecture - Multi-planet expansion
 """
 
 from typing import Dict, Any, List, Optional
@@ -22,7 +22,7 @@ from ..base import emit_path_receipt, load_path_spec, PathStopRule
 
 # === CONSTANTS ===
 
-MULTIPLANET_TENANT_ID = "axiom-multiplanet"
+MULTIPLANET_TENANT_ID = "spaceproof-multiplanet"
 """Tenant ID for multi-planet path receipts."""
 
 EXPANSION_SEQUENCE = ["asteroid", "mars", "europa", "ganymede", "titan"]

@@ -118,7 +118,7 @@ def load_partition_spec(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "partition_spec_ingest",
         {
-            "tenant_id": "axiom-resilience",
+            "tenant_id": "spaceproof-resilience",
             "file_path": path,
             "node_baseline": data["node_baseline"],
             "quorum_min": data["quorum_min"],
@@ -154,7 +154,7 @@ def quorum_check(nodes_surviving: int, quorum_min: int = QUORUM_THRESHOLD) -> bo
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-resilience",
+                "tenant_id": "spaceproof-resilience",
                 "metric": "quorum_failure",
                 "baseline": quorum_min,
                 "delta": nodes_surviving - quorum_min,
@@ -286,7 +286,7 @@ def partition_sim(
         emit_receipt(
             "partition_stress",
             {
-                "tenant_id": "axiom-resilience",
+                "tenant_id": "spaceproof-resilience",
                 "nodes_total": nodes_total,
                 "loss_pct": loss_pct,
                 "nodes_surviving": nodes_surviving,
@@ -379,7 +379,7 @@ def stress_sweep(
     emit_receipt(
         "quorum_resilience",
         {
-            "tenant_id": "axiom-resilience",
+            "tenant_id": "spaceproof-resilience",
             "baseline_nodes": nodes_total,
             "quorum_threshold": QUORUM_THRESHOLD,
             "test_iterations": n_iterations,
@@ -454,7 +454,7 @@ def validate_partition_bounds(
     }
 
     emit_receipt(
-        "partition_validation", {"tenant_id": "axiom-resilience", **validation}
+        "partition_validation", {"tenant_id": "spaceproof-resilience", **validation}
     )
 
     return validation
@@ -479,7 +479,7 @@ def get_rerouting_potential() -> Dict[str, Any]:
     }
 
     emit_receipt(
-        "rerouting_potential_stub", {"tenant_id": "axiom-resilience", **potential}
+        "rerouting_potential_stub", {"tenant_id": "spaceproof-resilience", **potential}
     )
 
     return potential

@@ -48,7 +48,7 @@ STANDARD_INSTABILITY_PENALTY = -1.0
 ALPHA_DROP_THRESHOLD = 0.05
 """Threshold for instability penalty trigger."""
 
-TENANT_ID = "axiom-colony"
+TENANT_ID = "spaceproof-colony"
 """Tenant ID for receipts."""
 
 # Quantum-RL integration constants

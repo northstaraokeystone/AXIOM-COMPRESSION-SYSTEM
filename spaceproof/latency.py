@@ -86,7 +86,7 @@ def tau_penalty(tau_seconds: float, relay_factor: float = 1.0) -> float:
     emit_receipt(
         "latency_penalty",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "tau_seconds": tau_seconds,
             "relay_factor": relay_factor,
             "effective_tau": effective_tau,
@@ -140,7 +140,7 @@ def load_mars_params(path: str = None) -> Dict[str, Any]:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-autonomy",
+                "tenant_id": "spaceproof-autonomy",
                 "metric": "hash_mismatch",
                 "classification": "violation",
                 "action": "halt",
@@ -157,7 +157,7 @@ def load_mars_params(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "mars_params_ingest",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "file_path": path,
             "tau_mars_max_seconds": data["tau_mars_max_seconds"],
             "tau_mars_min_seconds": data["tau_mars_min_seconds"],
@@ -238,7 +238,7 @@ def effective_alpha(
         emit_receipt(
             "effective_alpha",
             {
-                "tenant_id": "axiom-autonomy",
+                "tenant_id": "spaceproof-autonomy",
                 "base_alpha": alpha,
                 "tau_seconds": tau_seconds,
                 "relay_factor": relay_factor,

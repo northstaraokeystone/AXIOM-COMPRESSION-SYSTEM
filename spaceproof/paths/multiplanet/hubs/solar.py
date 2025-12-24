@@ -9,7 +9,7 @@ from ....solar_orbital_hub import (
     compute_full_system_coverage as _compute_full_system_coverage,
 )
 
-MP_TENANT_ID = "axiom-multiplanet"
+MP_TENANT_ID = "spaceproof-multiplanet"
 
 
 def integrate_solar_hub(config=None):

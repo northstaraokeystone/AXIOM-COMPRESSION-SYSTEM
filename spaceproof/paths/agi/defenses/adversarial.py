@@ -5,7 +5,7 @@ This module integrates adversarial audit defenses including:
 - Expanded audits (injection/poisoning attacks)
 - Combined alignment metrics
 
-Source: AXIOM scalable paths architecture - AGI adversarial defenses
+Source: SpaceProof scalable paths architecture - AGI adversarial defenses
 """
 
 from typing import Dict, Any, List, Optional

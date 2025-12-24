@@ -166,7 +166,7 @@ def load_rl_tune_spec(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "rl_tune_spec_ingest",
         {
-            "tenant_id": "axiom-rl-tune",
+            "tenant_id": "spaceproof-rl-tune",
             "file_path": path,
             "version": data["version"],
             "retention_milestone_1": data["targets"]["retention_milestone_1"],
@@ -238,7 +238,7 @@ def stoprule_alpha_crash(alpha_drop: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-rl-tune",
+                "tenant_id": "spaceproof-rl-tune",
                 "metric": "alpha_drop",
                 "baseline": ALPHA_DROP_THRESHOLD,
                 "delta": alpha_drop - ALPHA_DROP_THRESHOLD,
@@ -264,7 +264,7 @@ def stoprule_stuck(episodes_without_improvement: int) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-rl-tune",
+                "tenant_id": "spaceproof-rl-tune",
                 "metric": "episodes_stuck",
                 "baseline": MAX_EPISODES_WITHOUT_IMPROVEMENT,
                 "delta": episodes_without_improvement
@@ -291,7 +291,7 @@ def stoprule_overflow_during_tune(overflow_detected: bool) -> float:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-rl-tune",
+                "tenant_id": "spaceproof-rl-tune",
                 "metric": "overflow_during_tune",
                 "baseline": 0.0,
                 "delta": 1.0,
@@ -317,7 +317,7 @@ def stoprule_retention_below_floor(retention: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-rl-tune",
+                "tenant_id": "spaceproof-rl-tune",
                 "metric": "retention_below_floor",
                 "baseline": RETENTION_FLOOR,
                 "delta": retention - RETENTION_FLOOR,
@@ -599,7 +599,7 @@ class RLTuner:
         emit_receipt(
             "rl_revert",
             {
-                "tenant_id": "axiom-rl-tune",
+                "tenant_id": "spaceproof-rl-tune",
                 "reverted_to": reverted,
                 "reason": "safety_check_triggered",
                 "payload_hash": dual_hash(json.dumps(reverted, sort_keys=True)),
@@ -757,7 +757,7 @@ def rl_auto_tune(
                 "rl_revert",
                 {
                     "receipt_type": "rl_revert",
-                    "tenant_id": "axiom-rl-tune",
+                    "tenant_id": "spaceproof-rl-tune",
                     "alpha_drop": alpha_drop,
                     "threshold": ALPHA_DROP_THRESHOLD,
                     "reverted_to": reverted_params,
@@ -804,7 +804,7 @@ def rl_auto_tune(
             "rl_tune",
             {
                 "receipt_type": "rl_tune",
-                "tenant_id": "axiom-rl-tune",
+                "tenant_id": "spaceproof-rl-tune",
                 "episode": episode,
                 "state": {
                     "retention": state[0],
@@ -857,7 +857,7 @@ def rl_auto_tune(
         "rl_auto_tune_summary",
         {
             "receipt_type": "rl_auto_tune_summary",
-            "tenant_id": "axiom-rl-tune",
+            "tenant_id": "spaceproof-rl-tune",
             "tuned_retention": current_retention,
             "best_retention": tuner.best_retention,
             "best_alpha": tuner.best_alpha,
@@ -904,7 +904,7 @@ def get_rl_tune_info() -> Dict[str, Any]:
     emit_receipt(
         "rl_tune_info",
         {
-            "tenant_id": "axiom-rl-tune",
+            "tenant_id": "spaceproof-rl-tune",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
@@ -1057,7 +1057,7 @@ def run_sweep(
         "efficient_rl_sweep",
         {
             "receipt_type": "efficient_rl_sweep",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             "runs_completed": runs_completed,
             "runs_limit": runs,
             "final_retention": round(current_retention, 5),
@@ -1138,7 +1138,7 @@ def compare_sweep_efficiency(
         "sweep_efficiency_comparison",
         {
             "receipt_type": "sweep_efficiency_comparison",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -1169,7 +1169,7 @@ def get_efficient_sweep_info() -> Dict[str, Any]:
     emit_receipt(
         "efficient_sweep_info",
         {
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
@@ -1212,7 +1212,7 @@ def load_sweep_spec(path: str = None) -> Dict[str, Any]:
         "sweep_spec",
         {
             "receipt_type": "sweep_spec",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             "sweep_runs": data["sweep_runs"],
             "lr_min": data["lr_min"],
             "lr_max": data["lr_max"],
@@ -1344,7 +1344,7 @@ def stoprule_sweep_divergence(alpha_drop: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-colony",
+                "tenant_id": "spaceproof-colony",
                 "metric": "sweep_divergence",
                 "baseline": DIVERGENCE_THRESHOLD,
                 "delta": alpha_drop - DIVERGENCE_THRESHOLD,
@@ -1372,7 +1372,7 @@ def stoprule_nan_reward(reward: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-colony",
+                "tenant_id": "spaceproof-colony",
                 "metric": "nan_reward",
                 "baseline": "finite",
                 "delta": str(reward),
@@ -1520,7 +1520,7 @@ def run_500_sweep(
                     "retention_105",
                     {
                         "receipt_type": "retention_105",
-                        "tenant_id": "axiom-colony",
+                        "tenant_id": "spaceproof-colony",
                         "achieved_retention": round(best_retention, 5),
                         "runs_to_achieve": convergence_run,
                         "eff_alpha": round(SHANNON_FLOOR * best_retention, 5),
@@ -1557,7 +1557,7 @@ def run_500_sweep(
         "rl_500_sweep",
         {
             "receipt_type": "rl_500_sweep",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             "runs_completed": runs_completed,
             "runs_limit": runs,
             "lr_range": [lr_min, lr_max],
@@ -1609,7 +1609,7 @@ def get_500_sweep_info() -> Dict[str, Any]:
     emit_receipt(
         "rl_500_sweep_info",
         {
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
@@ -1669,7 +1669,7 @@ def load_pilot_spec(path: str = None) -> Dict[str, Any]:
         "pilot_spec",
         {
             "receipt_type": "pilot_spec",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             "pilot_runs": data["pilot_runs"],
             "initial_lr_min": data["initial_lr_min"],
             "initial_lr_max": data["initial_lr_max"],
@@ -1867,7 +1867,7 @@ def pilot_lr_narrow(
         "lr_pilot_narrow",
         {
             "receipt_type": "lr_pilot_narrow",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             "pilot_runs": runs,
             "initial_range": list(INITIAL_LR_RANGE),
             "narrowed_range": list(narrowed_range),
@@ -2019,7 +2019,7 @@ def run_tuned_sweep(
         "post_tune_sweep",
         {
             "receipt_type": "post_tune_sweep",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             "runs_completed": runs,
             "lr_range_used": list(lr_range),
             "quantum_integrated": quantum_boost > 0,
@@ -2114,7 +2114,7 @@ def chain_pilot_to_sweep(
         "pipeline_complete",
         {
             "receipt_type": "pipeline_complete",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             "pilot_runs": pilot_runs,
             "quantum_runs": quantum_runs,
             "sweep_runs": sweep_runs,
@@ -2172,7 +2172,7 @@ def get_pilot_info() -> Dict[str, Any]:
     emit_receipt(
         "pilot_info",
         {
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
         },

@@ -1,4 +1,4 @@
-"""AXIOM-CORE CLI command modules.
+"""SpaceProof-CORE CLI command modules.
 
 This package provides modular command handlers for the CLI.
 Each module contains related commands grouped by domain.

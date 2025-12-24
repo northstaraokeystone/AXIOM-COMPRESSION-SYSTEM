@@ -1,4 +1,4 @@
-"""AXIOM Mars Analog Package - Consolidated Mars validation modules.
+"""SpaceProof Mars Analog Package - Consolidated Mars validation modules.
 
 This package consolidates:
 - atacama_validation.py -> mars_analog.atacama

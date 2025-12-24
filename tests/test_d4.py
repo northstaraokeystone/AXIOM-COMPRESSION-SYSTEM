@@ -8,7 +8,7 @@ Tests:
 - test_d4_receipt_emitted: assert d4_fractal_receipt in ledger
 - test_d4_uplift_values: assert uplift matches spec
 
-Source: AXIOM D4 recursion architecture
+Source: SpaceProof D4 recursion architecture
 """
 
 

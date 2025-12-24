@@ -45,42 +45,42 @@ from .constants import (
 
 RECEIPT_SCHEMA: Dict[str, Any] = {
     "les_config": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "les_config",
         "description": "LES configuration loaded",
     },
     "les_info": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "les_info",
         "description": "LES configuration summary",
     },
     "les_smagorinsky": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "les_smagorinsky",
         "description": "Smagorinsky eddy viscosity",
     },
     "les_stress": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "les_stress",
         "description": "Subgrid-scale stress",
     },
     "les_simulate": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "les_simulate",
         "description": "LES simulation",
     },
     "les_dust_devil": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "les_dust_devil",
         "description": "LES dust devil simulation",
     },
     "les_compare": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "les_compare",
         "description": "LES vs RANS comparison",
     },
     "les_dust": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "les_dust",
         "description": "Full LES validation",
     },

@@ -1,4 +1,4 @@
-"""Blackout and GNN CLI commands for AXIOM-CORE.
+"""Blackout and GNN CLI commands for SpaceProof-CORE.
 
 Commands: blackout, blackout_sweep, simulate_timeline, extended_sweep,
           retention_curve, gnn_stub, gnn_nonlinear, cache_sweep,

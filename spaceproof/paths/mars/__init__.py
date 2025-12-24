@@ -11,7 +11,7 @@ Capabilities:
 - compute_sovereignty(): Sovereignty check
 - optimize_resources(): RL optimization (stub)
 
-Source: AXIOM scalable paths architecture - Mars autonomous habitat
+Source: SpaceProof scalable paths architecture - Mars autonomous habitat
 """
 
 from .core import (

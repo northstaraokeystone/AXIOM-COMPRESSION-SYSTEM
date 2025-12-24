@@ -1,13 +1,13 @@
-"""pysr_comparison.py - Compare AXIOM KAN to pySR Symbolic Regression
+"""pysr_comparison.py - Compare SpaceProof KAN to pySR Symbolic Regression
 
 THE BENCHMARK INSIGHT:
     Claims without comparison are marketing.
     pySR is 2024 SOTA for symbolic regression.
-    AXIOM must prove it compresses better on real data.
+    SpaceProof must prove it compresses better on real data.
 
 Reference: Cranmer 2023 "Discovering Symbolic Models from Deep Learning"
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 import json
@@ -28,7 +28,7 @@ except ImportError:
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-benchmarks"
+TENANT_ID = "spaceproof-benchmarks"
 DEFAULT_EPOCHS = 100
 DEFAULT_COMPLEXITY_LIMIT = 20
 
@@ -54,7 +54,7 @@ KNOWN_EQUATIONS = {
 }
 
 
-# === AXIOM KAN IMPLEMENTATION ===
+# === SpaceProof KAN IMPLEMENTATION ===
 
 
 class SimpleKAN:
@@ -276,8 +276,8 @@ def run_pysr(
         }
 
 
-def run_axiom(data: Dict, epochs: int = DEFAULT_EPOCHS) -> Dict:
-    """Run AXIOM KAN witness on galaxy rotation curve.
+def run_spaceproof(data: Dict, epochs: int = DEFAULT_EPOCHS) -> Dict:
+    """Run SpaceProof KAN witness on galaxy rotation curve.
 
     Args:
         data: Galaxy dict with 'r' and 'v' arrays
@@ -310,13 +310,13 @@ def run_axiom(data: Dict, epochs: int = DEFAULT_EPOCHS) -> Dict:
         "time_ms": elapsed_ms,
         "n_parameters": result["n_parameters"],
         "epochs": epochs,
-        "tool": "AXIOM_KAN",
+        "tool": "SpaceProof_KAN",
         "success": True,
     }
 
 
 def compare(galaxy: Dict) -> Dict:
-    """Run both pySR and AXIOM on galaxy, emit benchmark_receipt.
+    """Run both pySR and SpaceProof on galaxy, emit benchmark_receipt.
 
     Args:
         galaxy: Galaxy dict with rotation curve data
@@ -325,16 +325,16 @@ def compare(galaxy: Dict) -> Dict:
         Dict with comparison results
     """
     pysr_result = run_pysr(galaxy)
-    axiom_result = run_axiom(galaxy)
+    spaceproof_result = run_spaceproof(galaxy)
 
     # Compute relative metrics
     mse_ratio = (
-        axiom_result["mse"] / pysr_result["mse"]
+        spaceproof_result["mse"] / pysr_result["mse"]
         if pysr_result["mse"] > 0
         else float("inf")
     )
     time_ratio = (
-        axiom_result["time_ms"] / pysr_result["time_ms"]
+        spaceproof_result["time_ms"] / pysr_result["time_ms"]
         if pysr_result["time_ms"] > 0
         else float("inf")
     )
@@ -342,13 +342,13 @@ def compare(galaxy: Dict) -> Dict:
     comparison = {
         "galaxy_id": galaxy.get("id", "unknown"),
         "pysr": pysr_result,
-        "axiom": axiom_result,
+        "spaceproof": spaceproof_result,
         "comparison": {
-            "mse_ratio_axiom_vs_pysr": mse_ratio,
-            "time_ratio_axiom_vs_pysr": time_ratio,
-            "axiom_compression": axiom_result["compression"],
-            "winner_mse": "axiom" if mse_ratio < 1 else "pysr",
-            "winner_time": "axiom" if time_ratio < 1 else "pysr",
+            "mse_ratio_spaceproof_vs_pysr": mse_ratio,
+            "time_ratio_spaceproof_vs_pysr": time_ratio,
+            "spaceproof_compression": spaceproof_result["compression"],
+            "winner_mse": "spaceproof" if mse_ratio < 1 else "pysr",
+            "winner_time": "spaceproof" if time_ratio < 1 else "pysr",
         },
     }
 
@@ -368,17 +368,17 @@ def compare(galaxy: Dict) -> Dict:
         },
     )
 
-    # Emit benchmark receipt for AXIOM
+    # Emit benchmark receipt for SpaceProof
     emit_receipt(
         "benchmark",
         {
             "tenant_id": TENANT_ID,
-            "tool_name": "AXIOM",
+            "tool_name": "SpaceProof",
             "dataset_id": galaxy.get("id", "unknown"),
-            "compression_ratio": axiom_result["compression"],
-            "r_squared": axiom_result["r_squared"],
-            "equation": axiom_result["equation"],
-            "time_ms": axiom_result["time_ms"],
+            "compression_ratio": spaceproof_result["compression"],
+            "r_squared": spaceproof_result["r_squared"],
+            "equation": spaceproof_result["equation"],
+            "time_ms": spaceproof_result["time_ms"],
         },
     )
 
@@ -400,32 +400,32 @@ def batch_compare(galaxies: List[Dict]) -> Dict:
         results.append(result)
 
     # Aggregate statistics
-    axiom_compressions = [r["axiom"]["compression"] for r in results]
-    axiom_r_squared = [r["axiom"]["r_squared"] for r in results]
+    spaceproof_compressions = [r["spaceproof"]["compression"] for r in results]
+    spaceproof_r_squared = [r["spaceproof"]["r_squared"] for r in results]
     pysr_mses = [r["pysr"]["mse"] for r in results]
-    axiom_mses = [r["axiom"]["mse"] for r in results]
+    spaceproof_mses = [r["spaceproof"]["mse"] for r in results]
 
     summary = {
         "n_galaxies": len(galaxies),
-        "axiom": {
-            "mean_compression": float(np.mean(axiom_compressions)),
-            "std_compression": float(np.std(axiom_compressions)),
-            "min_compression": float(np.min(axiom_compressions)),
-            "max_compression": float(np.max(axiom_compressions)),
-            "mean_r_squared": float(np.mean(axiom_r_squared)),
-            "mean_mse": float(np.mean(axiom_mses)),
+        "spaceproof": {
+            "mean_compression": float(np.mean(spaceproof_compressions)),
+            "std_compression": float(np.std(spaceproof_compressions)),
+            "min_compression": float(np.min(spaceproof_compressions)),
+            "max_compression": float(np.max(spaceproof_compressions)),
+            "mean_r_squared": float(np.mean(spaceproof_r_squared)),
+            "mean_mse": float(np.mean(spaceproof_mses)),
         },
         "pysr": {
             "mean_mse": float(np.mean(pysr_mses)),
         },
-        "axiom_wins_mse": sum(
-            1 for r in results if r["comparison"]["winner_mse"] == "axiom"
+        "spaceproof_wins_mse": sum(
+            1 for r in results if r["comparison"]["winner_mse"] == "spaceproof"
         ),
         "pysr_wins_mse": sum(
             1 for r in results if r["comparison"]["winner_mse"] == "pysr"
         ),
-        "axiom_wins_time": sum(
-            1 for r in results if r["comparison"]["winner_time"] == "axiom"
+        "spaceproof_wins_time": sum(
+            1 for r in results if r["comparison"]["winner_time"] == "spaceproof"
         ),
     }
 
@@ -435,10 +435,10 @@ def batch_compare(galaxies: List[Dict]) -> Dict:
         {
             "tenant_id": TENANT_ID,
             "n_galaxies": len(galaxies),
-            "mean_axiom_compression": summary["axiom"]["mean_compression"],
-            "mean_axiom_r_squared": summary["axiom"]["mean_r_squared"],
-            "axiom_wins_mse": summary["axiom_wins_mse"],
-            "axiom_wins_time": summary["axiom_wins_time"],
+            "mean_spaceproof_compression": summary["spaceproof"]["mean_compression"],
+            "mean_spaceproof_r_squared": summary["spaceproof"]["mean_r_squared"],
+            "spaceproof_wins_mse": summary["spaceproof_wins_mse"],
+            "spaceproof_wins_time": summary["spaceproof_wins_time"],
         },
     )
 
@@ -458,20 +458,20 @@ def generate_table(results: List[Dict]) -> str:
         Markdown table string
     """
     lines = [
-        "| Galaxy | pySR MSE | AXIOM MSE | AXIOM Compression | AXIOM R² | Winner |",
+        "| Galaxy | pySR MSE | SpaceProof MSE | SpaceProof Compression | SpaceProof R² | Winner |",
         "|--------|----------|-----------|-------------------|----------|--------|",
     ]
 
     for r in results:
         galaxy_id = r.get("galaxy_id", "unknown")
         pysr_mse = r["pysr"]["mse"]
-        axiom_mse = r["axiom"]["mse"]
-        compression = r["axiom"]["compression"]
-        r_squared = r["axiom"]["r_squared"]
+        spaceproof_mse = r["spaceproof"]["mse"]
+        compression = r["spaceproof"]["compression"]
+        r_squared = r["spaceproof"]["r_squared"]
         winner = r["comparison"]["winner_mse"]
 
         lines.append(
-            f"| {galaxy_id} | {pysr_mse:.4f} | {axiom_mse:.4f} | "
+            f"| {galaxy_id} | {pysr_mse:.4f} | {spaceproof_mse:.4f} | "
             f"{compression:.2%} | {r_squared:.4f} | {winner} |"
         )
 
@@ -485,7 +485,7 @@ def main():
     """Run benchmark suite from command line."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="AXIOM vs pySR Benchmark")
+    parser = argparse.ArgumentParser(description="SpaceProof vs pySR Benchmark")
     parser.add_argument("--dataset", default="sparc", help="Dataset to use")
     parser.add_argument("--n", type=int, default=10, help="Number of galaxies")
     parser.add_argument("--output", default=None, help="Output file for results")
@@ -507,12 +507,12 @@ def main():
     # Print summary
     print("\nSummary:")
     print(
-        f"  AXIOM mean compression: {results['summary']['axiom']['mean_compression']:.2%}"
+        f"  SpaceProof mean compression: {results['summary']['spaceproof']['mean_compression']:.2%}"
     )
-    print(f"  AXIOM mean R²: {results['summary']['axiom']['mean_r_squared']:.4f}")
-    print(f"  AXIOM wins (MSE): {results['summary']['axiom_wins_mse']}/{len(galaxies)}")
+    print(f"  SpaceProof mean R²: {results['summary']['spaceproof']['mean_r_squared']:.4f}")
+    print(f"  SpaceProof wins (MSE): {results['summary']['spaceproof_wins_mse']}/{len(galaxies)}")
     print(
-        f"  AXIOM wins (time): {results['summary']['axiom_wins_time']}/{len(galaxies)}"
+        f"  SpaceProof wins (time): {results['summary']['spaceproof_wins_time']}/{len(galaxies)}"
     )
 
     # Save results

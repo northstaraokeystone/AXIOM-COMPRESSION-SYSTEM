@@ -43,12 +43,12 @@ from .constants import (
 
 RECEIPT_SCHEMA: Dict[str, Any] = {
     "cfd_settling": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_settling",
         "description": "Stokes settling velocity computation",
     },
     "cfd_trajectory": {
-        "tenant_id": "axiom-cfd",
+        "tenant_id": "spaceproof-cfd",
         "receipt_type": "cfd_trajectory",
         "description": "Particle trajectory simulation",
     },

@@ -1,11 +1,11 @@
-"""Central path discovery and routing for AXIOM exploration paths.
+"""Central path discovery and routing for SpaceProof exploration paths.
 
 This module provides:
 - discover_paths(): Auto-discover paths in src/paths/
 - route_to_path(): Route CLI commands to path modules
 - aggregate_receipts(): Collect receipts across paths
 
-Source: AXIOM scalable paths architecture
+Source: SpaceProof scalable paths architecture
 """
 
 import os
@@ -24,7 +24,7 @@ from .paths import (
 
 # === CONSTANTS ===
 
-REGISTRY_TENANT_ID = "axiom-registry"
+REGISTRY_TENANT_ID = "spaceproof-registry"
 """Tenant ID for registry receipts."""
 
 

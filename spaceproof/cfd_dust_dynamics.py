@@ -34,7 +34,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-CFD_TENANT_ID = "axiom-cfd"
+CFD_TENANT_ID = "spaceproof-cfd"
 """Tenant ID for CFD receipts."""
 
 CFD_REYNOLDS_NUMBER_MARS = 50

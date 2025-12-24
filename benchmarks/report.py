@@ -1,8 +1,8 @@
 """report.py - Benchmark Report Generation
 
-Generate comprehensive comparison reports for AXIOM validation.
+Generate comprehensive comparison reports for SpaceProof validation.
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 from datetime import datetime
@@ -21,7 +21,7 @@ except ImportError:
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-benchmarks"
+TENANT_ID = "spaceproof-benchmarks"
 
 # Success criteria from spec
 SUCCESS_CRITERIA = {
@@ -46,21 +46,21 @@ def format_comparison_table(results: Dict) -> str:
     summary = results.get("summary", {})
 
     lines = [
-        "# AXIOM Benchmark Results",
+        "# SpaceProof Benchmark Results",
         "",
         f"Generated: {datetime.utcnow().isoformat()}Z",
         "",
         "## Individual Galaxy Results",
         "",
-        "| Galaxy | AXIOM Compression | AXIOM R² | AXIOM MSE | pySR MSE | Winner |",
+        "| Galaxy | SpaceProof Compression | SpaceProof R² | SpaceProof MSE | pySR MSE | Winner |",
         "|--------|-------------------|----------|-----------|----------|--------|",
     ]
 
     for r in individual:
         galaxy_id = r.get("galaxy_id", "unknown")
-        compression = r.get("axiom", {}).get("compression", 0)
-        r_squared = r.get("axiom", {}).get("r_squared", 0)
-        axiom_mse = r.get("axiom", {}).get("mse", 0)
+        compression = r.get("spaceproof", {}).get("compression", 0)
+        r_squared = r.get("spaceproof", {}).get("r_squared", 0)
+        spaceproof_mse = r.get("spaceproof", {}).get("mse", 0)
         pysr_mse = r.get("pysr", {}).get("mse", 0)
         winner = r.get("comparison", {}).get("winner_mse", "unknown")
 
@@ -78,7 +78,7 @@ def format_comparison_table(results: Dict) -> str:
 
         lines.append(
             f"| {galaxy_id} | {compression_str} | {r_squared_str} | "
-            f"{axiom_mse:.4f} | {pysr_mse:.4f} | {winner} |"
+            f"{spaceproof_mse:.4f} | {pysr_mse:.4f} | {winner} |"
         )
 
     # Add summary section
@@ -88,10 +88,10 @@ def format_comparison_table(results: Dict) -> str:
             "## Summary Statistics",
             "",
             f"- **Galaxies tested**: {summary.get('n_galaxies', 0)}",
-            f"- **Mean AXIOM compression**: {summary.get('axiom', {}).get('mean_compression', 0):.2%}",
-            f"- **Mean AXIOM R²**: {summary.get('axiom', {}).get('mean_r_squared', 0):.4f}",
-            f"- **AXIOM wins (MSE)**: {summary.get('axiom_wins_mse', 0)}/{summary.get('n_galaxies', 0)}",
-            f"- **AXIOM wins (time)**: {summary.get('axiom_wins_time', 0)}/{summary.get('n_galaxies', 0)}",
+            f"- **Mean SpaceProof compression**: {summary.get('spaceproof', {}).get('mean_compression', 0):.2%}",
+            f"- **Mean SpaceProof R²**: {summary.get('spaceproof', {}).get('mean_r_squared', 0):.4f}",
+            f"- **SpaceProof wins (MSE)**: {summary.get('spaceproof_wins_mse', 0)}/{summary.get('n_galaxies', 0)}",
+            f"- **SpaceProof wins (time)**: {summary.get('spaceproof_wins_time', 0)}/{summary.get('n_galaxies', 0)}",
             "",
             "## Success Criteria Check",
             "",
@@ -99,8 +99,8 @@ def format_comparison_table(results: Dict) -> str:
     )
 
     # Check success criteria
-    mean_compression = summary.get("axiom", {}).get("mean_compression", 0)
-    mean_r_squared = summary.get("axiom", {}).get("mean_r_squared", 0)
+    mean_compression = summary.get("spaceproof", {}).get("mean_compression", 0)
+    mean_r_squared = summary.get("spaceproof", {}).get("mean_r_squared", 0)
 
     compression_pass = mean_compression >= SUCCESS_CRITERIA["compression_min"]
     r_squared_pass = mean_r_squared >= SUCCESS_CRITERIA["r_squared_min"]
@@ -133,7 +133,7 @@ def generate_benchmark_report(
         Full markdown report string
     """
     lines = [
-        "# AXIOM Validation Lock Report",
+        "# SpaceProof Validation Lock Report",
         "",
         f"**Generated**: {datetime.utcnow().isoformat()}Z",
         "**Version**: 1.1 (Validation Lock)",
@@ -224,7 +224,7 @@ def generate_benchmark_report(
 
     # Compression check
     mean_compression = (
-        benchmark_results.get("summary", {}).get("axiom", {}).get("mean_compression", 0)
+        benchmark_results.get("summary", {}).get("spaceproof", {}).get("mean_compression", 0)
     )
     checks.append(
         ("Compression ≥92%", mean_compression >= SUCCESS_CRITERIA["compression_min"])
@@ -232,7 +232,7 @@ def generate_benchmark_report(
 
     # R² check
     mean_r_squared = (
-        benchmark_results.get("summary", {}).get("axiom", {}).get("mean_r_squared", 0)
+        benchmark_results.get("summary", {}).get("spaceproof", {}).get("mean_r_squared", 0)
     )
     checks.append(("R² ≥0.98", mean_r_squared >= SUCCESS_CRITERIA["r_squared_min"]))
 
@@ -283,8 +283,8 @@ def emit_benchmark_summary(
     summary = benchmark_results.get("summary", {})
 
     # Compute validation status
-    mean_compression = summary.get("axiom", {}).get("mean_compression", 0)
-    mean_r_squared = summary.get("axiom", {}).get("mean_r_squared", 0)
+    mean_compression = summary.get("spaceproof", {}).get("mean_compression", 0)
+    mean_r_squared = summary.get("spaceproof", {}).get("mean_r_squared", 0)
 
     compression_pass = mean_compression >= SUCCESS_CRITERIA["compression_min"]
     r_squared_pass = mean_r_squared >= SUCCESS_CRITERIA["r_squared_min"]
@@ -314,7 +314,7 @@ def emit_benchmark_summary(
             "n_galaxies": summary.get("n_galaxies", 0),
             "mean_compression": mean_compression,
             "mean_r_squared": mean_r_squared,
-            "axiom_wins_mse": summary.get("axiom_wins_mse", 0),
+            "spaceproof_wins_mse": summary.get("spaceproof_wins_mse", 0),
             "validation_status": validation_status,
             "all_pass": all_pass,
             "gate": "t48h",

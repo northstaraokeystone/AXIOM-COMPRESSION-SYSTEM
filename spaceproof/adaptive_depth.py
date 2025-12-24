@@ -111,7 +111,7 @@ def load_depth_spec(path: str = None) -> Dict[str, Any]:
         "depth_spec",
         {
             "receipt_type": "depth_spec",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             "base_layers": data["base_layers"],
             "scale_factor": data["scale_factor"],
             "baseline_n": data["baseline_n"],
@@ -154,7 +154,7 @@ def stoprule_invalid_depth(layers: int) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-colony",
+                "tenant_id": "spaceproof-colony",
                 "metric": "invalid_depth",
                 "baseline": f"[{min_l}, {max_l}]",
                 "delta": layers,
@@ -178,7 +178,7 @@ def stoprule_negative_entropy(entropy_h: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-colony",
+                "tenant_id": "spaceproof-colony",
                 "metric": "negative_entropy",
                 "baseline": 0.0,
                 "delta": entropy_h,
@@ -261,7 +261,7 @@ def compute_depth(tree_size_n: int, entropy_h: float = 0.5) -> int:
         "adaptive_depth",
         {
             "receipt_type": "adaptive_depth",
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -316,7 +316,7 @@ def get_depth_for_sweep_run(
             "depth_sweep_milestone",
             {
                 "receipt_type": "depth_sweep_milestone",
-                "tenant_id": "axiom-colony",
+                "tenant_id": "spaceproof-colony",
                 "run_number": run_number,
                 "total_runs": total_runs,
                 "tree_size_n": tree_size_n,
@@ -366,7 +366,7 @@ def get_depth_scaling_info() -> Dict[str, Any]:
     emit_receipt(
         "depth_scaling_info",
         {
-            "tenant_id": "axiom-colony",
+            "tenant_id": "spaceproof-colony",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True, default=str)),
         },

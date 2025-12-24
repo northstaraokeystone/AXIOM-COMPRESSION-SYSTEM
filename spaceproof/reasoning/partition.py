@@ -89,7 +89,7 @@ def partition_sweep(
         "samples_count": len(samples),
     }
 
-    emit_receipt("partition_sweep", {"tenant_id": "axiom-reasoning", **report})
+    emit_receipt("partition_sweep", {"tenant_id": "spaceproof-reasoning", **report})
 
     return report
 
@@ -152,7 +152,7 @@ def project_with_resilience(
     }
 
     emit_receipt(
-        "resilience_projection", {"tenant_id": "axiom-reasoning", **projection}
+        "resilience_projection", {"tenant_id": "spaceproof-reasoning", **projection}
     )
 
     return projection
@@ -263,7 +263,7 @@ def sovereignty_projection_with_partition(
     emit_receipt(
         "sovereignty_partition_projection",
         {
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             "c_base": c_base,
             "p_factor": p_factor,
             "base_alpha": alpha,
@@ -326,7 +326,7 @@ def validate_resilience_slo(
     }
 
     emit_receipt(
-        "resilience_slo_validation", {"tenant_id": "axiom-reasoning", **report}
+        "resilience_slo_validation", {"tenant_id": "spaceproof-reasoning", **report}
     )
 
     return report

@@ -10,7 +10,7 @@ from ....interstellar_backbone import (
     get_backbone_status,
 )
 
-MP_TENANT_ID = "axiom-multiplanet"
+MP_TENANT_ID = "spaceproof-multiplanet"
 
 
 __all__ = [

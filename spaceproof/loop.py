@@ -7,7 +7,7 @@ THE LOOP INSIGHT:
     Every 60 seconds: sense, analyze, hypothesize, gate, actuate.
     The system that iterates fastest wins.
 
-Source: AXIOM D20 Production Evolution
+Source: SpaceProof D20 Production Evolution
 
 SLOs:
     - Cycle time: <= 60 seconds
@@ -24,7 +24,7 @@ from .core import emit_receipt
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-loop"
+TENANT_ID = "spaceproof-loop"
 
 # Cycle configuration
 CYCLE_TIME_LIMIT_SEC = 60

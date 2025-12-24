@@ -7,7 +7,7 @@ THE TELEMETRY INSIGHT:
     The patterns reveal both physics and anomalies.
     Compression = discovery of underlying structure.
 
-Source: AXIOM D20 Production Evolution
+Source: SpaceProof D20 Production Evolution
 
 Stakeholder Value:
 - Elon/xAI: Tesla FSD telemetry compression
@@ -23,7 +23,7 @@ from ..core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-domain-telemetry"
+TENANT_ID = "spaceproof-domain-telemetry"
 
 # Telemetry rates (samples per second)
 TESLA_FSD_TELEMETRY_HZ = 100  # 100 Hz sensor fusion

@@ -1,4 +1,4 @@
-"""AXIOM Moons Package - Consolidated Jovian moon hybrid simulations.
+"""SpaceProof Moons Package - Consolidated Jovian moon hybrid simulations.
 
 This package consolidates:
 - titan_methane_hybrid.py -> moons.titan

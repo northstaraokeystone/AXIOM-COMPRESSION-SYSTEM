@@ -1,11 +1,11 @@
-"""constants.py - Shared constants across AXIOM modules.
+"""constants.py - Shared constants across SpaceProof modules.
 
 Centralizes constants that were previously duplicated across modules.
 """
 
 # === DEFAULT VALUES ===
 
-DEFAULT_TENANT_ID = "axiom-core"
+DEFAULT_TENANT_ID = "spaceproof-core"
 """Default tenant ID for receipts."""
 
 DEFAULT_GATE = "t24h"

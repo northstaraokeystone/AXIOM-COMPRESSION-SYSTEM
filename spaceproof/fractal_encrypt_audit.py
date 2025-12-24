@@ -16,7 +16,7 @@ ATTACK TYPES:
 KEY INSIGHT:
     Fractal self-similarity at all scales makes pattern extraction exponentially harder.
 
-Source: AXIOM D8 fractal encryption - AGI hardening
+Source: SpaceProof D8 fractal encryption - AGI hardening
 """
 
 import hashlib
@@ -32,7 +32,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-ENCRYPT_TENANT_ID = "axiom-encrypt"
+ENCRYPT_TENANT_ID = "spaceproof-encrypt"
 """Tenant ID for encryption receipts."""
 
 # Fractal encrypt config defaults

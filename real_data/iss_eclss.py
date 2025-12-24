@@ -8,7 +8,7 @@ THE ECLSS INSIGHT:
     98% water recovery, 87.5% O2 closure.
     These are the benchmarks for Mars sovereignty.
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 import json
@@ -28,7 +28,7 @@ except ImportError:
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-real-data"
+TENANT_ID = "spaceproof-real-data"
 
 # ISS ECLSS Validated Constants (from NASA reports)
 ISS_WATER_RECOVERY = 0.98  # 98% water recovery rate

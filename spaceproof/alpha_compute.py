@@ -95,7 +95,7 @@ def load_alpha_formula_spec(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "alpha_formula_spec_ingest",
         {
-            "tenant_id": "axiom-alpha-compute",
+            "tenant_id": "spaceproof-alpha-compute",
             "file_path": path,
             "formula_version": data["formula_version"],
             "formula": data["formula"],
@@ -122,7 +122,7 @@ def stoprule_invalid_retention(factor: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-alpha-compute",
+                "tenant_id": "spaceproof-alpha-compute",
                 "metric": "retention_factor",
                 "baseline": 1.0,
                 "delta": factor - 1.0,
@@ -149,7 +149,7 @@ def stoprule_alpha_below_floor(alpha: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-alpha-compute",
+                "tenant_id": "spaceproof-alpha-compute",
                 "metric": "computed_alpha",
                 "baseline": SHANNON_FLOOR_ALPHA,
                 "delta": alpha - SHANNON_FLOOR_ALPHA,
@@ -176,7 +176,7 @@ def stoprule_alpha_above_ceiling(alpha: float) -> None:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-alpha-compute",
+                "tenant_id": "spaceproof-alpha-compute",
                 "metric": "computed_alpha",
                 "baseline": ALPHA_CEILING_TARGET,
                 "delta": alpha - ALPHA_CEILING_TARGET,
@@ -254,7 +254,7 @@ def alpha_calc(
         "alpha_formula",
         {
             "receipt_type": "alpha_formula",
-            "tenant_id": "axiom-alpha-compute",
+            "tenant_id": "spaceproof-alpha-compute",
             "min_eff": min_eff,
             "baseline": baseline,
             "retention_factor": retention_factor,
@@ -366,7 +366,7 @@ def ceiling_gap(
         "ceiling_track",
         {
             "receipt_type": "ceiling_track",
-            "tenant_id": "axiom-alpha-compute",
+            "tenant_id": "spaceproof-alpha-compute",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -489,7 +489,7 @@ def compute_alpha_from_layers(
         "alpha_from_layers",
         {
             "receipt_type": "alpha_from_layers",
-            "tenant_id": "axiom-alpha-compute",
+            "tenant_id": "spaceproof-alpha-compute",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -529,7 +529,7 @@ def get_alpha_compute_info() -> Dict[str, Any]:
     emit_receipt(
         "alpha_compute_info",
         {
-            "tenant_id": "axiom-alpha-compute",
+            "tenant_id": "spaceproof-alpha-compute",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
@@ -597,7 +597,7 @@ def alpha_calc_dynamic(
         "alpha_calc_dynamic",
         {
             "receipt_type": "alpha_calc_dynamic",
-            "tenant_id": "axiom-alpha-compute",
+            "tenant_id": "spaceproof-alpha-compute",
             "computed_alpha": result["computed_alpha"],
             "retention_factor": result["retention_factor"],
             "retention_source": retention_source,
@@ -671,7 +671,7 @@ def ceiling_gap_with_rl_path(
         "ceiling_gap_rl_path",
         {
             "receipt_type": "ceiling_gap_rl_path",
-            "tenant_id": "axiom-alpha-compute",
+            "tenant_id": "spaceproof-alpha-compute",
             "current_alpha": current_alpha,
             "gap_pct": gap_result["gap_pct"],
             "rl_projected_retention": rl_projected_retention,
@@ -749,7 +749,7 @@ def get_alpha_compute_dynamic_info() -> Dict[str, Any]:
     emit_receipt(
         "alpha_compute_dynamic_info",
         {
-            "tenant_id": "axiom-alpha-compute",
+            "tenant_id": "spaceproof-alpha-compute",
             **{
                 k: v
                 for k, v in info.items()

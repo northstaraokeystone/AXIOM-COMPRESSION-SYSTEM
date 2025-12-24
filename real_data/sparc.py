@@ -8,7 +8,7 @@ THE REAL-DATA INSIGHT:
     SPARC provides 175 real galaxy rotation curves.
     Each claim must trace to measured data.
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 import json
@@ -38,7 +38,7 @@ SPARC_TOTAL_GALAXIES = 175
 
 SPARC_BASE_URL = "http://astroweb.cwru.edu/SPARC/"
 SPARC_DATA_URL = f"{SPARC_BASE_URL}SPARC_Lelli2016c.mrt"
-TENANT_ID = "axiom-real-data"
+TENANT_ID = "spaceproof-real-data"
 DEFAULT_CACHE_DIR = "real_data/cache"
 DOWNLOAD_TIMEOUT_S = 60
 

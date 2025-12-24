@@ -132,7 +132,7 @@ def load_reroute_spec(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "reroute_spec_ingest",
         {
-            "tenant_id": "axiom-reroute",
+            "tenant_id": "spaceproof-reroute",
             "file_path": path,
             "algo_type": data["algo_type"],
             "blackout_base_days": data["blackout_base_days"],
@@ -194,7 +194,7 @@ def compute_cgr_paths(
     emit_receipt(
         "cgr_paths",
         {
-            "tenant_id": "axiom-reroute",
+            "tenant_id": "spaceproof-reroute",
             "source": source,
             "targets": targets,
             "paths_computed": len(paths),
@@ -247,7 +247,7 @@ def predict_degradation(
     emit_receipt(
         "ml_prediction",
         {
-            "tenant_id": "axiom-reroute",
+            "tenant_id": "spaceproof-reroute",
             "model_type": ML_MODEL_TYPE,
             "historical_anomaly_count": anomaly_count,
             "blackout_active": blackout_active,
@@ -283,7 +283,7 @@ def apply_reroute_boost(
         emit_receipt(
             "reroute_boost_applied",
             {
-                "tenant_id": "axiom-reroute",
+                "tenant_id": "spaceproof-reroute",
                 "base_alpha": base_alpha,
                 "reroute_active": False,
                 "boost_applied": 0.0,
@@ -309,7 +309,7 @@ def apply_reroute_boost(
     emit_receipt(
         "reroute_boost_applied",
         {
-            "tenant_id": "axiom-reroute",
+            "tenant_id": "spaceproof-reroute",
             "base_alpha": base_alpha,
             "reroute_active": True,
             "blackout_days": blackout_days,
@@ -366,7 +366,7 @@ def adaptive_reroute(
             emit_receipt(
                 "anomaly",
                 {
-                    "tenant_id": "axiom-reroute",
+                    "tenant_id": "spaceproof-reroute",
                     "metric": "reroute_failure",
                     "baseline": quorum_threshold,
                     "delta": nodes_surviving - quorum_threshold,
@@ -435,7 +435,7 @@ def adaptive_reroute(
         "algo_type": ALGO_TYPE,
     }
 
-    emit_receipt("adaptive_reroute", {"tenant_id": "axiom-reroute", **result})
+    emit_receipt("adaptive_reroute", {"tenant_id": "spaceproof-reroute", **result})
 
     return result
 
@@ -541,7 +541,7 @@ def blackout_sim(
     emit_receipt(
         "blackout_sim",
         {
-            "tenant_id": "axiom-reroute",
+            "tenant_id": "spaceproof-reroute",
             "blackout_days": blackout_days,
             "reroute_enabled": reroute_enabled,
             "survival_status": survival_status,
@@ -630,7 +630,7 @@ def blackout_stress_sweep(
         "all_survived": failures == 0,
     }
 
-    emit_receipt("blackout_stress_sweep", {"tenant_id": "axiom-reroute", **report})
+    emit_receipt("blackout_stress_sweep", {"tenant_id": "spaceproof-reroute", **report})
 
     return report
 
@@ -655,6 +655,6 @@ def get_reroute_algo_info() -> Dict[str, Any]:
         "description": "Hybrid ephemeris-ML algorithm (CGR + lightweight GNN)",
     }
 
-    emit_receipt("reroute_algo_info", {"tenant_id": "axiom-reroute", **info})
+    emit_receipt("reroute_algo_info", {"tenant_id": "spaceproof-reroute", **info})
 
     return info

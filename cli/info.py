@@ -1,4 +1,4 @@
-"""Info and status CLI commands for AXIOM-CORE.
+"""Info and status CLI commands for SpaceProof-CORE.
 
 Commands: hybrid_boost_info
 """

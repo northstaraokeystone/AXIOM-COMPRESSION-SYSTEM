@@ -129,7 +129,7 @@ def execute_full_pipeline(
         "full_pipeline",
         {
             "receipt_type": "full_pipeline",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             "pilot_runs": pilot_runs,
             "quantum_runs": quantum_runs,
             "sweep_runs": sweep_runs,
@@ -198,7 +198,7 @@ def get_pipeline_info() -> Dict[str, Any]:
         "pipeline_info",
         {
             "receipt_type": "pipeline_info",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **{
                 k: v
                 for k, v in info.items()

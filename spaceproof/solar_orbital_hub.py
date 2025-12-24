@@ -29,7 +29,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-SOLAR_HUB_TENANT_ID = "axiom-solar-hub"
+SOLAR_HUB_TENANT_ID = "spaceproof-solar-hub"
 """Tenant ID for Solar hub receipts."""
 
 SOLAR_HUB_PLANETS = ["venus", "mercury", "mars"]

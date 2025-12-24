@@ -5,7 +5,7 @@ This module integrates fractal encryption defenses including:
 - Model inversion attack resilience
 - Fractal self-similarity-based privacy
 
-Source: AXIOM scalable paths architecture - AGI encryption defenses
+Source: SpaceProof scalable paths architecture - AGI encryption defenses
 """
 
 from typing import Dict, Any, List, Optional

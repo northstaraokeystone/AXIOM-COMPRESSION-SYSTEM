@@ -1,4 +1,4 @@
-"""conftest.py - Pytest configuration for AXIOM tests.
+"""conftest.py - Pytest configuration for SpaceProof tests.
 
 Provides common fixtures and test infrastructure.
 """

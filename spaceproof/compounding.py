@@ -686,7 +686,7 @@ def emit_compounding_receipt(result: CompoundingResult) -> dict:
     return emit_receipt(
         "compounding_simulation",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "tau_initial_s": result.config.tau_initial,
             "tau_final_s": result.final_tau,
             "alpha": result.config.alpha,
@@ -714,7 +714,7 @@ def emit_validation_receipt(validation: dict) -> dict:
     return emit_receipt(
         "compounding_validation",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "initial_speedup": validation["initial_speedup"],
             "cycles": validation["cycles"],
             "alpha": validation["alpha"],
@@ -742,7 +742,7 @@ def emit_sovereignty_projection_receipt(timeline: List[dict]) -> dict:
     return emit_receipt(
         "sovereignty_projection",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "missions": len(timeline),
             "start_year": timeline[0]["year"] if timeline else None,
             "end_year": timeline[-1]["year"] if timeline else None,
@@ -909,7 +909,7 @@ def analyze_tau_velocity(tau_history: List[float]) -> TauVelocityResult:
     emit_receipt(
         "tau_velocity",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "velocity_raw": velocity_raw,
             "velocity_pct": velocity_pct,
             "trend": trend,
@@ -966,7 +966,7 @@ def emit_tau_velocity_receipt(result: TauVelocityResult) -> dict:
     return emit_receipt(
         "tau_velocity",
         {
-            "tenant_id": "axiom-core",
+            "tenant_id": "spaceproof-core",
             "velocity_raw": result.velocity_raw,
             "velocity_pct": result.velocity_pct,
             "trend": result.trend,

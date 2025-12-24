@@ -7,7 +7,7 @@ THE ANCHOR INSIGHT:
     Once anchored, data cannot be modified without detection.
     The Merkle root is the signature of truth.
 
-Source: AXIOM D20 Production Evolution
+Source: SpaceProof D20 Production Evolution
 
 Stakeholder Value:
     - Defense: Tamper-proof verification
@@ -23,7 +23,7 @@ from .core import emit_receipt, dual_hash, merkle
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-anchor"
+TENANT_ID = "spaceproof-anchor"
 
 
 @dataclass

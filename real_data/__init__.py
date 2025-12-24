@@ -7,7 +7,7 @@ Modules:
     nasa_pds: Perseverance MOXIE telemetry
     iss_eclss: ISS life support system data
 
-Source: AXIOM Validation Lock v1 (Dec 17, 2025)
+Source: SpaceProof Validation Lock v1 (Dec 17, 2025)
 """
 
 from .sparc import load_sparc, get_galaxy, list_available, verify_checksum

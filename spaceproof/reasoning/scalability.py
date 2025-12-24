@@ -59,7 +59,7 @@ def enforce_scalability_gate(sweep_results: Dict[str, Any]) -> bool:
         "scalability_gate_enforcement",
         {
             "receipt_type": "scalability_gate_enforcement",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             "ts": datetime.utcnow().isoformat() + "Z",
             **enforcement_result,
             "payload_hash": dual_hash(json.dumps(enforcement_result, sort_keys=True)),
@@ -159,7 +159,7 @@ def get_31_push_readiness() -> Dict[str, Any]:
         "push_31_readiness",
         {
             "receipt_type": "push_31_readiness",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             "ts": datetime.utcnow().isoformat() + "Z",
             "ready_for_31_push": ready,
             "gate_passed": gate_passed,

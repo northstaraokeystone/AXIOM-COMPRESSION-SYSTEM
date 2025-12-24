@@ -11,7 +11,7 @@ VALIDATION MODEL:
     - Project degradation over time
     - Validate Mars ISRU perovskite targets
 
-Source: AXIOM D7 recursion + Europa ice + NREL + expanded audits
+Source: SpaceProof D7 recursion + Europa ice + NREL + expanded audits
 """
 
 import json
@@ -24,7 +24,7 @@ from .fractal_layers import get_d7_spec
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-nrel"
+TENANT_ID = "spaceproof-nrel"
 """Tenant ID for NREL receipts."""
 
 # NREL lab data (2024)

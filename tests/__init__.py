@@ -1,1 +1,1 @@
-"""Tests for axiom-core v1."""
+"""Tests for spaceproof-core v1."""

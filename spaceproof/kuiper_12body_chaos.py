@@ -35,7 +35,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-KUIPER_TENANT_ID = "axiom-kuiper"
+KUIPER_TENANT_ID = "spaceproof-kuiper"
 """Tenant ID for Kuiper receipts."""
 
 KUIPER_BODY_COUNT = 12

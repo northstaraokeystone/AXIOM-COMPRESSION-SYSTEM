@@ -43,7 +43,7 @@ FRACTAL_BASE_CORRELATION = 0.85
 FRACTAL_ALPHA_CONTRIBUTION = 0.35
 """Fractal layer contribution to alpha ceiling breach."""
 
-TENANT_ID = "axiom-colony"
+TENANT_ID = "spaceproof-colony"
 """Tenant ID for receipts."""
 
 

@@ -10,7 +10,7 @@ from ....secure_enclave_audit import (
     test_rsb_stuffing,
 )
 
-AGI_TENANT_ID = "axiom-agi"
+AGI_TENANT_ID = "spaceproof-agi"
 
 
 def integrate_secure_enclave(config=None):

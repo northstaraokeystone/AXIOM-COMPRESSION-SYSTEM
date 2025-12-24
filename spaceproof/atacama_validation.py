@@ -13,7 +13,7 @@ ATACAMA FACTS:
 CALIBRATION:
     Mars projection = Atacama efficiency * (Mars flux / Atacama flux) * dust_correction
 
-Source: AXIOM D8 Atacama validation - Mars dust calibration
+Source: SpaceProof D8 Atacama validation - Mars dust calibration
 """
 
 import json
@@ -25,7 +25,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-ATACAMA_TENANT_ID = "axiom-atacama"
+ATACAMA_TENANT_ID = "spaceproof-atacama"
 """Tenant ID for Atacama receipts."""
 
 # Atacama config defaults

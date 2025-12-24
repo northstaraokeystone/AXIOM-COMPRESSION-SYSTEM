@@ -8,7 +8,7 @@ Tests:
 - test_mars_receipt_emitted: assert mars_status_receipt emitted
 - test_mars_cli_routes: assert CLI commands route correctly
 
-Source: AXIOM scalable paths architecture - Mars autonomous habitat
+Source: SpaceProof scalable paths architecture - Mars autonomous habitat
 """
 
 

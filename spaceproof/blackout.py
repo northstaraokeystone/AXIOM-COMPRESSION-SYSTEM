@@ -108,7 +108,7 @@ def load_blackout_extension_spec(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "blackout_extension_spec_ingest",
         {
-            "tenant_id": "axiom-blackout",
+            "tenant_id": "spaceproof-blackout",
             "file_path": path,
             "blackout_base_days": data["blackout_base_days"],
             "blackout_sweep_max_days": data["blackout_sweep_max_days"],
@@ -176,7 +176,7 @@ def retention_curve(
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-blackout",
+                "tenant_id": "spaceproof-blackout",
                 "metric": "blackout_duration_unrealistic",
                 "baseline": BLACKOUT_MAX_UNREALISTIC,
                 "delta": blackout_days - BLACKOUT_MAX_UNREALISTIC,
@@ -293,7 +293,7 @@ def sweep_with_pruning(
             emit_receipt(
                 "pruning_sweep",
                 {
-                    "tenant_id": "axiom-blackout",
+                    "tenant_id": "spaceproof-blackout",
                     **sweep_result,
                     "payload_hash": dual_hash(json.dumps(sweep_result, sort_keys=True)),
                 },
@@ -392,7 +392,7 @@ def extended_blackout_sweep(
             emit_receipt(
                 "extended_blackout",
                 {
-                    "tenant_id": "axiom-blackout",
+                    "tenant_id": "spaceproof-blackout",
                     **result,
                     "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
                 },
@@ -526,7 +526,7 @@ def generate_retention_curve_data(
     emit_receipt(
         "retention_curve",
         {
-            "tenant_id": "axiom-blackout",
+            "tenant_id": "spaceproof-blackout",
             "day_range": list(day_range),
             "curve_points": curve_points,
             "model_type": DEGRADATION_MODEL,
@@ -567,7 +567,7 @@ def gnn_sensitivity_stub(param_config: Dict[str, Any]) -> Dict[str, Any]:
     emit_receipt(
         "gnn_sensitivity_stub",
         {
-            "tenant_id": "axiom-blackout",
+            "tenant_id": "spaceproof-blackout",
             **result,
             "payload_hash": dual_hash(json.dumps(param_config, sort_keys=True)),
         },
@@ -634,7 +634,7 @@ def validate_retention_slos(sweep_results: List[Dict[str, Any]]) -> Dict[str, An
     }
 
     emit_receipt(
-        "retention_slo_validation", {"tenant_id": "axiom-blackout", **validation}
+        "retention_slo_validation", {"tenant_id": "spaceproof-blackout", **validation}
     )
 
     return validation

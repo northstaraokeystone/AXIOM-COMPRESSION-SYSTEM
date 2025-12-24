@@ -14,7 +14,7 @@ SOLAR EFFICIENCY IMPACT:
     - Dust reduces solar panel efficiency by ~15%
     - Real-time mitigation via positioning
 
-Source: AXIOM D9 recursion + Atacama drone arrays validation
+Source: SpaceProof D9 recursion + Atacama drone arrays validation
 """
 
 import json
@@ -28,7 +28,7 @@ from .fractal_layers import get_d9_spec
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-atacama-drone"
+TENANT_ID = "spaceproof-atacama-drone"
 """Tenant ID for Atacama drone receipts."""
 
 # Atacama drone parameters

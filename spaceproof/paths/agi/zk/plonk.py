@@ -11,7 +11,7 @@ from ....plonk_zk_upgrade import (
     benchmark_plonk,
 )
 
-AGI_TENANT_ID = "axiom-agi"
+AGI_TENANT_ID = "spaceproof-agi"
 
 
 def integrate_plonk(config=None):

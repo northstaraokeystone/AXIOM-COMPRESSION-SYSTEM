@@ -68,7 +68,7 @@ PLONK_PROOF_TIME_MS = 200
 PLONK_VERIFY_TIME_MS = 5
 """PLONK verify time for comparison."""
 
-TENANT_ID = "axiom-colony"
+TENANT_ID = "spaceproof-colony"
 """Tenant ID for receipts."""
 
 

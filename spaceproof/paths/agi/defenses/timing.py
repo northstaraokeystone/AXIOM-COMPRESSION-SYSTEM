@@ -5,7 +5,7 @@ This module integrates randomized execution path defenses including:
 - Power analysis resilience
 - Cache timing resilience
 
-Source: AXIOM scalable paths architecture - AGI timing defenses
+Source: SpaceProof scalable paths architecture - AGI timing defenses
 """
 
 from typing import Dict, Any, List, Optional

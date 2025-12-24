@@ -180,7 +180,7 @@ def create_archive(
 
     Args:
         version: Semantic version string
-        output_path: Output file path (default: axiom-{version}.tar.gz)
+        output_path: Output file path (default: spaceproof-{version}.tar.gz)
         include_receipts: Whether to include receipts.jsonl
         include_synthetic: Whether to include synthetic data
 

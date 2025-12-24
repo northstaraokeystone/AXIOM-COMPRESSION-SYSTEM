@@ -260,7 +260,7 @@ class TestReceiptsEmitted:
 
         # Validate receipt structure
         assert receipt["receipt_type"] == "partition_stress"
-        assert receipt["tenant_id"] == "axiom-resilience"
+        assert receipt["tenant_id"] == "spaceproof-resilience"
         assert receipt["nodes_total"] == 5
         assert receipt["loss_pct"] == 0.20
         assert "eff_alpha_drop" in receipt

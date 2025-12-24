@@ -18,7 +18,7 @@ from .core import emit_receipt
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-autonomy"
+TENANT_ID = "spaceproof-autonomy"
 """Tenant for optimization receipts."""
 
 

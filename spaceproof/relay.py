@@ -93,7 +93,7 @@ def compute_relay_tau(base_tau: float, config: RelayConfig) -> float:
     emit_receipt(
         "relay_tau",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "base_tau": base_tau,
             "reduced_tau": reduced_tau,
             "tau_reduction_factor": config.tau_reduction_factor,
@@ -127,7 +127,7 @@ def compute_relay_p_cost(config: RelayConfig) -> float:
     emit_receipt(
         "relay_p_cost",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "swarm_size": config.swarm_size,
             "p_cost_per_sat": config.p_cost_per_sat,
             "p_cost_total": p_cost,
@@ -183,7 +183,7 @@ def optimal_swarm_size(
     emit_receipt(
         "relay_optimization",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "budget_p": budget_p,
             "target_tau": target_tau,
             "base_tau": base_tau,
@@ -235,7 +235,7 @@ def load_relay_params(path: str = None) -> Dict[str, Any]:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-autonomy",
+                "tenant_id": "spaceproof-autonomy",
                 "metric": "hash_mismatch",
                 "classification": "violation",
                 "action": "halt",
@@ -251,7 +251,7 @@ def load_relay_params(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "tau_strategies_ingest",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "file_path": path,
             "relay_tau_factor": data["relay_tau_factor"],
             "relay_p_cost_per_sat": data["relay_p_cost_per_sat"],
@@ -288,7 +288,7 @@ def emit_relay_config_receipt(config: RelayConfig, base_tau: float) -> dict:
     return emit_receipt(
         "relay_config",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "swarm_size": config.swarm_size,
             "tau_base": base_tau,
             "tau_reduced": reduced_tau,

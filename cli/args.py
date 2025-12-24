@@ -1,4 +1,4 @@
-"""cli/args.py - Argument definitions for AXIOM CLI.
+"""cli/args.py - Argument definitions for SpaceProof CLI.
 
 Extracted from cli.py to keep main entry point under 600 lines.
 """
@@ -15,7 +15,7 @@ def create_parser() -> argparse.ArgumentParser:
         Configured ArgumentParser
     """
     parser = argparse.ArgumentParser(
-        description="AXIOM-CORE CLI - The Sovereignty Calculator"
+        description="SpaceProof-CORE CLI - The Sovereignty Calculator"
     )
     parser.add_argument(
         "command", nargs="?", help="Command: baseline, bootstrap, curve, full"
@@ -2690,7 +2690,7 @@ def _add_d19_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_darwinian_args(parser: argparse.ArgumentParser) -> None:
-    """Add Darwinian enforcer arguments (AXIOM v2)."""
+    """Add Darwinian enforcer arguments (SpaceProof v2)."""
     parser.add_argument(
         "--darwinian_mode",
         action="store_true",

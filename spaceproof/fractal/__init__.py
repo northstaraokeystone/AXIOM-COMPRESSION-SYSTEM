@@ -1,4 +1,4 @@
-"""Fractal entropy and recursion modules for AXIOM compression.
+"""Fractal entropy and recursion modules for SpaceProof compression.
 
 This package provides multi-scale fractal entropy calculations,
 recursive fractal boost functions, and depth-specific implementations.

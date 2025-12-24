@@ -6,7 +6,7 @@ Commands:
 - cmd_mars_isru: Show ISRU metrics
 - cmd_mars_sovereignty: Check sovereignty threshold
 
-Source: AXIOM scalable paths architecture - Mars autonomous habitat
+Source: SpaceProof scalable paths architecture - Mars autonomous habitat
 """
 
 import json

@@ -57,7 +57,7 @@ def apply_ledger_boost(
     emit_receipt(
         "ledger_boost",
         {
-            "tenant_id": "axiom-ledger",
+            "tenant_id": "spaceproof-ledger",
             "base_alpha": base_alpha,
             "boost": boost,
             "effective_alpha": eff_alpha,
@@ -111,7 +111,7 @@ def apply_quorum_factor(
         emit_receipt(
             "quorum_warning",
             {
-                "tenant_id": "axiom-ledger",
+                "tenant_id": "spaceproof-ledger",
                 "nodes_baseline": nodes_baseline,
                 "nodes_surviving": nodes_surviving,
                 "nodes_missing": nodes_missing,
@@ -127,7 +127,7 @@ def apply_quorum_factor(
     emit_receipt(
         "quorum_factor",
         {
-            "tenant_id": "axiom-ledger",
+            "tenant_id": "spaceproof-ledger",
             "base_alpha": base_alpha,
             "nodes_surviving": nodes_surviving,
             "nodes_baseline": nodes_baseline,
@@ -190,7 +190,7 @@ def anchor_with_quorum(
     receipt = emit_receipt(
         "distributed_anchor",
         {
-            "tenant_id": "axiom-ledger",
+            "tenant_id": "spaceproof-ledger",
             "data_hash": data.get("payload_hash", "uncomputed"),
             "base_alpha": base_alpha,
             "ledger_boost": LEDGER_ALPHA_BOOST_VALIDATED,

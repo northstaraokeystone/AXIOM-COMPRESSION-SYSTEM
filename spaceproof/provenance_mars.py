@@ -136,7 +136,7 @@ def load_receipt_params(path: str = None) -> Dict[str, Any]:
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-autonomy",
+                "tenant_id": "spaceproof-autonomy",
                 "metric": "hash_mismatch",
                 "classification": "violation",
                 "action": "halt",
@@ -153,7 +153,7 @@ def load_receipt_params(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "receipt_params_ingest",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "file_path": path,
             "receipt_integrity_baseline": data["receipt_integrity_baseline"],
             "receipt_efficacy_factor": data["receipt_efficacy_factor"],
@@ -209,7 +209,7 @@ def emit_mars_receipt(decision: Dict, state: ProvenanceState) -> ProvenanceState
     emit_receipt(
         "mars_provenance_receipt",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "decision_id": receipt_record["decision_id"],
             "decision_type": receipt_record["decision_type"],
             "cycle": receipt_record["cycle"],
@@ -254,7 +254,7 @@ def batch_pending(state: ProvenanceState) -> Tuple[str, ProvenanceState]:
     emit_receipt(
         "merkle_batch_receipt",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "batch_id": batch_id,
             "receipt_count": receipt_count,
             "merkle_root": root,
@@ -290,7 +290,7 @@ def sync_batch(state: ProvenanceState, root: str) -> ProvenanceState:
     emit_receipt(
         "sync_receipt",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "batch_id": f"sync_{len(state.synced_batches)}",
             "merkle_root": root,
             "synced_ts": sync_ts,
@@ -334,7 +334,7 @@ def check_disparity(state: ProvenanceState, config: ProvenanceConfig = None) -> 
         emit_receipt(
             "disparity_halt_receipt",
             {
-                "tenant_id": "axiom-autonomy",
+                "tenant_id": "spaceproof-autonomy",
                 "integrity": state.integrity,
                 "threshold": config.disparity_threshold,
                 "disparity": disparity,

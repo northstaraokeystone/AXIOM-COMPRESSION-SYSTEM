@@ -8,7 +8,7 @@ EXPANSION SEQUENCE:
 3. Europa (33-53 min latency, 95% autonomy)
 4. Titan (70-90 min latency, 99% autonomy)
 
-Source: AXIOM scalable paths architecture - Multi-planet expansion
+Source: SpaceProof scalable paths architecture - Multi-planet expansion
 """
 
 from .core import (

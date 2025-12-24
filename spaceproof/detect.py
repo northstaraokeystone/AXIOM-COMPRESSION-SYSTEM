@@ -7,7 +7,7 @@ THE DETECTION INSIGHT:
     Fraud = entropy anomaly.
     Systems in distress leak information.
 
-Source: AXIOM D20 Production Evolution
+Source: SpaceProof D20 Production Evolution
 
 Stakeholder Value:
     - DOGE: "$31-162B improper payments detectable via entropy"
@@ -26,7 +26,7 @@ from .core import emit_receipt
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-detect"
+TENANT_ID = "spaceproof-detect"
 
 # Detection thresholds
 FRAUD_THRESHOLD_SIGMA = 3.0  # 3 standard deviations

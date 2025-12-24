@@ -1,12 +1,12 @@
 #!/bin/bash
-# AXIOM-COMPRESSION-SYSTEM Local Validation Gate
+# SpaceProof-COMPRESSION-SYSTEM Local Validation Gate
 # This script MUST pass before any git push
 # Run: ./validate.sh
 
 set -e  # Exit on first failure
 
 echo "========================================="
-echo "AXIOM VALIDATION GATE"
+echo "SpaceProof VALIDATION GATE"
 echo "========================================="
 echo ""
 

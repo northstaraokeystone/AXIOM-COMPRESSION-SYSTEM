@@ -1,4 +1,4 @@
-"""AXIOM Utilities Package - Shared utilities for config, specs, and validation.
+"""SpaceProof Utilities Package - Shared utilities for config, specs, and validation.
 
 This package provides:
 - config: Generic config loading with dual-hash verification

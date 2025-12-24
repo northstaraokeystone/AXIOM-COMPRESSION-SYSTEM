@@ -1,4 +1,4 @@
-"""Partition resilience CLI commands for AXIOM-CORE.
+"""Partition resilience CLI commands for SpaceProof-CORE.
 
 Commands: partition, stress_quorum
 """

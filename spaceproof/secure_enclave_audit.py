@@ -33,7 +33,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-ENCLAVE_TENANT_ID = "axiom-enclave"
+ENCLAVE_TENANT_ID = "spaceproof-enclave"
 """Tenant ID for secure enclave receipts."""
 
 ENCLAVE_TYPE = "SGX"

@@ -1,7 +1,7 @@
 """witness.py - KAN-based physics law witnessing.
 
 THE WITNESSING INSIGHT:
-    AXIOM witnesses physics laws through data compression.
+    SpaceProof witnesses physics laws through data compression.
     When a KAN achieves high compression on rotation curves,
     the spline coefficients ARE the equation.
 
@@ -21,7 +21,7 @@ from .core import emit_receipt
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-witness"
+TENANT_ID = "spaceproof-witness"
 """Tenant for witness receipts."""
 
 DEFAULT_HIDDEN_DIM = 8

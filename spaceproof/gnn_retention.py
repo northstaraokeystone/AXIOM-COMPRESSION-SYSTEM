@@ -148,7 +148,7 @@ def get_retention_factor_gnn_isolated(blackout_days: int) -> Dict[str, Any]:
     emit_receipt(
         "retention_gnn_isolated",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },

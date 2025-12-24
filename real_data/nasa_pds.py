@@ -8,7 +8,7 @@ THE MOXIE INSIGHT:
     MOXIE produces 6-10g O2/hour from Martian atmosphere.
     Each run validates bits/kg equivalence for life support.
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 import json
@@ -29,7 +29,7 @@ except ImportError:
 # === CONSTANTS ===
 
 NASA_PDS_BASE_URL = "https://pds-geosciences.wustl.edu/missions/mars2020/"
-TENANT_ID = "axiom-real-data"
+TENANT_ID = "spaceproof-real-data"
 DEFAULT_CACHE_DIR = "real_data/cache"
 
 # MOXIE Performance Constants (from NASA)

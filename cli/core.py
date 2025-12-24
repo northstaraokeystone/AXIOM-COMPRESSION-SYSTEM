@@ -1,4 +1,4 @@
-"""Core CLI commands for AXIOM-CORE.
+"""Core CLI commands for SpaceProof-CORE.
 
 Baseline commands: baseline, bootstrap, curve, full
 """
@@ -91,7 +91,7 @@ def cmd_curve():
 
 def cmd_full():
     """Run full integration test."""
-    print_header("AXIOM-CORE v1 INTEGRATION TEST")
+    print_header("SpaceProof-CORE v1 INTEGRATION TEST")
 
     # 1. Null hypothesis
     print("\n[1] NULL HYPOTHESIS TEST")

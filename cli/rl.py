@@ -1,4 +1,4 @@
-"""RL auto-tuning CLI commands for AXIOM-CORE.
+"""RL auto-tuning CLI commands for SpaceProof-CORE.
 
 Commands: rl_info, adaptive_info, rl_status, validate_no_static, rl_tune,
           dynamic_mode, tune_sweep, rl_500_sweep, rl_500_sweep_info

@@ -82,7 +82,7 @@ def reward(cycles_saved: int, config: ROIConfig = None) -> float:
     emit_receipt(
         "roi_reward",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "cycles_saved": cycles_saved,
             "reward_per_cycle": config.reward_per_cycle_saved,
             "reward_value": reward_value,
@@ -117,7 +117,7 @@ def penalty(p_cost: float, c_reduction: float, config: ROIConfig = None) -> floa
     emit_receipt(
         "roi_penalty",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "p_cost": p_cost,
             "c_reduction": c_reduction,
             "p_penalty": p_penalty,
@@ -165,7 +165,7 @@ def compute_roi(
     emit_receipt(
         "roi_computation",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "strategy": result.strategy.value,
             "baseline_cycles": baseline.cycles_to_10k,
             "result_cycles": result.cycles_to_10k,
@@ -211,7 +211,7 @@ def roi_gate(roi_score: float, config: ROIConfig = None) -> str:
     emit_receipt(
         "roi_gate",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "roi_score": roi_score,
             "decision": decision,
             "threshold_deploy": ROI_GATE_DEPLOY,
@@ -254,7 +254,7 @@ def rank_by_roi(
     emit_receipt(
         "roi_ranking",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "strategies_ranked": len(ranked),
             "top_strategy": ranked[0][0].strategy.value if ranked else None,
             "top_roi": ranked[0][1] if ranked else None,

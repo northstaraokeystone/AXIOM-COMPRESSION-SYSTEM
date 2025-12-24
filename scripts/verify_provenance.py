@@ -9,7 +9,7 @@ THE VERIFICATION INSIGHT:
     Trust but verify. Every receipt has a payload_hash.
     This script recomputes hashes and validates chain integrity.
 
-Source: AXIOM Validation Lock v1
+Source: SpaceProof Validation Lock v1
 """
 
 import argparse
@@ -34,7 +34,7 @@ def format_results(results: dict) -> str:
     """
     lines = [
         "=" * 60,
-        "AXIOM PROVENANCE VERIFICATION",
+        "SpaceProof PROVENANCE VERIFICATION",
         "=" * 60,
         "",
         f"Receipts checked: {results['receipts_checked']}",
@@ -84,7 +84,7 @@ def format_results(results: dict) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Verify AXIOM receipt chain integrity",
+        description="Verify SpaceProof receipt chain integrity",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

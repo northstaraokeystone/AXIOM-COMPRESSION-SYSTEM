@@ -17,7 +17,7 @@ HARVESTING MODEL:
     - Conversion to fuel (CH4 + 2O2 -> CO2 + 2H2O + energy)
     - Energy density: 55.5 MJ/kg
 
-Source: AXIOM D6 recursion + Titan methane + adversarial audits
+Source: SpaceProof D6 recursion + Titan methane + adversarial audits
 """
 
 import json
@@ -35,7 +35,7 @@ from .fractal_layers import (
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-titan"
+TENANT_ID = "spaceproof-titan"
 """Tenant ID for Titan receipts."""
 
 # Titan physical parameters

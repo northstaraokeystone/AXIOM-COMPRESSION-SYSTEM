@@ -31,7 +31,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-VENUS_TENANT_ID = "axiom-venus"
+VENUS_TENANT_ID = "spaceproof-venus"
 """Tenant ID for Venus receipts."""
 
 VENUS_SURFACE_TEMP_C = 465

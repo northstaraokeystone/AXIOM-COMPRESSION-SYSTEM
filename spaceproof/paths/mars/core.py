@@ -15,7 +15,7 @@ PHYSICS BASIS:
 - Decision rate: 1000 bps for autonomous operations
 - Sovereignty threshold: internal_rate > external_rate
 
-Source: AXIOM scalable paths architecture - Mars autonomous habitat
+Source: SpaceProof scalable paths architecture - Mars autonomous habitat
 """
 
 from typing import Dict, Any, Optional
@@ -25,7 +25,7 @@ from ..base import emit_path_receipt, load_path_spec
 
 # === CONSTANTS ===
 
-MARS_TENANT_ID = "axiom-mars"
+MARS_TENANT_ID = "spaceproof-mars"
 """Tenant ID for Mars path receipts."""
 
 DEFAULT_CREW = 50

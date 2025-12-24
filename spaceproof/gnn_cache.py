@@ -146,7 +146,7 @@ def load_gnn_cache_spec(path: str = None) -> Dict[str, Any]:
     emit_receipt(
         "gnn_cache_spec_ingest",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             "file_path": path,
             "asymptote_alpha": data["asymptote_alpha"],
             "min_eff_alpha_validated": data["min_eff_alpha_validated"],
@@ -187,7 +187,7 @@ def nonlinear_retention(
         emit_receipt(
             "overflow_stoprule",
             {
-                "tenant_id": "axiom-gnn-cache",
+                "tenant_id": "spaceproof-gnn-cache",
                 "blackout_days": blackout_days,
                 "cache_depth": cache_depth,
                 "overflow_pct": overflow_result["overflow_risk"],
@@ -240,7 +240,7 @@ def nonlinear_retention(
     emit_receipt(
         "gnn_nonlinear",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -299,7 +299,7 @@ def nonlinear_retention_with_pruning(
         emit_receipt(
             "gnn_nonlinear_pruned",
             {
-                "tenant_id": "axiom-gnn-cache",
+                "tenant_id": "spaceproof-gnn-cache",
                 **result,
                 "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
             },
@@ -328,7 +328,7 @@ def nonlinear_retention_with_pruning(
         emit_receipt(
             "overflow_stoprule",
             {
-                "tenant_id": "axiom-gnn-cache",
+                "tenant_id": "spaceproof-gnn-cache",
                 "blackout_days": blackout_days,
                 "cache_depth": cache_depth,
                 "overflow_pct": effective_usage,
@@ -409,7 +409,7 @@ def nonlinear_retention_with_pruning(
     emit_receipt(
         "gnn_nonlinear_pruned",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -433,7 +433,7 @@ def quantum_relay_stub() -> Dict[str, Any]:
     emit_receipt(
         "quantum_relay_stub",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -453,7 +453,7 @@ def swarm_autorepair_stub() -> Dict[str, Any]:
     emit_receipt(
         "swarm_autorepair_stub",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -472,7 +472,7 @@ def cosmos_sim_stub() -> Dict[str, Any]:
     emit_receipt(
         "cosmos_sim_stub",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -512,7 +512,7 @@ def get_gnn_cache_info() -> Dict[str, Any]:
     emit_receipt(
         "gnn_cache_info",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **info,
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
@@ -586,7 +586,7 @@ def validate_gnn_nonlinear_slos(sweep_results: List[Dict[str, Any]]) -> Dict[str
     emit_receipt(
         "gnn_nonlinear_slo_validation",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **validation,
             "payload_hash": dual_hash(json.dumps(validation, sort_keys=True)),
         },
@@ -643,7 +643,7 @@ def apply_dynamic_config(config: Dict[str, Any]) -> Dict[str, Any]:
         "dynamic_config_applied",
         {
             "receipt_type": "dynamic_config_applied",
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             "old_config": {k: v for k, v in old_values.items() if v is not None},
             "new_config": {k: v for k, v in _dynamic_config.items() if v is not None},
             "source": config.get("source", "unknown"),
@@ -693,7 +693,7 @@ def reset_dynamic_config() -> None:
         "dynamic_config_reset",
         {
             "receipt_type": "dynamic_config_reset",
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             "reason": "reset_to_static",
             "payload_hash": dual_hash(json.dumps({"reset": True})),
         },
@@ -771,7 +771,7 @@ def nonlinear_retention_dynamic(
         "gnn_nonlinear_dynamic",
         {
             "receipt_type": "gnn_nonlinear_dynamic",
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             "blackout_days": blackout_days,
             "retention_factor": base_result["retention_factor"],
             "eff_alpha": base_result["eff_alpha"],
@@ -819,7 +819,7 @@ def get_gnn_cache_dynamic_info() -> Dict[str, Any]:
     emit_receipt(
         "gnn_cache_dynamic_info",
         {
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **{k: v for k, v in info.items() if k not in ["description", "kill_list"]},
             "payload_hash": dual_hash(json.dumps(current_config, sort_keys=True)),
         },
@@ -920,7 +920,7 @@ def check_gnn_rebuild_needed(
             "gnn_rebuild",
             {
                 "receipt_type": "gnn_rebuild",
-                "tenant_id": "axiom-gnn-cache",
+                "tenant_id": "spaceproof-gnn-cache",
                 "old_layers": _current_gnn_layers,
                 "new_layers": new_layers,
                 "tree_size_n": tree_size_n,
@@ -979,7 +979,7 @@ def rebuild_gnn_layers(new_depth: int) -> Dict[str, Any]:
         "gnn_rebuild_complete",
         {
             "receipt_type": "gnn_rebuild_complete",
-            "tenant_id": "axiom-gnn-cache",
+            "tenant_id": "spaceproof-gnn-cache",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },

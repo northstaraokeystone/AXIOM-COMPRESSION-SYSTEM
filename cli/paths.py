@@ -1,4 +1,4 @@
-"""Unified path CLI routing for AXIOM exploration paths.
+"""Unified path CLI routing for SpaceProof exploration paths.
 
 Single entry point for all path commands:
 - cmd_path_status: Show status of one or all paths
@@ -10,7 +10,7 @@ Routing pattern:
   --path multiplanet --path_cmd sequence -> src/paths/multiplanet/cli.py::cmd_multiplanet_sequence
   --path agi --path_cmd policy     -> src/paths/agi/cli.py::cmd_agi_policy
 
-Source: AXIOM scalable paths architecture
+Source: SpaceProof scalable paths architecture
 """
 
 import json

@@ -178,7 +178,7 @@ def ablation_sweep(
         "ablation_sweep",
         {
             "receipt_type": "ablation_sweep",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **{k: v for k, v in result.items() if k != "results_by_mode"},
             "mode_summary": {
                 m: {"avg_alpha": r["avg_alpha"], "successful": r["successful"]}
@@ -241,7 +241,7 @@ def compute_alpha_with_isolation(
         "alpha_with_isolation",
         {
             "receipt_type": "alpha_with_isolation",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **result,
             "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
@@ -317,7 +317,7 @@ def get_layer_contributions(
         "layer_contributions",
         {
             "receipt_type": "layer_contributions",
-            "tenant_id": "axiom-reasoning",
+            "tenant_id": "spaceproof-reasoning",
             **{k: v for k, v in result.items() if k != "ceiling_analysis"},
             "gap_to_ceiling_pct": result["ceiling_analysis"]["gap_pct"],
             "payload_hash": dual_hash(

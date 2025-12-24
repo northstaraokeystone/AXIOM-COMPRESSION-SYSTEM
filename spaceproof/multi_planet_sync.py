@@ -14,7 +14,7 @@ SYNC PROTOCOL:
     3. Transfer execution with latency-aware scheduling
     4. Efficiency metrics updated
 
-Source: AXIOM D8 unified RL coordination - Jovian system integration
+Source: SpaceProof D8 unified RL coordination - Jovian system integration
 """
 
 import json
@@ -27,7 +27,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-SYNC_TENANT_ID = "axiom-sync"
+SYNC_TENANT_ID = "spaceproof-sync"
 """Tenant ID for sync receipts."""
 
 # Multi-sync config defaults

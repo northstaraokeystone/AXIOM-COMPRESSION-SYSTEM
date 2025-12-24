@@ -9,7 +9,7 @@ Tests:
 - test_agi_receipt_emitted: assert agi_status_receipt emitted
 - test_agi_cli_routes: assert CLI commands route correctly
 
-Source: AXIOM scalable paths architecture - AGI ethics modeling
+Source: SpaceProof scalable paths architecture - AGI ethics modeling
 """
 
 

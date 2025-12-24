@@ -48,7 +48,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-BULLETPROOFS_TENANT_ID = "axiom-bulletproofs"
+BULLETPROOFS_TENANT_ID = "spaceproof-bulletproofs"
 """Tenant ID for Bulletproofs receipts."""
 
 BULLETPROOFS_RANGE_BITS = 64

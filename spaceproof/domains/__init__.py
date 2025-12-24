@@ -1,4 +1,4 @@
-"""AXIOM Domains - Pluggable Domain Generators
+"""SpaceProof Domains - Pluggable Domain Generators
 
 D20 Production Evolution: Domain generators for stakeholder-specific use cases.
 

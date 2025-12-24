@@ -1,4 +1,4 @@
-"""sim.py - AXIOM Simulation with Helper/Support/Optimization Integration
+"""sim.py - SpaceProof Simulation with Helper/Support/Optimization Integration
 
 THE SIMULATION INSIGHT:
     The helpers aren't built. They're harvested.
@@ -73,7 +73,7 @@ from .provenance_mars import (
 
 # === CONSTANTS ===
 
-TENANT_ID = "axiom-autonomy"
+TENANT_ID = "spaceproof-autonomy"
 """Tenant for simulation receipts."""
 
 
@@ -750,7 +750,7 @@ def run_scenario(scenario: Scenario, config: SimConfig = None) -> SimState:
 
         try:
             from real_data.sparc import load_sparc
-            from benchmarks.pysr_comparison import run_axiom
+            from benchmarks.pysr_comparison import run_spaceproof
 
             # Load real SPARC galaxies
             galaxies = load_sparc(n_galaxies=10)
@@ -759,8 +759,8 @@ def run_scenario(scenario: Scenario, config: SimConfig = None) -> SimState:
             r_squareds = []
 
             for galaxy in galaxies:
-                # Run AXIOM on real data
-                result = run_axiom(galaxy, epochs=100)
+                # Run SpaceProof on real data
+                result = run_spaceproof(galaxy, epochs=100)
                 compressions.append(result["compression"])
                 r_squareds.append(result["r_squared"])
 

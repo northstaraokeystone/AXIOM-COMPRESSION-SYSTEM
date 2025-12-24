@@ -30,7 +30,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-INTERSTELLAR_TENANT_ID = "axiom-interstellar"
+INTERSTELLAR_TENANT_ID = "spaceproof-interstellar"
 """Tenant ID for interstellar backbone receipts."""
 
 INTERSTELLAR_JOVIAN_BODIES = ["titan", "europa", "ganymede", "callisto"]

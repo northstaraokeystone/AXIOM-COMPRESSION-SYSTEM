@@ -38,7 +38,7 @@ def verify_chain_integrity(
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-pruning",
+                "tenant_id": "spaceproof-pruning",
                 "metric": "proof_paths",
                 "baseline": MIN_PROOF_PATHS_RETAINED,
                 "delta": len(proof_paths) - MIN_PROOF_PATHS_RETAINED,
@@ -83,7 +83,7 @@ def verify_quorum_maintained(pruned_tree: Dict[str, Any], min_nodes: int = 3) ->
         emit_receipt(
             "anomaly",
             {
-                "tenant_id": "axiom-pruning",
+                "tenant_id": "spaceproof-pruning",
                 "metric": "quorum",
                 "baseline": MIN_QUORUM_FRACTION,
                 "delta": retention_ratio - MIN_QUORUM_FRACTION,

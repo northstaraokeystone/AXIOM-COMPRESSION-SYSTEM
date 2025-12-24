@@ -6,7 +6,7 @@ Commands:
 - cmd_agi_ethics: Evaluate ethics
 - cmd_agi_alignment: Compute alignment metric
 
-Source: AXIOM scalable paths architecture - AGI ethics modeling
+Source: SpaceProof scalable paths architecture - AGI ethics modeling
 """
 
 import json

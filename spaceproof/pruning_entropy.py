@@ -105,7 +105,7 @@ def classify_leaf_entropy(
         emit_receipt(
             "leaf_entropy",
             {
-                "tenant_id": "axiom-pruning",
+                "tenant_id": "spaceproof-pruning",
                 **result,
                 "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
             },
@@ -155,7 +155,7 @@ def classify_leaf_entropy(
     emit_receipt(
         "leaf_entropy",
         {
-            "tenant_id": "axiom-pruning",
+            "tenant_id": "spaceproof-pruning",
             "total_leaves": n_leaves,
             "low_entropy_count": low_count,
             "high_entropy_count": high_count,

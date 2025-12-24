@@ -32,7 +32,7 @@ from .core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 
-HELIOSPHERE_TENANT_ID = "axiom-heliosphere"
+HELIOSPHERE_TENANT_ID = "spaceproof-heliosphere"
 """Tenant ID for heliosphere/Oort receipts."""
 
 # Heliosphere zones (AU from Sun)

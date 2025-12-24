@@ -136,5 +136,5 @@ def emit_data_ingest_receipt(data_type: str, source: str) -> Dict:
     """
     return emit_receipt(
         "data_ingest",
-        {"tenant_id": "axiom-core", "data_type": data_type, "source": source},
+        {"tenant_id": "spaceproof-core", "data_type": data_type, "source": source},
     )

@@ -1,4 +1,4 @@
-"""Ablation testing CLI commands for AXIOM-CORE.
+"""Ablation testing CLI commands for SpaceProof-CORE.
 
 Commands: ablate, ablation_sweep, ceiling_track, formula_check, isolate_layers
 """

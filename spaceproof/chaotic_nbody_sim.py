@@ -61,7 +61,7 @@ ENERGY_CONSERVATION_TOLERANCE = 1e-10
 CHAOS_DURATION_YEARS = 100
 """Simulation duration in years."""
 
-TENANT_ID = "axiom-colony"
+TENANT_ID = "spaceproof-colony"
 """Tenant ID for receipts."""
 
 # Body orbital parameters (semi-major axis in AU, mass in solar masses)

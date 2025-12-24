@@ -1,4 +1,4 @@
-"""Entropy pruning CLI commands for AXIOM-CORE.
+"""Entropy pruning CLI commands for SpaceProof-CORE.
 
 Commands: entropy_prune, pruning_sweep, extended_250d, verify_chain, pruning_info
          pruning_v4, pruning_v4_compare, quantum_refine, quantum_refine_info

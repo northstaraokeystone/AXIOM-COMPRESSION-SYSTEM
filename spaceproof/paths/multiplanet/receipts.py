@@ -8,7 +8,7 @@ Receipt types:
 - mp_latency_receipt: Latency budget per body
 - mp_autonomy_receipt: Autonomy requirements
 
-Source: AXIOM scalable paths architecture - Multi-planet expansion
+Source: SpaceProof scalable paths architecture - Multi-planet expansion
 """
 
 from typing import Dict, Any

@@ -282,7 +282,7 @@ def apply_strategy(
     emit_receipt(
         "strategy_application",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "strategy": config.strategy.value,
             "base_tau": base_tau,
             "base_alpha": base_alpha,
@@ -331,7 +331,7 @@ def compare_strategies(
     emit_receipt(
         "strategy_comparison",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "strategies_evaluated": len(strategies),
             "best_roi": best_result.strategy.value if best_result else None,
             "best_cycles": best_result.cycles_to_10k if best_result else None,
@@ -380,7 +380,7 @@ def recommend_strategy(
         emit_receipt(
             "strategy_recommendation",
             {
-                "tenant_id": "axiom-autonomy",
+                "tenant_id": "spaceproof-autonomy",
                 "recommended": None,
                 "reason": "no_valid_strategies",
                 "constraints": constraints,
@@ -394,7 +394,7 @@ def recommend_strategy(
     emit_receipt(
         "strategy_recommendation",
         {
-            "tenant_id": "axiom-autonomy",
+            "tenant_id": "spaceproof-autonomy",
             "recommended": best.strategy.value,
             "effective_tau": best.effective_tau,
             "effective_alpha": best.effective_alpha,
