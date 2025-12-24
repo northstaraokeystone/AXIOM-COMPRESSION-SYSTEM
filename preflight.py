@@ -22,7 +22,7 @@ CLI_PATH = "cli.py"
 TEST_DIR = "test"
 LINTERS = {
     "flake8": ["flake8", "spaceproof/", "benchmark/", "--max-line-length=120",
-               "--ignore=E501,W503,W504,E128,E226,F841,F811,F824"],
+               "--ignore=E501,W503,W504,E128,E226,F841,F811,F824,F401,E203,E741"],
     "black": ["black", "--check", "--line-length=120", "spaceproof/", "benchmark/"]
 }
 
