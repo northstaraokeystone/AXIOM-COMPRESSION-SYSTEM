@@ -29,6 +29,25 @@ SWARM_CONSENSUS_ALGORITHM = "modified_raft"
 SWARM_LATENCY_SIMULATION = True
 SWARM_PACKET_LOSS_RATE = 0.001
 
+# Node type distribution
+SWARM_ORBITAL_NODES = 60
+SWARM_SURFACE_NODES = 30
+SWARM_DEEP_SPACE_NODES = 10
+
+
+def calculate_mesh_connections(node_count: int = SWARM_NODE_COUNT) -> int:
+    """Calculate number of mesh connections for N nodes.
+
+    Full mesh has n*(n-1)/2 connections.
+
+    Args:
+        node_count: Number of nodes in mesh.
+
+    Returns:
+        Number of connections.
+    """
+    return node_count * (node_count - 1) // 2
+
 
 @dataclass
 class SwarmNode:

@@ -27,7 +27,7 @@ from .fractal.core import (
 # Adaptive termination
 from .fractal.adaptive import adaptive_termination_check, D14_TERMINATION_THRESHOLD
 
-# All depth implementations (D4-D17)
+# All depth implementations (D4-D18)
 from .fractal.depths import *
 
 __all__ = [

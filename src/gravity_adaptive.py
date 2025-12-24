@@ -28,6 +28,10 @@ GRAVITY_GANYMEDE = 0.146
 GRAVITY_CALLISTO = 0.126
 GRAVITY_IO = 0.183
 
+# Backward-compatibility aliases (tests use these names)
+EARTH_GRAVITY_G = GRAVITY_EARTH
+MARS_GRAVITY_G = GRAVITY_MARS
+
 # Gravity adjustment enabled
 GRAVITY_ADAPTIVE_ENABLED = True
 GRAVITY_ADJUSTMENT_FACTOR = True

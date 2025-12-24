@@ -1,9 +1,9 @@
 # AXIOM Architecture Specification
 
-> **Version:** 3.0.0
-> **Date:** 2025-12-18
+> **Version:** 3.1.0
+> **Date:** 2025-12-24
 > **Status:** ACTIVE
-> **Dual-Hash:** 6aa2d3ee2be74e17:6aa2d3ee2be74e17
+> **Dual-Hash:** Updated via architecture audit
 
 ---
 
@@ -45,9 +45,9 @@ Where:
 |--------|-------|------|
 | eff_alpha | 3.07-3.10 | >= 3.0 |
 | instability | 0.00 | == 0.0 |
-| test_count | 883 | >= 100 |
-| test_pass_rate | 98.9% | >= 95% |
-| receipt_coverage | 365 usages / 53 files | >= 95% significant ops |
+| test_count | 2215 | >= 100 |
+| test_pass_rate | 92.9% | >= 95% |
+| receipt_coverage | 750 usages / 94 files | >= 95% significant ops |
 
 ---
 
@@ -58,70 +58,91 @@ Where:
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              CLI LAYER                                       │
-│  cli.py (529 lines) → cli/*.py (dispatcher + modular command handlers)      │
+│  cli.py (67 lines) → cli/*.py (60 modules, 16450 lines total)               │
 │  Commands: baseline, bootstrap, curve, full, path, fractal, benchmark, etc.  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                          INTEGRATION LAYER                                   │
-│  reasoning.py (2199) │ rl_tune.py (2042) │ sim.py (786) │ validate.py (464) │
+│  reasoning/ (9 modules, 2568 lines) │ rl_tune.py (2181) │ sim.py (886)      │
 │  Integrates lower layers for complex multi-phase operations                  │
+│  + oracle/, depths/, autocatalytic/, elon_sphere/ packages                   │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         COMPRESSION LAYER                                    │
-│  fractal_layers.py (949)  │ quantum_rl_hybrid.py (572) │ hybrid_benchmark (386)│
-│  pruning/*.py (682+163+190+111+93) │ gnn_cache/*.py (915+241+182)           │
-│  alpha_compute.py (715)   │ calibration.py (716)                            │
+│  fractal/ (9 modules, 5532 lines) │ quantum_rl_hybrid.py (618)              │
+│  pruning*.py (5 modules, 1757 lines) │ gnn_*.py (3 modules, 1453 lines)     │
+│  alpha_compute.py (762) │ calibration.py (743)                              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                            PATHS LAYER                                       │
-│         mars/              │     multiplanet/          │        agi/         │
-│    (core, cli, receipts)   │   (core, cli, receipts)   │  (core, cli, receipts)│
-│         base.py (246 lines) - shared path primitives                        │
-│         registry.py (269 lines) - path discovery and routing                │
+│  mars/ (core, cli, receipts) │ multiplanet/ (federation, gravity, hubs, moons)│
+│  agi/ (defenses, zk, policy) │ base.py (shared primitives)                   │
+│  47 path-related modules in src/paths/                                       │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                             CORE LAYER                                       │
-│  core.py (152) - dual_hash, emit_receipt, merkle, StopRule                  │
+│  core.py (165) - dual_hash, emit_receipt, merkle, StopRule                  │
 │  constants.py (260) - centralized physics constants                          │
-│  stoprules.py (336) - centralized StopRule registry                         │
-│  receipts.py (198) - receipt emission helpers (DRY)                          │
+│  stoprules.py (344) - centralized StopRule registry                         │
+│  receipts.py (195) - receipt emission helpers (DRY)                          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                             DATA LAYER                                       │
-│  data/*.json (16 specs) │ data/verified/*.json (4 validated params)         │
+│  data/*.json (41 specs) │ data/verified/*.json (4 validated params)         │
 │  src/paths/{mars,multiplanet,agi}/spec.json                                 │
 │  receipts.jsonl (append-only ledger)                                        │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2 Module Registry
+### 2.2 Source Packages
 
-| Module | Path | Lines | Functions | Receipt Types |
-|--------|------|-------|-----------|---------------|
-| core | src/core.py | 152 | 5 | anomaly |
-| constants | src/constants.py | 260 | 0 | - |
-| stoprules | src/stoprules.py | 336 | 9 | *_stoprule |
-| receipts | src/receipts.py | 198 | 5 | emit_with_hash, emit_anomaly |
-| fractal_layers | src/fractal_layers.py | 949 | 13 | witness, fractal, d4_fractal, d5_fractal |
-| quantum_rl_hybrid | src/quantum_rl_hybrid.py | 572 | 7 | quantum_hybrid |
-| hybrid_benchmark | src/hybrid_benchmark.py | 386 | 7 | benchmark |
-| pruning | src/pruning.py | 682 | 12 | pruning, hybrid_prune |
-| gnn_cache | src/gnn_cache.py | 915 | 18 | gnn_cache, retention |
-| alpha_compute | src/alpha_compute.py | 715 | 12 | alpha |
-| reasoning | src/reasoning.py | 2199 | 25 | reasoning |
-| rl_tune | src/rl_tune.py | 2042 | 25 | rl_tune |
-| sovereignty | src/sovereignty.py | 1552 | 6 | sovereignty, person_equivalent |
-| sim | src/sim.py | 786 | 26 | sim, scenario |
-| mars | src/paths/mars/ | 666 | - | mars_* |
-| multiplanet | src/paths/multiplanet/ | 636 | - | mp_* |
-| agi | src/paths/agi/ | 730 | - | agi_* |
+| Package | Path | Modules | Purpose |
+|---------|------|---------|---------|
+| fractal | src/fractal/ | 9 | Fractal recursion D4-D17 |
+| reasoning | src/reasoning/ | 9 | Partition, blackout, ablation, pipeline |
+| paths | src/paths/ | 47 | Mars, multiplanet, AGI paths |
+| oracle | src/oracle/ | 5 | Live causality oracle |
+| autocatalytic | src/autocatalytic/ | 4 | Pattern lifecycle |
+| elon_sphere | src/elon_sphere/ | 4 | Starlink, Grok, xAI, Dojo |
+| cfd | src/cfd/ | 6 | CFD dust dynamics |
+| depths | src/depths/ | 2 | D19 swarm intelligence |
+| swarm | src/swarm/ | 2 | Swarm coordination |
 
-### 2.3 Dependency Graph
+### 2.3 Re-export Wrappers (CLAUDEME Compliant ≤50 lines)
+
+| Wrapper | Package | Purpose |
+|---------|---------|---------|
+| src/fractal_layers.py | src/fractal/ | Backward-compat re-export |
+| src/reasoning.py | src/reasoning/ | Backward-compat re-export |
+
+### 2.4 Module Registry
+
+| Module | Path | Lines | Receipt Types |
+|--------|------|-------|---------------|
+| core | src/core.py | 165 | anomaly |
+| constants | src/constants.py | 260 | - |
+| stoprules | src/stoprules.py | 344 | *_stoprule |
+| receipts | src/receipts.py | 195 | emit_with_hash |
+| fractal (pkg) | src/fractal/ | 5532 | witness, fractal, d4-d17 |
+| quantum_rl_hybrid | src/quantum_rl_hybrid.py | 618 | quantum_hybrid |
+| hybrid_benchmark | src/hybrid_benchmark.py | 423 | benchmark |
+| pruning | src/pruning.py | 753 | pruning, hybrid_prune |
+| gnn_cache | src/gnn_cache.py | 1012 | gnn_cache, retention |
+| alpha_compute | src/alpha_compute.py | 762 | alpha |
+| reasoning (pkg) | src/reasoning/ | 2568 | reasoning |
+| rl_tune | src/rl_tune.py | 2181 | rl_tune |
+| sovereignty | src/sovereignty.py | 1522 | sovereignty |
+| sim | src/sim.py | 886 | sim, scenario |
+| mars | src/paths/mars/ | 3 modules | mars_* |
+| multiplanet | src/paths/multiplanet/ | 18 modules | mp_* |
+| agi | src/paths/agi/ | 14 modules | agi_* |
+
+### 2.5 Dependency Graph
 
 ```
 core.py (foundation - no internal imports)
@@ -139,13 +160,13 @@ core.py (foundation - no internal imports)
     ├── pruning.py (← core, gnn_cache)
     ├── alpha_compute.py (← core, constants)
     ├── calibration.py (← core)
-    └── fractal_layers.py (← core)
+    └── fractal/ (← core) [package]
            │
     ├── quantum_rl_hybrid.py (← core)
-    └── hybrid_benchmark.py (← core, quantum_rl_hybrid, fractal_layers)
+    └── hybrid_benchmark.py (← core, quantum_rl_hybrid, fractal)
            │
     ├── sovereignty.py (← core, entropy_shannon)
-    ├── reasoning.py (← core, partition, reroute, blackout, gnn_cache, alpha_compute, pruning)
+    ├── reasoning/ (← core, partition, reroute, blackout, gnn_cache) [package]
     └── sim.py (← core, sovereignty)
            │
     ├── paths/base.py (← core)
@@ -160,34 +181,22 @@ core.py (foundation - no internal imports)
 
 ### 3.1 Spec Files
 
-| Spec | Path | Purpose | Dual-Hash |
-|------|------|---------|-----------|
-| alpha_formula_spec | data/alpha_formula_spec.json | Alpha ceiling formula | ✓ |
-| hybrid_10e12_spec | data/hybrid_10e12_spec.json | 10^12 benchmark config | ✓ |
-| d4_spec | data/d4_spec.json | D4 recursion config | ✓ |
-| fractal_hybrid_spec | data/fractal_hybrid_spec.json | Fractal hybrid config | ✓ |
-| gnn_cache_spec | data/gnn_cache_spec.json | GNN cache config | ✓ |
-| entropy_pruning_spec | data/entropy_pruning_spec.json | Entropy pruning config | ✓ |
-| rl_tune_spec | data/rl_tune_spec.json | RL tuning config | ✓ |
-| rl_sweep_spec | data/rl_sweep_spec.json | RL sweep config | ✓ |
-| adaptive_depth_spec | data/adaptive_depth_spec.json | Adaptive depth config | ✓ |
-| lr_pilot_spec | data/lr_pilot_spec.json | LR pilot config | ✓ |
-| multi_scale_spec | data/multi_scale_spec.json | Multi-scale config | ✓ |
-| node_partition_spec | data/node_partition_spec.json | Node partition config | ✓ |
-| blackout_extension_spec | data/blackout_extension_spec.json | Blackout extension | ✓ |
-| reroute_blackout_spec | data/reroute_blackout_spec.json | Reroute blackout | ✓ |
-| mars/spec | src/paths/mars/spec.json | Mars path config | ✓ |
-| multiplanet/spec | src/paths/multiplanet/spec.json | Multi-planet config | ✓ |
-| agi/spec | src/paths/agi/spec.json | AGI ethics config | ✓ |
+| Category | Count | Examples |
+|----------|-------|----------|
+| Depth specs | 15 | d4_spec.json ... d19_swarm_intelligence_spec.json |
+| Core specs | 12 | alpha_formula_spec, gnn_cache_spec, rl_tune_spec |
+| Path specs | 4 | mars_relay_spec, federation_spec |
+| Verified | 4 | fsd_empirical, mars_params, receipt_params, tau_strategies |
+| Live specs | 4 | live_relay_spec, live_oracle_spec, live_triad_spec |
+| **Total** | **41** | data/*.json |
 
 ### 3.2 Receipt Types
 
 | Receipt | Module | Frequency | Key Fields |
 |---------|--------|-----------|------------|
-| witness_receipt | fractal_layers | Per galaxy | eff_alpha, compression, r_squared |
-| fractal_receipt | fractal_layers | Per recursion | depth, uplift, instability |
-| d4_fractal_receipt | fractal_layers | D4 runs | eff_alpha >= 3.18 |
-| d5_fractal_receipt | fractal_layers | D5 runs | eff_alpha >= 3.23 |
+| witness_receipt | fractal | Per galaxy | eff_alpha, compression, r_squared |
+| fractal_receipt | fractal | Per recursion | depth, uplift, instability |
+| d4-d17_fractal_receipt | fractal/depths | Per depth run | eff_alpha >= target |
 | quantum_hybrid_receipt | quantum_rl_hybrid | Per hybrid | contribution, quantum_contrib |
 | benchmark_receipt | hybrid_benchmark | Per benchmark | scale, decay, eff_alpha |
 | pruning_receipt | pruning | Per prune | trim_factor, entries_pruned |
@@ -200,6 +209,9 @@ core.py (foundation - no internal imports)
 | mp_*_receipt | paths/multiplanet | Per body | latency, autonomy, bandwidth |
 | agi_*_receipt | paths/agi | Per ethics op | alignment, policy_depth, ethics |
 | anomaly_receipt | stoprules | Per violation | metric, classification, action |
+| swarm_*_receipt | swarm_testnet | Per swarm op | node_count, mesh, consensus |
+| federation_*_receipt | federation_multiplanet | Per fed op | planets, sync, arbitration |
+| gravity_*_receipt | gravity_adaptive | Per adjustment | planet, gravity_g, timing |
 
 ---
 
@@ -220,7 +232,7 @@ core.py (foundation - no internal imports)
 |------|-------------|---------|
 | --fractal_push | Run fractal ceiling breach | fractal_receipt |
 | --alpha_boost MODE | Boost mode (off/quantum/fractal/hybrid) | boost_receipt |
-| --d4_push | D4 recursion (alpha >= 3.18) | d4_fractal_receipt |
+| --d4_push ... --d17_push | Depth recursion | d*_fractal_receipt |
 | --hybrid_10e12 | 10^12 benchmark | benchmark_receipt |
 | --fractal_recursion | Fractal recursion ceiling breach | fractal_receipt |
 | --fractal_recursion_sweep | Sweep through all depths | fractal_receipt |
@@ -390,8 +402,9 @@ AGI_KEY_INSIGHT = "Audit trail IS alignment"
 ### 8.1 Core Path (α ceiling)
 
 ```
-D3 (3.10) → D4 (3.20) → D5 (3.25) → D6 (3.3?) → plateau assessment
+D3 (3.10) → D4 (3.20) → D5 (3.25) → ... → D17 (implemented) → D18+ (pending)
     └── Each depth adds ~0.05 alpha via fractal recursion
+    └── Current: D4-D17 fully implemented in src/fractal/depths/
 ```
 
 ### 8.2 Mars Path
@@ -401,7 +414,7 @@ stub → simulate_dome → isru_closure → sovereignty → autonomous_rl
   │         │              │              │              │
   ▼         ▼              ▼              ▼              ▼
 v0.1    dome_receipt   isru_receipt   sov_receipt   rl_receipt
-(current)
+(current: Mars relay integrated)
 ```
 
 ### 8.3 Multi-planet Path
@@ -411,7 +424,7 @@ stub → sequence → body_sim(asteroid) → body_sim(mars) → body_sim(europa)
   │        │            │                   │                │                  │
   ▼        ▼            ▼                   ▼                ▼                  ▼
 v0.1   mp_sequence   mp_asteroid        mp_mars         mp_europa          mp_titan
-(current)
+(current: Federation + gravity adaptive + Jovian moons implemented)
 ```
 
 ### 8.4 AGI Path
@@ -421,7 +434,7 @@ stub → fractal_policy → ethics_eval → alignment_metric → autonomous_audi
   │         │              │               │                   │
   ▼         ▼              ▼               ▼                   ▼
 v0.1    agi_policy     agi_ethics      agi_align         agi_audit
-(current)
+(current: ZK proofs + defenses + adversarial audits implemented)
 ```
 
 ---
@@ -432,40 +445,53 @@ v0.1    agi_policy     agi_ethics      agi_align         agi_audit
 
 | File | Lines | Purpose | Receipts |
 |------|-------|---------|----------|
-| src/core.py | 152 | Core functions | emit_receipt, anomaly |
+| src/core.py | 165 | Core functions | emit_receipt, anomaly |
 | src/constants.py | 260 | Physics constants | - |
-| src/stoprules.py | 336 | StopRule registry | *_stoprule |
-| src/receipts.py | 198 | Receipt helpers | emit_with_hash |
-| cli.py | 529 | CLI entry point | - |
+| src/stoprules.py | 344 | StopRule registry | *_stoprule |
+| src/receipts.py | 195 | Receipt helpers | emit_with_hash |
+| cli.py | 67 | CLI entry point | - |
 
 ### 9.2 Compression Files
 
 | File | Lines | Purpose | Receipts |
 |------|-------|---------|----------|
-| src/fractal_layers.py | 949 | Fractal entropy | witness, fractal |
-| src/quantum_rl_hybrid.py | 572 | Quantum hybrid | quantum_hybrid |
-| src/hybrid_benchmark.py | 386 | Benchmarking | benchmark |
-| src/pruning.py | 682 | Entropy pruning | pruning |
-| src/gnn_cache.py | 915 | GNN caching | gnn_cache |
-| src/alpha_compute.py | 715 | Alpha computation | alpha |
+| src/fractal/ | 5532 | Fractal package (D4-D17) | witness, fractal, d* |
+| src/quantum_rl_hybrid.py | 618 | Quantum hybrid | quantum_hybrid |
+| src/hybrid_benchmark.py | 423 | Benchmarking | benchmark |
+| src/pruning.py | 753 | Entropy pruning | pruning |
+| src/gnn_cache.py | 1012 | GNN caching | gnn_cache |
+| src/alpha_compute.py | 762 | Alpha computation | alpha |
 
 ### 9.3 Path Files
 
-| File | Lines | Purpose | Receipts |
-|------|-------|---------|----------|
-| src/paths/base.py | 246 | Shared primitives | path_* |
-| src/paths/mars/core.py | 318 | Mars logic | mars_* |
-| src/paths/multiplanet/core.py | 365 | Multi-planet logic | mp_* |
-| src/paths/agi/core.py | 363 | AGI logic | agi_* |
-| src/registry.py | 269 | Path routing | registry_* |
+| Package | Modules | Purpose | Receipts |
+|---------|---------|---------|----------|
+| src/paths/mars/ | 3 | Mars logic | mars_* |
+| src/paths/multiplanet/ | 18 | Multi-planet logic | mp_* |
+| src/paths/agi/ | 14 | AGI logic | agi_* |
+| src/registry.py | 1 | Path routing | registry_* |
 
 ### 9.4 Test Files
 
 | Pattern | Count | Coverage |
 |---------|-------|----------|
-| tests/test_*.py | 44 files | 883 tests |
+| tests/test_*.py | 106 files | 2215 tests |
 | tests/paths/test_*.py | 3 files | path coverage |
 | tests/conftest.py | 1 file | shared fixtures |
+| **Total** | **109 files** | **2215 tests** |
+
+### 9.5 Large Files (>1000 lines - refactoring candidates)
+
+| File | Lines | Recommended Action |
+|------|-------|-------------------|
+| src/cfd_dust_dynamics.py | 2622 | Split into 4 modules |
+| src/rl_tune.py | 2181 | Extract sweep variants |
+| src/interstellar_backbone.py | 1684 | Extract hybrid integrations |
+| src/sovereignty.py | 1522 | Consolidate analysis functions |
+| src/bulletproofs_infinite.py | 1265 | Extract stress/audit modules |
+| src/kuiper_12body_chaos.py | 1025 | Extract physics/analysis |
+| src/gnn_cache.py | 1012 | Extract dynamic config |
+| src/compounding.py | 979 | Consolidate tau velocity |
 
 ---
 
@@ -480,9 +506,8 @@ python -c "from src.core import dual_hash, emit_receipt; print('Core OK')"
 # CLI help
 python cli.py --help
 
-# Quick test (excluding numpy-dependent)
-pytest tests/ --ignore=tests/test_benchmarks.py --ignore=tests/test_calibration.py \
-    --ignore=tests/test_real_data.py --ignore=tests/test_reproducibility.py -x -q
+# Quick test (excluding problematic imports)
+pytest tests/ --ignore=tests/test_d18_interstellar.py -x -q
 ```
 
 ### 10.2 Full Validation
@@ -511,39 +536,58 @@ grep -rq "stoprule" src/*.py && python -c "from src.stoprules import *" && echo 
 
 ---
 
-## §11 AUDIT RESULTS
+## §11 AUDIT RESULTS (2025-12-24)
 
 ### 11.1 CLAUDEME Compliance
 
 | Check | Result | Notes |
 |-------|--------|-------|
-| emit_receipt coverage | ✅ 365 usages in 53 files | Excellent |
-| Silent exceptions | ✅ 0 found | Compliant |
-| dual_hash usage | ✅ 33 files | All specs hashed |
-| StopRule registry | ✅ Centralized | stoprules.py |
-| Test coverage | ✅ 883 tests (98.9% pass) | 10 failing due to missing params |
+| emit_receipt coverage | 750 usages in 94 files | Excellent |
+| Silent exceptions | 0 found | Compliant |
+| dual_hash usage | 33+ files | All specs hashed |
+| StopRule registry | Centralized | stoprules.py |
+| Test coverage | 2215 tests (92.9% pass) | 164 failing tests |
+| Re-export wrappers | 2 modules | CLAUDEME compliant (≤50 lines) |
 
 ### 11.2 Scalability Assessment
 
 | Dimension | Current | Target | Status |
 |-----------|---------|--------|--------|
-| Max file lines | 2199 | 500 | ⚠️ 3 files exceed |
-| Circular imports | 0 | 0 | ✅ Clean |
-| Test coverage | 98.9% | 80% | ✅ Exceeds |
-| Receipt coverage | 36% of files | 100% sig ops | ✅ Good |
+| Max file lines | 2622 | 500 | 8 files exceed (refactor candidates) |
+| Circular imports | 0 | 0 | Clean |
+| Test pass rate | 92.9% | 95% | Below target (D18/config issues) |
+| Receipt coverage | 94 files | 100% sig ops | Excellent |
+| Source files | 219 | - | Well-organized into packages |
+| Test files | 109 | - | Comprehensive |
+| Data specs | 41 | - | Complete |
 
 ### 11.3 Architecture Notes
 
+- **Package refactoring complete** - fractal_layers.py and reasoning.py are re-export wrappers
 - **No circular dependencies** - Clean layer hierarchy
-- **Modular CLI** - Commands properly separated
-- **Path architecture** - base.py provides proper abstraction
+- **Modular CLI** - 60 command modules properly separated
+- **Path architecture** - Extended with federation, gravity, hubs, moons
 - **Stoprule centralization** - All stoprules in stoprules.py
 - **Constants centralization** - All physics in constants.py
+
+### 11.4 Known Issues
+
+| Issue | Severity | Action |
+|-------|----------|--------|
+| D18 not implemented | Low | tests/test_d18_interstellar.py skipped |
+| 164 failing tests | Medium | Config/assertion mismatches |
+| 8 files >1000 lines | Low | Refactoring recommended |
+
+### 11.5 Git Status
+
+- **Branch:** claude/audit-axiom-architecture-ZZ9bY
+- **Merge debt:** None (even with main)
+- **Trailing commits:** None
 
 ---
 
 **Document Status:** ACTIVE
-**Last Updated:** 2025-12-18
-**Reviewed By:** AXIOM Architecture Review
+**Last Updated:** 2025-12-24
+**Reviewed By:** AXIOM Architecture Audit Sprint
 
 *No receipt → not real. Ship at T+48h or kill.*

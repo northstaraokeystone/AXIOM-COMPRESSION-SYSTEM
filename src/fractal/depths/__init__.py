@@ -78,6 +78,13 @@ from .d15_d17 import (
     get_d17_spec, get_d17_uplift, d17_push, get_d17_info,
     d17_depth_first_push, d17_heliosphere_hybrid,
     depth_first_traversal, check_asymptotic_ceiling, compute_uplift_sustainability,
+    # D18
+    D18_ALPHA_FLOOR, D18_ALPHA_TARGET, D18_ALPHA_CEILING,
+    D18_INSTABILITY_MAX, D18_TREE_MIN, D18_UPLIFT,
+    D18_PRUNING_V3, D18_COMPRESSION_TARGET,
+    get_d18_spec, get_d18_uplift, d18_recursive_fractal, d18_push, get_d18_info,
+    d18_interstellar_hybrid, identify_topological_holes, eliminate_holes,
+    pruning_v3, compute_compression,
 )
 
 __all__ = [
@@ -146,6 +153,13 @@ __all__ = [
     "get_d17_spec", "get_d17_uplift", "d17_push", "get_d17_info",
     "d17_depth_first_push", "d17_heliosphere_hybrid",
     "depth_first_traversal", "check_asymptotic_ceiling", "compute_uplift_sustainability",
+    # D18
+    "D18_ALPHA_FLOOR", "D18_ALPHA_TARGET", "D18_ALPHA_CEILING",
+    "D18_INSTABILITY_MAX", "D18_TREE_MIN", "D18_UPLIFT",
+    "D18_PRUNING_V3", "D18_COMPRESSION_TARGET",
+    "get_d18_spec", "get_d18_uplift", "d18_recursive_fractal", "d18_push", "get_d18_info",
+    "d18_interstellar_hybrid", "identify_topological_holes", "eliminate_holes",
+    "pruning_v3", "compute_compression",
 ]
 
 RECEIPT_SCHEMA = {
@@ -154,7 +168,7 @@ RECEIPT_SCHEMA = {
         "d4_recursion", "d5_recursion", "d6_recursion", "d7_recursion",
         "d8_recursion", "d9_recursion", "d10_recursion", "d11_recursion",
         "d13_recursion", "d14_recursion", "d15_recursion", "d16_recursion",
-        "d17_recursion",
+        "d17_recursion", "d18_recursion",
     ],
     "version": "1.0.0",
 }

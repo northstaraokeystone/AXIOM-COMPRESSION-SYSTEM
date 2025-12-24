@@ -27,6 +27,10 @@ TESTNET_CHAIN_ETHEREUM = True
 TESTNET_CHAIN_SOLANA = True
 TESTNET_BRIDGE_ENABLED = True
 
+# Confirmation block requirements
+ETHEREUM_CONFIRMATIONS = 12
+SOLANA_CONFIRMATIONS = 32
+
 
 @dataclass
 class TestnetChain:
@@ -505,3 +509,30 @@ def stress_test_bridge(transactions: int = 100) -> Dict[str, Any]:
         "total_time_s": total_time,
         "throughput_tps": transactions / total_time,
     }
+
+
+def sync_testnets() -> Dict[str, Any]:
+    """Synchronize block heights across testnets.
+
+    Returns:
+        dict: Sync result.
+    """
+    global _testnet_state
+
+    if not _testnet_state.chains:
+        return {"synced": False, "error": "testnets not initialized"}
+
+    # Sync all chains to highest block
+    max_block = max(c.current_block for c in _testnet_state.chains.values())
+    for chain in _testnet_state.chains.values():
+        chain.current_block = max_block
+
+    return {
+        "synced": True,
+        "block_height": max_block,
+        "chains": list(_testnet_state.chains.keys()),
+    }
+
+
+# Backward-compatibility alias
+stress_test_testnets = stress_test_bridge

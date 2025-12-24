@@ -24,6 +24,7 @@ from src.core import TENANT_ID, dual_hash, emit_receipt
 
 # Federation constants
 FEDERATION_PLANETS = ["mars", "venus", "mercury", "jovian_system"]
+DEFAULT_PLANETS = FEDERATION_PLANETS  # Backward-compatibility alias
 FEDERATION_CONSENSUS_LAG_TOLERANCE = True
 FEDERATION_AUTONOMY_MINIMUM = 0.995
 FEDERATION_SYNC_INTERVAL_HOURS = 24
