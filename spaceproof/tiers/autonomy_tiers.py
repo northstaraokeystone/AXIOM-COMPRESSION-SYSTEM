@@ -16,7 +16,7 @@ Grok: "Interstellar Starships 2040s"
 """
 
 from dataclasses import dataclass
-from typing import Dict, Optional, Any
+from typing import Dict, Any
 from enum import Enum
 import math
 

@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import math
 
-from .core import emit_receipt, dual_hash
-from .domain.colony_network import ColonyNetwork, ColonyNode
+from .core import emit_receipt
+from .domain.colony_network import ColonyNetwork
 
 # === CONSTANTS ===
 
