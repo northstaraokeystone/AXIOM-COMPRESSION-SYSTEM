@@ -245,9 +245,7 @@ def _compress_pattern(data: bytes) -> bytes:
         # Find run length
         run_char = data[i]
         run_len = 1
-        while (
-            i + run_len < len(data) and data[i + run_len] == run_char and run_len < 255
-        ):
+        while i + run_len < len(data) and data[i + run_len] == run_char and run_len < 255:
             run_len += 1
 
         if run_len >= 3:
@@ -376,9 +374,7 @@ def validate_compression_slo(stats: Dict) -> bool:
     return ratio_ok and recall_ok
 
 
-def compress_stream(
-    stream: bytes, chunk_size: int = 4096, config: Optional[Dict] = None
-) -> Tuple[bytes, Dict]:
+def compress_stream(stream: bytes, chunk_size: int = 4096, config: Optional[Dict] = None) -> Tuple[bytes, Dict]:
     """Compress a stream in chunks.
 
     Args:
@@ -409,9 +405,7 @@ def compress_stream(
     aggregate_stats = {
         "total_input_size": total_input,
         "total_output_size": total_output,
-        "overall_compression_ratio": total_input / total_output
-        if total_output > 0
-        else float("inf"),
+        "overall_compression_ratio": total_input / total_output if total_output > 0 else float("inf"),
         "min_recall": min(recalls) if recalls else 1.0,
         "avg_recall": sum(recalls) / len(recalls) if recalls else 1.0,
         "n_chunks": len(chunks),

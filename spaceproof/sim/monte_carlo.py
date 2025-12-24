@@ -64,14 +64,14 @@ class Scenario(Enum):
     v3.0: Added NETWORK and ADVERSARIAL scenarios for multi-tier autonomy.
     """
 
-    BASELINE = "baseline"        # Normal operation, standard distributions
-    STRESS = "stress"            # Edge cases at 3-5x intensity
-    GENESIS = "genesis"          # System initialization, bootstrap validation
+    BASELINE = "baseline"  # Normal operation, standard distributions
+    STRESS = "stress"  # Edge cases at 3-5x intensity
+    GENESIS = "genesis"  # System initialization, bootstrap validation
     SINGULARITY = "singularity"  # Self-referential conditions
     THERMODYNAMIC = "thermodynamic"  # Entropy conservation verification
-    GODEL = "godel"              # Completeness bounds, decidability limits
+    GODEL = "godel"  # Completeness bounds, decidability limits
     # v3.0: Multi-tier autonomy scenarios
-    NETWORK = "network"          # 1000 colonies, 1M colonists network validation
+    NETWORK = "network"  # 1000 colonies, 1M colonists network validation
     ADVERSARIAL = "adversarial"  # DoD hostile audit under combat conditions
 
 
@@ -86,15 +86,15 @@ class CheckpointConfig:
     def for_scenario(cls, scenario: Scenario) -> "CheckpointConfig":
         """Get checkpoint config for scenario."""
         frequencies = {
-            Scenario.BASELINE: 100,      # Normal monitoring
-            Scenario.STRESS: 10,         # More monitoring under stress
-            Scenario.GENESIS: 1,         # Every action during startup
-            Scenario.SINGULARITY: 50,    # Moderate for self-reference
+            Scenario.BASELINE: 100,  # Normal monitoring
+            Scenario.STRESS: 10,  # More monitoring under stress
+            Scenario.GENESIS: 1,  # Every action during startup
+            Scenario.SINGULARITY: 50,  # Moderate for self-reference
             Scenario.THERMODYNAMIC: 25,  # Frequent for entropy tracking
-            Scenario.GODEL: 100,         # Standard for completeness checks
+            Scenario.GODEL: 100,  # Standard for completeness checks
             # v3.0: Multi-tier autonomy scenarios
-            Scenario.NETWORK: 30,        # Daily checkpoints for network validation
-            Scenario.ADVERSARIAL: 10,    # Frequent for attack detection
+            Scenario.NETWORK: 30,  # Daily checkpoints for network validation
+            Scenario.ADVERSARIAL: 10,  # Frequent for attack detection
         }
         return cls(scenario=scenario, frequency=frequencies.get(scenario, 100))
 
@@ -177,9 +177,7 @@ class MonteCarloEngine:
         self.receipts: List[SpaceProofReceipt] = []
 
         # Thompson sampling states for module selection
-        self.module_states = {
-            module: ThompsonState.new() for module in config.modules
-        }
+        self.module_states = {module: ThompsonState.new() for module in config.modules}
 
     def run(self) -> SimulationResult:
         """Run the full simulation.
@@ -206,7 +204,7 @@ class MonteCarloEngine:
                 return self._create_result(
                     steps_completed=step + 1,
                     passed=False,
-                    failure_reason=f"Critical entropy delta at step {step}: {result.entropy_delta:.3f}"
+                    failure_reason=f"Critical entropy delta at step {step}: {result.entropy_delta:.3f}",
                 )
 
         total_duration = (time.time() - start_time) * 1000
@@ -266,6 +264,7 @@ class MonteCarloEngine:
 
         # Measure final entropy
         import json
+
         output_bytes = json.dumps(module_results, sort_keys=True, default=str).encode()
         h_after = shannon_entropy(output_bytes)
 
@@ -352,10 +351,12 @@ class MonteCarloEngine:
             # Adversarial scenario: mix of legitimate and attack data
             if self.rng.random() < 0.1:  # 10% attack attempts
                 # Corrupted data pattern
-                data = np.concatenate([
-                    self.rng.normal(0, 1, 500),
-                    self.rng.normal(100, 0.1, 500),  # Anomalous spike
-                ])
+                data = np.concatenate(
+                    [
+                        self.rng.normal(0, 1, 500),
+                        self.rng.normal(100, 0.1, 500),  # Anomalous spike
+                    ]
+                )
             else:
                 data = self.rng.normal(0, 1, 1000)
         else:  # BASELINE
@@ -396,6 +397,7 @@ class MonteCarloEngine:
     def _run_compress(self, data: bytes) -> Dict:
         """Run compress module simulation."""
         import zlib
+
         compressed = zlib.compress(data, level=9)
         ratio = len(data) / len(compressed)
         return {
@@ -435,6 +437,7 @@ class MonteCarloEngine:
     def _run_ledger(self, data: bytes) -> Dict:
         """Run ledger module simulation."""
         from spaceproof.core import dual_hash
+
         return {
             "entry_count": int(self.rng.integers(1, 100)),
             "merkle_root": dual_hash(data),
@@ -546,7 +549,7 @@ class MonteCarloEngine:
         Args:
             step: Current step number
         """
-        recent = self.step_results[-self.config.checkpoint_frequency:]
+        recent = self.step_results[-self.config.checkpoint_frequency :]
         avg_delta = np.mean([r.entropy_delta for r in recent])
         avg_coherence = np.mean([r.coherence for r in recent])
         alive_count = sum(1 for r in recent if r.is_alive)
@@ -561,22 +564,28 @@ class MonteCarloEngine:
         }
         self.checkpoints.append(checkpoint)
 
-        emit_receipt("simulation_checkpoint", {
-            "tenant_id": TENANT_ID,
-            "domain": self.config.domain.value,
-            "scenario": self.config.scenario.value,
-            **checkpoint,
-        })
+        emit_receipt(
+            "simulation_checkpoint",
+            {
+                "tenant_id": TENANT_ID,
+                "domain": self.config.domain.value,
+                "scenario": self.config.scenario.value,
+                **checkpoint,
+            },
+        )
 
     def _emit_genesis_receipt(self) -> None:
         """Emit genesis receipt for GENESIS scenario."""
-        emit_receipt("simulation_genesis", {
-            "tenant_id": TENANT_ID,
-            "domain": self.config.domain.value,
-            "modules": self.config.modules,
-            "seed": self.config.seed,
-            "steps": self.config.steps,
-        })
+        emit_receipt(
+            "simulation_genesis",
+            {
+                "tenant_id": TENANT_ID,
+                "domain": self.config.domain.value,
+                "modules": self.config.modules,
+                "seed": self.config.seed,
+                "steps": self.config.steps,
+            },
+        )
 
     def _create_result(
         self,

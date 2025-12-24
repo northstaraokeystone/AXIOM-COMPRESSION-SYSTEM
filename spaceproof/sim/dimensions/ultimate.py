@@ -146,10 +146,7 @@ class D16_SelfReproduction(BaseDimension):
             has_deterministic_validation = computed_hash == data["validation_hash"]
 
         can_self_reproduce = (
-            rules_encoded and
-            rules_extractable and
-            state_reconstructable and
-            has_deterministic_validation
+            rules_encoded and rules_extractable and state_reconstructable and has_deterministic_validation
         )
 
         return DimensionResult(
@@ -323,8 +320,7 @@ class D19_Decidability(BaseDimension):
 
         # System is consistent if it properly identifies undecidable cases
         properly_handles_undecidable = (
-            undecidable == 0 or
-            external_attestations >= undecidable * 0.5  # At least half got external help
+            undecidable == 0 or external_attestations >= undecidable * 0.5  # At least half got external help
         )
 
         return DimensionResult(
@@ -355,10 +351,25 @@ class D20_Transcendence(BaseDimension):
             required_dimensions: List of dimension IDs that must pass
         """
         self.required_dimensions = required_dimensions or [
-            "D1", "D2", "D3", "D4", "D5",  # Foundation
-            "D6", "D7", "D8", "D9", "D10",  # Intermediate
-            "D11", "D12", "D13", "D14",  # Advanced
-            "D15", "D16", "D17", "D18", "D19",  # Ultimate
+            "D1",
+            "D2",
+            "D3",
+            "D4",
+            "D5",  # Foundation
+            "D6",
+            "D7",
+            "D8",
+            "D9",
+            "D10",  # Intermediate
+            "D11",
+            "D12",
+            "D13",
+            "D14",  # Advanced
+            "D15",
+            "D16",
+            "D17",
+            "D18",
+            "D19",  # Ultimate
         ]
 
     def validate(self, data: Dict[str, DimensionResult]) -> DimensionResult:
@@ -391,13 +402,13 @@ class D20_Transcendence(BaseDimension):
         for dim_id in self.required_dimensions:
             if dim_id not in data:
                 missing.append(dim_id)
-            elif hasattr(data[dim_id], 'passed'):
+            elif hasattr(data[dim_id], "passed"):
                 if data[dim_id].passed:
                     passed.append(dim_id)
                 else:
                     failed.append(dim_id)
             elif isinstance(data[dim_id], dict):
-                if data[dim_id].get('passed', False):
+                if data[dim_id].get("passed", False):
                     passed.append(dim_id)
                 else:
                     failed.append(dim_id)
@@ -411,7 +422,7 @@ class D20_Transcendence(BaseDimension):
         # Meta-hash: hash of all dimension results
         result_summary = {
             dim_id: {
-                "passed": data[dim_id].passed if hasattr(data[dim_id], 'passed') else data[dim_id].get('passed', False),
+                "passed": data[dim_id].passed if hasattr(data[dim_id], "passed") else data[dim_id].get("passed", False),
                 "dimension": dim_id,
             }
             for dim_id in data

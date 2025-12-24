@@ -117,8 +117,8 @@ class Loop:
         for autonomous action.
         """
         tier_thresholds = {
-            "leo": 0.5,       # Standard threshold
-            "mars": 0.4,      # Lower - more autonomous
+            "leo": 0.5,  # Standard threshold
+            "mars": 0.4,  # Lower - more autonomous
             "deep_space": 0.2,  # Lowest - must be highly autonomous
         }
         return tier_thresholds.get(self.autonomy_tier, HIGH_RISK_THRESHOLD)
@@ -402,9 +402,7 @@ class Loop:
         return executed
 
 
-def run_loop_once(
-    sources: Optional[List[Callable]] = None, config: Optional[Dict] = None
-) -> CycleResult:
+def run_loop_once(sources: Optional[List[Callable]] = None, config: Optional[Dict] = None) -> CycleResult:
     """Convenience function to run a single loop cycle.
 
     Args:

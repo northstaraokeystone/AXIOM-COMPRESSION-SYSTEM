@@ -103,9 +103,7 @@ def entropy_delta(before: np.ndarray, after: np.ndarray) -> float:
     return h_after - h_before
 
 
-def detect_anomaly(
-    stream: np.ndarray, baseline: Optional[BaselineStats] = None
-) -> DetectionResult:
+def detect_anomaly(stream: np.ndarray, baseline: Optional[BaselineStats] = None) -> DetectionResult:
     """Compare stream to baseline, return anomaly classification.
 
     Args:
@@ -191,9 +189,7 @@ def detect_anomaly(
     return result
 
 
-def classify_anomaly(
-    delta_sigma: float, threshold: float = FRAUD_THRESHOLD_SIGMA
-) -> str:
+def classify_anomaly(delta_sigma: float, threshold: float = FRAUD_THRESHOLD_SIGMA) -> str:
     """Classify anomaly based on delta in standard deviations.
 
     Args:
@@ -244,9 +240,7 @@ def build_baseline(samples: List[np.ndarray]) -> BaselineStats:
     )
 
 
-def detect_fraud_pattern(
-    transactions: List[Dict], threshold_sigma: float = FRAUD_THRESHOLD_SIGMA
-) -> List[Dict]:
+def detect_fraud_pattern(transactions: List[Dict], threshold_sigma: float = FRAUD_THRESHOLD_SIGMA) -> List[Dict]:
     """Detect fraud patterns in transaction data.
 
     DOGE use case: Identify improper payments via entropy analysis.
@@ -334,9 +328,7 @@ def estimate_improper_payments(flagged: List[Dict]) -> Dict:
         Dict with estimated improper amounts
     """
     total_flagged = sum(tx.get("amount", 0) for tx in flagged)
-    fraud_only = sum(
-        tx.get("amount", 0) for tx in flagged if tx.get("classification") == "fraud"
-    )
+    fraud_only = sum(tx.get("amount", 0) for tx in flagged if tx.get("classification") == "fraud")
 
     # Apply confidence adjustment
     confidence = min(1.0, len(flagged) / 100)
@@ -346,7 +338,5 @@ def estimate_improper_payments(flagged: List[Dict]) -> Dict:
         "fraud_amount": fraud_only,
         "confidence": confidence,
         "gao_baseline_b": IMPROPER_PAYMENTS_TOTAL_B,
-        "potential_savings_pct": (fraud_only / total_flagged * 100)
-        if total_flagged > 0
-        else 0,
+        "potential_savings_pct": (fraud_only / total_flagged * 100) if total_flagged > 0 else 0,
     }

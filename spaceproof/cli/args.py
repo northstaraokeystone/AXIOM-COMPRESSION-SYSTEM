@@ -51,21 +51,11 @@ def create_parser() -> argparse.ArgumentParser:
     # sovereignty mars
     mars_p = sov_sub.add_parser("mars", help="Mars computational sovereignty simulator")
     mars_p.add_argument("--config", type=str, help="Path to colony config YAML")
-    mars_p.add_argument(
-        "--find-threshold", action="store_true", help="Find minimum crew for target"
-    )
-    mars_p.add_argument(
-        "--target", type=float, default=95.0, help="Target sovereignty score (%%)"
-    )
-    mars_p.add_argument(
-        "--monte-carlo", action="store_true", help="Run Monte Carlo validation"
-    )
-    mars_p.add_argument(
-        "--iterations", type=int, default=1000, help="Monte Carlo iterations"
-    )
-    mars_p.add_argument(
-        "--compare", nargs=2, metavar="CONFIG", help="Compare two configurations"
-    )
+    mars_p.add_argument("--find-threshold", action="store_true", help="Find minimum crew for target")
+    mars_p.add_argument("--target", type=float, default=95.0, help="Target sovereignty score (%%)")
+    mars_p.add_argument("--monte-carlo", action="store_true", help="Run Monte Carlo validation")
+    mars_p.add_argument("--iterations", type=int, default=1000, help="Monte Carlo iterations")
+    mars_p.add_argument("--compare", nargs=2, metavar="CONFIG", help="Compare two configurations")
     mars_p.add_argument("--report", type=str, help="Generate markdown report to file")
     mars_p.add_argument("--scenario", type=str, help="Run specific scenario")
 
@@ -73,14 +63,10 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--partition", type=float, help="Partition loss fraction")
     parser.add_argument("--nodes", type=int, default=5, help="Number of nodes")
     parser.add_argument("--simulate", action="store_true", help="Enable simulation")
-    parser.add_argument(
-        "--stress_quorum", action="store_true", help="Stress test quorum"
-    )
+    parser.add_argument("--stress_quorum", action="store_true", help="Stress test quorum")
     parser.add_argument("--reroute", action="store_true", help="Enable rerouting")
     parser.add_argument("--blackout", type=int, help="Blackout duration days")
-    parser.add_argument(
-        "--blackout_sweep", action="store_true", help="Blackout sweep test"
-    )
+    parser.add_argument("--blackout_sweep", action="store_true", help="Blackout sweep test")
     parser.add_argument("--test", action="store_true", help="Emit test receipt")
     parser.add_argument("--config", type=str, help="Config name")
 

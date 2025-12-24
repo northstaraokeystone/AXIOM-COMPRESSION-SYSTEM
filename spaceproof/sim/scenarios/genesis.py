@@ -155,14 +155,17 @@ class GenesisScenario:
         """Emit genesis checkpoint receipt."""
         result = self.results[-1]
 
-        emit_receipt("genesis_checkpoint", {
-            "tenant_id": TENANT_ID,
-            "step": step,
-            "phase": result["phase"],
-            "entropy_delta": result["entropy_delta"],
-            "coherence": result["coherence"],
-            "hierarchy_level": result["hierarchy_level"],
-        })
+        emit_receipt(
+            "genesis_checkpoint",
+            {
+                "tenant_id": TENANT_ID,
+                "step": step,
+                "phase": result["phase"],
+                "entropy_delta": result["entropy_delta"],
+                "coherence": result["coherence"],
+                "hierarchy_level": result["hierarchy_level"],
+            },
+        )
 
     def evaluate(self) -> GenesisResult:
         """Evaluate genesis results.
@@ -187,8 +190,7 @@ class GenesisScenario:
 
         # Find when system reached steady state
         steady_state_steps = [
-            r["step"] for r in self.results
-            if r["phase"] == "steady_state" and r["coherence"] >= COHERENCE_THRESHOLD
+            r["step"] for r in self.results if r["phase"] == "steady_state" and r["coherence"] >= COHERENCE_THRESHOLD
         ]
         bootstrap_time = steady_state_steps[0] if steady_state_steps else self.config.steps
 
@@ -201,9 +203,9 @@ class GenesisScenario:
         # - Final state is coherent
         final_coherence = self.results[-1]["coherence"]
         genesis_successful = (
-            len(phases_completed) == len(self.config.bootstrap_phases) and
-            hierarchy_established and
-            final_coherence >= COHERENCE_THRESHOLD
+            len(phases_completed) == len(self.config.bootstrap_phases)
+            and hierarchy_established
+            and final_coherence >= COHERENCE_THRESHOLD
         )
 
         return GenesisResult(

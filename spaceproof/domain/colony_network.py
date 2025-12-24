@@ -351,9 +351,10 @@ def simulate_network(
         earth_input_bps = network.colonies[0].bandwidth_to_earth_mbps * 1e6 / len(partitions)
 
         # Calculate internal network capacity
-        network_internal_bps = sum(
-            c.decision_capacity_bps for c in network.colonies if c.active
-        ) + sum(network.inter_colony_links.values()) * 1e6
+        network_internal_bps = (
+            sum(c.decision_capacity_bps for c in network.colonies if c.active)
+            + sum(network.inter_colony_links.values()) * 1e6
+        )
 
         # Sovereignty check
         sovereign = network_internal_bps > earth_input_bps

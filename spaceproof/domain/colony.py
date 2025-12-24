@@ -171,9 +171,7 @@ def generate(config: ColonyConfig, days: int = 30) -> List[Dict]:
         h_information = 1.0 + np.log2(1 + sol / 30)
         h_psychology = 1.0 + state.stress_level * 0.5
 
-        state.h_total = (
-            h_thermal + h_atmospheric + h_resource + h_information + h_psychology
-        )
+        state.h_total = h_thermal + h_atmospheric + h_resource + h_information + h_psychology
 
         # Compute sovereignty ratio with augmentation (v3.0)
         augmented_crew = config.crew_size * config.augmentation_factor
@@ -182,9 +180,7 @@ def generate(config: ColonyConfig, days: int = 30) -> List[Dict]:
             + config.autonomy_level * AUTONOMOUS_DECISION_RATE_BPS
         )
         external_bps = 1e6 / (1 + sol / 100)  # Degrades over time
-        state.sovereignty_ratio = (
-            internal_bps / external_bps if external_bps > 0 else float("inf")
-        )
+        state.sovereignty_ratio = internal_bps / external_bps if external_bps > 0 else float("inf")
 
         # Update effective crew and decision capacity
         state.effective_crew = augmented_crew * (1 - 0.3 * state.stress_level)
@@ -287,9 +283,7 @@ def simulate_hab_breach(states: List[Dict], params: Dict) -> List[Dict]:
             # Breach effects: stress spike, reduced resources
             if state["sol"] == breach_sol:
                 state["stress_level"] = min(1.0, state["stress_level"] + severity)
-            state["resources_sufficient"] = state["resources_sufficient"] and (
-                np.random.random() > severity * 0.1
-            )
+            state["resources_sufficient"] = state["resources_sufficient"] and (np.random.random() > severity * 0.1)
 
     emit_receipt(
         "colony_event",

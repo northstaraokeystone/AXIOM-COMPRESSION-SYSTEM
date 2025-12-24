@@ -190,10 +190,7 @@ def calculate_mars_sovereignty(
     redundancy_factor = life_support.get("redundancy_factor", 1.0)
 
     power = config.get("power", {})
-    power_available = (
-        power.get("kilopower_units", 0) * 10000
-        + power.get("solar_array_m2", 100) * 150
-    )
+    power_available = power.get("kilopower_units", 0) * 10000 + power.get("solar_array_m2", 100) * 150
 
     o2_balance = calculate_o2_balance(crew_count, moxie_units, o2_closure, power_available)
     h2o_balance = calculate_h2o_balance(
@@ -201,9 +198,7 @@ def calculate_mars_sovereignty(
         h2o_closure,
         config.get("isru", {}).get("water_extraction_kg_day", 0),
     )
-    thermal = calculate_thermal_entropy(
-        crew_count, power_available * 0.3, power.get("radiator_area_m2", 50)
-    )
+    thermal = calculate_thermal_entropy(crew_count, power_available * 0.3, power.get("radiator_area_m2", 50))
     reliability = calculate_eclss_reliability(mtbf, redundancy_factor, 0.8, mission_days)
 
     eclss_config = {
@@ -450,13 +445,13 @@ def generate_report(result: dict, output_path: str) -> None:
 ## Warnings
 
 """
-    if result['warnings']:
-        for warning in result['warnings']:
+    if result["warnings"]:
+        for warning in result["warnings"]:
             report += f"- {warning}\n"
     else:
         report += "No warnings.\n"
 
-    if 'monte_carlo_survival_rate' in result:
+    if "monte_carlo_survival_rate" in result:
         report += f"""
 ## Monte Carlo Validation
 
@@ -468,7 +463,7 @@ def generate_report(result: dict, output_path: str) -> None:
 ### Top Failure Modes
 
 """
-        for mode, count in list(result.get('monte_carlo_failure_modes', {}).items())[:5]:
+        for mode, count in list(result.get("monte_carlo_failure_modes", {}).items())[:5]:
             report += f"- {mode}: {count}\n"
 
     report += """

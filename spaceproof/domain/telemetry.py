@@ -94,9 +94,7 @@ def tesla_stream(params: Dict) -> Dict:
     acceleration = np.gradient(speed_mph) + np.random.randn(n_samples) * 0.1
 
     # Sensor data (highly correlated, compressible)
-    radar_range = (
-        50 + 20 * np.sin(2 * np.pi * t / 45) + np.random.randn(n_samples) * 1.0
-    )
+    radar_range = 50 + 20 * np.sin(2 * np.pi * t / 45) + np.random.randn(n_samples) * 1.0
     ultrasonic = np.clip(radar_range * 0.1 + np.random.randn(n_samples) * 0.05, 0, 10)
 
     # Camera embedding (compressed representation)
@@ -106,9 +104,7 @@ def tesla_stream(params: Dict) -> Dict:
         camera_embedding[i] = 0.9 * camera_embedding[i - 1] + 0.1 * camera_embedding[i]
 
     # Flatten for hashing
-    data_bytes = np.concatenate(
-        [t, speed_mph, steering_deg, acceleration, radar_range, ultrasonic]
-    ).tobytes()
+    data_bytes = np.concatenate([t, speed_mph, steering_deg, acceleration, radar_range, ultrasonic]).tobytes()
     data_hash = dual_hash(data_bytes)
     params_hash = dual_hash(str(params))
 
@@ -342,10 +338,7 @@ def _generic_stream(fleet_type: str, params: Dict) -> Dict:
     n_samples = int(duration * sample_rate)
 
     t = np.linspace(0, duration, n_samples)
-    data = {
-        f"channel_{i}": (np.random.randn(n_samples) * 0.1).tolist()
-        for i in range(channels)
-    }
+    data = {f"channel_{i}": (np.random.randn(n_samples) * 0.1).tolist() for i in range(channels)}
     data["t"] = t.tolist()
 
     data_hash = dual_hash(str(data))

@@ -76,11 +76,7 @@ class BaselineScenario:
         elif self.config.distribution == "exponential":
             return self.rng.exponential(1.0, self.config.sample_size)
         else:  # normal
-            return self.rng.normal(
-                self.config.mean,
-                self.config.std,
-                self.config.sample_size
-            )
+            return self.rng.normal(self.config.mean, self.config.std, self.config.sample_size)
 
     def validate_step(self, step: int, input_data: np.ndarray, output_data: np.ndarray) -> Dict:
         """Validate a single step.
@@ -121,13 +117,16 @@ class BaselineScenario:
         """Emit checkpoint receipt."""
         recent = self.results[-CHECKPOINT_FREQUENCY:]
 
-        emit_receipt("baseline_checkpoint", {
-            "tenant_id": TENANT_ID,
-            "step": step,
-            "avg_delta": np.mean([r["entropy_delta"] for r in recent]),
-            "avg_coherence": np.mean([r["coherence"] for r in recent]),
-            "alive_ratio": sum(1 for r in recent if r["is_alive"]) / len(recent),
-        })
+        emit_receipt(
+            "baseline_checkpoint",
+            {
+                "tenant_id": TENANT_ID,
+                "step": step,
+                "avg_delta": np.mean([r["entropy_delta"] for r in recent]),
+                "avg_coherence": np.mean([r["coherence"] for r in recent]),
+                "alive_ratio": sum(1 for r in recent if r["is_alive"]) / len(recent),
+            },
+        )
 
     def evaluate(self) -> BaselineResult:
         """Evaluate overall scenario results.
@@ -157,11 +156,7 @@ class BaselineScenario:
         # - Average delta is positive (entropy reduction)
         # - Average coherence above 0.5
         # - Less than 10% deviations
-        within_bounds = (
-            avg_delta >= 0 and
-            avg_coherence >= 0.5 and
-            deviation_count / len(self.results) < 0.1
-        )
+        within_bounds = avg_delta >= 0 and avg_coherence >= 0.5 and deviation_count / len(self.results) < 0.1
 
         return BaselineResult(
             steps_completed=len(self.results),

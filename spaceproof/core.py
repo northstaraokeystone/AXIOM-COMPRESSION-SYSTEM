@@ -137,9 +137,7 @@ def merkle(items: list) -> str:
     while len(hashes) > 1:
         if len(hashes) % 2:
             hashes.append(hashes[-1])
-        hashes = [
-            dual_hash(hashes[i] + hashes[i + 1]) for i in range(0, len(hashes), 2)
-        ]
+        hashes = [dual_hash(hashes[i] + hashes[i + 1]) for i in range(0, len(hashes), 2)]
     return hashes[0]
 
 

@@ -66,15 +66,9 @@ def format_comparison_table(results: Dict) -> str:
 
         # Highlight if meeting criteria
         compression_str = (
-            f"**{compression:.2%}**"
-            if compression >= SUCCESS_CRITERIA["compression_min"]
-            else f"{compression:.2%}"
+            f"**{compression:.2%}**" if compression >= SUCCESS_CRITERIA["compression_min"] else f"{compression:.2%}"
         )
-        r_squared_str = (
-            f"**{r_squared:.4f}**"
-            if r_squared >= SUCCESS_CRITERIA["r_squared_min"]
-            else f"{r_squared:.4f}"
-        )
+        r_squared_str = f"**{r_squared:.4f}**" if r_squared >= SUCCESS_CRITERIA["r_squared_min"] else f"{r_squared:.4f}"
 
         lines.append(
             f"| {galaxy_id} | {compression_str} | {r_squared_str} | "
@@ -163,10 +157,7 @@ def generate_benchmark_report(
         tolerance = SUCCESS_CRITERIA["bits_per_kg_tolerance"]
 
         # Check if within tolerance
-        within_tolerance = (
-            bits_per_kg > 0
-            and abs(baseline_kg - bits_per_kg) / baseline_kg <= tolerance
-        )
+        within_tolerance = bits_per_kg > 0 and abs(baseline_kg - bits_per_kg) / baseline_kg <= tolerance
 
         lines.extend(
             [
@@ -223,17 +214,11 @@ def generate_benchmark_report(
     checks = []
 
     # Compression check
-    mean_compression = (
-        benchmark_results.get("summary", {}).get("spaceproof", {}).get("mean_compression", 0)
-    )
-    checks.append(
-        ("Compression ≥92%", mean_compression >= SUCCESS_CRITERIA["compression_min"])
-    )
+    mean_compression = benchmark_results.get("summary", {}).get("spaceproof", {}).get("mean_compression", 0)
+    checks.append(("Compression ≥92%", mean_compression >= SUCCESS_CRITERIA["compression_min"]))
 
     # R² check
-    mean_r_squared = (
-        benchmark_results.get("summary", {}).get("spaceproof", {}).get("mean_r_squared", 0)
-    )
+    mean_r_squared = benchmark_results.get("summary", {}).get("spaceproof", {}).get("mean_r_squared", 0)
     checks.append(("R² ≥0.98", mean_r_squared >= SUCCESS_CRITERIA["r_squared_min"]))
 
     # bits/kg check (if available)
@@ -296,9 +281,7 @@ def emit_benchmark_summary(
 
     if calibration_results:
         bits_per_kg = calibration_results.get("mean_bits_per_kg", 0)
-        within_tolerance = (
-            abs(60000 - bits_per_kg) / 60000 <= 0.15 if bits_per_kg > 0 else False
-        )
+        within_tolerance = abs(60000 - bits_per_kg) / 60000 <= 0.15 if bits_per_kg > 0 else False
         validation_status["bits_per_kg_pass"] = within_tolerance
 
     if scenario_results:

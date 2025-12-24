@@ -134,9 +134,7 @@ def calculate_earth_input_rate(
     decisions_per_day = decisions_per_hour_per_expert * 24 * earth_experts
 
     # Convert to bits/sec using average decision complexity
-    avg_bits_per_decision = (
-        DECISION_BIT_COMPLEXITY_CRITICAL + DECISION_BIT_COMPLEXITY_HIGH
-    ) / 2
+    avg_bits_per_decision = (DECISION_BIT_COMPLEXITY_CRITICAL + DECISION_BIT_COMPLEXITY_HIGH) / 2
 
     earth_bps = decisions_per_day * avg_bits_per_decision / 86400.0
 
@@ -277,9 +275,7 @@ def calculate_decision_capacity_score(
     """
     internal = calculate_internal_capacity(crew)
     earth = calculate_earth_input_rate(bandwidth_mbps, latency_sec)
-    earth_blackout = calculate_earth_input_rate(
-        bandwidth_mbps, latency_sec, conjunction_blackout=True
-    )
+    earth_blackout = calculate_earth_input_rate(bandwidth_mbps, latency_sec, conjunction_blackout=True)
 
     sovereign = compute_sovereignty_threshold(internal, earth)
     conjunction_survival = calculate_conjunction_survival(internal)

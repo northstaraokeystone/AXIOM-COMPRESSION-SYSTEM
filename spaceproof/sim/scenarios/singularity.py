@@ -133,13 +133,16 @@ class SingularityScenario:
                 self.circular_references.append((step, receipt_about_receipt[:16]))
 
         # Emit receipt
-        receipt = emit_receipt("singularity_step", {
-            "tenant_id": TENANT_ID,
-            "step": step,
-            "is_self_referential": is_self_referential,
-            "recursion_depth": recursion_depth,
-            "references_previous": receipt_about_receipt is not None,
-        })
+        receipt = emit_receipt(
+            "singularity_step",
+            {
+                "tenant_id": TENANT_ID,
+                "step": step,
+                "is_self_referential": is_self_referential,
+                "recursion_depth": recursion_depth,
+                "references_previous": receipt_about_receipt is not None,
+            },
+        )
 
         self.receipt_hashes.append(receipt["payload_hash"])
 
@@ -167,14 +170,17 @@ class SingularityScenario:
         """Emit singularity checkpoint receipt."""
         recent = self.results[-CHECKPOINT_FREQUENCY:]
 
-        emit_receipt("singularity_checkpoint", {
-            "tenant_id": TENANT_ID,
-            "step": step,
-            "self_reference_count": sum(1 for r in recent if r["is_self_referential"]),
-            "max_recursion": max(r["recursion_depth"] for r in recent),
-            "circular_references": len(self.circular_references),
-            "receipt_chain_length": len(self.receipt_hashes),
-        })
+        emit_receipt(
+            "singularity_checkpoint",
+            {
+                "tenant_id": TENANT_ID,
+                "step": step,
+                "self_reference_count": sum(1 for r in recent if r["is_self_referential"]),
+                "max_recursion": max(r["recursion_depth"] for r in recent),
+                "circular_references": len(self.circular_references),
+                "receipt_chain_length": len(self.receipt_hashes),
+            },
+        )
 
     def evaluate(self) -> SingularityResult:
         """Evaluate singularity results.
@@ -203,9 +209,9 @@ class SingularityScenario:
         final_coherence = self.results[-1]["coherence"]
 
         singularity_stable = (
-            avg_coherence >= 0.5 and
-            final_coherence >= COHERENCE_THRESHOLD and
-            len(self.circular_references) < len(self.results) * 0.1
+            avg_coherence >= 0.5
+            and final_coherence >= COHERENCE_THRESHOLD
+            and len(self.circular_references) < len(self.results) * 0.1
         )
 
         return SingularityResult(

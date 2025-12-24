@@ -184,10 +184,7 @@ def calculate_tier_decision_capacity(
     # Total effective capacity
     # In higher tiers, internal dominates; external approaches zero
     autonomy_weight = config.autonomy_requirement
-    effective_capacity = (
-        internal_capacity * (1 + autonomy_weight)
-        + external_rate * (1 - autonomy_weight)
-    )
+    effective_capacity = internal_capacity * (1 + autonomy_weight) + external_rate * (1 - autonomy_weight)
 
     return effective_capacity
 
@@ -239,12 +236,8 @@ def tier_transition(
         TierTransitionResult with transition details
     """
     # Calculate capacities
-    capacity_before = calculate_tier_decision_capacity(
-        from_tier, crew, bandwidth_mbps, augmentation_factor
-    )
-    capacity_after = calculate_tier_decision_capacity(
-        to_tier, crew, bandwidth_mbps, augmentation_factor
-    )
+    capacity_before = calculate_tier_decision_capacity(from_tier, crew, bandwidth_mbps, augmentation_factor)
+    capacity_after = calculate_tier_decision_capacity(to_tier, crew, bandwidth_mbps, augmentation_factor)
 
     # Light delay change
     delay_change = to_tier.light_delay_sec - from_tier.light_delay_sec
@@ -367,10 +360,9 @@ def multi_tier_loop_config(tier: AutonomyTier) -> Dict[str, Any]:
         "max_pending_actions": int(10 / config.autonomy_requirement) if config.autonomy_requirement > 0 else 100,
         "auto_approve_threshold": 0.5 - 0.3 * config.autonomy_requirement,  # Lower threshold for higher tiers
         "compression_target": config.compression_threshold,
-        "earth_sync_interval_sec": max(
-            config.loop_frequency_sec * 10,
-            tier.light_delay_sec * 2
-        ) if tier.light_delay_sec > 0 else 60.0,
+        "earth_sync_interval_sec": (
+            max(config.loop_frequency_sec * 10, tier.light_delay_sec * 2) if tier.light_delay_sec > 0 else 60.0
+        ),
     }
 
 
@@ -406,9 +398,7 @@ def validate_tier_readiness(
         augmentation = 1.0
 
     # Check decision capacity
-    capacity = calculate_tier_decision_capacity(
-        tier, crew, 2.0, augmentation
-    )
+    capacity = calculate_tier_decision_capacity(tier, crew, 2.0, augmentation)
     required_capacity = crew * HUMAN_DECISION_RATE_BPS * (1 + config.autonomy_requirement)
     capacity_ready = capacity >= required_capacity
 

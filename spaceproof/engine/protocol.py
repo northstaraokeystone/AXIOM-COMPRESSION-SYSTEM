@@ -133,7 +133,7 @@ class ModuleRegistry:
         Args:
             module_class: Class implementing ValidationModule
         """
-        if hasattr(module_class, 'MODULE_ID'):
+        if hasattr(module_class, "MODULE_ID"):
             self._modules[module_class.MODULE_ID] = module_class
 
     def get(self, module_id: str) -> Optional[ValidationModule]:
@@ -166,7 +166,7 @@ class ModuleRegistry:
         """
         result = []
         for module_id, module_class in self._modules.items():
-            if hasattr(module_class, 'CAPABILITIES'):
+            if hasattr(module_class, "CAPABILITIES"):
                 if capability in module_class.CAPABILITIES:
                     result.append(self.get(module_id))
         return result
@@ -263,6 +263,7 @@ def count_possible_compositions() -> int:
         Number of possible configurations
     """
     from math import comb
+
     return comb(7, 3)
 
 

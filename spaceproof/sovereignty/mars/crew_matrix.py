@@ -137,9 +137,7 @@ def calculate_coverage(crew: list[dict], skills: dict | None = None) -> float:
         min_crew = skill_info["min_crew"]
 
         # Weight by category importance
-        weight = {"CRITICAL": 3.0, "HIGH": 2.0, "MEDIUM": 1.0, "LOW": 0.5}.get(
-            category, 1.0
-        )
+        weight = {"CRITICAL": 3.0, "HIGH": 2.0, "MEDIUM": 1.0, "LOW": 0.5}.get(category, 1.0)
 
         # Count qualified crew for this skill
         qualified = 0.0
@@ -217,9 +215,7 @@ def identify_gaps(crew: list[dict], skills: dict | None = None) -> list[dict]:
 
         if actual_redundancy < required_redundancy:
             category = skill_info["category"]
-            gap_severity = (
-                "CRITICAL" if category == "CRITICAL" else "WARNING" if category == "HIGH" else "INFO"
-            )
+            gap_severity = "CRITICAL" if category == "CRITICAL" else "WARNING" if category == "HIGH" else "INFO"
 
             gaps.append(
                 {

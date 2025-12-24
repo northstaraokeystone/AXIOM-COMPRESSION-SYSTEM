@@ -39,9 +39,7 @@ AI_FEYNMAN_OPERATORS = {
 # === AI FEYNMAN IMPLEMENTATION ===
 
 
-def run_ai_feynman(
-    data: Dict, timeout_s: int = 60, use_physics_prior: bool = True
-) -> Dict:
+def run_ai_feynman(data: Dict, timeout_s: int = 60, use_physics_prior: bool = True) -> Dict:
     """Run AI Feynman-style symbolic regression.
 
     AI Feynman uses dimensional analysis and physical priors
@@ -294,8 +292,7 @@ def generate_baseline_table(results: List[Dict]) -> str:
         best = r.get("best_method", "unknown")
 
         lines.append(
-            f"| {galaxy_id} | {pysr_mse:.4f} | {ai_mse:.4f} | "
-            f"{spaceproof_mse:.4f} | {spaceproof_r2:.4f} | {best} |"
+            f"| {galaxy_id} | {pysr_mse:.4f} | {ai_mse:.4f} | " f"{spaceproof_mse:.4f} | {spaceproof_r2:.4f} | {best} |"
         )
 
     return "\n".join(lines)

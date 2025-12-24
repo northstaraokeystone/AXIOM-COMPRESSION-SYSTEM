@@ -201,9 +201,7 @@ class SimpleKAN:
 # === PYSR INTERFACE ===
 
 
-def run_pysr(
-    data: Dict, complexity_limit: int = DEFAULT_COMPLEXITY_LIMIT, timeout_s: int = 60
-) -> Dict:
+def run_pysr(data: Dict, complexity_limit: int = DEFAULT_COMPLEXITY_LIMIT, timeout_s: int = 60) -> Dict:
     """Run pySR symbolic regression on galaxy rotation curve.
 
     Args:
@@ -328,16 +326,8 @@ def compare(galaxy: Dict) -> Dict:
     spaceproof_result = run_spaceproof(galaxy)
 
     # Compute relative metrics
-    mse_ratio = (
-        spaceproof_result["mse"] / pysr_result["mse"]
-        if pysr_result["mse"] > 0
-        else float("inf")
-    )
-    time_ratio = (
-        spaceproof_result["time_ms"] / pysr_result["time_ms"]
-        if pysr_result["time_ms"] > 0
-        else float("inf")
-    )
+    mse_ratio = spaceproof_result["mse"] / pysr_result["mse"] if pysr_result["mse"] > 0 else float("inf")
+    time_ratio = spaceproof_result["time_ms"] / pysr_result["time_ms"] if pysr_result["time_ms"] > 0 else float("inf")
 
     comparison = {
         "galaxy_id": galaxy.get("id", "unknown"),
@@ -360,9 +350,7 @@ def compare(galaxy: Dict) -> Dict:
             "tool_name": "pySR",
             "dataset_id": galaxy.get("id", "unknown"),
             "compression_ratio": 0,  # pySR doesn't report compression
-            "r_squared": 1 - pysr_result["mse"] / np.var(galaxy["v"])
-            if np.var(galaxy["v"]) > 0
-            else 0,
+            "r_squared": 1 - pysr_result["mse"] / np.var(galaxy["v"]) if np.var(galaxy["v"]) > 0 else 0,
             "equation": pysr_result["equation"],
             "time_ms": pysr_result["time_ms"],
         },
@@ -418,15 +406,9 @@ def batch_compare(galaxies: List[Dict]) -> Dict:
         "pysr": {
             "mean_mse": float(np.mean(pysr_mses)),
         },
-        "spaceproof_wins_mse": sum(
-            1 for r in results if r["comparison"]["winner_mse"] == "spaceproof"
-        ),
-        "pysr_wins_mse": sum(
-            1 for r in results if r["comparison"]["winner_mse"] == "pysr"
-        ),
-        "spaceproof_wins_time": sum(
-            1 for r in results if r["comparison"]["winner_time"] == "spaceproof"
-        ),
+        "spaceproof_wins_mse": sum(1 for r in results if r["comparison"]["winner_mse"] == "spaceproof"),
+        "pysr_wins_mse": sum(1 for r in results if r["comparison"]["winner_mse"] == "pysr"),
+        "spaceproof_wins_time": sum(1 for r in results if r["comparison"]["winner_time"] == "spaceproof"),
     }
 
     # Emit summary receipt
@@ -506,14 +488,10 @@ def main():
 
     # Print summary
     print("\nSummary:")
-    print(
-        f"  SpaceProof mean compression: {results['summary']['spaceproof']['mean_compression']:.2%}"
-    )
+    print(f"  SpaceProof mean compression: {results['summary']['spaceproof']['mean_compression']:.2%}")
     print(f"  SpaceProof mean R²: {results['summary']['spaceproof']['mean_r_squared']:.4f}")
     print(f"  SpaceProof wins (MSE): {results['summary']['spaceproof_wins_mse']}/{len(galaxies)}")
-    print(
-        f"  SpaceProof wins (time): {results['summary']['spaceproof_wins_time']}/{len(galaxies)}"
-    )
+    print(f"  SpaceProof wins (time): {results['summary']['spaceproof_wins_time']}/{len(galaxies)}")
 
     # Save results
     if args.output:

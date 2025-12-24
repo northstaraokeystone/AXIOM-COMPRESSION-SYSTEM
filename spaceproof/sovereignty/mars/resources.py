@@ -105,9 +105,7 @@ def calculate_reserve_buffer(
             critical_met = False
 
     # Overall buffer: minimum of critical resources
-    critical_buffers = [
-        buffer_days.get(r, 0) for r in critical_resources if r in buffer_days
-    ]
+    critical_buffers = [buffer_days.get(r, 0) for r in critical_resources if r in buffer_days]
     min_critical_buffer = min(critical_buffers) if critical_buffers else 0
 
     return {
@@ -285,9 +283,7 @@ def calculate_resource_score(
     """
     closure_ratio = calculate_isru_closure(production, consumption)
     buffer_status = calculate_reserve_buffer(reserves, consumption)
-    resupply = calculate_resupply_cadence(
-        closure_ratio, int(buffer_status["min_critical_buffer_days"])
-    )
+    resupply = calculate_resupply_cadence(closure_ratio, int(buffer_status["min_critical_buffer_days"]))
 
     # Per-resource closure ratios
     resource_closures = {}

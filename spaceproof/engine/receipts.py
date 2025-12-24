@@ -35,6 +35,7 @@ VDS_RFC9162_SHA256 = 1
 
 class DomainConfig(Enum):
     """Domain configuration enum for receipt typing."""
+
     XAI = "xai"
     DOGE = "doge"
     NASA = "nasa"
@@ -49,6 +50,7 @@ class ModuleAttestation:
     Each module in the 3-of-7 selection produces an attestation
     that gets included in the receipt.
     """
+
     module_id: str
     result_hash: bytes
     entropy_delta: float  # Critical xAI constant
@@ -63,6 +65,7 @@ class ReceiptProtected:
 
     Contains algorithm identifiers and type information.
     """
+
     alg: int = ALG_ES256  # Signature algorithm
     vds: int = VDS_RFC9162_SHA256  # Verifiable data structure
     typ: str = "spaceproof+receipt"
@@ -74,6 +77,7 @@ class ReceiptUnprotected:
 
     Contains module attestations and other metadata.
     """
+
     module_attestations: List[ModuleAttestation] = field(default_factory=list)
 
 
@@ -132,7 +136,11 @@ class SpaceProofReceipt:
                 ]
             },
             "payload": {
-                "merkle_root": self.payload.merkle_root.hex() if isinstance(self.payload.merkle_root, bytes) else self.payload.merkle_root,
+                "merkle_root": (
+                    self.payload.merkle_root.hex()
+                    if isinstance(self.payload.merkle_root, bytes)
+                    else self.payload.merkle_root
+                ),
                 "timestamp": self.payload.timestamp,
                 "domain_config": {
                     "domain": self.payload.domain_config.value,
@@ -174,7 +182,7 @@ def create_receipt(
     data_items: List[Dict],
     fitness_score: float,
     previous_proof: Optional[str] = None,
-    **domain_kwargs
+    **domain_kwargs,
 ) -> SpaceProofReceipt:
     """Create a new SpaceProof receipt.
 
@@ -282,7 +290,7 @@ def emit_spaceproof_receipt(receipt: SpaceProofReceipt) -> Dict:
         {
             "tenant_id": TENANT_ID,
             **receipt.to_dict(),
-        }
+        },
     )
 
 
@@ -394,11 +402,13 @@ def build_doge_receipt(
     # Extract fraud indicators
     fraud_indicators = []
     if detect_result.get("classification") in ["fraud", "violation"]:
-        fraud_indicators.append({
-            "type": detect_result.get("classification"),
-            "severity": detect_result.get("severity", "unknown"),
-            "delta_sigma": detect_result.get("delta_sigma", 0.0),
-        })
+        fraud_indicators.append(
+            {
+                "type": detect_result.get("classification"),
+                "severity": detect_result.get("severity", "unknown"),
+                "delta_sigma": detect_result.get("delta_sigma", 0.0),
+            }
+        )
 
     return create_receipt(
         domain=DomainConfig.DOGE,
@@ -450,7 +460,9 @@ def build_nasa_receipt(
             module_id="loop",
             result_hash=hashlib.sha256(json.dumps(loop_result, sort_keys=True).encode()).digest(),
             entropy_delta=0.1 if loop_result.get("completed", False) else -0.1,
-            coherence_score=min(1.0, loop_result.get("actions_executed", 0) / max(1, loop_result.get("actions_proposed", 1))),
+            coherence_score=min(
+                1.0, loop_result.get("actions_executed", 0) / max(1, loop_result.get("actions_proposed", 1))
+            ),
             passed=loop_result.get("completed", False),
             metadata={"cycle_time_sec": loop_result.get("cycle_time_sec", 0)},
         ),

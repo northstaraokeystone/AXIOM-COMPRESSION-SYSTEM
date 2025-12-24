@@ -40,6 +40,7 @@ TENANT_ID = "spaceproof-gates"
 
 class GateStatus(Enum):
     """Status of a gate execution."""
+
     PENDING = "pending"
     RUNNING = "running"
     PASSED = "passed"
@@ -50,6 +51,7 @@ class GateStatus(Enum):
 
 class GateType(Enum):
     """Type of gate in the sequence."""
+
     PRE_VALIDATION = "pre_validation"
     ENTROPY_MEASUREMENT = "entropy_measurement"
     MODULE = "module"
@@ -195,11 +197,12 @@ class EntropyMeasurementGate(Gate):
             # Measure input entropy
             if isinstance(context.input_data, bytes):
                 measurement = shannon_entropy(context.input_data)
-            elif hasattr(context.input_data, 'tobytes'):
+            elif hasattr(context.input_data, "tobytes"):
                 measurement = shannon_entropy(context.input_data.tobytes())
             else:
                 # Serialize and measure
                 import json
+
                 data_bytes = json.dumps(context.input_data, sort_keys=True, default=str).encode()
                 measurement = shannon_entropy(data_bytes)
 
@@ -318,6 +321,7 @@ class CompressionGate(Gate):
             # Measure output entropy
             output_data = context.module_results
             import json
+
             data_bytes = json.dumps(output_data, sort_keys=True, default=str).encode()
             measurement = shannon_entropy(data_bytes)
 
@@ -729,18 +733,22 @@ def create_standard_gate_sequence(
 
     # Add module gates
     for i, (module_id, validate_fn) in enumerate(module_gates):
-        gates.append(ModuleGate(
-            gate_id=f"module_{i}_{module_id}",
-            module_id=module_id,
-            validate_fn=validate_fn,
-        ))
+        gates.append(
+            ModuleGate(
+                gate_id=f"module_{i}_{module_id}",
+                module_id=module_id,
+                validate_fn=validate_fn,
+            )
+        )
 
-    gates.extend([
-        CompressionGate(),
-        CoherenceGate(),
-        MerkleGate(),
-        SignatureGate(sign_fn=sign_fn),
-        PostValidationGate(audit_fn=audit_fn),
-    ])
+    gates.extend(
+        [
+            CompressionGate(),
+            CoherenceGate(),
+            MerkleGate(),
+            SignatureGate(sign_fn=sign_fn),
+            PostValidationGate(audit_fn=audit_fn),
+        ]
+    )
 
     return gates

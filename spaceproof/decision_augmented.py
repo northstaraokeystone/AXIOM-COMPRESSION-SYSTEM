@@ -107,9 +107,7 @@ def get_base_factor(augmentation_type: AugmentationType) -> float:
     return factors.get(augmentation_type, HUMAN_ONLY_FACTOR)
 
 
-def calculate_augmentation_factor(
-    augmentation_type: str, compute_mass_kg: float
-) -> float:
+def calculate_augmentation_factor(augmentation_type: str, compute_mass_kg: float) -> float:
     """Calculate effective augmentation factor.
 
     Factor scales with available compute mass.
@@ -182,16 +180,16 @@ def augmentation_energy_cost(augmentation_type: str, factor: float) -> float:
         # Split between AI and Neuralink
         ai_portion = (factor - HUMAN_ONLY_FACTOR) * 0.7
         neural_portion = (factor - HUMAN_ONLY_FACTOR) * 0.3
-        return (
-            ai_portion * AI_POWER_PER_FACTOR_POINT
-            + neural_portion * NEURALINK_POWER_PER_FACTOR_POINT
-        )
+        return ai_portion * AI_POWER_PER_FACTOR_POINT + neural_portion * NEURALINK_POWER_PER_FACTOR_POINT
 
     return 0.0
 
 
 def augmentation_mass_cost(augmentation_type: str, factor: float) -> float:
     """Calculate mass required for augmentation hardware.
+
+    This is the inverse of calculate_augmentation_factor.
+    Uses logarithmic scaling: full base factor achieved at 100kg.
 
     Args:
         augmentation_type: Type string
@@ -205,21 +203,23 @@ def augmentation_mass_cost(augmentation_type: str, factor: float) -> float:
     except ValueError:
         return 0.0
 
-    if aug_type == AugmentationType.HUMAN_ONLY:
+    if aug_type == AugmentationType.HUMAN_ONLY or factor <= HUMAN_ONLY_FACTOR:
         return 0.0
-    elif aug_type == AugmentationType.AI_ASSISTED:
-        return (factor - HUMAN_ONLY_FACTOR) * AI_MASS_PER_FACTOR_POINT
-    elif aug_type == AugmentationType.NEURALINK_ASSISTED:
-        return (factor - HUMAN_ONLY_FACTOR) * NEURALINK_MASS_PER_FACTOR_POINT
-    elif aug_type == AugmentationType.HYBRID:
-        ai_portion = (factor - HUMAN_ONLY_FACTOR) * 0.7
-        neural_portion = (factor - HUMAN_ONLY_FACTOR) * 0.3
-        return (
-            ai_portion * AI_MASS_PER_FACTOR_POINT
-            + neural_portion * NEURALINK_MASS_PER_FACTOR_POINT
-        )
 
-    return 0.0
+    # Get base factor for this type
+    base_factor = get_base_factor(aug_type)
+
+    # Inverse of logarithmic scaling from calculate_augmentation_factor
+    # Original: mass_factor = log2(1 + mass) / log2(101)
+    #           effective = 1.0 + (base - 1.0) * mass_factor
+    # Inverse:  mass_factor = (effective - 1.0) / (base - 1.0)
+    #           mass = 2^(mass_factor * log2(101)) - 1
+
+    mass_factor = (factor - HUMAN_ONLY_FACTOR) / (base_factor - HUMAN_ONLY_FACTOR)
+    mass_factor = max(0.0, min(1.0, mass_factor))  # Clamp to [0, 1]
+    mass_required = 2 ** (mass_factor * math.log2(101)) - 1
+
+    return mass_required
 
 
 def get_reliability(augmentation_type: str) -> float:

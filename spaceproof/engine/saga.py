@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 class SagaStatus(Enum):
     """Status of a saga execution."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -57,7 +58,7 @@ class StepResult:
     retries: int = 0
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class SagaStep(ABC, Generic[T]):
@@ -168,7 +169,7 @@ class FunctionStep(SagaStep[Any]):
         step_id: str,
         execute_fn: Callable[[Dict[str, Any]], Any],
         compensate_fn: Callable[[Dict[str, Any], Any], bool],
-        **kwargs
+        **kwargs,
     ):
         super().__init__(step_id, **kwargs)
         self.execute_fn = execute_fn
@@ -300,21 +301,25 @@ class Saga:
                     success = step.compensate(context, original_result.data)
                     duration = (time.time() - start) * 1000
 
-                    compensation_results.append(StepResult(
-                        step_id=f"compensate_{step.step_id}",
-                        status=SagaStatus.COMPENSATED if success else SagaStatus.COMPENSATION_FAILED,
-                        duration_ms=duration,
-                        data={"original_step": step.step_id},
-                    ))
+                    compensation_results.append(
+                        StepResult(
+                            step_id=f"compensate_{step.step_id}",
+                            status=SagaStatus.COMPENSATED if success else SagaStatus.COMPENSATION_FAILED,
+                            duration_ms=duration,
+                            data={"original_step": step.step_id},
+                        )
+                    )
 
                 except Exception as e:
                     duration = (time.time() - start) * 1000
-                    compensation_results.append(StepResult(
-                        step_id=f"compensate_{step.step_id}",
-                        status=SagaStatus.COMPENSATION_FAILED,
-                        duration_ms=duration,
-                        error=str(e),
-                    ))
+                    compensation_results.append(
+                        StepResult(
+                            step_id=f"compensate_{step.step_id}",
+                            status=SagaStatus.COMPENSATION_FAILED,
+                            duration_ms=duration,
+                            error=str(e),
+                        )
+                    )
 
         return compensation_results
 
@@ -344,10 +349,8 @@ class Saga:
                 "steps_completed": sum(1 for r in step_results if r.status == SagaStatus.COMPLETED),
                 "failed_step": failed_step,
                 "compensations_executed": len(compensation_results),
-                "compensations_succeeded": sum(
-                    1 for r in compensation_results if r.status == SagaStatus.COMPENSATED
-                ),
-            }
+                "compensations_succeeded": sum(1 for r in compensation_results if r.status == SagaStatus.COMPENSATED),
+            },
         )
 
 
@@ -381,12 +384,14 @@ class SagaBuilder:
         Returns:
             Self for chaining
         """
-        self.steps.append(FunctionStep(
-            step_id=step_id,
-            execute_fn=execute_fn,
-            compensate_fn=compensate_fn,
-            max_retries=max_retries,
-        ))
+        self.steps.append(
+            FunctionStep(
+                step_id=step_id,
+                execute_fn=execute_fn,
+                compensate_fn=compensate_fn,
+                max_retries=max_retries,
+            )
+        )
         return self
 
     def build(self) -> Saga:
@@ -427,6 +432,7 @@ def create_validation_saga(
                 result = cfg["validate_fn"](ctx.get("input_data"))
                 ctx[f"{cfg['module_id']}_result"] = result
                 return result
+
             return execute
 
         def make_compensate(cfg):
@@ -434,6 +440,7 @@ def create_validation_saga(
                 if cfg.get("compensate_fn"):
                     return cfg["compensate_fn"](ctx, result)
                 return True
+
             return compensate
 
         builder.add_step(
@@ -470,6 +477,7 @@ def create_entropy_pump_saga(saga_id: str) -> Saga:
             measurement = shannon_entropy(data)
         else:
             import json
+
             data_bytes = json.dumps(data, sort_keys=True, default=str).encode()
             measurement = shannon_entropy(data_bytes)
         ctx["entropy_before"] = measurement.normalized
@@ -481,9 +489,11 @@ def create_entropy_pump_saga(saga_id: str) -> Saga:
 
     def execute_compression(ctx):
         import zlib
+
         data = ctx.get("input_data", b"")
         if not isinstance(data, bytes):
             import json
+
             data = json.dumps(data, sort_keys=True, default=str).encode()
         compressed = zlib.compress(data, level=9)
         ctx["compressed_data"] = compressed
@@ -529,6 +539,7 @@ def create_entropy_pump_saga(saga_id: str) -> Saga:
 
     def generate_receipt(ctx):
         from spaceproof.core import emit_receipt
+
         receipt = emit_receipt(
             "entropy_pump_cycle",
             {
@@ -539,7 +550,7 @@ def create_entropy_pump_saga(saga_id: str) -> Saga:
                 "compression_ratio": ctx.get("compression_ratio"),
                 "coherence": ctx.get("coherence"),
                 "is_alive": ctx.get("is_alive"),
-            }
+            },
         )
         ctx["receipt"] = receipt
         return receipt

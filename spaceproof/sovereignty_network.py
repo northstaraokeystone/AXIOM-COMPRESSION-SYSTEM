@@ -309,14 +309,16 @@ def network_sovereignty_sensitivity(
             external = earth_input_rate(network, bw, delay)
             sovereign = internal > external
 
-            results.append({
-                "bandwidth_mbps": bw,
-                "delay_s": delay,
-                "internal_rate": internal,
-                "external_rate": external,
-                "sovereign_ratio": internal / external if external > 0 else float("inf"),
-                "sovereign": sovereign,
-            })
+            results.append(
+                {
+                    "bandwidth_mbps": bw,
+                    "delay_s": delay,
+                    "internal_rate": internal,
+                    "external_rate": external,
+                    "sovereign_ratio": internal / external if external > 0 else float("inf"),
+                    "sovereign": sovereign,
+                }
+            )
 
     return results
 

@@ -69,9 +69,7 @@ class FleetConfig:
 
     n_starships: int = STARSHIP_FLIGHTS_PER_YEAR
     payload_kg: float = STARSHIP_PAYLOAD_KG
-    destinations: List[str] = field(
-        default_factory=lambda: ["mars_surface", "mars_orbit"]
-    )
+    destinations: List[str] = field(default_factory=lambda: ["mars_surface", "mars_orbit"])
     launch_windows_per_year: int = 12
     reliability: float = 0.98
 
@@ -152,9 +150,7 @@ def calculate_entropy_delivered(payload_kg: float, destination: str) -> float:
     return max(0.0, entropy)
 
 
-def generate_launch_windows(
-    year: int, n_launches: int, seed: int = 42
-) -> List[Dict]:
+def generate_launch_windows(year: int, n_launches: int, seed: int = 42) -> List[Dict]:
     """Generate optimal launch windows for n Starships.
 
     Respects Mars transfer windows (26-month synodic period).
@@ -174,10 +170,11 @@ def generate_launch_windows(
     launches_per_window = n_launches // 12 + 1
 
     for month in range(12):
+        if len(windows) >= n_launches:
+            break
+
         # Not all months have optimal windows
-        window_quality = 0.5 + 0.5 * math.sin(
-            2 * math.pi * (month - 3) / MARS_SYNODIC_PERIOD_MONTHS
-        )
+        window_quality = 0.5 + 0.5 * math.sin(2 * math.pi * (month - 3) / MARS_SYNODIC_PERIOD_MONTHS)
 
         n_this_window = min(
             int(launches_per_window * window_quality * rng.uniform(0.8, 1.2)),
@@ -188,18 +185,31 @@ def generate_launch_windows(
             if len(windows) >= n_launches:
                 break
 
-            windows.append({
+            windows.append(
+                {
+                    "window_id": f"W{year}-{month:02d}",
+                    "timestamp": f"{year}-{month + 1:02d}-{day + 1:02d}T{rng.integers(0, 24):02d}:00:00Z",
+                    "window_quality": window_quality,
+                }
+            )
+
+    # Fill remaining launches if needed (fallback for high-demand scenarios)
+    while len(windows) < n_launches:
+        month = len(windows) % 12
+        day = (len(windows) // 12) % 30 + 1
+        window_quality = 0.5 + 0.5 * math.sin(2 * math.pi * (month - 3) / MARS_SYNODIC_PERIOD_MONTHS)
+        windows.append(
+            {
                 "window_id": f"W{year}-{month:02d}",
-                "timestamp": f"{year}-{month + 1:02d}-{day + 1:02d}T{rng.integers(0, 24):02d}:00:00Z",
+                "timestamp": f"{year}-{month + 1:02d}-{day:02d}T{rng.integers(0, 24):02d}:00:00Z",
                 "window_quality": window_quality,
-            })
+            }
+        )
 
     return windows[:n_launches]
 
 
-def simulate_fleet(
-    config: FleetConfig, duration_years: int, seed: int = 42
-) -> List[FleetState]:
+def simulate_fleet(config: FleetConfig, duration_years: int, seed: int = 42) -> List[FleetState]:
     """Run full fleet simulation.
 
     Args:
@@ -222,9 +232,7 @@ def simulate_fleet(
         year_entropy = 0.0
 
         # Generate launch windows for this year
-        windows = generate_launch_windows(
-            year, config.n_starships, seed + year
-        )
+        windows = generate_launch_windows(year, config.n_starships, seed + year)
 
         for i, window in enumerate(windows):
             # Determine success based on reliability
@@ -311,9 +319,7 @@ def simulate_fleet(
     return states
 
 
-def fleet_to_colony_entropy(
-    fleet_state: FleetState, colony_ids: List[str]
-) -> Dict[str, float]:
+def fleet_to_colony_entropy(fleet_state: FleetState, colony_ids: List[str]) -> Dict[str, float]:
     """Map Starship deliveries to colony entropy injection.
 
     Args:
@@ -327,10 +333,7 @@ def fleet_to_colony_entropy(
         return {}
 
     # Filter to Mars surface deliveries
-    mars_launches = [
-        l for l in fleet_state.launches
-        if l.destination == "mars_surface" and l.success
-    ]
+    mars_launches = [l for l in fleet_state.launches if l.destination == "mars_surface" and l.success]
 
     total_entropy = sum(l.entropy_delivered for l in mars_launches)
 
@@ -354,9 +357,7 @@ def fleet_to_colony_entropy(
     return distribution
 
 
-def calculate_fleet_bandwidth(
-    fleet_state: FleetState, bits_per_joule: float = 1e-6
-) -> float:
+def calculate_fleet_bandwidth(fleet_state: FleetState, bits_per_joule: float = 1e-6) -> float:
     """Calculate effective information bandwidth from fleet entropy.
 
     Converting energy to information capacity via Landauer's principle.
@@ -369,9 +370,7 @@ def calculate_fleet_bandwidth(
         Effective bandwidth in bits/second (annualized)
     """
     # Total entropy delivered this year
-    year_entropy = sum(
-        l.entropy_delivered for l in fleet_state.launches if l.success
-    )
+    year_entropy = sum(l.entropy_delivered for l in fleet_state.launches if l.success)
 
     # Convert to bits and annualize (bits per second)
     seconds_per_year = 365.25 * 24 * 3600

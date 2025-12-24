@@ -59,9 +59,7 @@ def calculate_o2_balance(
     consumption_kg_day = crew * HUMAN_O2_KG_PER_DAY
 
     # Production: MOXIE + ECLSS recycling
-    moxie_production_kg_day = (
-        moxie_units * MOXIE_O2_G_PER_HOUR * 24 / 1000
-    )  # g/hr -> kg/day
+    moxie_production_kg_day = moxie_units * MOXIE_O2_G_PER_HOUR * 24 / 1000  # g/hr -> kg/day
 
     # ECLSS recycling recovers a fraction of exhaled CO2 back to O2
     # CO2 -> O2 via Sabatier + electrolysis chain
@@ -87,9 +85,7 @@ def calculate_o2_balance(
         "consumption_kg_day": consumption_kg_day,
         "net_balance_kg_day": net_balance_kg_day,
         "reserve_days": reserve_days,
-        "closure_ratio": total_production_kg_day / consumption_kg_day
-        if consumption_kg_day > 0
-        else 0.0,
+        "closure_ratio": total_production_kg_day / consumption_kg_day if consumption_kg_day > 0 else 0.0,
     }
 
 
@@ -132,9 +128,7 @@ def calculate_h2o_balance(
         "consumption_kg_day": consumption_kg_day,
         "net_balance_kg_day": net_balance_kg_day,
         "reserve_days": reserve_days,
-        "closure_ratio": total_production_kg_day / consumption_kg_day
-        if consumption_kg_day > 0
-        else 0.0,
+        "closure_ratio": total_production_kg_day / consumption_kg_day if consumption_kg_day > 0 else 0.0,
     }
 
 
@@ -169,12 +163,7 @@ def calculate_thermal_entropy(
 
     # Entropy export via radiation: Q_rad = epsilon * sigma * A * (T_hab^4 - T_ambient^4)
     epsilon = 0.9  # Radiator emissivity
-    q_rad = (
-        epsilon
-        * STEFAN_BOLTZMANN_W_M2_K4
-        * radiator_area_m2
-        * (t_hab_k**4 - MARS_AMBIENT_TEMP_K**4)
-    )
+    q_rad = epsilon * STEFAN_BOLTZMANN_W_M2_K4 * radiator_area_m2 * (t_hab_k**4 - MARS_AMBIENT_TEMP_K**4)
 
     # Entropy export rate
     entropy_export_w_k = q_rad / t_hab_k if t_hab_k > 0 else 0.0
@@ -256,9 +245,7 @@ def calculate_life_support_entropy_rate(crew: int, eclss_config: dict) -> float:
     # Higher closure = more stable
     # Higher reliability = more stable
 
-    reliability = calculate_eclss_reliability(
-        mtbf_hours=mtbf, redundancy_factor=redundancy, mission_duration_days=500
-    )
+    reliability = calculate_eclss_reliability(mtbf_hours=mtbf, redundancy_factor=redundancy, mission_duration_days=500)
 
     # Combined stability score (geometric mean of factors)
     # All factors should be 0-1 where 1 = perfectly stable
@@ -306,14 +293,10 @@ def emit_life_support_balance_receipt(
             "crew_count": crew,
             "o2_closure_ratio": o2_balance["closure_ratio"],
             "o2_net_kg_day": o2_balance["net_balance_kg_day"],
-            "o2_reserve_days": o2_balance["reserve_days"]
-            if o2_balance["reserve_days"] != float("inf")
-            else 9999,
+            "o2_reserve_days": o2_balance["reserve_days"] if o2_balance["reserve_days"] != float("inf") else 9999,
             "h2o_closure_ratio": h2o_balance["closure_ratio"],
             "h2o_net_kg_day": h2o_balance["net_balance_kg_day"],
-            "h2o_reserve_days": h2o_balance["reserve_days"]
-            if h2o_balance["reserve_days"] != float("inf")
-            else 9999,
+            "h2o_reserve_days": h2o_balance["reserve_days"] if h2o_balance["reserve_days"] != float("inf") else 9999,
             "thermal_stable": thermal["stable"],
             "net_entropy_w_k": thermal["net_entropy_w_k"],
             "eclss_reliability": reliability,

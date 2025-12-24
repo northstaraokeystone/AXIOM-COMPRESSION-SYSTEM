@@ -198,17 +198,18 @@ class GodelScenario:
         decidable = sum(1 for r in recent if r["is_decidable"])
         undecidable = len(recent) - decidable
 
-        emit_receipt("godel_checkpoint", {
-            "tenant_id": TENANT_ID,
-            "step": step,
-            "decidable_count": decidable,
-            "undecidable_count": undecidable,
-            "completeness_ratio": decidable / len(recent) if recent else 0,
-            "external_attestations_needed": sum(
-                1 for r in recent if r["needs_external_attestation"]
-            ),
-            "local_consistency": all(r["local_consistency"] for r in recent),
-        })
+        emit_receipt(
+            "godel_checkpoint",
+            {
+                "tenant_id": TENANT_ID,
+                "step": step,
+                "decidable_count": decidable,
+                "undecidable_count": undecidable,
+                "completeness_ratio": decidable / len(recent) if recent else 0,
+                "external_attestations_needed": sum(1 for r in recent if r["needs_external_attestation"]),
+                "local_consistency": all(r["local_consistency"] for r in recent),
+            },
+        )
 
     def evaluate(self) -> GodelResult:
         """Evaluate Godel results.
@@ -242,11 +243,9 @@ class GodelScenario:
 
         # Check we didn't falsely claim to decide undecidable statements
         false_decisions = sum(
-            1 for step in self.undecidable_statements
-            if any(
-                r["step"] == step and r["is_decidable"]
-                for r in self.results
-            )
+            1
+            for step in self.undecidable_statements
+            if any(r["step"] == step and r["is_decidable"] for r in self.results)
         )
 
         system_consistent = all_consistent and false_decisions == 0

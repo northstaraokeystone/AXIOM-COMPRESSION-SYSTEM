@@ -289,9 +289,7 @@ def validate_against_research(
         expected = 95.0 * (crew / CREW_MIN_GEORGE_MASON)
     elif crew <= CREW_MIN_SALOTTI:
         # Linear interpolation from 95% to 99.9%
-        progress = (crew - CREW_MIN_GEORGE_MASON) / (
-            CREW_MIN_SALOTTI - CREW_MIN_GEORGE_MASON
-        )
+        progress = (crew - CREW_MIN_GEORGE_MASON) / (CREW_MIN_SALOTTI - CREW_MIN_GEORGE_MASON)
         expected = 95.0 + progress * 4.9
     else:
         # Above 110 crew -> approaching 100%
@@ -358,9 +356,7 @@ def calculate_comprehensive_sovereignty(
         "failure_tree": failure_tree,
         "research_validated": validated,
         "is_sovereign": decision_metrics.get("sovereign", False),
-        "conjunction_survival": decision_metrics.get(
-            "conjunction_survival_probability", 0.0
-        ),
+        "conjunction_survival": decision_metrics.get("conjunction_survival_probability", 0.0),
     }
 
 

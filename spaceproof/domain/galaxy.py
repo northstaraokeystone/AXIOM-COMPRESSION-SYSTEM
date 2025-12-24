@@ -245,9 +245,7 @@ def generate(
     return result
 
 
-def classify_regime(
-    galaxy: Dict, v_pred: Optional[np.ndarray] = None
-) -> Tuple[str, float]:
+def classify_regime(galaxy: Dict, v_pred: Optional[np.ndarray] = None) -> Tuple[str, float]:
     """Classify the physics regime of a galaxy.
 
     Uses rotation curve shape to infer underlying physics.

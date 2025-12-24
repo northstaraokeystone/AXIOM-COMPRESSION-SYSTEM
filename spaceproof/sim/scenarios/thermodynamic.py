@@ -68,9 +68,7 @@ class ThermodynamicScenario:
         self.total_entropy_in = 0.0
         self.total_entropy_out = 0.0
         self.energy_consumed = 0.0
-        self.subsystem_entropies: Dict[int, List[float]] = {
-            i: [] for i in range(self.config.isolated_subsystems)
-        }
+        self.subsystem_entropies: Dict[int, List[float]] = {i: [] for i in range(self.config.isolated_subsystems)}
 
     def generate_input(self, step: int) -> np.ndarray:
         """Generate thermodynamically consistent input.
@@ -151,19 +149,22 @@ class ThermodynamicScenario:
             if len(entropies) >= 2:
                 # In isolated system, entropy should not decrease
                 for i in range(1, len(entropies)):
-                    if entropies[i] < entropies[i-1] - 0.01:  # Small tolerance
+                    if entropies[i] < entropies[i - 1] - 0.01:  # Small tolerance
                         second_law_violations += 1
 
-        emit_receipt("thermodynamic_checkpoint", {
-            "tenant_id": TENANT_ID,
-            "step": step,
-            "total_entropy_in": self.total_entropy_in,
-            "total_entropy_out": self.total_entropy_out,
-            "entropy_balance": self.total_entropy_in - self.total_entropy_out,
-            "energy_consumed": self.energy_consumed,
-            "energy_remaining": self.config.energy_budget - self.energy_consumed,
-            "second_law_violations": second_law_violations,
-        })
+        emit_receipt(
+            "thermodynamic_checkpoint",
+            {
+                "tenant_id": TENANT_ID,
+                "step": step,
+                "total_entropy_in": self.total_entropy_in,
+                "total_entropy_out": self.total_entropy_out,
+                "entropy_balance": self.total_entropy_in - self.total_entropy_out,
+                "energy_consumed": self.energy_consumed,
+                "energy_remaining": self.config.energy_budget - self.energy_consumed,
+                "second_law_violations": second_law_violations,
+            },
+        )
 
     def evaluate(self) -> ThermodynamicResult:
         """Evaluate thermodynamic results.
@@ -197,14 +198,11 @@ class ThermodynamicScenario:
             if len(entropies) >= 2:
                 for i in range(1, len(entropies)):
                     total_transitions += 1
-                    if entropies[i] < entropies[i-1] - 0.01:
+                    if entropies[i] < entropies[i - 1] - 0.01:
                         second_law_violations += 1
 
         # Allow small violation rate
-        second_law_satisfied = (
-            total_transitions == 0 or
-            second_law_violations / total_transitions < 0.05
-        )
+        second_law_satisfied = total_transitions == 0 or second_law_violations / total_transitions < 0.05
 
         # Fitness score
         total_reduction = sum(max(0, r["entropy_delta"]) for r in self.results)

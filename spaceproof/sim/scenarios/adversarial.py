@@ -65,9 +65,7 @@ class AdversarialConfig:
     """
 
     attacker_budget: float = DEFAULT_ATTACKER_BUDGET
-    attack_types: List[str] = field(
-        default_factory=lambda: ["corruption", "timing", "sybil", "byzantine"]
-    )
+    attack_types: List[str] = field(default_factory=lambda: ["corruption", "timing", "sybil", "byzantine"])
     defense_strategy: str = "hybrid"
     n_receipts: int = 1000
     seed: int = 42
@@ -242,9 +240,7 @@ class AdversarialScenario:
         """Build Merkle tree from receipts."""
         self.merkle_root = merkle(self.receipts)
 
-    def _run_attack(
-        self, attack_type: str, budget: float
-    ) -> tuple[AttackResult, float]:
+    def _run_attack(self, attack_type: str, budget: float) -> tuple[AttackResult, float]:
         """Run a specific attack type.
 
         Args:
@@ -265,19 +261,20 @@ class AdversarialScenario:
         elif attack_type == "byzantine":
             return self._run_byzantine_attack(attack_id, budget)
         else:
-            return AttackResult(
-                attack_type=attack_type,
-                attack_id=attack_id,
-                cost=0,
-                detected=True,
-                blocked=True,
-                receipts_affected=0,
-                defense_used="unknown_attack_type",
-            ), 0
+            return (
+                AttackResult(
+                    attack_type=attack_type,
+                    attack_id=attack_id,
+                    cost=0,
+                    detected=True,
+                    blocked=True,
+                    receipts_affected=0,
+                    defense_used="unknown_attack_type",
+                ),
+                0,
+            )
 
-    def _run_corruption_attack(
-        self, attack_id: str, budget: float
-    ) -> tuple[AttackResult, float]:
+    def _run_corruption_attack(self, attack_id: str, budget: float) -> tuple[AttackResult, float]:
         """Attempt to corrupt receipt data.
 
         Defense: Merkle proof verification.
@@ -290,9 +287,7 @@ class AdversarialScenario:
         cost = n_corrupt * CORRUPTION_COST_PER_RECEIPT
 
         # Try to corrupt receipts
-        corrupted_indices = self.rng.choice(
-            len(self.receipts), size=n_corrupt, replace=False
-        )
+        corrupted_indices = self.rng.choice(len(self.receipts), size=n_corrupt, replace=False)
 
         # Corruption is detected via dual_hash mismatch
         detected = True
@@ -308,9 +303,7 @@ class AdversarialScenario:
             if new_hash != original_hash:
                 # Detected! Restore original
                 self.receipts[idx]["payload"]["value"] = float(self.rng.random())
-                self.receipts[idx]["payload_hash"] = dual_hash(
-                    str(self.receipts[idx]["payload"])
-                )
+                self.receipts[idx]["payload_hash"] = dual_hash(str(self.receipts[idx]["payload"]))
 
         emit_receipt(
             "adversarial_receipt",
@@ -324,19 +317,20 @@ class AdversarialScenario:
             },
         )
 
-        return AttackResult(
-            attack_type="corruption",
-            attack_id=attack_id,
-            cost=cost,
-            detected=detected,
-            blocked=blocked,
-            receipts_affected=n_corrupt,
-            defense_used="merkle_proof",
-        ), cost
+        return (
+            AttackResult(
+                attack_type="corruption",
+                attack_id=attack_id,
+                cost=cost,
+                detected=detected,
+                blocked=blocked,
+                receipts_affected=n_corrupt,
+                defense_used="merkle_proof",
+            ),
+            cost,
+        )
 
-    def _run_timing_attack(
-        self, attack_id: str, budget: float
-    ) -> tuple[AttackResult, float]:
+    def _run_timing_attack(self, attack_id: str, budget: float) -> tuple[AttackResult, float]:
         """Attempt timing attack (claim decision was Earth-controlled).
 
         Defense: timestamp + light-delay proof.
@@ -378,19 +372,20 @@ class AdversarialScenario:
             },
         )
 
-        return AttackResult(
-            attack_type="timing",
-            attack_id=attack_id,
-            cost=cost,
-            detected=detected,
-            blocked=blocked,
-            receipts_affected=1,
-            defense_used="timing_proof",
-        ), cost
+        return (
+            AttackResult(
+                attack_type="timing",
+                attack_id=attack_id,
+                cost=cost,
+                detected=detected,
+                blocked=blocked,
+                receipts_affected=1,
+                defense_used="timing_proof",
+            ),
+            cost,
+        )
 
-    def _run_sybil_attack(
-        self, attack_id: str, budget: float
-    ) -> tuple[AttackResult, float]:
+    def _run_sybil_attack(self, attack_id: str, budget: float) -> tuple[AttackResult, float]:
         """Attempt Sybil attack (inject fake colonies).
 
         Defense: dual-hash chain prevents fake receipts.
@@ -430,19 +425,20 @@ class AdversarialScenario:
             },
         )
 
-        return AttackResult(
-            attack_type="sybil",
-            attack_id=attack_id,
-            cost=cost,
-            detected=detected,
-            blocked=blocked,
-            receipts_affected=0,
-            defense_used="dual_hash_chain",
-        ), cost
+        return (
+            AttackResult(
+                attack_type="sybil",
+                attack_id=attack_id,
+                cost=cost,
+                detected=detected,
+                blocked=blocked,
+                receipts_affected=0,
+                defense_used="dual_hash_chain",
+            ),
+            cost,
+        )
 
-    def _run_byzantine_attack(
-        self, attack_id: str, budget: float
-    ) -> tuple[AttackResult, float]:
+    def _run_byzantine_attack(self, attack_id: str, budget: float) -> tuple[AttackResult, float]:
         """Attempt Byzantine attack (conflicting receipts in partition).
 
         Defense: majority consensus from honest nodes.
@@ -473,15 +469,18 @@ class AdversarialScenario:
             },
         )
 
-        return AttackResult(
-            attack_type="byzantine",
-            attack_id=attack_id,
-            cost=cost,
-            detected=detected,
-            blocked=blocked,
-            receipts_affected=n_byzantine,
-            defense_used="consensus",
-        ), cost
+        return (
+            AttackResult(
+                attack_type="byzantine",
+                attack_id=attack_id,
+                cost=cost,
+                detected=detected,
+                blocked=blocked,
+                receipts_affected=n_byzantine,
+                defense_used="consensus",
+            ),
+            cost,
+        )
 
     def _verify_all_receipts(self) -> int:
         """Verify all receipts via Merkle path.

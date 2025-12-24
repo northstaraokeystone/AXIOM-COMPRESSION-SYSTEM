@@ -170,9 +170,7 @@ class NetworkScenario:
 
         if partition_recovery_avg > 48:
             passed = False
-            failure_reasons.append(
-                f"Partition recovery {partition_recovery_avg:.1f}h > 48h"
-            )
+            failure_reasons.append(f"Partition recovery {partition_recovery_avg:.1f}h > 48h")
 
         if not cascade_contained:
             passed = False
@@ -224,11 +222,7 @@ class NetworkScenario:
         if not self.partition_events:
             return 0.0
 
-        recovery_times = [
-            e.get("recovery_hours", 0)
-            for e in self.partition_events
-            if "recovery_hours" in e
-        ]
+        recovery_times = [e.get("recovery_hours", 0) for e in self.partition_events if "recovery_hours" in e]
         return np.mean(recovery_times) if recovery_times else 0.0
 
     def _run_partition_tests(self) -> None:
@@ -262,11 +256,13 @@ class NetworkScenario:
                             partitions[1],
                         )
 
-                    self.partition_events.append({
-                        "start_day": partition_start,
-                        "n_partitions": len(partitions),
-                        "recovery_hours": recovery_time,
-                    })
+                    self.partition_events.append(
+                        {
+                            "start_day": partition_start,
+                            "n_partitions": len(partitions),
+                            "recovery_hours": recovery_time,
+                        }
+                    )
 
                     emit_receipt(
                         "partition_recovery_receipt",
@@ -304,11 +300,13 @@ class NetworkScenario:
 
         contained = cascade_failures <= n_to_fail  # No more than 1:1 cascade
 
-        self.cascade_events.append({
-            "initial_failures": n_to_fail,
-            "cascade_failures": max(0, cascade_failures),
-            "contained": contained,
-        })
+        self.cascade_events.append(
+            {
+                "initial_failures": n_to_fail,
+                "cascade_failures": max(0, cascade_failures),
+                "contained": contained,
+            }
+        )
 
         # Re-enable colonies for rest of simulation
         for c in self.network.colonies:

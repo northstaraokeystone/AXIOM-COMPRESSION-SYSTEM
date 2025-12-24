@@ -131,12 +131,14 @@ class D2_BoundsCheck(BaseDimension):
                 value = data[field]
                 if isinstance(value, (int, float)):
                     if value < min_val or value > max_val:
-                        violations.append({
-                            "field": field,
-                            "value": value,
-                            "min": min_val,
-                            "max": max_val,
-                        })
+                        violations.append(
+                            {
+                                "field": field,
+                                "value": value,
+                                "min": min_val,
+                                "max": max_val,
+                            }
+                        )
 
         if violations:
             return DimensionResult(
@@ -180,6 +182,7 @@ class D3_EntropyMeasurement(BaseDimension):
         if not isinstance(data, bytes):
             try:
                 import json
+
                 data = json.dumps(data, sort_keys=True, default=str).encode()
             except Exception as e:
                 return DimensionResult(
@@ -191,9 +194,7 @@ class D3_EntropyMeasurement(BaseDimension):
 
         measurement = shannon_entropy(data)
 
-        in_range = (
-            self.expected_range[0] <= measurement.normalized <= self.expected_range[1]
-        )
+        in_range = self.expected_range[0] <= measurement.normalized <= self.expected_range[1]
 
         return DimensionResult(
             dimension=self.dimension_id,
@@ -250,11 +251,13 @@ class D4_TypeValidation(BaseDimension):
             if field in data:
                 actual_type = type(data[field])
                 if not isinstance(data[field], expected_type):
-                    type_errors.append({
-                        "field": field,
-                        "expected": expected_type.__name__,
-                        "actual": actual_type.__name__,
-                    })
+                    type_errors.append(
+                        {
+                            "field": field,
+                            "expected": expected_type.__name__,
+                            "actual": actual_type.__name__,
+                        }
+                    )
 
         if type_errors:
             return DimensionResult(
@@ -280,9 +283,7 @@ class D5_FormatValidation(BaseDimension):
 
     # Format patterns
     HASH_PATTERN = re.compile(r"^[a-f0-9]{64}:[a-f0-9]{64}$")
-    ISO_DATETIME_PATTERN = re.compile(
-        r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$"
-    )
+    ISO_DATETIME_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
 
     def validate(self, data: Dict) -> DimensionResult:
         """Validate field formats.
@@ -298,18 +299,22 @@ class D5_FormatValidation(BaseDimension):
         # Check payload_hash format
         if "payload_hash" in data:
             if not self.HASH_PATTERN.match(str(data["payload_hash"])):
-                format_errors.append({
-                    "field": "payload_hash",
-                    "error": "Invalid dual-hash format (expected SHA256:BLAKE3)",
-                })
+                format_errors.append(
+                    {
+                        "field": "payload_hash",
+                        "error": "Invalid dual-hash format (expected SHA256:BLAKE3)",
+                    }
+                )
 
         # Check timestamp format
         if "ts" in data:
             if not self.ISO_DATETIME_PATTERN.match(str(data["ts"])):
-                format_errors.append({
-                    "field": "ts",
-                    "error": "Invalid ISO8601 datetime format",
-                })
+                format_errors.append(
+                    {
+                        "field": "ts",
+                        "error": "Invalid ISO8601 datetime format",
+                    }
+                )
 
         if format_errors:
             return DimensionResult(

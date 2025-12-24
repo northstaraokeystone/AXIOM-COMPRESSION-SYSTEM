@@ -104,10 +104,7 @@ def shannon_entropy(data: Union[bytes, np.ndarray, List[float]]) -> EntropyMeasu
     if isinstance(data, bytes):
         # Byte-level entropy
         if len(data) == 0:
-            return EntropyMeasurement(
-                value=0.0, bits=0.0, normalized=0.0,
-                source_size=0, method="shannon"
-            )
+            return EntropyMeasurement(value=0.0, bits=0.0, normalized=0.0, source_size=0, method="shannon")
 
         # Count byte frequencies
         counts = np.zeros(256, dtype=np.float64)
@@ -124,10 +121,7 @@ def shannon_entropy(data: Union[bytes, np.ndarray, List[float]]) -> EntropyMeasu
 
     elif isinstance(data, np.ndarray):
         if len(data) == 0:
-            return EntropyMeasurement(
-                value=0.0, bits=0.0, normalized=0.0,
-                source_size=0, method="shannon"
-            )
+            return EntropyMeasurement(value=0.0, bits=0.0, normalized=0.0, source_size=0, method="shannon")
 
         # Histogram-based entropy for continuous data
         hist, _ = np.histogram(data, bins=min(256, len(data) // 2 + 1), density=True)
@@ -154,7 +148,7 @@ def shannon_entropy(data: Union[bytes, np.ndarray, List[float]]) -> EntropyMeasu
         bits=entropy * source_size / 8 if isinstance(data, bytes) else entropy,
         normalized=min(1.0, normalized),
         source_size=source_size,
-        method="shannon"
+        method="shannon",
     )
 
 
@@ -172,10 +166,7 @@ def kolmogorov_entropy(data: bytes) -> EntropyMeasurement:
         EntropyMeasurement with approximated Kolmogorov complexity
     """
     if len(data) == 0:
-        return EntropyMeasurement(
-            value=0.0, bits=0.0, normalized=0.0,
-            source_size=0, method="kolmogorov"
-        )
+        return EntropyMeasurement(value=0.0, bits=0.0, normalized=0.0, source_size=0, method="kolmogorov")
 
     # Compress with maximum effort
     compressed = zlib.compress(data, level=9)
@@ -195,7 +186,7 @@ def kolmogorov_entropy(data: bytes) -> EntropyMeasurement:
         bits=entropy_approx * len(data) / 8,
         normalized=ratio,
         source_size=len(data),
-        method="kolmogorov"
+        method="kolmogorov",
     )
 
 
@@ -228,18 +219,11 @@ def entropy_delta(before: Union[bytes, np.ndarray], after: Union[bytes, np.ndarr
         status = "critical"
 
     return EntropyDelta(
-        before=h_before.normalized,
-        after=h_after.normalized,
-        delta=delta,
-        health_status=status,
-        is_pumping=delta > 0
+        before=h_before.normalized, after=h_after.normalized, delta=delta, health_status=status, is_pumping=delta > 0
     )
 
 
-def coherence_score(
-    pattern: np.ndarray,
-    reference: Optional[np.ndarray] = None
-) -> CoherenceResult:
+def coherence_score(pattern: np.ndarray, reference: Optional[np.ndarray] = None) -> CoherenceResult:
     """Compute coherence score for a pattern.
 
     Coherence measures how self-similar and stable a pattern is.
@@ -253,12 +237,7 @@ def coherence_score(
         CoherenceResult with score and alive status
     """
     if len(pattern) < 2:
-        return CoherenceResult(
-            score=0.0,
-            is_alive=False,
-            pattern_strength=0.0,
-            autocatalytic=False
-        )
+        return CoherenceResult(score=0.0, is_alive=False, pattern_strength=0.0, autocatalytic=False)
 
     # Compute autocorrelation as coherence proxy
     pattern_centered = pattern - np.mean(pattern)
@@ -266,35 +245,30 @@ def coherence_score(
 
     if variance < 1e-10:
         # Constant pattern - fully coherent
-        return CoherenceResult(
-            score=1.0,
-            is_alive=True,
-            pattern_strength=1.0,
-            autocatalytic=True
-        )
+        return CoherenceResult(score=1.0, is_alive=True, pattern_strength=1.0, autocatalytic=True)
 
     # Normalized autocorrelation at lag 1
     n = len(pattern_centered)
-    autocorr = np.correlate(pattern_centered, pattern_centered, mode='full')
-    autocorr = autocorr[n-1:] / (variance * n)
+    autocorr = np.correlate(pattern_centered, pattern_centered, mode="full")
+    autocorr = autocorr[n - 1 :] / (variance * n)
 
     # Use first few lags to estimate coherence
-    coherence = np.mean(np.abs(autocorr[1:min(5, len(autocorr))]))
+    coherence = np.mean(np.abs(autocorr[1 : min(5, len(autocorr))]))
 
     # Pattern strength from spectral concentration
     if len(pattern) >= 8:
         fft = np.fft.fft(pattern_centered)
         power = np.abs(fft) ** 2
         # Concentration in low frequencies = structured pattern
-        pattern_strength = np.sum(power[:len(power)//4]) / np.sum(power)
+        pattern_strength = np.sum(power[: len(power) // 4]) / np.sum(power)
     else:
         pattern_strength = coherence
 
     # If reference provided, compute cross-coherence
     if reference is not None and len(reference) == len(pattern):
         ref_centered = reference - np.mean(reference)
-        cross_corr = np.correlate(pattern_centered, ref_centered, mode='full')
-        cross_corr = cross_corr[n-1:] / (np.std(pattern) * np.std(reference) * n + 1e-10)
+        cross_corr = np.correlate(pattern_centered, ref_centered, mode="full")
+        cross_corr = cross_corr[n - 1 :] / (np.std(pattern) * np.std(reference) * n + 1e-10)
         coherence = (coherence + np.abs(cross_corr[0])) / 2
 
     score = min(1.0, max(0.0, coherence))
@@ -304,7 +278,7 @@ def coherence_score(
         score=score,
         is_alive=is_alive,
         pattern_strength=pattern_strength,
-        autocatalytic=is_alive and pattern_strength >= 0.5
+        autocatalytic=is_alive and pattern_strength >= 0.5,
     )
 
 
@@ -321,7 +295,7 @@ def compression_ratio(original: bytes, compressed: bytes) -> float:
         Compression ratio (>1 means compression achieved)
     """
     if len(compressed) == 0:
-        return float('inf')
+        return float("inf")
     return len(original) / len(compressed)
 
 
@@ -395,7 +369,7 @@ def emit_entropy_receipt(
     source_id: str,
     measurement: EntropyMeasurement,
     delta: Optional[EntropyDelta] = None,
-    coherence: Optional[CoherenceResult] = None
+    coherence: Optional[CoherenceResult] = None,
 ) -> dict:
     """Emit receipt for entropy measurement.
 
@@ -439,7 +413,7 @@ class ThompsonState:
     """State for Thompson sampling."""
 
     alpha: float  # Successes + 1
-    beta: float   # Failures + 1
+    beta: float  # Failures + 1
 
     @classmethod
     def new(cls) -> "ThompsonState":

@@ -77,11 +77,13 @@ class D11_ComplexPatterns(BaseDimension):
             for j in range(i + 1, n_vars):
                 corr = correlations[i, j]
                 if abs(corr) >= self.correlation_threshold:
-                    significant_pairs.append({
-                        "var1": names[i],
-                        "var2": names[j],
-                        "correlation": float(corr),
-                    })
+                    significant_pairs.append(
+                        {
+                            "var1": names[i],
+                            "var2": names[j],
+                            "correlation": float(corr),
+                        }
+                    )
 
         complex_pattern_found = len(significant_pairs) > 0
 
@@ -136,11 +138,13 @@ class D12_MultiStepVerification(BaseDimension):
             try:
                 result = step(current_data)
                 passed = result.get("passed", True) if isinstance(result, dict) else bool(result)
-                step_results.append({
-                    "step": i,
-                    "passed": passed,
-                    "result": result if isinstance(result, dict) else {"value": result},
-                })
+                step_results.append(
+                    {
+                        "step": i,
+                        "passed": passed,
+                        "result": result if isinstance(result, dict) else {"value": result},
+                    }
+                )
                 if not passed:
                     all_passed = False
                     break  # Stop on first failure
@@ -148,11 +152,13 @@ class D12_MultiStepVerification(BaseDimension):
                 if isinstance(result, dict) and "output" in result:
                     current_data = result["output"]
             except Exception as e:
-                step_results.append({
-                    "step": i,
-                    "passed": False,
-                    "error": str(e),
-                })
+                step_results.append(
+                    {
+                        "step": i,
+                        "passed": False,
+                        "error": str(e),
+                    }
+                )
                 all_passed = False
                 break
 

@@ -395,8 +395,6 @@ def emit_monte_carlo_result_receipt(
             "overall_survival_rate": results["overall_survival_rate"],
             "confidence_interval_95_lower": results["confidence_interval_95"][0],
             "confidence_interval_95_upper": results["confidence_interval_95"][1],
-            "top_failure_mode": list(results["failure_modes"].keys())[0]
-            if results["failure_modes"]
-            else None,
+            "top_failure_mode": list(results["failure_modes"].keys())[0] if results["failure_modes"] else None,
         },
     )

@@ -83,14 +83,8 @@ class StressScenario:
         # Add spikes
         if self.rng.random() < self.config.spike_probability:
             n_spikes = self.rng.integers(1, 10)
-            spike_indices = self.rng.choice(
-                self.config.sample_size, n_spikes, replace=False
-            )
-            spike_values = self.rng.uniform(
-                -self.config.max_spike_magnitude,
-                self.config.max_spike_magnitude,
-                n_spikes
-            )
+            spike_indices = self.rng.choice(self.config.sample_size, n_spikes, replace=False)
+            spike_values = self.rng.uniform(-self.config.max_spike_magnitude, self.config.max_spike_magnitude, n_spikes)
             data[spike_indices] = spike_values
 
         # Clip to prevent numerical issues
@@ -146,14 +140,17 @@ class StressScenario:
         """Emit stress checkpoint receipt."""
         recent = self.results[-CHECKPOINT_FREQUENCY:]
 
-        emit_receipt("stress_checkpoint", {
-            "tenant_id": TENANT_ID,
-            "step": step,
-            "avg_delta": np.mean([r["entropy_delta"] for r in recent]),
-            "min_delta": min(r["entropy_delta"] for r in recent),
-            "critical_count": sum(1 for r in recent if r["is_critical"]),
-            "intensity": self.config.intensity_multiplier,
-        })
+        emit_receipt(
+            "stress_checkpoint",
+            {
+                "tenant_id": TENANT_ID,
+                "step": step,
+                "avg_delta": np.mean([r["entropy_delta"] for r in recent]),
+                "min_delta": min(r["entropy_delta"] for r in recent),
+                "critical_count": sum(1 for r in recent if r["is_critical"]),
+                "intensity": self.config.intensity_multiplier,
+            },
+        )
 
     def evaluate(self) -> StressResult:
         """Evaluate stress test results.
@@ -183,9 +180,7 @@ class StressScenario:
         # - Average delta still positive
         avg_delta = np.mean(deltas)
         stress_survived = (
-            critical_count / len(self.results) < 0.2 and
-            recovery_rate >= 0.5 and
-            avg_delta > ENTROPY_DELTA_CRITICAL
+            critical_count / len(self.results) < 0.2 and recovery_rate >= 0.5 and avg_delta > ENTROPY_DELTA_CRITICAL
         )
 
         return StressResult(

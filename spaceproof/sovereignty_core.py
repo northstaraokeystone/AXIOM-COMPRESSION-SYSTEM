@@ -79,9 +79,7 @@ class SovereigntyResult:
     threshold_crew: Optional[int] = None
 
 
-def internal_rate(
-    crew: int, compute_flops: float = 0.0, augmentation_factor: float = 1.0
-) -> float:
+def internal_rate(crew: int, compute_flops: float = 0.0, augmentation_factor: float = 1.0) -> float:
     """Calculate internal decision rate.
 
     Internal = log2(1 + crew * human_rate * augmentation + compute_flops * 1e-15)
@@ -304,13 +302,15 @@ def sensitivity_analysis(
 
             result = compute_sovereignty(test_config)
 
-            results.append({
-                "bandwidth_mbps": bw,
-                "delay_s": delay,
-                "internal_rate": result.internal_rate,
-                "external_rate": result.external_rate,
-                "advantage": result.advantage,
-                "sovereign": result.sovereign,
-            })
+            results.append(
+                {
+                    "bandwidth_mbps": bw,
+                    "delay_s": delay,
+                    "internal_rate": result.internal_rate,
+                    "external_rate": result.external_rate,
+                    "advantage": result.advantage,
+                    "sovereign": result.sovereign,
+                }
+            )
 
     return results

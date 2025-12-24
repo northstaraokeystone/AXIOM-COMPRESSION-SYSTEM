@@ -291,9 +291,7 @@ def train(kan: KAN, r: np.ndarray, v: np.ndarray, epochs: int = DEFAULT_EPOCHS) 
 # === CROSSOVER DETECTION ===
 
 
-def crossover_detection(
-    kan: KAN, r_values: np.ndarray, threshold: float = CROSSOVER_THRESHOLD
-) -> List[Dict]:
+def crossover_detection(kan: KAN, r_values: np.ndarray, threshold: float = CROSSOVER_THRESHOLD) -> List[Dict]:
     """Detect physics regime transitions in KAN output.
 
     Samples KAN output at fine resolution and identifies
@@ -442,9 +440,7 @@ def emit_witness_receipt(
 # === VALIDATION FUNCTIONS ===
 
 
-def validate_compression_threshold(
-    galaxies: List[Dict], threshold: float = 0.92
-) -> Dict:
+def validate_compression_threshold(galaxies: List[Dict], threshold: float = 0.92) -> Dict:
     """Validate that compression meets threshold on galaxy set.
 
     Args:

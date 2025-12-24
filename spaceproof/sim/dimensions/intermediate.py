@@ -50,9 +50,7 @@ class D6_CrossModuleValidation(BaseDimension):
             )
 
         # Check expected modules present
-        missing_modules = [
-            m for m in self.expected_modules if m not in module_results
-        ]
+        missing_modules = [m for m in self.expected_modules if m not in module_results]
 
         # Check consistency: all modules should have passed or all failed
         pass_states = []
@@ -121,7 +119,7 @@ class D7_PatternRecognition(BaseDimension):
         # FFT-based pattern detection
         fft = np.fft.fft(data - np.mean(data))
         power = np.abs(fft) ** 2
-        power = power[:len(power) // 2]  # Only positive frequencies
+        power = power[: len(power) // 2]  # Only positive frequencies
 
         # Find dominant frequency
         dominant_idx = np.argmax(power[1:]) + 1  # Skip DC
@@ -181,10 +179,7 @@ class D8_TemporalConsistency(BaseDimension):
             )
 
         # Check monotonic ordering
-        is_ordered = all(
-            timestamps[i] <= timestamps[i + 1]
-            for i in range(len(timestamps) - 1)
-        )
+        is_ordered = all(timestamps[i] <= timestamps[i + 1] for i in range(len(timestamps) - 1))
 
         return DimensionResult(
             dimension=self.dimension_id,
