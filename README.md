@@ -4,6 +4,8 @@
 
 Part of the ProofChain series: SpaceProof | SpendProof | ClaimProof | VoteProof | OriginProof | GreenProof
 
+> **v3.0: Multi-Tier Autonomy Network** - Scale from single colony to 1M colonists across 1000 colonies with AI/Neuralink augmentation
+
 ## What SpaceProof Does
 
 | Module | Purpose | Value |
@@ -15,6 +17,12 @@ Part of the ProofChain series: SpaceProof | SpendProof | ClaimProof | VoteProof 
 | ledger | Receipt storage | Full audit trail |
 | anchor | Merkle proofs | Tamper-proof |
 | loop | 60-second SENSE->ACTUATE cycle | Automated improvement |
+| **v3.0 Modules** | | |
+| starship_fleet | 1000 launches/year model | Entropy delivery |
+| colony_network | Multi-colony network dynamics | 1M colonist scale |
+| decision_augmented | AI (5x) / Neuralink (20x) augmentation | Crew optimization |
+| sovereignty_network | Network sovereignty threshold | Distributed autonomy |
+| autonomy_tiers | LEO/Mars/Deep-space tiers | Light-delay adaptation |
 
 ## Quick Start
 
@@ -36,6 +44,33 @@ python cli.py --config xai --test
 python cli.py --config doge --test
 ```
 
+### v3.0 Multi-Tier Features
+
+```bash
+# AI Augmentation: 4 crew + AI = 20 crew human-only
+python -c "
+from spaceproof.decision_augmented import effective_crew_size
+print(f'4 crew + AI = {effective_crew_size(4, \"ai\")} effective crew')
+"
+
+# Network Sovereignty
+python -c "
+from spaceproof.domain.colony_network import initialize_network
+from spaceproof.sovereignty_network import network_sovereignty_threshold
+net = initialize_network(100, 1000, seed=42)
+result = network_sovereignty_threshold(net)
+print(f'Threshold: {result[\"threshold_colonies\"]} colonies for sovereignty')
+"
+
+# Run NETWORK scenario (1M colonist validation)
+python -c "
+from spaceproof.sim.scenarios.network import run_scenario, NetworkScenarioConfig
+config = NetworkScenarioConfig(n_colonies=10, duration_days=30)
+result = run_scenario(config)
+print(f'NETWORK: {\"PASS\" if result.passed else \"FAIL\"}')
+"
+```
+
 ## Stakeholder Configs
 
 | Config | Stakeholder | Primary Modules | Key Value |
@@ -53,18 +88,24 @@ core.py (foundation)
     |
 compress.py <- witness.py
     |           |
-sovereignty.py <- detect.py
-    |
-  ledger.py <- anchor.py
-    |
-  loop.py (harness)
+sovereignty.py <- detect.py <- decision_augmented.py (v3.0)
+    |                              |
+sovereignty_network.py (v3.0) <- colony_network.py (v3.0)
+    |                              |
+  ledger.py <- anchor.py       starship_fleet.py (v3.0)
+    |                              |
+  loop.py (harness) <-------- autonomy_tiers.py (v3.0)
 ```
 
 ## Domain Generators
 
-- `domains/galaxy.py` - Galaxy rotation curve generation
-- `domains/colony.py` - Mars colony state simulation
-- `domains/telemetry.py` - Fleet telemetry (Tesla/Starlink/SpaceX)
+| Domain | Path | Purpose |
+|--------|------|---------|
+| galaxy | spaceproof/domain/galaxy.py | Galaxy rotation curve generation |
+| colony | spaceproof/domain/colony.py | Mars colony state simulation |
+| telemetry | spaceproof/domain/telemetry.py | Fleet telemetry (Tesla/Starlink/SpaceX) |
+| starship_fleet | spaceproof/domain/starship_fleet.py | 1000 launches/year model (v3.0) |
+| colony_network | spaceproof/domain/colony_network.py | Multi-colony 1M colonist network (v3.0) |
 
 ## SLOs
 
@@ -76,6 +117,11 @@ sovereignty.py <- detect.py
 | detect | false_positive_rate | <0.01 | FAIL |
 | loop | cycle_time | <=60s | WARN |
 | anchor | verify_time | <=2s | WARN |
+| **v3.0 SLOs** | | | |
+| colony_network | entropy_stable_ratio | >=0.95 | FAIL |
+| sovereignty_network | sovereign_colonies | >=MIN | WARN |
+| starship_fleet | launches_per_year | >=1000 | WARN |
+| adversarial | attack_detection_rate | >=0.99 | FAIL |
 
 ## Core Primitives
 
@@ -114,6 +160,32 @@ Information theory unifies all domains:
 - **Entropy = Fraud Detection** - Anomalies in entropy signal violations
 - **Bits/sec = Sovereignty** - When internal processing exceeds external input
 - **Receipts = Trust** - Immutable audit trail for every operation
+
+## v3.0 Multi-Tier Autonomy
+
+**The Paradigm Inversion:** Mars is hard because Earth can't make decisions for you fast enough.
+
+Light-speed delay FORCES computational sovereignty:
+- **LEO (0s delay):** Real-time Earth control possible
+- **Mars (3-22 min delay):** Colony must decide autonomously between communication windows
+- **Deep Space (4.3 years):** Complete independence required
+
+### v3.0 Scenarios
+
+| Scenario | Purpose | Key Validation |
+|----------|---------|----------------|
+| NETWORK | 1M colonist scale | Entropy stability ≥95%, partition recovery <48h |
+| ADVERSARIAL | DoD hostile audit | Attack detection ≥99%, Byzantine consensus |
+
+### Augmentation Factors
+
+| Type | Factor | Effective Crew |
+|------|--------|----------------|
+| Human only | 1.0x | crew |
+| AI-assisted | 5.0x | crew × 5 |
+| Neuralink | 20.0x | crew × 20 |
+
+**Key insight:** 4 crew + AI (4×5=20) equals 20 crew human-only for sovereignty calculations.
 
 ## ProofChain Series
 

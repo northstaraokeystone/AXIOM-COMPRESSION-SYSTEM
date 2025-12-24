@@ -10,9 +10,9 @@ THE COLONY INSIGHT:
 Source: SpaceProof D20 Production Evolution
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Optional, Tuple
 import numpy as np
 
 from ..core import emit_receipt, dual_hash
@@ -35,6 +35,23 @@ FOOD_PER_PERSON_DAY = 1.77
 HUMAN_DECISION_RATE_BPS = 10  # bits/sec per person
 AUTONOMOUS_DECISION_RATE_BPS = 1000  # bits/sec for autonomous systems
 
+# === NETWORK CONSTANTS (v3.0) ===
+
+# Starship fleet (Grok: "500t payload", "1000 flights/year target")
+STARSHIP_PAYLOAD_KG = 500000
+STARSHIP_FLIGHTS_PER_YEAR = 1000
+
+# Network scale (Grok: "1M colonists by 2050")
+MARS_COLONIST_TARGET_2050 = 1_000_000
+COLONY_NETWORK_SIZE_TARGET = 1000  # 1M @ 1000/colony
+
+# Augmentation factors (Grok: "xAI autonomy")
+AI_AUGMENTATION_FACTOR = 5.0
+NEURALINK_AUGMENTATION_FACTOR = 20.0
+
+# Inter-colony bandwidth
+INTER_COLONY_BANDWIDTH_MBPS = 10.0
+
 
 class ColonyPhase(Enum):
     """Colony development phase."""
@@ -47,7 +64,10 @@ class ColonyPhase(Enum):
 
 @dataclass
 class ColonyConfig:
-    """Configuration for colony simulation."""
+    """Configuration for colony simulation.
+
+    v3.0: Added network parameters for multi-colony support.
+    """
 
     name: str = "Alpha Base"
     crew_size: int = DEFAULT_CREW_SIZE
@@ -56,11 +76,21 @@ class ColonyConfig:
     o2_kg: float = 1000.0
     water_kg: float = 5000.0
     food_kg: float = 10000.0
+    # Network parameters (v3.0)
+    colony_id: str = "C0001"
+    network_id: Optional[str] = None
+    position: Tuple[float, float] = (0.0, 0.0)  # km from reference
+    inter_colony_bandwidth_mbps: float = INTER_COLONY_BANDWIDTH_MBPS
+    augmentation_type: str = "human_only"  # human_only | ai_assisted | neuralink_assisted
+    augmentation_factor: float = 1.0
 
 
 @dataclass
 class ColonyState:
-    """State of a Mars colony at a point in time."""
+    """State of a Mars colony at a point in time.
+
+    v3.0: Added network-aware fields for multi-colony support.
+    """
 
     sol: int = 0
     crew_count: int = DEFAULT_CREW_SIZE
@@ -70,6 +100,11 @@ class ColonyState:
     phase: str = "initial"
     sovereignty_ratio: float = 0.0
     h_total: float = 0.0
+    # Network-aware fields (v3.0)
+    colony_id: str = "C0001"
+    network_connected: bool = True
+    effective_crew: float = 0.0  # crew * augmentation_factor
+    decision_capacity_bps: float = 0.0
 
 
 def generate(config: ColonyConfig, days: int = 30) -> List[Dict]:
@@ -84,6 +119,10 @@ def generate(config: ColonyConfig, days: int = 30) -> List[Dict]:
     """
     states = []
 
+    # Calculate effective crew with augmentation (v3.0)
+    effective_crew = config.crew_size * config.augmentation_factor
+    decision_capacity = effective_crew * HUMAN_DECISION_RATE_BPS
+
     # Initialize state
     state = ColonyState(
         sol=0,
@@ -93,6 +132,10 @@ def generate(config: ColonyConfig, days: int = 30) -> List[Dict]:
         resources_sufficient=True,
         phase="initial",
         sovereignty_ratio=0.0,
+        colony_id=config.colony_id,
+        network_connected=config.network_id is not None,
+        effective_crew=effective_crew,
+        decision_capacity_bps=decision_capacity,
     )
 
     # Current resources
@@ -132,15 +175,20 @@ def generate(config: ColonyConfig, days: int = 30) -> List[Dict]:
             h_thermal + h_atmospheric + h_resource + h_information + h_psychology
         )
 
-        # Compute sovereignty ratio
+        # Compute sovereignty ratio with augmentation (v3.0)
+        augmented_crew = config.crew_size * config.augmentation_factor
         internal_bps = (
-            config.crew_size * HUMAN_DECISION_RATE_BPS * (1 - 0.3 * state.stress_level)
+            augmented_crew * HUMAN_DECISION_RATE_BPS * (1 - 0.3 * state.stress_level)
             + config.autonomy_level * AUTONOMOUS_DECISION_RATE_BPS
         )
         external_bps = 1e6 / (1 + sol / 100)  # Degrades over time
         state.sovereignty_ratio = (
             internal_bps / external_bps if external_bps > 0 else float("inf")
         )
+
+        # Update effective crew and decision capacity
+        state.effective_crew = augmented_crew * (1 - 0.3 * state.stress_level)
+        state.decision_capacity_bps = internal_bps
 
         # Update phase
         if state.sovereignty_ratio > 1.0:
@@ -162,6 +210,11 @@ def generate(config: ColonyConfig, days: int = 30) -> List[Dict]:
                 "phase": state.phase,
                 "sovereignty_ratio": state.sovereignty_ratio,
                 "h_total": state.h_total,
+                # Network-aware fields (v3.0)
+                "colony_id": state.colony_id,
+                "network_connected": state.network_connected,
+                "effective_crew": state.effective_crew,
+                "decision_capacity_bps": state.decision_capacity_bps,
             }
         )
 

@@ -40,6 +40,8 @@ sovereignty:
   max_crew: 1000
   compute_flops: 0
   bandwidth_mbps: 2.0
+  # v3.0: AI augmentation for xAI-assisted decisions
+  decision_augmentation: 5.0  # AI factor (4 crew + AI ≈ 20 human-only)
 
 domains:
   - telemetry
@@ -56,3 +58,38 @@ value_metrics:
   bandwidth_savings_x: 10
   sovereignty_threshold_crew: 50
   law_discovery_acceleration_x: 5
+
+# === v3.0: Multi-Tier Autonomy Network ===
+
+# Starship fleet parameters (Grok: "500t payload", "1000 flights/year target")
+starship_fleet:
+  payload_kg: 500000
+  flights_per_year: 1000
+  destinations:
+    - mars_surface
+    - mars_orbit
+
+# Colony network parameters (Grok: "1M colonists by 2050")
+colony_network:
+  target_population: 1000000
+  target_colonies: 1000
+  colonists_per_colony: 1000
+  inter_colony_bandwidth_mbps: 10.0
+
+# Augmentation factors
+augmentation:
+  human_only: 1.0
+  ai_assisted: 5.0
+  neuralink_assisted: 20.0
+
+# Autonomy tiers (light-delay driven)
+autonomy_tiers:
+  leo:
+    delay_sec: 0
+    loop_frequency_sec: 1
+  mars:
+    delay_sec: 180  # 3 min minimum
+    loop_frequency_sec: 60
+  deep_space:
+    delay_sec: 135792000  # 4.3 years
+    loop_frequency_sec: 86400

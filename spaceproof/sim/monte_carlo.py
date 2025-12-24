@@ -59,7 +59,10 @@ DEFAULT_SEED = 42
 
 
 class Scenario(Enum):
-    """Six-scenario validation framework from xAI collaboration."""
+    """Eight-scenario validation framework.
+
+    v3.0: Added NETWORK and ADVERSARIAL scenarios for multi-tier autonomy.
+    """
 
     BASELINE = "baseline"        # Normal operation, standard distributions
     STRESS = "stress"            # Edge cases at 3-5x intensity
@@ -67,6 +70,9 @@ class Scenario(Enum):
     SINGULARITY = "singularity"  # Self-referential conditions
     THERMODYNAMIC = "thermodynamic"  # Entropy conservation verification
     GODEL = "godel"              # Completeness bounds, decidability limits
+    # v3.0: Multi-tier autonomy scenarios
+    NETWORK = "network"          # 1000 colonies, 1M colonists network validation
+    ADVERSARIAL = "adversarial"  # DoD hostile audit under combat conditions
 
 
 @dataclass
@@ -86,6 +92,9 @@ class CheckpointConfig:
             Scenario.SINGULARITY: 50,    # Moderate for self-reference
             Scenario.THERMODYNAMIC: 25,  # Frequent for entropy tracking
             Scenario.GODEL: 100,         # Standard for completeness checks
+            # v3.0: Multi-tier autonomy scenarios
+            Scenario.NETWORK: 30,        # Daily checkpoints for network validation
+            Scenario.ADVERSARIAL: 10,    # Frequent for attack detection
         }
         return cls(scenario=scenario, frequency=frequencies.get(scenario, 100))
 
@@ -225,6 +234,15 @@ class MonteCarloEngine:
         elif self.config.scenario == Scenario.GODEL:
             # Track decidability bounds
             self.undecidable_count = 0
+        # v3.0: Multi-tier autonomy scenarios
+        elif self.config.scenario == Scenario.NETWORK:
+            # Initialize network-scale tracking
+            self.network_colonies = self.config.custom_params.get("n_colonies", 100)
+            self.network_population = self.config.custom_params.get("population", 100000)
+        elif self.config.scenario == Scenario.ADVERSARIAL:
+            # Initialize adversarial attack tracking
+            self.attacks_attempted = 0
+            self.attacks_blocked = 0
 
     def _run_step(self, step: int) -> StepResult:
         """Run a single simulation step.
@@ -325,6 +343,21 @@ class MonteCarloEngine:
             else:
                 # Decidable: structured pattern
                 data = np.sin(np.linspace(0, 4 * np.pi, 1000) * (step + 1))
+        # v3.0: Multi-tier autonomy scenarios
+        elif self.config.scenario == Scenario.NETWORK:
+            # Network-scale data: multi-colony telemetry
+            n_colonies = getattr(self, "network_colonies", 100)
+            data = self.rng.normal(0, 1, n_colonies * 10)  # 10 metrics per colony
+        elif self.config.scenario == Scenario.ADVERSARIAL:
+            # Adversarial scenario: mix of legitimate and attack data
+            if self.rng.random() < 0.1:  # 10% attack attempts
+                # Corrupted data pattern
+                data = np.concatenate([
+                    self.rng.normal(0, 1, 500),
+                    self.rng.normal(100, 0.1, 500),  # Anomalous spike
+                ])
+            else:
+                data = self.rng.normal(0, 1, 1000)
         else:  # BASELINE
             # Standard normal distribution
             data = self.rng.normal(0, 1, 1000)

@@ -6,8 +6,15 @@ Part of ProofChain: SpaceProof | SpendProof | ClaimProof | VoteProof | OriginPro
 
 > **Version:** 4.0.0
 > **Date:** 2025-12-24
-> **Status:** ACTIVE - D20 Production Evolution
+> **Status:** ACTIVE - D20 Production Evolution + v3.0 Multi-Tier Autonomy
 > **Dual-Hash:** SHA256:BLAKE3 format
+
+### v3.0 Highlights (Multi-Tier Autonomy Network)
+- **1M colonists by 2050** - Network of 1000 colonies with distributed sovereignty
+- **500t Starship payload** - 1000 launches/year entropy accounting
+- **AI augmentation** - 4 crew + AI = 20 crew human-only
+- **Multi-tier autonomy** - LEO (instant) → Mars (3-22 min) → Deep-space (4.3 years)
+- **8 scenarios** - Added NETWORK and ADVERSARIAL for DoD validation
 
 ---
 
@@ -49,6 +56,8 @@ When a DOT secretary sees `qed.py`, they see nothing. When they see `compress.py
 | galaxy | spaceproof/domain/galaxy.py | Galaxy rotation curves |
 | colony | spaceproof/domain/colony.py | Mars colony simulation |
 | telemetry | spaceproof/domain/telemetry.py | Fleet telemetry (Tesla/Starlink/SpaceX) |
+| starship_fleet | spaceproof/domain/starship_fleet.py | 1000 launches/year model (v3.0) |
+| colony_network | spaceproof/domain/colony_network.py | Multi-colony 1M colonist network (v3.0) |
 
 ### Stakeholder Configs (D20)
 
@@ -597,6 +606,96 @@ pytest tests/ -x -q && grep -rq "emit_receipt" src/*.py && echo "PASS: T+24h"
 
 # T+48h gate
 grep -rq "stoprule" src/*.py && python -c "from spaceproof.stoprules import *" && echo "PASS: T+48h"
+```
+
+---
+
+## §10.4 MULTI-TIER AUTONOMY NETWORK (v3.0)
+
+### 10.4.1 The Paradigm Inversion
+
+**❌ OLD:** "Mars is hard because of mass, energy, and distance."
+**✅ NEW:** "Mars is hard because Earth can't make decisions for you fast enough."
+
+Light-speed delay FORCES computational sovereignty. When colonies are isolated by physics, they MUST compress reality into receipts to survive. The colonies that compress best EVOLVE faster.
+
+### 10.4.2 Scale Evolution
+
+| From | To | Justification |
+|------|-----|---------------|
+| Single colony (crew 4-100) | Network of 1000 colonies (1M colonists) | Grok: "1M colonists by 2050" |
+| 100-150t Starship payload | 500t Starship payload | Grok: "500t payload" |
+| Static crew sizing | AI-augmented crew | Grok: "xAI autonomy" |
+| Earth-centric decisions | Multi-tier autonomy (LEO → Mars → Deep-space) | Grok: "Interstellar 2040s" |
+| 6 scenarios | 8 scenarios (+NETWORK +ADVERSARIAL) | Grok: "$1.8B Starlink-DoD" |
+
+### 10.4.3 New Modules (v3.0)
+
+| Module | Purpose | Key Function |
+|--------|---------|--------------|
+| starship_fleet.py | 1000 launches/year with entropy accounting | `simulate_fleet()` |
+| colony_network.py | Multi-colony network dynamics | `simulate_network()` |
+| decision_augmented.py | AI (5x) vs Neuralink (20x) augmentation | `calculate_augmentation_factor()` |
+| sovereignty_network.py | Network sovereignty threshold | `network_sovereignty_threshold()` |
+| autonomy_tiers.py | LEO/Mars/Deep-space tier framework | `tier_transition()` |
+| scenarios/network.py | 1M colonist validation | `run_scenario()` |
+| scenarios/adversarial.py | DoD hostile audit | `validate_dod_audit()` |
+
+### 10.4.4 Constants (v3.0)
+
+```python
+# Starship Fleet (Grok: "500t payload", "1000 flights/year target")
+STARSHIP_PAYLOAD_KG = 500000
+STARSHIP_FLIGHTS_PER_YEAR = 1000
+
+# Colony Network (Grok: "1M colonists by 2050")
+MARS_COLONIST_TARGET_2050 = 1_000_000
+COLONY_NETWORK_SIZE_TARGET = 1000
+INTER_COLONY_BANDWIDTH_MBPS = 10.0
+
+# Augmentation Factors (Grok: "xAI autonomy")
+AI_AUGMENTATION_FACTOR = 5.0
+NEURALINK_AUGMENTATION_FACTOR = 20.0
+
+# Autonomy Tiers (light-delay driven)
+LIGHT_DELAY_LEO_SEC = 0.0
+LIGHT_DELAY_MARS_SEC = 180.0  # 3 min minimum
+LIGHT_DELAY_DEEP_SPACE_SEC = 135_792_000.0  # 4.3 years
+```
+
+### 10.4.5 Receipt Types (v3.0)
+
+| Receipt | Module | Key Fields |
+|---------|--------|------------|
+| starship_launch_receipt | starship_fleet.py | payload_kg, destination, entropy_delivered |
+| fleet_state_receipt | starship_fleet.py | launches_this_year, total_entropy_delivered |
+| network_sovereignty_receipt | sovereignty_network.py | threshold_colonies, sovereign_ratio |
+| colony_network_receipt | colony_network.py | n_colonies, entropy_stable_ratio |
+| augmentation_receipt | decision_augmented.py | factor, effective_crew |
+| tier_transition_receipt | autonomy_tiers.py | from_tier, to_tier, adjustments |
+| adversarial_receipt | adversarial.py | attack_type, detected, blocked |
+
+### 10.4.6 Validation (v3.0)
+
+```bash
+# Gate 2: Augmentation equivalence (4 crew + AI ≈ 20 crew human-only)
+python -c "from spaceproof.sovereignty_core import calculate_sovereignty_threshold; \
+t1=calculate_sovereignty_threshold(20, 1.0, 2.0, 180); \
+t2=calculate_sovereignty_threshold(4, 5.0, 2.0, 180); \
+assert t1['effective_crew'] == t2['effective_crew']; \
+print('PASS: 4 crew + AI = 20 crew human-only')"
+
+# Gate 4: Network sovereignty
+python -c "from spaceproof.domain.colony_network import initialize_network; \
+from spaceproof.sovereignty_network import network_sovereignty_threshold; \
+net=initialize_network(100, 1000); \
+result=network_sovereignty_threshold(net, 2.0); \
+print(f'Network threshold: {result[\"threshold_colonies\"]} colonies')"
+
+# Gate 6: Scenarios
+python -c "from spaceproof.sim.scenarios.network import run_scenario as run_network; \
+from spaceproof.sim.scenarios.adversarial import run_scenario as run_adversarial; \
+print('PASS: Scenarios importable')"
 ```
 
 ---

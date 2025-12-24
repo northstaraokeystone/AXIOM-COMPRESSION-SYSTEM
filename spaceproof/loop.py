@@ -30,6 +30,18 @@ TENANT_ID = "spaceproof-loop"
 CYCLE_TIME_LIMIT_SEC = 60
 HIGH_RISK_THRESHOLD = 0.5
 
+# === MULTI-TIER CONSTANTS (v3.0) ===
+# Light-delay creates FORCED isolation zones
+
+# LEO: Instant Earth communication
+LOOP_FREQUENCY_LEO_SEC = 1.0
+
+# Mars: 3-22 min delay forces 60-sec SENSE→ACTUATE
+LOOP_FREQUENCY_MARS_SEC = 60.0
+
+# Deep-space: Years of delay requires daily or longer loops
+LOOP_FREQUENCY_DEEP_SPACE_SEC = 86400.0  # 24 hours
+
 
 @dataclass
 class Action:
@@ -60,7 +72,10 @@ class CycleResult:
 
 
 class Loop:
-    """60-second SENSE→ANALYZE→HYPOTHESIZE→GATE→ACTUATE→EMIT cycle."""
+    """60-second SENSE→ANALYZE→HYPOTHESIZE→GATE→ACTUATE→EMIT cycle.
+
+    v3.0: Supports multi-tier autonomy with configurable cycle times.
+    """
 
     def __init__(
         self,
@@ -73,13 +88,40 @@ class Loop:
         Args:
             sources: List of callable receipt sources
             hitl_callback: Human-in-the-loop approval callback
-            config: Loop configuration
+            config: Loop configuration (v3.0: supports autonomy_tier)
         """
         self.sources = sources or []
         self.hitl_callback = hitl_callback
         self.config = config or {}
         self.cycle_count = 0
         self.last_cycle_result: Optional[CycleResult] = None
+
+        # v3.0: Multi-tier autonomy support
+        self.autonomy_tier = self.config.get("autonomy_tier", "mars")
+        self.cycle_time_limit = self._get_cycle_time_for_tier()
+        self.auto_approve_threshold = self._get_threshold_for_tier()
+
+    def _get_cycle_time_for_tier(self) -> float:
+        """Get cycle time based on autonomy tier."""
+        tier_times = {
+            "leo": LOOP_FREQUENCY_LEO_SEC,
+            "mars": LOOP_FREQUENCY_MARS_SEC,
+            "deep_space": LOOP_FREQUENCY_DEEP_SPACE_SEC,
+        }
+        return tier_times.get(self.autonomy_tier, CYCLE_TIME_LIMIT_SEC)
+
+    def _get_threshold_for_tier(self) -> float:
+        """Get auto-approve threshold based on autonomy tier.
+
+        Higher tiers (more isolated) require lower thresholds
+        for autonomous action.
+        """
+        tier_thresholds = {
+            "leo": 0.5,       # Standard threshold
+            "mars": 0.4,      # Lower - more autonomous
+            "deep_space": 0.2,  # Lowest - must be highly autonomous
+        }
+        return tier_thresholds.get(self.autonomy_tier, HIGH_RISK_THRESHOLD)
 
     def run_cycle(self) -> CycleResult:
         """Run a complete SENSE→ACTUATE cycle.
@@ -129,10 +171,10 @@ class Loop:
             receipts_sensed=len(receipts),
             anomalies_detected=analysis.get("anomaly_count", 0),
             cycle_time_sec=cycle_time,
-            completed=cycle_time <= CYCLE_TIME_LIMIT_SEC,
+            completed=cycle_time <= self.cycle_time_limit,  # v3.0: tier-aware
         )
 
-        # Emit loop receipt
+        # Emit loop receipt (v3.0: includes tier info)
         emit_receipt(
             "loop_receipt",
             {
@@ -144,6 +186,8 @@ class Loop:
                 "actions_executed": result.actions_executed,
                 "cycle_time_sec": cycle_time,
                 "completed_in_time": result.completed,
+                "autonomy_tier": self.autonomy_tier,
+                "cycle_time_limit": self.cycle_time_limit,
             },
         )
 
@@ -276,6 +320,8 @@ class Loop:
     def gate(self, proposals: List[Action]) -> List[Action]:
         """Filter by risk threshold. HITL gate for high-risk.
 
+        v3.0: Threshold varies by autonomy tier.
+
         Args:
             proposals: List of Action proposals
 
@@ -285,7 +331,7 @@ class Loop:
         approved = []
 
         for action in proposals:
-            if action.risk <= HIGH_RISK_THRESHOLD:
+            if action.risk <= self.auto_approve_threshold:  # v3.0: tier-aware
                 # Auto-approve low-risk actions
                 action.approved = True
                 approved.append(action)
