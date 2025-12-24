@@ -97,6 +97,74 @@ sovereignty_network.py (v3.0) <- colony_network.py (v3.0)
   loop.py (harness) <-------- autonomy_tiers.py (v3.0)
 ```
 
+## Complete Architecture
+
+```
+spaceproof/
+├── core.py                       # Foundation: dual_hash, emit_receipt, merkle
+├── compress.py                   # 10x telemetry compression
+├── witness.py                    # Physics law discovery (KAN/MDL)
+├── detect.py                     # Entropy anomaly detection
+├── ledger.py                     # Receipt storage
+├── anchor.py                     # Merkle proofs
+├── loop.py                       # 60-second SENSE→ACTUATE cycle
+│
+├── sovereignty_core.py           # Core sovereignty calculations
+├── sovereignty_network.py        # Network sovereignty threshold
+├── decision_augmented.py         # AI/Neuralink augmentation
+│
+├── cli/                          # Command-line interface
+│   ├── __init__.py
+│   ├── args.py
+│   └── dispatch.py
+│
+├── domain/                       # Domain generators
+│   ├── galaxy.py                 # Galaxy rotation curves
+│   ├── colony.py                 # Mars colony simulation
+│   ├── telemetry.py              # Fleet telemetry
+│   ├── starship_fleet.py         # 1000 launches/year model
+│   └── colony_network.py         # 1M colonist multi-colony network
+│
+├── engine/                       # Core engine components
+│   ├── entropy.py                # Entropy calculations
+│   ├── gates.py                  # Gate validation
+│   ├── protocol.py               # Protocol interfaces
+│   ├── receipts.py               # Receipt primitives
+│   └── saga.py                   # Saga orchestration
+│
+├── sovereignty/                  # Sovereignty calculations
+│   └── mars/                     # Mars sovereignty calculator (v3.0)
+│       ├── api.py                # Public API
+│       ├── constants.py          # Mars constants
+│       ├── crew_matrix.py        # Crew skill matrix
+│       ├── decision_capacity.py  # Decision capacity calculations
+│       ├── integrator.py         # Sovereignty score integration
+│       ├── life_support.py       # Life support constraints
+│       ├── monte_carlo.py        # Monte Carlo validation
+│       ├── resources.py          # ISRU and resource calculations
+│       └── scenarios.py          # Test scenarios
+│
+├── tiers/                        # Multi-tier autonomy (v3.0)
+│   └── autonomy_tiers.py         # LEO/Mars/Deep-space tiers
+│
+└── sim/                          # Simulation framework
+    ├── monte_carlo.py            # Monte Carlo engine
+    ├── dimensions/               # Scenario dimensions
+    │   ├── foundation.py
+    │   ├── intermediate.py
+    │   ├── advanced.py
+    │   └── ultimate.py
+    └── scenarios/                # Test scenarios
+        ├── baseline.py
+        ├── stress.py
+        ├── genesis.py
+        ├── godel.py
+        ├── singularity.py
+        ├── thermodynamic.py
+        ├── network.py            # 1M colonist validation
+        └── adversarial.py        # DoD hostile audit
+```
+
 ## Domain Generators
 
 | Domain | Path | Purpose |
@@ -106,6 +174,22 @@ sovereignty_network.py (v3.0) <- colony_network.py (v3.0)
 | telemetry | spaceproof/domain/telemetry.py | Fleet telemetry (Tesla/Starlink/SpaceX) |
 | starship_fleet | spaceproof/domain/starship_fleet.py | 1000 launches/year model (v3.0) |
 | colony_network | spaceproof/domain/colony_network.py | Multi-colony 1M colonist network (v3.0) |
+
+## Mars Sovereignty Calculator (v3.0)
+
+Complete implementation in `spaceproof/sovereignty/mars/`:
+
+| Module | Purpose |
+|--------|---------|
+| api.py | Calculate Mars crew sovereignty score |
+| constants.py | Mars-specific constants (light delay, ISRU targets, etc.) |
+| crew_matrix.py | Skill distribution and crew optimization |
+| decision_capacity.py | Decision-making capacity calculations |
+| integrator.py | Integrate all factors into sovereignty score |
+| life_support.py | ECLSS and habitat constraints |
+| monte_carlo.py | Monte Carlo validation of sovereignty |
+| resources.py | ISRU, water recycling, food production |
+| scenarios.py | Baseline, research-validated scenarios |
 
 ## SLOs
 
