@@ -1,0 +1,73 @@
+# Mars Minimum Viable Colony Configuration
+# Source: George Mason 2023 baseline (22 crew)
+# Expected Sovereignty Score: ~95%
+
+colony:
+  name: "Mars Minimum Viable Colony"
+  crew_count: 22
+  mission_duration_days: 500
+
+crew_skills:
+  medical:
+    - {name: "Chief Medical Officer", proficiency: 1.0}
+    - {name: "Medical Specialist", proficiency: 0.7}
+  engineering:
+    - {name: "Chief Engineer", proficiency: 1.0}
+    - {name: "Mechanical Engineer", proficiency: 1.0}
+    - {name: "Electrical Engineer", proficiency: 0.7}
+  systems:
+    - {name: "Systems Lead", proficiency: 1.0}
+    - {name: "Systems Tech", proficiency: 1.0}
+  life_support:
+    - {name: "ECLSS Lead", proficiency: 1.0}
+    - {name: "ECLSS Tech", proficiency: 0.7}
+  agriculture:
+    - {name: "Lead Botanist", proficiency: 1.0}
+    - {name: "Botanist", proficiency: 0.7}
+  power:
+    - {name: "Power Systems Lead", proficiency: 1.0}
+    - {name: "Power Tech", proficiency: 0.7}
+  science:
+    - {name: "Science Lead", proficiency: 1.0}
+    - {name: "Geologist", proficiency: 0.8}
+  operations:
+    - {name: "Operations Lead", proficiency: 1.0}
+    - {name: "EVA Specialist", proficiency: 0.8}
+  communications:
+    - {name: "Comms Lead", proficiency: 1.0}
+
+life_support:
+  eclss_closure_o2: 0.85  # Conservative (ISS achieves 0.875)
+  eclss_closure_h2o: 0.95  # Conservative (ISS achieves 0.98)
+  moxie_units: 2
+  sabatier_units: 1
+  eclss_mtbf_hours: 1752  # ISS actual (not design 10000h)
+  redundancy_factor: 1.5
+
+power:
+  solar_array_m2: 200
+  kilopower_units: 2  # 20 kW total nuclear backup
+  battery_kwh: 100
+  radiator_area_m2: 50
+
+resources:
+  water_reserve_kg: 5000  # ~45 days at 22 crew
+  food_reserve_kcal: 15000000  # ~90 days at 22 crew
+  o2_reserve_kg: 500  # ~60 days at 22 crew
+  spare_parts_mass_kg: 2000
+
+isru:
+  water_extraction_kg_day: 50  # From regolith
+  o2_production_moxie_kg_day: 0.264  # 2 units x 5.5 g/hr x 24 hr / 1000
+  ch4_production_sabatier_kg_day: 5.0  # Estimated
+  food_production_kg_day: 0  # No local food production in minimum config
+
+communication:
+  bandwidth_mbps: 2.0  # Mars relay baseline (MRO)
+  latency_one_way_sec: 660  # 11 min average
+
+# Validation targets
+expected:
+  sovereignty_score_min: 90.0
+  sovereignty_score_max: 100.0
+  survival_rate_min: 0.80

@@ -51,8 +51,8 @@ import os
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from cli.args import create_parser
-from cli.dispatch import dispatch
+from spaceproof.cli.args import create_parser
+from spaceproof.cli.dispatch import dispatch
 
 
 def main():

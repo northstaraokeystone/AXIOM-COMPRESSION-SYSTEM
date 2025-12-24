@@ -23,7 +23,13 @@
     "leading_indicator",
     "sovereignty_v2",
     "tau_velocity",
-    "anomaly"
+    "anomaly",
+    "mars_sovereignty",
+    "crew_coverage",
+    "life_support_balance",
+    "decision_capacity",
+    "resource_balance",
+    "monte_carlo_result"
   ],
   "v2_receipt_schemas": {
     "build_rate": {
@@ -57,6 +63,30 @@
     "tau_velocity": {
       "required": ["velocity_raw", "velocity_pct", "trend", "meets_target"],
       "optional": ["tau_start", "tau_end", "observations", "target_velocity_pct"]
+    },
+    "mars_sovereignty": {
+      "required": ["crew_count", "sovereignty_score", "is_sovereign", "binding_constraint"],
+      "optional": ["conjunction_survival", "research_validated", "component_scores", "monte_carlo_survival_rate", "monte_carlo_confidence_95", "warnings"]
+    },
+    "crew_coverage": {
+      "required": ["crew_count", "coverage_ratio"],
+      "optional": ["redundancy", "gaps_count", "gaps", "workload_entropy", "critical_gaps"]
+    },
+    "life_support_balance": {
+      "required": ["crew_count", "o2_closure_ratio", "h2o_closure_ratio", "eclss_reliability"],
+      "optional": ["o2_net_kg_day", "o2_reserve_days", "h2o_net_kg_day", "h2o_reserve_days", "thermal_stable", "net_entropy_w_k", "entropy_rate"]
+    },
+    "decision_capacity": {
+      "required": ["crew_count", "internal_capacity_bps", "earth_capacity_bps", "sovereign"],
+      "optional": ["advantage_bps", "conjunction_survival"]
+    },
+    "resource_balance": {
+      "required": ["crew_count", "closure_ratio", "binding_resource"],
+      "optional": ["buffer_days", "buffer_met", "resupply_required", "risk_level"]
+    },
+    "monte_carlo_result": {
+      "required": ["iterations", "overall_survival_rate"],
+      "optional": ["scenarios_tested", "confidence_interval_95_lower", "confidence_interval_95_upper", "top_failure_mode"]
     }
   },
   "constants": {
@@ -68,7 +98,18 @@
     "ALPHA_BASELINE": 1.8,
     "TIER_1_PROB_RANGE": [0.60, 0.80],
     "TIER_2_PROB_RANGE": [0.30, 0.50],
-    "TIER_3_PROB_RANGE": [0.05, 0.15]
+    "TIER_3_PROB_RANGE": [0.05, 0.15],
+    "ISS_ECLSS_MTBF_HOURS": 1752,
+    "ISS_O2_CLOSURE_RATIO": 0.875,
+    "ISS_H2O_RECOVERY_RATIO": 0.98,
+    "MARS_LIGHT_DELAY_MIN_SEC": 180,
+    "MARS_LIGHT_DELAY_MAX_SEC": 1320,
+    "MARS_CONJUNCTION_BLACKOUT_DAYS": 14,
+    "MARS_SYNODIC_PERIOD_DAYS": 780,
+    "CREW_MIN_GEORGE_MASON": 22,
+    "CREW_MIN_SALOTTI": 110,
+    "STARSHIP_PAYLOAD_KG": 125000,
+    "MOXIE_O2_G_PER_HOUR": 5.5
   },
   "version": "2.0"
 }

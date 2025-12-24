@@ -601,6 +601,103 @@ grep -rq "stoprule" src/*.py && python -c "from spaceproof.stoprules import *" &
 
 ---
 
+## §10.5 MARS SOVEREIGNTY SIMULATOR
+
+### 10.5.1 The Paradigm Inversion
+
+**Everyone models MASS (kg cargo) and ENERGY (watts power). Nobody models BITS (decisions/second to survive).**
+
+The unmodeled dimension is the binding constraint. Mars colony sovereignty is the information-theoretic threshold where internal decision capacity (bits/sec) exceeds Earth input capacity.
+
+### 10.5.2 The Physics
+
+- **Latency**: 3-22 minutes one-way (irreducible physics)
+- **Conjunction**: 14-day communication blackout every 780 days (deterministic)
+- **ECLSS failures**: ISS actual MTBF 1752h (5.6x lower than design 10000h)
+- **Decision paralysis**: Cannot wait 22 minutes for depressurization response
+
+### 10.5.3 Core Equation
+
+```
+sovereignty = internal_capacity_bps > earth_capacity_bps
+```
+
+Where:
+- **internal_capacity_bps** = f(crew expertise, skill coverage, decision complexity)
+- **earth_capacity_bps** = bandwidth_mbps × 1e6 × (1 - latency/timeout)
+
+### 10.5.4 Subsystem Weights
+
+| Subsystem | Weight | Justification |
+|-----------|--------|---------------|
+| Decision Capacity | 0.35 | Information bottleneck (NOVEL) |
+| Life Support | 0.30 | Survival critical |
+| Crew Coverage | 0.25 | Skill redundancy |
+| Resources | 0.10 | Can buffer with reserves |
+
+### 10.5.5 Research Validation
+
+| Source | Crew Size | Expected Score |
+|--------|-----------|----------------|
+| George Mason 2023 | 22 | ~95% |
+| SpaceX Target | 50 | ~98% |
+| Salotti Nature 2020 | 110 | ~99.9% |
+
+### 10.5.6 CLI Commands
+
+```bash
+# Calculate sovereignty score
+spaceproof sovereignty mars --config configs/mars_nominal.yaml
+
+# Find minimum crew for 95% sovereignty
+spaceproof sovereignty mars --find-threshold --target 95.0
+
+# Run Monte Carlo validation
+spaceproof sovereignty mars --config X --monte-carlo --iterations 1000
+
+# Compare configurations
+spaceproof sovereignty mars --compare configs/mars_minimum.yaml configs/mars_maximum.yaml
+
+# Generate report
+spaceproof sovereignty mars --config X --report output.md
+```
+
+### 10.5.7 Receipt Types
+
+| Receipt | Required Fields | Purpose |
+|---------|-----------------|---------|
+| mars_sovereignty | crew_count, sovereignty_score, is_sovereign, binding_constraint | Main sovereignty calculation |
+| crew_coverage | crew_count, coverage_ratio | Skill matrix coverage |
+| life_support_balance | crew_count, o2_closure_ratio, h2o_closure_ratio, eclss_reliability | ECLSS status |
+| decision_capacity | crew_count, internal_capacity_bps, earth_capacity_bps, sovereign | Decision bandwidth |
+| resource_balance | crew_count, closure_ratio, binding_resource | ISRU closure |
+| monte_carlo_result | iterations, overall_survival_rate | Simulation validation |
+
+### 10.5.8 Constants (Research-Validated)
+
+| Constant | Value | Source |
+|----------|-------|--------|
+| ISS_ECLSS_MTBF_HOURS | 1752 | NASA ECLSS 2019 |
+| ISS_O2_CLOSURE_RATIO | 0.875 | NASA ECLSS 2023 |
+| ISS_H2O_RECOVERY_RATIO | 0.98 | NASA ECLSS 2023 |
+| MOXIE_O2_G_PER_HOUR | 5.5 | Perseverance 2021-2025 |
+| MARS_CONJUNCTION_BLACKOUT_DAYS | 14 | Orbital mechanics |
+| MARS_SYNODIC_PERIOD_DAYS | 780 | Orbital mechanics |
+| STARSHIP_PAYLOAD_KG | 125000 | SpaceX official |
+
+### 10.5.9 Monte Carlo Scenarios
+
+| Scenario | Probability | Duration | Key Effect |
+|----------|-------------|----------|------------|
+| BASELINE | - | - | Normal operations |
+| DUST_STORM_GLOBAL | 0.10/year | 90 days | Solar 1% |
+| HAB_BREACH_SMALL | 0.05/year | 1-3 days | Pressure loss |
+| ECLSS_O2_FAILURE | 0.30/year | 24-72h | O2 production 0 |
+| CREW_MEDICAL_MAJOR | 0.10/year | 30-180 days | -1 crew |
+| CONJUNCTION_BLACKOUT | 1.00/780d | 14 days | Earth comms 0 |
+
+---
+
 ## §11 AUDIT RESULTS (2025-12-24)
 
 ### 11.1 CLAUDEME Compliance

@@ -1,0 +1,139 @@
+# Mars Maximum Colony Configuration
+# Source: Salotti Nature 2020 baseline (110 crew)
+# Expected Sovereignty Score: ~99.9%
+
+colony:
+  name: "Mars Maximum Colony"
+  crew_count: 110
+  mission_duration_days: 1000  # Extended mission
+
+crew_skills:
+  medical:
+    - {name: "Chief Medical Officer", proficiency: 1.0}
+    - {name: "Surgeon 1", proficiency: 1.0}
+    - {name: "Surgeon 2", proficiency: 1.0}
+    - {name: "Physician 1", proficiency: 0.9}
+    - {name: "Physician 2", proficiency: 0.9}
+    - {name: "Nurse 1", proficiency: 0.8}
+    - {name: "Nurse 2", proficiency: 0.8}
+    - {name: "Nurse 3", proficiency: 0.8}
+    - {name: "Medical Tech 1", proficiency: 0.7}
+    - {name: "Medical Tech 2", proficiency: 0.7}
+  engineering:
+    - {name: "Chief Engineer", proficiency: 1.0}
+    - {name: "Deputy Chief Engineer", proficiency: 1.0}
+    - {name: "Mechanical Lead", proficiency: 1.0}
+    - {name: "Electrical Lead", proficiency: 1.0}
+    - {name: "Software Lead", proficiency: 1.0}
+    - {name: "Structural Lead", proficiency: 1.0}
+    - {name: "Engineer 1", proficiency: 0.9}
+    - {name: "Engineer 2", proficiency: 0.9}
+    - {name: "Engineer 3", proficiency: 0.9}
+    - {name: "Engineer 4", proficiency: 0.9}
+    - {name: "Tech 1", proficiency: 0.7}
+    - {name: "Tech 2", proficiency: 0.7}
+    - {name: "Tech 3", proficiency: 0.7}
+    - {name: "Tech 4", proficiency: 0.7}
+  systems:
+    - {name: "Systems Director", proficiency: 1.0}
+    - {name: "Systems Lead 1", proficiency: 1.0}
+    - {name: "Systems Lead 2", proficiency: 1.0}
+    - {name: "Systems Engineer 1", proficiency: 0.9}
+    - {name: "Systems Engineer 2", proficiency: 0.9}
+    - {name: "Systems Tech 1", proficiency: 0.8}
+    - {name: "Systems Tech 2", proficiency: 0.8}
+    - {name: "Systems Tech 3", proficiency: 0.8}
+  life_support:
+    - {name: "ECLSS Director", proficiency: 1.0}
+    - {name: "ECLSS Lead 1", proficiency: 1.0}
+    - {name: "ECLSS Lead 2", proficiency: 1.0}
+    - {name: "ECLSS Engineer 1", proficiency: 0.9}
+    - {name: "ECLSS Engineer 2", proficiency: 0.9}
+    - {name: "ECLSS Tech 1", proficiency: 0.8}
+    - {name: "ECLSS Tech 2", proficiency: 0.8}
+    - {name: "ECLSS Tech 3", proficiency: 0.8}
+  agriculture:
+    - {name: "Agriculture Director", proficiency: 1.0}
+    - {name: "Lead Botanist", proficiency: 1.0}
+    - {name: "Hydroponics Lead", proficiency: 1.0}
+    - {name: "Soil Scientist", proficiency: 0.9}
+    - {name: "Food Scientist", proficiency: 0.9}
+    - {name: "Ag Engineer 1", proficiency: 0.8}
+    - {name: "Ag Engineer 2", proficiency: 0.8}
+    - {name: "Ag Tech 1", proficiency: 0.7}
+    - {name: "Ag Tech 2", proficiency: 0.7}
+    - {name: "Ag Tech 3", proficiency: 0.7}
+    - {name: "Ag Tech 4", proficiency: 0.7}
+  power:
+    - {name: "Power Director", proficiency: 1.0}
+    - {name: "Nuclear Lead", proficiency: 1.0}
+    - {name: "Solar Lead", proficiency: 1.0}
+    - {name: "Power Engineer 1", proficiency: 0.9}
+    - {name: "Power Engineer 2", proficiency: 0.9}
+    - {name: "Power Tech 1", proficiency: 0.8}
+    - {name: "Power Tech 2", proficiency: 0.8}
+  science:
+    - {name: "Science Director", proficiency: 1.0}
+    - {name: "Geology Lead", proficiency: 1.0}
+    - {name: "Biology Lead", proficiency: 1.0}
+    - {name: "Chemistry Lead", proficiency: 1.0}
+    - {name: "Physics Lead", proficiency: 1.0}
+    - {name: "Scientist 1", proficiency: 0.9}
+    - {name: "Scientist 2", proficiency: 0.9}
+    - {name: "Scientist 3", proficiency: 0.9}
+    - {name: "Scientist 4", proficiency: 0.9}
+    - {name: "Scientist 5", proficiency: 0.9}
+    - {name: "Science Tech 1", proficiency: 0.7}
+    - {name: "Science Tech 2", proficiency: 0.7}
+  operations:
+    - {name: "Operations Director", proficiency: 1.0}
+    - {name: "EVA Director", proficiency: 1.0}
+    - {name: "Logistics Director", proficiency: 1.0}
+    - {name: "EVA Specialist 1", proficiency: 0.9}
+    - {name: "EVA Specialist 2", proficiency: 0.9}
+    - {name: "EVA Specialist 3", proficiency: 0.9}
+    - {name: "EVA Specialist 4", proficiency: 0.9}
+    - {name: "Logistics Tech 1", proficiency: 0.8}
+    - {name: "Logistics Tech 2", proficiency: 0.8}
+  communications:
+    - {name: "Comms Director", proficiency: 1.0}
+    - {name: "Network Lead", proficiency: 1.0}
+    - {name: "Comms Engineer 1", proficiency: 0.9}
+    - {name: "Comms Engineer 2", proficiency: 0.9}
+    - {name: "Comms Tech 1", proficiency: 0.8}
+    - {name: "Comms Tech 2", proficiency: 0.8}
+
+life_support:
+  eclss_closure_o2: 0.90  # Near-perfect closure
+  eclss_closure_h2o: 0.98  # ISS achievement
+  moxie_units: 12  # Scaled for 110 crew
+  sabatier_units: 6
+  eclss_mtbf_hours: 1752
+  redundancy_factor: 3.0  # Triple redundancy
+
+power:
+  solar_array_m2: 1200
+  kilopower_units: 10  # 100 kW total nuclear
+  battery_kwh: 600
+  radiator_area_m2: 300
+
+resources:
+  water_reserve_kg: 40000  # ~120 days at 110 crew
+  food_reserve_kcal: 100000000  # ~150 days at 110 crew
+  o2_reserve_kg: 6000  # ~100 days at 110 crew
+  spare_parts_mass_kg: 25000
+
+isru:
+  water_extraction_kg_day: 500
+  o2_production_moxie_kg_day: 1.58  # 12 units
+  ch4_production_sabatier_kg_day: 30.0
+  food_production_kg_day: 100  # Significant local production
+
+communication:
+  bandwidth_mbps: 100.0  # Future Marslink capability
+  latency_one_way_sec: 660
+
+expected:
+  sovereignty_score_min: 99.0
+  sovereignty_score_max: 100.0
+  survival_rate_min: 0.99

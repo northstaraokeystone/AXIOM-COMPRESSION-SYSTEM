@@ -1,0 +1,98 @@
+# Mars Nominal Colony Configuration
+# Source: SpaceX target estimate (50 crew)
+# Expected Sovereignty Score: ~98%
+
+colony:
+  name: "Mars Nominal Colony"
+  crew_count: 50
+  mission_duration_days: 780  # Full synodic period
+
+crew_skills:
+  medical:
+    - {name: "Chief Medical Officer", proficiency: 1.0}
+    - {name: "Surgeon", proficiency: 1.0}
+    - {name: "Nurse Practitioner 1", proficiency: 0.8}
+    - {name: "Nurse Practitioner 2", proficiency: 0.8}
+    - {name: "Medical Tech", proficiency: 0.7}
+  engineering:
+    - {name: "Chief Engineer", proficiency: 1.0}
+    - {name: "Mechanical Lead", proficiency: 1.0}
+    - {name: "Electrical Lead", proficiency: 1.0}
+    - {name: "Structural Engineer", proficiency: 0.9}
+    - {name: "Mechanical Tech 1", proficiency: 0.7}
+    - {name: "Mechanical Tech 2", proficiency: 0.7}
+    - {name: "Electrical Tech", proficiency: 0.7}
+  systems:
+    - {name: "Systems Director", proficiency: 1.0}
+    - {name: "Systems Lead", proficiency: 1.0}
+    - {name: "Systems Tech 1", proficiency: 0.8}
+    - {name: "Systems Tech 2", proficiency: 0.8}
+  life_support:
+    - {name: "ECLSS Director", proficiency: 1.0}
+    - {name: "ECLSS Lead", proficiency: 1.0}
+    - {name: "ECLSS Tech 1", proficiency: 0.8}
+    - {name: "ECLSS Tech 2", proficiency: 0.8}
+  agriculture:
+    - {name: "Agriculture Director", proficiency: 1.0}
+    - {name: "Lead Botanist", proficiency: 1.0}
+    - {name: "Hydroponics Specialist", proficiency: 0.9}
+    - {name: "Soil Scientist", proficiency: 0.8}
+    - {name: "Ag Tech 1", proficiency: 0.7}
+    - {name: "Ag Tech 2", proficiency: 0.7}
+  power:
+    - {name: "Power Director", proficiency: 1.0}
+    - {name: "Nuclear Engineer", proficiency: 1.0}
+    - {name: "Solar Tech", proficiency: 0.8}
+    - {name: "Power Tech", proficiency: 0.7}
+  science:
+    - {name: "Science Director", proficiency: 1.0}
+    - {name: "Lead Geologist", proficiency: 1.0}
+    - {name: "Biologist", proficiency: 0.9}
+    - {name: "Chemist", proficiency: 0.9}
+    - {name: "Science Tech 1", proficiency: 0.7}
+    - {name: "Science Tech 2", proficiency: 0.7}
+  operations:
+    - {name: "Operations Director", proficiency: 1.0}
+    - {name: "EVA Lead", proficiency: 1.0}
+    - {name: "Logistics Lead", proficiency: 0.9}
+    - {name: "EVA Specialist 1", proficiency: 0.8}
+    - {name: "EVA Specialist 2", proficiency: 0.8}
+  communications:
+    - {name: "Comms Director", proficiency: 1.0}
+    - {name: "Network Admin", proficiency: 0.9}
+    - {name: "Comms Tech", proficiency: 0.7}
+
+life_support:
+  eclss_closure_o2: 0.87  # Better than ISS baseline
+  eclss_closure_h2o: 0.97  # Near ISS achievement
+  moxie_units: 5  # Scaled for 50 crew
+  sabatier_units: 3
+  eclss_mtbf_hours: 1752
+  redundancy_factor: 2.0  # Full redundancy
+
+power:
+  solar_array_m2: 500
+  kilopower_units: 4  # 40 kW total nuclear
+  battery_kwh: 250
+  radiator_area_m2: 120
+
+resources:
+  water_reserve_kg: 15000  # ~90 days at 50 crew
+  food_reserve_kcal: 45000000  # ~120 days at 50 crew
+  o2_reserve_kg: 2000  # ~90 days at 50 crew
+  spare_parts_mass_kg: 8000
+
+isru:
+  water_extraction_kg_day: 200
+  o2_production_moxie_kg_day: 0.66  # 5 units
+  ch4_production_sabatier_kg_day: 15.0
+  food_production_kg_day: 20  # Partial local production
+
+communication:
+  bandwidth_mbps: 10.0  # Enhanced relay
+  latency_one_way_sec: 660
+
+expected:
+  sovereignty_score_min: 95.0
+  sovereignty_score_max: 100.0
+  survival_rate_min: 0.90
