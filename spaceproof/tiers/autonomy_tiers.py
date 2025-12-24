@@ -341,7 +341,7 @@ def calculate_evolution_rate(tier: AutonomyTier) -> float:
     # 3. Compression pressure (harder constraints = faster adaptation)
 
     isolation_factor = 1 + config.autonomy_requirement * 10
-    loop_factor = 1 / (1 + math.log10(1 + config.loop_frequency_sec))
+    loop_factor = 1 + math.log10(1 + config.loop_frequency_sec)
     compression_factor = 1 + config.compression_threshold * 2
 
     return isolation_factor * loop_factor * compression_factor
