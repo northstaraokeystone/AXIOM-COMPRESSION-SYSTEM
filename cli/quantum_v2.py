@@ -122,6 +122,6 @@ def cmd_quantum_v2_validate(args) -> None:
 
     print("\n=== FOUR-NINES VALIDATION ===")
     print(f"Correlation: {correlation:.6f}")
-    print(f"Target: 0.9999")
+    print("Target: 0.9999")
     print(f"Valid (>= 0.9999): {valid}")
     print(f"Margin: {correlation - 0.9999:.6f}")

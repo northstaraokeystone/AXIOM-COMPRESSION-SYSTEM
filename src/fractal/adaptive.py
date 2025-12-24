@@ -8,8 +8,6 @@ ADAPTIVE TERMINATION:
     Prevents unnecessary computation when uplift gains become negligible.
 """
 
-from typing import Any, Dict
-
 
 # === ADAPTIVE TERMINATION CONSTANTS ===
 

@@ -29,22 +29,33 @@ from .callisto import (
 
 __all__ = [
     # Titan
-    "integrate_titan", "compute_titan_autonomy", "simulate_titan_methane",
+    "integrate_titan",
+    "compute_titan_autonomy",
+    "simulate_titan_methane",
     # Europa
-    "integrate_europa", "compute_europa_autonomy", "simulate_europa_drilling",
+    "integrate_europa",
+    "compute_europa_autonomy",
+    "simulate_europa_drilling",
     # Ganymede
-    "integrate_ganymede", "compute_ganymede_autonomy", "simulate_ganymede_navigation",
+    "integrate_ganymede",
+    "compute_ganymede_autonomy",
+    "simulate_ganymede_navigation",
     # Callisto
-    "integrate_callisto", "compute_callisto_autonomy",
+    "integrate_callisto",
+    "compute_callisto_autonomy",
 ]
 
 RECEIPT_SCHEMA = {
     "module": "src.paths.multiplanet.moons",
     "receipt_types": [
-        "mp_titan_integrate", "mp_titan_autonomy",
-        "mp_europa_integrate", "mp_europa_autonomy",
-        "mp_ganymede_integrate", "mp_ganymede_autonomy",
-        "mp_callisto_integrate", "mp_callisto_autonomy",
+        "mp_titan_integrate",
+        "mp_titan_autonomy",
+        "mp_europa_integrate",
+        "mp_europa_autonomy",
+        "mp_ganymede_integrate",
+        "mp_ganymede_autonomy",
+        "mp_callisto_integrate",
+        "mp_callisto_autonomy",
     ],
     "version": "1.0.0",
 }

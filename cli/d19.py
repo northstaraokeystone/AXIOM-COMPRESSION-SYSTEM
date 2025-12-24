@@ -57,18 +57,26 @@ def cmd_d19_info(args: Namespace) -> Dict[str, Any]:
     print("\nGate 3 - Autocatalytic Patterns:")
     print(f"  Self-reference threshold: {gate_3.get('self_reference_threshold', 0.70)}")
     print(f"  Pattern birth fitness: {gate_3.get('pattern_birth_fitness', 0.60)}")
-    print(f"  Migration latency tolerance: {gate_3.get('migration_latency_tolerance_ms', 5000)}ms")
+    print(
+        f"  Migration latency tolerance: {gate_3.get('migration_latency_tolerance_ms', 5000)}ms"
+    )
 
     gate_4 = config.get("gate_4_config", {})
     print("\nGate 4 - Multi-Scale Federation:")
-    print(f"  Hierarchy levels: {gate_4.get('hierarchy_levels', ['node', 'cluster', 'planet', 'system'])}")
+    print(
+        f"  Hierarchy levels: {gate_4.get('hierarchy_levels', ['node', 'cluster', 'planet', 'system'])}"
+    )
     print(f"  Law composition: {gate_4.get('law_composition_mode', 'bottom_up')}")
-    print(f"  Constraint propagation: {gate_4.get('constraint_propagation_mode', 'top_down')}")
+    print(
+        f"  Constraint propagation: {gate_4.get('constraint_propagation_mode', 'top_down')}"
+    )
 
     gate_5 = config.get("gate_5_config", {})
     print("\nGate 5 - Quantum Consensus:")
     print(f"  Correlation target: {gate_5.get('correlation_target', 0.9999)}")
-    print(f"  Byzantine via decoherence: {gate_5.get('byzantine_detection_via_decoherence', True)}")
+    print(
+        f"  Byzantine via decoherence: {gate_5.get('byzantine_detection_via_decoherence', True)}"
+    )
     print(f"  State sync mode: {gate_5.get('state_sync_mode', 'correlation_verified')}")
 
     print("\nInnovation Targets:")
@@ -110,7 +118,9 @@ def cmd_d19_run(args: Namespace) -> Dict[str, Any]:
     print(f"All gates passed: {result.get('all_gates_passed', False)}")
 
     innovation = result.get("innovation", {})
-    print(f"\nInnovation targets met: {innovation.get('targets_met', 0)}/{innovation.get('total_targets', 0)}")
+    print(
+        f"\nInnovation targets met: {innovation.get('targets_met', 0)}/{innovation.get('total_targets', 0)}"
+    )
     print(f"Success ratio: {innovation.get('success_ratio', 0):.2%}")
 
     print(f"\nSLO passed: {result.get('slo_passed', False)}")
@@ -273,7 +283,9 @@ def cmd_d19_gate_5(args: Namespace) -> Dict[str, Any]:
     print(f"Average correlation: {result.get('avg_correlation', 0):.6f}")
     print(f"Consensus achieved: {result.get('consensus_achieved', False)}")
     print(f"State sync ratio: {result.get('state_sync_ratio', 0):.4f}")
-    print(f"Byzantine detection active: {result.get('byzantine_detection_active', False)}")
+    print(
+        f"Byzantine detection active: {result.get('byzantine_detection_active', False)}"
+    )
     print(f"Byzantine detected: {result.get('byzantine_detected', False)}")
     print(f"Target met: {result.get('target_met', False)}")
 
@@ -326,7 +338,10 @@ def cmd_d19_run_live_only(args: Namespace) -> Dict[str, Any]:
     Returns:
         Dict with D19 live-only results
     """
-    from src.depths.d19_swarm_intelligence import run_d19_live_only, SYNTHETIC_SCENARIOS_ENABLED
+    from src.depths.d19_swarm_intelligence import (
+        run_d19_live_only,
+        SYNTHETIC_SCENARIOS_ENABLED,
+    )
 
     print("\n=== D19.1 LIVE-ONLY EXECUTION ===")
     print("Mode: Reality-only (synthetic KILLED)")
@@ -436,8 +451,12 @@ def cmd_d19_alpha_threshold_test(args: Namespace) -> Dict[str, Any]:
     result = test_alpha_threshold()
 
     print(f"Threshold: {result.get('threshold', 1.20)}")
-    print(f"Below threshold check (1.15 < 1.20): {result.get('below_threshold_check', False)}")
-    print(f"Above threshold check (1.25 > 1.20): {result.get('above_threshold_check', False)}")
+    print(
+        f"Below threshold check (1.15 < 1.20): {result.get('below_threshold_check', False)}"
+    )
+    print(
+        f"Above threshold check (1.25 > 1.20): {result.get('above_threshold_check', False)}"
+    )
     print(f"Law triggered: {result.get('law_triggered', False)}")
     print(f"Law ID: {result.get('law_id', 'N/A')}")
 
@@ -877,7 +896,9 @@ def cmd_d19_gap_silence_test(args: Namespace) -> Dict[str, Any]:
     print(f"Extended gap seconds: {result.get('extended_gap_seconds', 0):.2f}")
     print(f"\nLaws survive normal gap: {result.get('laws_survive_normal', 0)}")
     print(f"Laws survive extended gap: {result.get('laws_survive_extended', 0)}")
-    print(f"Interstellar threshold: {result.get('interstellar_threshold_years', 4.0)} years")
+    print(
+        f"Interstellar threshold: {result.get('interstellar_threshold_years', 4.0)} years"
+    )
     print(f"\nTest passed: {result.get('passed', False)}")
 
     return result

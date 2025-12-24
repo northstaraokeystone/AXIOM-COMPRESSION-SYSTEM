@@ -127,8 +127,12 @@ class TestRealtimeFeedbackLoop:
         from src.cfd_dust_dynamics import realtime_feedback_loop
 
         # Create sample LES and drone data with some discrepancy
-        les_output = {"samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.1} for i in range(20)]}
-        drone_data = {"samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.12} for i in range(20)]}
+        les_output = {
+            "samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.1} for i in range(20)]
+        }
+        drone_data = {
+            "samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.12} for i in range(20)]
+        }
 
         result = realtime_feedback_loop(les_output, drone_data)
 
@@ -146,7 +150,9 @@ class TestRealtimeCorrelation:
 
         # Create sample LES and field data
         les_data = {"samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.1} for i in range(20)]}
-        field_data = {"samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.1} for i in range(20)]}
+        field_data = {
+            "samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.1} for i in range(20)]
+        }
 
         result = compute_realtime_correlation(les_data, field_data)
 
@@ -161,7 +167,9 @@ class TestRealtimeCorrelation:
 
         # Create identical data - should have perfect correlation
         les_data = {"samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.1} for i in range(20)]}
-        field_data = {"samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.1} for i in range(20)]}
+        field_data = {
+            "samples": [{"t_s": i, "u_m_s": 15.0 + i * 0.1} for i in range(20)]
+        }
 
         result = compute_realtime_correlation(les_data, field_data)
 

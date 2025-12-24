@@ -9,15 +9,14 @@ it's behaving non-deterministically (Byzantine).
 """
 
 import json
-import math
 import random
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .core import emit_receipt, dual_hash, TENANT_ID
-from .quantum_entangled_consensus import QuantumConsensus, DECOHERENCE_THRESHOLD
+from .quantum_entangled_consensus import QuantumConsensus
 
 # === D19 BYZANTINE DETECTION CONSTANTS ===
 
@@ -100,7 +99,9 @@ def measure_decoherence_rate(bd: ByzantineDetector, node_id: str) -> float:
             "node_id": node_id,
             "rate": round(rate, 6),
             "pairs_measured": len(rates),
-            "payload_hash": dual_hash(json.dumps({"node_id": node_id, "rate": rate}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"node_id": node_id, "rate": rate}, sort_keys=True)
+            ),
         },
     )
 
@@ -173,7 +174,11 @@ def detect_anomalous_decoherence(bd: ByzantineDetector, node_id: str) -> bool:
             "predicted_rate": round(predicted_rate, 6),
             "anomaly_score": round(anomaly_score, 4),
             "is_anomalous": is_anomalous,
-            "payload_hash": dual_hash(json.dumps({"node_id": node_id, "anomalous": is_anomalous}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"node_id": node_id, "anomalous": is_anomalous}, sort_keys=True
+                )
+            ),
         },
     )
 
@@ -226,7 +231,9 @@ def classify_byzantine_behavior(bd: ByzantineDetector, node_id: str) -> str:
             "node_id": node_id,
             "classification": classification,
             "anomaly_score": round(score, 4),
-            "payload_hash": dual_hash(json.dumps({"node_id": node_id, "type": classification}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"node_id": node_id, "type": classification}, sort_keys=True)
+            ),
         },
     )
 

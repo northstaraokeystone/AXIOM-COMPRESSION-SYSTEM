@@ -18,7 +18,12 @@ def integrate_plonk(config=None):
     """Wire PLONK proofs to AGI path."""
     if config is None:
         config = load_plonk_config()
-    return {"integrated": True, "config": config, "plonk_enabled": True, "proof_system": "plonk"}
+    return {
+        "integrated": True,
+        "config": config,
+        "plonk_enabled": True,
+        "proof_system": "plonk",
+    }
 
 
 def run_plonk_stress_test(iterations=100):

@@ -10,7 +10,7 @@ Source: AXIOM scalable paths architecture - AGI adversarial defenses
 
 from typing import Dict, Any, List, Optional
 
-from ...base import emit_path_receipt, load_path_spec
+from ...base import emit_path_receipt
 
 # Import AGI constants from core module
 from ..core import AGI_TENANT_ID, ALIGNMENT_METRIC, compute_alignment

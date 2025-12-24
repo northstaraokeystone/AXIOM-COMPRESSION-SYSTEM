@@ -18,7 +18,7 @@ import uuid
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -105,7 +105,9 @@ def init_oracle(config: Dict[str, Any] = None) -> LiveHistoryOracle:
             "oracle_mode": config.get("oracle_mode", ORACLE_MODE),
             "projection_enabled": config.get("projection_enabled", False),
             "simulation_enabled": config.get("simulation_enabled", False),
-            "payload_hash": dual_hash(json.dumps({"oracle_id": oracle_id}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"oracle_id": oracle_id}, sort_keys=True)
+            ),
         },
     )
 
@@ -216,31 +218,35 @@ def extract_laws_from_history(history: List[Dict]) -> List[Dict]:
 
         if frequency >= 0.05:  # At least 5% of history
             law_id = str(uuid.uuid4())[:8]
-            laws.append({
-                "law_id": law_id,
-                "law_type": "pattern_frequency",
-                "pattern": receipt_type,
-                "frequency": round(frequency, 4),
-                "observation_count": count,
-                "total_history": total,
-                "compression_contribution": round(frequency * 0.5, 4),
-                "source": "chain_history",
-                "created_at": now,
-            })
+            laws.append(
+                {
+                    "law_id": law_id,
+                    "law_type": "pattern_frequency",
+                    "pattern": receipt_type,
+                    "frequency": round(frequency, 4),
+                    "observation_count": count,
+                    "total_history": total,
+                    "compression_contribution": round(frequency * 0.5, 4),
+                    "source": "chain_history",
+                    "created_at": now,
+                }
+            )
 
     # Extract temporal patterns
     if len(history) >= 10:
         # Check for periodic patterns
         timestamps = [r.get("ts", "") for r in history]
         # Simplified: just indicate temporal coherence exists
-        laws.append({
-            "law_id": str(uuid.uuid4())[:8],
-            "law_type": "temporal_coherence",
-            "pattern": "sequential_ordering",
-            "observation_count": len(timestamps),
-            "source": "chain_history",
-            "created_at": now,
-        })
+        laws.append(
+            {
+                "law_id": str(uuid.uuid4())[:8],
+                "law_type": "temporal_coherence",
+                "pattern": "sequential_ordering",
+                "observation_count": len(timestamps),
+                "source": "chain_history",
+                "created_at": now,
+            }
+        )
 
     return laws
 
@@ -282,7 +288,9 @@ def oracle_query(oracle: LiveHistoryOracle, query: str) -> Dict[str, Any]:
     }
 
 
-def emit_oracle_receipt(oracle: LiveHistoryOracle, laws: List[Dict], compression: float) -> Dict[str, Any]:
+def emit_oracle_receipt(
+    oracle: LiveHistoryOracle, laws: List[Dict], compression: float
+) -> Dict[str, Any]:
     """Emit live_history_oracle_receipt.
 
     Args:

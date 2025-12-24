@@ -170,7 +170,9 @@ def insert_woven_law(
             "merkle_root_after": merkle_after[:32],
             "insertion_mode": "preemptive",
             "payload_hash": dual_hash(
-                json.dumps({"law_id": law_id, "position": chain_position}, sort_keys=True)
+                json.dumps(
+                    {"law_id": law_id, "position": chain_position}, sort_keys=True
+                )
             ),
         },
     )
@@ -204,10 +206,12 @@ def batch_insert_laws(
         law_data = law.get("law_data", law)
 
         woven = insert_woven_law(chain, law_id, law_type, law_data)
-        inserted.append({
-            "law_id": woven.law_id,
-            "chain_position": woven.chain_position,
-        })
+        inserted.append(
+            {
+                "law_id": woven.law_id,
+                "chain_position": woven.chain_position,
+            }
+        )
 
     merkle_after = chain.current_merkle_root
 
@@ -248,7 +252,9 @@ def verify_chain_integrity(chain: WeaveChain) -> Dict[str, Any]:
     now = datetime.utcnow().isoformat() + "Z"
 
     # Recompute merkle root from chain receipts
-    computed_root = merkle(chain.chain_receipts) if chain.chain_receipts else dual_hash(b"genesis")
+    computed_root = (
+        merkle(chain.chain_receipts) if chain.chain_receipts else dual_hash(b"genesis")
+    )
 
     integrity_valid = computed_root == chain.current_merkle_root
 

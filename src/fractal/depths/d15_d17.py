@@ -9,7 +9,7 @@ import json
 import math
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from ...core import emit_receipt, dual_hash
 from ..alpha import get_scale_factor, TENANT_ID
@@ -58,10 +58,11 @@ def get_d15_spec() -> Dict[str, Any]:
 
     Receipt: d15_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d15_chaos_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d15_chaos_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -602,10 +603,11 @@ def get_d16_spec() -> Dict[str, Any]:
 
     Receipt: d16_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d16_kuiper_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d16_kuiper_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -618,11 +620,15 @@ def get_d16_spec() -> Dict[str, Any]:
             "tenant_id": TENANT_ID,
             "ts": datetime.utcnow().isoformat() + "Z",
             "version": spec.get("version", "1.0.0"),
-            "alpha_floor": spec.get("d16_config", {}).get("alpha_floor", D16_ALPHA_FLOOR),
+            "alpha_floor": spec.get("d16_config", {}).get(
+                "alpha_floor", D16_ALPHA_FLOOR
+            ),
             "alpha_target": spec.get("d16_config", {}).get(
                 "alpha_target", D16_ALPHA_TARGET
             ),
-            "topological": spec.get("d16_config", {}).get("topological", D16_TOPOLOGICAL),
+            "topological": spec.get("d16_config", {}).get(
+                "topological", D16_TOPOLOGICAL
+            ),
             "homology_dimension": spec.get("d16_config", {}).get(
                 "homology_dimension", D16_HOMOLOGY_DIMENSION
             ),
@@ -664,7 +670,6 @@ def compute_persistent_homology(
 
     Receipt: d16_homology_receipt
     """
-    import math
 
     # Simplified persistent homology computation
     # In production, would use gudhi or ripser
@@ -686,11 +691,13 @@ def compute_persistent_homology(
 
             if persistence > D16_PERSISTENCE_THRESHOLD:
                 death = birth + persistence
-                pairs.append({
-                    "birth": round(birth, 4),
-                    "death": round(death, 4),
-                    "persistence": round(persistence, 4),
-                })
+                pairs.append(
+                    {
+                        "birth": round(birth, 4),
+                        "death": round(death, 4),
+                        "persistence": round(persistence, 4),
+                    }
+                )
 
         persistence_diagrams[f"H{dim}"] = pairs
 
@@ -724,7 +731,10 @@ def compute_persistent_homology(
             "total_persistence": round(total_persistence, 4),
             "payload_hash": dual_hash(
                 json.dumps(
-                    {"betti_numbers": betti_numbers, "total_persistence": round(total_persistence, 4)},
+                    {
+                        "betti_numbers": betti_numbers,
+                        "total_persistence": round(total_persistence, 4),
+                    },
                     sort_keys=True,
                 )
             ),
@@ -766,7 +776,6 @@ def multidimensional_scaling(
     Returns:
         Embedded coordinates
     """
-    import math
     import random
 
     n = len(distances) if distances else 10
@@ -984,7 +993,9 @@ def d16_push(
             "tenant_id": TENANT_ID,
             "ts": datetime.utcnow().isoformat() + "Z",
             **{k: v for k, v in push_result.items() if k not in ["mode", "homology"]},
-            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True, default=str)),
+            "payload_hash": dual_hash(
+                json.dumps(push_result, sort_keys=True, default=str)
+            ),
         },
     )
 
@@ -1044,7 +1055,8 @@ def d16_kuiper_hybrid(
         },
         "combined_alpha": round(combined_alpha, 4),
         "combined_stability": round(combined_stability, 4),
-        "hybrid_passed": d16_result["target_met"] and kuiper_result.get("target_met", True),
+        "hybrid_passed": d16_result["target_met"]
+        and kuiper_result.get("target_met", True),
         "gate": "t24h",
     }
 
@@ -1153,10 +1165,11 @@ def get_d17_spec() -> Dict[str, Any]:
 
     Receipt: d17_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d17_heliosphere_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d17_heliosphere_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -1169,11 +1182,15 @@ def get_d17_spec() -> Dict[str, Any]:
             "tenant_id": TENANT_ID,
             "ts": datetime.utcnow().isoformat() + "Z",
             "version": spec.get("version", "1.0.0"),
-            "alpha_floor": spec.get("d17_config", {}).get("alpha_floor", D17_ALPHA_FLOOR),
+            "alpha_floor": spec.get("d17_config", {}).get(
+                "alpha_floor", D17_ALPHA_FLOOR
+            ),
             "alpha_target": spec.get("d17_config", {}).get(
                 "alpha_target", D17_ALPHA_TARGET
             ),
-            "depth_first": spec.get("d17_config", {}).get("depth_first", D17_DEPTH_FIRST),
+            "depth_first": spec.get("d17_config", {}).get(
+                "depth_first", D17_DEPTH_FIRST
+            ),
             "non_asymptotic": spec.get("d17_config", {}).get(
                 "non_asymptotic", D17_NON_ASYMPTOTIC
             ),
@@ -1201,7 +1218,9 @@ def get_d17_uplift(depth: int) -> float:
     return float(uplift_map.get(str(depth), 0.0))
 
 
-def depth_first_traversal(data: List[List[float]], max_depth: int = 10) -> Dict[str, Any]:
+def depth_first_traversal(
+    data: List[List[float]], max_depth: int = 10
+) -> Dict[str, Any]:
     """Execute depth-first traversal strategy for D17 recursion.
 
     Depth-first traversal maximizes alpha gains by fully exploring
@@ -1250,7 +1269,9 @@ def depth_first_traversal(data: List[List[float]], max_depth: int = 10) -> Dict[
     }
 
 
-def check_asymptotic_ceiling(alphas: list, threshold: float = D17_TERMINATION_THRESHOLD) -> Dict[str, Any]:
+def check_asymptotic_ceiling(
+    alphas: list, threshold: float = D17_TERMINATION_THRESHOLD
+) -> Dict[str, Any]:
     """Check if alpha values are approaching asymptotic ceiling.
 
     D17 targets non-asymptotic growth - this function detects if
@@ -1387,7 +1408,7 @@ def d17_depth_first_push(
         current_alpha=base_alpha,
         target_alpha=D17_ALPHA_TARGET,
         uplift=adjusted_uplift,
-        depth=17
+        depth=17,
     )
     sustainability = sustainability_result["sustainability_score"]
 
@@ -1524,7 +1545,9 @@ def d17_push(
             "tenant_id": TENANT_ID,
             "ts": datetime.utcnow().isoformat() + "Z",
             **{k: v for k, v in push_result.items() if k != "mode"},
-            "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True, default=str)),
+            "payload_hash": dual_hash(
+                json.dumps(push_result, sort_keys=True, default=str)
+            ),
         },
     )
 
@@ -1553,7 +1576,10 @@ def d17_heliosphere_hybrid(
     d17_result = d17_depth_first_push(tree_size, base_alpha, depth_first=True)
 
     # Run Heliosphere Oort simulation
-    from ...heliosphere_oort_sim import simulate_oort_coordination, get_heliosphere_status
+    from ...heliosphere_oort_sim import (
+        simulate_oort_coordination,
+        get_heliosphere_status,
+    )
 
     oort_result = simulate_oort_coordination(au=50000, duration_days=365)
     helio_status = get_heliosphere_status()
@@ -1561,10 +1587,9 @@ def d17_heliosphere_hybrid(
     # Combined metrics
     combined_alpha = d17_result["eff_alpha"]
     combined_autonomy = oort_result.get("autonomy_level", 0.999)
-    combined_stability = (
-        oort_result.get("coordination_viable", True)
-        and d17_result.get("non_asymptotic", True)
-    )
+    combined_stability = oort_result.get(
+        "coordination_viable", True
+    ) and d17_result.get("non_asymptotic", True)
 
     hybrid_result = {
         "mode": "simulate" if simulate else "execute",
@@ -1587,7 +1612,8 @@ def d17_heliosphere_hybrid(
         "combined_alpha": round(combined_alpha, 4),
         "combined_autonomy": round(combined_autonomy, 4),
         "combined_stability": combined_stability,
-        "hybrid_passed": d17_result["target_met"] and oort_result.get("coordination_viable", True),
+        "hybrid_passed": d17_result["target_met"]
+        and oort_result.get("coordination_viable", True),
         "gate": "t24h",
     }
 
@@ -1647,14 +1673,17 @@ def get_d17_info() -> Dict[str, Any]:
             "version": info["version"],
             "alpha_target": info["d17_config"].get("alpha_target", D17_ALPHA_TARGET),
             "depth_first": info["d17_config"].get("depth_first", D17_DEPTH_FIRST),
-            "non_asymptotic": info["d17_config"].get("non_asymptotic", D17_NON_ASYMPTOTIC),
-            "oort_distance_au": info["oort_cloud_config"].get("simulation_distance_au", 50000),
+            "non_asymptotic": info["d17_config"].get(
+                "non_asymptotic", D17_NON_ASYMPTOTIC
+            ),
+            "oort_distance_au": info["oort_cloud_config"].get(
+                "simulation_distance_au", 50000
+            ),
             "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
         },
     )
 
     return info
-
 
 
 # === D18 RECURSION CONSTANTS ===
@@ -1690,7 +1719,6 @@ D18_COMPRESSION_TARGET = 0.992
 
 def get_d18_spec() -> Dict[str, Any]:
     """Load d18_interstellar_spec.json with dual-hash verification."""
-    import os
 
     spec_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
@@ -1765,13 +1793,16 @@ def pruning_v3(tree: Dict[str, Any]) -> Dict[str, Any]:
         "target_met": compression_ratio >= D18_COMPRESSION_TARGET,
     }
 
-    emit_receipt("pruning_v3", {
-        "receipt_type": "pruning_v3",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "compression_ratio": compression_ratio,
-        "payload_hash": dual_hash(json.dumps(result, sort_keys=True, default=str)),
-    })
+    emit_receipt(
+        "pruning_v3",
+        {
+            "receipt_type": "pruning_v3",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "compression_ratio": compression_ratio,
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True, default=str)),
+        },
+    )
 
     return result
 
@@ -1830,14 +1861,19 @@ def d18_push(
         "gate": "t24h",
     }
 
-    emit_receipt("d18_push", {
-        "receipt_type": "d18_push",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "eff_alpha": push_result["eff_alpha"],
-        "target_met": push_result["target_met"],
-        "payload_hash": dual_hash(json.dumps(push_result, sort_keys=True, default=str)),
-    })
+    emit_receipt(
+        "d18_push",
+        {
+            "receipt_type": "d18_push",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "eff_alpha": push_result["eff_alpha"],
+            "target_met": push_result["target_met"],
+            "payload_hash": dual_hash(
+                json.dumps(push_result, sort_keys=True, default=str)
+            ),
+        },
+    )
 
     return push_result
 
@@ -1879,18 +1915,24 @@ def d18_interstellar_hybrid(
         "relay": relay_result,
         "quantum": quantum_result,
         "combined_alpha": round(combined_alpha, 4),
-        "hybrid_passed": d18_result["target_met"] and relay_result["coordination_viable"],
+        "hybrid_passed": d18_result["target_met"]
+        and relay_result["coordination_viable"],
         "gate": "t24h",
     }
 
-    emit_receipt("d18_interstellar_hybrid", {
-        "receipt_type": "d18_interstellar_hybrid",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "combined_alpha": round(combined_alpha, 4),
-        "hybrid_passed": hybrid_result["hybrid_passed"],
-        "payload_hash": dual_hash(json.dumps({"combined_alpha": round(combined_alpha, 4)}, sort_keys=True)),
-    })
+    emit_receipt(
+        "d18_interstellar_hybrid",
+        {
+            "receipt_type": "d18_interstellar_hybrid",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "combined_alpha": round(combined_alpha, 4),
+            "hybrid_passed": hybrid_result["hybrid_passed"],
+            "payload_hash": dual_hash(
+                json.dumps({"combined_alpha": round(combined_alpha, 4)}, sort_keys=True)
+            ),
+        },
+    )
 
     return hybrid_result
 
@@ -1909,12 +1951,15 @@ def get_d18_info() -> Dict[str, Any]:
         "description": "D18 recursion + Interstellar relay + Quantum alternative + Pruning v3",
     }
 
-    emit_receipt("d18_info", {
-        "receipt_type": "d18_info",
-        "tenant_id": TENANT_ID,
-        "ts": datetime.utcnow().isoformat() + "Z",
-        "version": info["version"],
-        "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
-    })
+    emit_receipt(
+        "d18_info",
+        {
+            "receipt_type": "d18_info",
+            "tenant_id": TENANT_ID,
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "version": info["version"],
+            "payload_hash": dual_hash(json.dumps(info, sort_keys=True)),
+        },
+    )
 
     return info

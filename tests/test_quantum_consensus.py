@@ -1,7 +1,5 @@
 """Tests for quantum consensus module."""
 
-import pytest
-
 
 class TestQuantumConsensus:
     """Test quantum consensus functionality."""

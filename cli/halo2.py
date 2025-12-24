@@ -65,7 +65,7 @@ def cmd_halo2_prove(args: Namespace) -> Dict[str, Any]:
     )
 
     print("\n=== HALO2 PROOF GENERATION ===")
-    print(f"Proof system: halo2")
+    print("Proof system: halo2")
     print(f"Circuit ID: {result.get('circuit_id', '')[:32]}...")
     print(f"Circuit size: {circuit.get('circuit_size', 0):,}")
 
@@ -75,8 +75,8 @@ def cmd_halo2_prove(args: Namespace) -> Dict[str, Any]:
 
     print("\nMetrics:")
     print(f"  Proof time: {result.get('proof_time_ms', 0):.2f} ms")
-    print(f"  No trusted setup: True")
-    print(f"  IPA commitment: True")
+    print("  No trusted setup: True")
+    print("  IPA commitment: True")
 
     return result
 
@@ -112,9 +112,9 @@ def cmd_halo2_verify(args: Namespace) -> Dict[str, Any]:
 
     print("\n=== HALO2 PROOF VERIFICATION ===")
     print(f"Proof verified: {result.get('valid', False)}")
-    print(f"Proof system: halo2")
+    print("Proof system: halo2")
     print(f"Verification time: {result.get('verify_time_ms', 0):.2f} ms")
-    print(f"No trusted setup required: True")
+    print("No trusted setup required: True")
 
     return result
 
@@ -133,7 +133,7 @@ def cmd_halo2_recursive(args: Namespace) -> Dict[str, Any]:
     depth = getattr(args, "halo2_recursive_depth", 5)
 
     # Generate base inputs for each level
-    base_inputs = [[i, i+1, i+2] for i in range(depth)]
+    base_inputs = [[i, i + 1, i + 2] for i in range(depth)]
 
     result = generate_recursive_proof(depth=depth, base_inputs=base_inputs)
 
@@ -144,7 +144,7 @@ def cmd_halo2_recursive(args: Namespace) -> Dict[str, Any]:
     print("\nRecursive Metrics:")
     print(f"  Total proof time: {result.get('total_proof_time_ms', 0):.2f} ms")
     print(f"  Compression ratio: {result.get('compression_ratio', 0):.1f}x")
-    print(f"  Infinite capable: True")
+    print("  Infinite capable: True")
 
     # Verify
     verification = verify_recursive_proof(
@@ -182,8 +182,8 @@ def cmd_halo2_attestation(args: Namespace) -> Dict[str, Any]:
 
     print("\n=== HALO2 ATTESTATION ===")
     print(f"Attestation ID: {result.get('attestation_id', '')[:32]}...")
-    print(f"Proof system: halo2")
-    print(f"No trusted setup: True")
+    print("Proof system: halo2")
+    print("No trusted setup: True")
 
     print("\nClaims:")
     for claim in result.get("claims", []):
@@ -220,8 +220,8 @@ def cmd_halo2_audit(args: Namespace) -> Dict[str, Any]:
     result = run_halo2_audit(attestation_count=count)
 
     print(f"\n=== HALO2 AUDIT ({count} attestations) ===")
-    print(f"Proof system: halo2")
-    print(f"No trusted setup: True")
+    print("Proof system: halo2")
+    print("No trusted setup: True")
 
     print("\nAttestation Results:")
     print(f"  Created: {result.get('attestations_created', 0)}")
@@ -264,7 +264,7 @@ def cmd_halo2_benchmark(args: Namespace) -> Dict[str, Any]:
     result = benchmark_halo2(iterations=iterations)
 
     print(f"\n=== HALO2 BENCHMARK ({iterations} iterations) ===")
-    print(f"Proof system: halo2")
+    print("Proof system: halo2")
     print(f"Circuit size: {result.get('circuit_size', 0):,}")
 
     print("\nProof Generation:")

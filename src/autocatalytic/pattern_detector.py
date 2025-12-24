@@ -8,7 +8,7 @@ import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -126,7 +126,9 @@ def scan_receipt_stream(detector: PatternDetector, receipts: List[Dict]) -> List
             "scan_count": detector.scan_count,
             "receipts_scanned": len(receipts),
             "patterns_found": len(detected),
-            "payload_hash": dual_hash(json.dumps({"scan": detector.scan_count}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"scan": detector.scan_count}, sort_keys=True)
+            ),
         },
     )
 
@@ -204,7 +206,9 @@ def detect_autocatalysis(detector: PatternDetector, pattern: Dict) -> bool:
             "coherence": coherence,
             "cycles": cycles,
             "is_autocatalytic": is_autocatalytic,
-            "payload_hash": dual_hash(json.dumps({"pattern_id": pattern_id}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"pattern_id": pattern_id}, sort_keys=True)
+            ),
         },
     )
 
@@ -251,7 +255,9 @@ def track_pattern_coherence(detector: PatternDetector, pattern: Dict) -> float:
             "pattern_id": pattern_id,
             "coherence": round(coherence, 4),
             "cycles_active": p.cycles_active,
-            "payload_hash": dual_hash(json.dumps({"pattern_id": pattern_id}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"pattern_id": pattern_id}, sort_keys=True)
+            ),
         },
     )
 
@@ -295,7 +301,9 @@ def predict_pattern_fate(detector: PatternDetector, pattern: Dict) -> str:
             "fate": fate,
             "coherence": p.coherence,
             "is_autocatalytic": p.is_autocatalytic,
-            "payload_hash": dual_hash(json.dumps({"pattern_id": pattern_id, "fate": fate}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"pattern_id": pattern_id, "fate": fate}, sort_keys=True)
+            ),
         },
     )
 

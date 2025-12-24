@@ -9,7 +9,6 @@ Tests:
 - Stability assessment
 """
 
-import pytest
 from src.kuiper_12body_chaos import (
     load_kuiper_config,
     initialize_kuiper_bodies,
@@ -104,9 +103,18 @@ class TestKuiperBodies:
         names = [b["name"] for b in bodies]
 
         expected = [
-            "titan", "europa", "ganymede", "callisto",
-            "venus", "mercury", "mars",
-            "ceres", "pluto", "eris", "makemake", "haumea",
+            "titan",
+            "europa",
+            "ganymede",
+            "callisto",
+            "venus",
+            "mercury",
+            "mars",
+            "ceres",
+            "pluto",
+            "eris",
+            "makemake",
+            "haumea",
         ]
         for exp in expected:
             assert exp in names

@@ -1,6 +1,5 @@
 """Tests for quantum refinement v2 module."""
 
-import pytest
 from src.quantum_refine_v2 import (
     load_v2_config,
     refine_v2,

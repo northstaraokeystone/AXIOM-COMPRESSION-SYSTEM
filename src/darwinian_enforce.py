@@ -16,7 +16,6 @@ Source: AXIOM v2 - Darwinian Causal Enforcer
 import json
 import os
 import uuid
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 
 from .core import dual_hash, emit_receipt, StopRule
@@ -96,9 +95,15 @@ def load_spec() -> Dict:
             "tenant_id": TENANT_ID,
             "version": spec.get("version", "unknown"),
             "spec_hash": spec_hash,
-            "amplify_factor": spec.get("amplify_factor", AMPLIFY_FACTOR_HIGH_COMPRESSION),
-            "starve_threshold": spec.get("starve_threshold", STARVE_THRESHOLD_LOW_COMPRESSION),
-            "high_compression_threshold": spec.get("high_compression_threshold", HIGH_COMPRESSION_THRESHOLD),
+            "amplify_factor": spec.get(
+                "amplify_factor", AMPLIFY_FACTOR_HIGH_COMPRESSION
+            ),
+            "starve_threshold": spec.get(
+                "starve_threshold", STARVE_THRESHOLD_LOW_COMPRESSION
+            ),
+            "high_compression_threshold": spec.get(
+                "high_compression_threshold", HIGH_COMPRESSION_THRESHOLD
+            ),
         },
     )
 
@@ -123,7 +128,13 @@ def score_compression(receipt: Dict) -> float:
     """
     # Try various field names for compression score
     score = None
-    for field_name in ["compression", "compression_ratio", "score", "r_squared", "fitness"]:
+    for field_name in [
+        "compression",
+        "compression_ratio",
+        "score",
+        "r_squared",
+        "fitness",
+    ]:
         if field_name in receipt:
             score = receipt[field_name]
             break
@@ -199,7 +210,9 @@ def classify_fitness(score: float) -> str:
 # === PATH AMPLIFICATION ===
 
 
-def amplify_path(receipt: Dict, factor: float = AMPLIFY_FACTOR_HIGH_COMPRESSION) -> List[Dict]:
+def amplify_path(
+    receipt: Dict, factor: float = AMPLIFY_FACTOR_HIGH_COMPRESSION
+) -> List[Dict]:
     """Duplicate receipt with amplification weight.
 
     High-compression paths get replicated. This is Darwinian selection
@@ -391,15 +404,23 @@ def run_selection_cycle(receipts: List[Dict]) -> List[Dict]:
             "neutral_count": neutral_count,
             "starved_count": starved_count,
             "dead_count": dead_count,
-            "avg_input_score": sum(score_compression(r) for r in receipts) / len(receipts) if receipts else 0,
-            "avg_survivor_score": sum(score_compression(r) for r in survivors) / len(survivors) if survivors else 0,
+            "avg_input_score": sum(score_compression(r) for r in receipts)
+            / len(receipts)
+            if receipts
+            else 0,
+            "avg_survivor_score": sum(score_compression(r) for r in survivors)
+            / len(survivors)
+            if survivors
+            else 0,
         },
     )
 
     return survivors
 
 
-def stoprule_amplification_overflow(population_size: int, original_size: int, max_ratio: float = 10.0) -> None:
+def stoprule_amplification_overflow(
+    population_size: int, original_size: int, max_ratio: float = 10.0
+) -> None:
     """Check for population explosion from amplification.
 
     Args:
@@ -430,7 +451,9 @@ def stoprule_amplification_overflow(population_size: int, original_size: int, ma
                 "max_ratio": max_ratio,
             },
         )
-        raise StopRule(f"Amplification overflow: population ratio {ratio:.2f} exceeds max {max_ratio}")
+        raise StopRule(
+            f"Amplification overflow: population ratio {ratio:.2f} exceeds max {max_ratio}"
+        )
 
 
 # === LAW IMPOSITION (GATE 3) ===

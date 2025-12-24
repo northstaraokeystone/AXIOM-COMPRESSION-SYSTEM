@@ -3,10 +3,6 @@
 Tests for emergent law discovery and swarm coordination.
 """
 
-import json
-import pytest
-from unittest.mock import patch
-
 
 class TestD19SpecLoading:
     """Test D19 spec loading."""

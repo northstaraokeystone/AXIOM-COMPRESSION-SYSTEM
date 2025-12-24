@@ -8,9 +8,9 @@ import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from ..core import emit_receipt, dual_hash, TENANT_ID
+from ..core import dual_hash
 
 
 @dataclass
@@ -71,7 +71,9 @@ def get_node_state(swarm: SwarmState, node_id: str) -> Optional[Dict[str, Any]]:
     return node.state if node else None
 
 
-def update_node_state(swarm: SwarmState, node_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+def update_node_state(
+    swarm: SwarmState, node_id: str, updates: Dict[str, Any]
+) -> Dict[str, Any]:
     """Update state for specific node.
 
     Args:
@@ -97,7 +99,9 @@ def update_node_state(swarm: SwarmState, node_id: str, updates: Dict[str, Any]) 
     }
 
 
-def broadcast_state(swarm: SwarmState, source_id: str, state: Dict[str, Any]) -> Dict[str, Any]:
+def broadcast_state(
+    swarm: SwarmState, source_id: str, state: Dict[str, Any]
+) -> Dict[str, Any]:
     """Broadcast state from source to all nodes.
 
     Args:

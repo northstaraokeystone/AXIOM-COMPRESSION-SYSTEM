@@ -15,7 +15,6 @@ Receipt Types:
 import json
 import os
 import random
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -93,7 +92,9 @@ def load_federation_config() -> Dict[str, Any]:
             "tenant_id": TENANT_ID,
             "ts": datetime.utcnow().isoformat() + "Z",
             "planets": config.get("planets", FEDERATION_PLANETS),
-            "autonomy_minimum": config.get("autonomy_minimum", FEDERATION_AUTONOMY_MINIMUM),
+            "autonomy_minimum": config.get(
+                "autonomy_minimum", FEDERATION_AUTONOMY_MINIMUM
+            ),
             "arbitration_enabled": config.get(
                 "arbitration_enabled", FEDERATION_ARBITRATION_ENABLED
             ),
@@ -513,7 +514,8 @@ def measure_federation_health() -> Dict[str, Any]:
     avg_latency = 0.0
     if _federation_state.planets:
         avg_latency = sum(
-            (p.latency_min + p.latency_max) / 2 for p in _federation_state.planets.values()
+            (p.latency_min + p.latency_max) / 2
+            for p in _federation_state.planets.values()
         ) / len(_federation_state.planets)
 
     return {

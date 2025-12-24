@@ -9,7 +9,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -62,7 +62,9 @@ def init_migration(config: Dict = None) -> MigrationManager:
     return MigrationManager(manager_id=manager_id)
 
 
-def identify_migration_candidates(manager: MigrationManager, source_planet: str) -> List[Dict]:
+def identify_migration_candidates(
+    manager: MigrationManager, source_planet: str
+) -> List[Dict]:
     """Identify patterns ready for migration.
 
     Migration criteria:
@@ -92,7 +94,10 @@ def identify_migration_candidates(manager: MigrationManager, source_planet: str)
             "source_planet": source_planet,
         }
 
-        if candidate["fitness"] >= MIGRATION_FITNESS_THRESHOLD and candidate["age_cycles"] >= MIGRATION_AGE_THRESHOLD:
+        if (
+            candidate["fitness"] >= MIGRATION_FITNESS_THRESHOLD
+            and candidate["age_cycles"] >= MIGRATION_AGE_THRESHOLD
+        ):
             candidates.append(candidate)
 
     emit_receipt(
@@ -104,14 +109,20 @@ def identify_migration_candidates(manager: MigrationManager, source_planet: str)
             "manager_id": manager.manager_id,
             "source_planet": source_planet,
             "candidates_found": len(candidates),
-            "payload_hash": dual_hash(json.dumps({"source": source_planet, "count": len(candidates)}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"source": source_planet, "count": len(candidates)}, sort_keys=True
+                )
+            ),
         },
     )
 
     return candidates
 
 
-def prepare_pattern_transfer(manager: MigrationManager, pattern: Dict, dest_planet: str) -> Dict[str, Any]:
+def prepare_pattern_transfer(
+    manager: MigrationManager, pattern: Dict, dest_planet: str
+) -> Dict[str, Any]:
     """Serialize pattern for cross-planet transfer.
 
     Args:
@@ -133,7 +144,9 @@ def prepare_pattern_transfer(manager: MigrationManager, pattern: Dict, dest_plan
         "fitness": pattern.get("fitness"),
         "source_planet": pattern.get("source_planet"),
         "serialized_at": now,
-        "spline_coefficients": [[random.gauss(0, 0.1) for _ in range(5)] for _ in range(3)],
+        "spline_coefficients": [
+            [random.gauss(0, 0.1) for _ in range(5)] for _ in range(3)
+        ],
         "metadata": {
             "age_cycles": pattern.get("age_cycles", 0),
             "compression_ratio": random.uniform(0.85, 0.95),
@@ -240,7 +253,9 @@ def execute_transfer(manager: MigrationManager, transfer: Dict) -> Dict[str, Any
     return result
 
 
-def validate_migration(manager: MigrationManager, pattern_id: str, dest_planet: str) -> bool:
+def validate_migration(
+    manager: MigrationManager, pattern_id: str, dest_planet: str
+) -> bool:
     """Validate pattern works at destination.
 
     Args:
@@ -271,14 +286,18 @@ def validate_migration(manager: MigrationManager, pattern_id: str, dest_planet: 
             "pattern_id": pattern_id,
             "dest_planet": dest_planet,
             "valid": valid,
-            "payload_hash": dual_hash(json.dumps({"pattern_id": pattern_id, "valid": valid}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"pattern_id": pattern_id, "valid": valid}, sort_keys=True)
+            ),
         },
     )
 
     return valid
 
 
-def adapt_to_destination(manager: MigrationManager, pattern: Dict, dest_planet: str) -> Dict[str, Any]:
+def adapt_to_destination(
+    manager: MigrationManager, pattern: Dict, dest_planet: str
+) -> Dict[str, Any]:
     """Adapt pattern to destination planet conditions.
 
     Args:
@@ -299,7 +318,9 @@ def adapt_to_destination(manager: MigrationManager, pattern: Dict, dest_planet: 
         "jovian": {"latency_factor": 2.0, "entropy_adjustment": 0.10},
     }
 
-    adaptation = adaptations.get(dest_planet, {"latency_factor": 1.0, "entropy_adjustment": 0.0})
+    adaptation = adaptations.get(
+        dest_planet, {"latency_factor": 1.0, "entropy_adjustment": 0.0}
+    )
 
     adapted = {
         **pattern,
@@ -343,7 +364,9 @@ def measure_migration_fitness(manager: MigrationManager, pattern_id: str) -> flo
             # Simulate fitness comparison
             source_fitness = transfer.serialized_pattern.get("fitness", 0.8)
             dest_fitness = source_fitness * random.uniform(0.9, 1.1)  # +/- 10%
-            return round(dest_fitness / source_fitness, 4) if source_fitness > 0 else 1.0
+            return (
+                round(dest_fitness / source_fitness, 4) if source_fitness > 0 else 1.0
+            )
 
     return 1.0
 

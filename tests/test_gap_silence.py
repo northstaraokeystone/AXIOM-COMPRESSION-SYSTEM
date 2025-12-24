@@ -4,7 +4,6 @@ Interstellar latency gaps as selection pressure.
 Long silence forces minimal-sync laws.
 """
 
-import pytest
 from datetime import datetime, timedelta
 
 
@@ -102,9 +101,7 @@ class TestGapSilenceEmergence:
         extended_survivors = minimal_sync_law(laws, 7200)
 
         # Interstellar gap - most strict
-        interstellar_survivors = minimal_sync_law(
-            laws, 4.0 * 365.25 * 24 * 3600
-        )
+        interstellar_survivors = minimal_sync_law(laws, 4.0 * 365.25 * 24 * 3600)
 
         # Longer gaps should have fewer survivors
         assert len(extended_survivors) <= len(normal_survivors)
@@ -167,7 +164,9 @@ class TestGapSilenceConstants:
 
     def test_interstellar_threshold(self):
         """Verify interstellar gap threshold is 4 years."""
-        from src.oracle.gap_silence_emergence import INTERSTELLAR_SILENCE_THRESHOLD_YEARS
+        from src.oracle.gap_silence_emergence import (
+            INTERSTELLAR_SILENCE_THRESHOLD_YEARS,
+        )
 
         assert INTERSTELLAR_SILENCE_THRESHOLD_YEARS == 4.0
 

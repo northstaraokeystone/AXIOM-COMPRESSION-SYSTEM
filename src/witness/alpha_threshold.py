@@ -98,7 +98,8 @@ def init_threshold_monitor(config: Dict = None) -> AlphaThresholdMonitor:
             "enforcement_mode": LAW_ENFORCEMENT_MODE,
             "payload_hash": dual_hash(
                 json.dumps(
-                    {"monitor_id": monitor_id, "threshold": monitor.threshold}, sort_keys=True
+                    {"monitor_id": monitor_id, "threshold": monitor.threshold},
+                    sort_keys=True,
                 )
             ),
         },
@@ -122,7 +123,9 @@ def update_alpha(monitor: AlphaThresholdMonitor, alpha: float) -> None:
         monitor.alpha_history = monitor.alpha_history[-1000:]
 
 
-def check_threshold(monitor: AlphaThresholdMonitor, current_alpha: float = None) -> bool:
+def check_threshold(
+    monitor: AlphaThresholdMonitor, current_alpha: float = None
+) -> bool:
     """Check if α > threshold.
 
     Args:
@@ -154,7 +157,9 @@ def is_in_cooldown(monitor: AlphaThresholdMonitor) -> bool:
     return elapsed < monitor.cooldown_s
 
 
-def trigger_law_discovery(monitor: AlphaThresholdMonitor, receipts: List[Dict] = None) -> Dict:
+def trigger_law_discovery(
+    monitor: AlphaThresholdMonitor, receipts: List[Dict] = None
+) -> Dict:
     """Trigger law discovery when threshold crossed.
 
     Args:
@@ -173,7 +178,8 @@ def trigger_law_discovery(monitor: AlphaThresholdMonitor, receipts: List[Dict] =
         return {
             "triggered": False,
             "reason": "cooldown_active",
-            "cooldown_remaining_s": monitor.cooldown_s - (time.time() - monitor.last_trigger_ts),
+            "cooldown_remaining_s": monitor.cooldown_s
+            - (time.time() - monitor.last_trigger_ts),
         }
 
     # Check threshold

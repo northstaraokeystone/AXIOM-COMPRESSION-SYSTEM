@@ -208,7 +208,11 @@ def discover_planet_law(hierarchy: Hierarchy, planet_id: str) -> Dict[str, Any]:
         if cluster_node and cluster_node.discovered_law:
             cluster_laws.append(cluster_node.discovered_law)
 
-    avg_compression = sum(l.get("compression_ratio", 0) for l in cluster_laws) / len(cluster_laws) if cluster_laws else 0.85
+    avg_compression = (
+        sum(l.get("compression_ratio", 0) for l in cluster_laws) / len(cluster_laws)
+        if cluster_laws
+        else 0.85
+    )
 
     law = {
         "law_id": f"law_{planet_id}",
@@ -261,7 +265,11 @@ def discover_system_law(hierarchy: Hierarchy) -> Dict[str, Any]:
             if planet_node and planet_node.discovered_law:
                 planet_laws.append(planet_node.discovered_law)
 
-    avg_compression = sum(l.get("compression_ratio", 0) for l in planet_laws) / len(planet_laws) if planet_laws else 0.88
+    avg_compression = (
+        sum(l.get("compression_ratio", 0) for l in planet_laws) / len(planet_laws)
+        if planet_laws
+        else 0.88
+    )
 
     law = {
         "law_id": "law_system_sol",
@@ -364,7 +372,9 @@ def propagate_constraints_downward(hierarchy: Hierarchy) -> Dict[str, Any]:
             "max_latency_ms": 5000,
         }
 
-        for planet_id in hierarchy.nodes.get("system_sol", HierarchyNode(node_id="", level="system")).children:
+        for planet_id in hierarchy.nodes.get(
+            "system_sol", HierarchyNode(node_id="", level="system")
+        ).children:
             planet_node = hierarchy.nodes.get(planet_id)
             if planet_node and planet_node.discovered_law:
                 planet_node.discovered_law["system_constraint"] = system_constraint
@@ -372,13 +382,18 @@ def propagate_constraints_downward(hierarchy: Hierarchy) -> Dict[str, Any]:
 
                 # Planet constraints to clusters
                 planet_constraint = {
-                    "min_compression": planet_node.discovered_law.get("compression_ratio", 0) * 0.95,
+                    "min_compression": planet_node.discovered_law.get(
+                        "compression_ratio", 0
+                    )
+                    * 0.95,
                 }
 
                 for cluster_id in planet_node.children:
                     cluster_node = hierarchy.nodes.get(cluster_id)
                     if cluster_node and cluster_node.discovered_law:
-                        cluster_node.discovered_law["planet_constraint"] = planet_constraint
+                        cluster_node.discovered_law["planet_constraint"] = (
+                            planet_constraint
+                        )
                         constraints_propagated += 1
 
     result = {

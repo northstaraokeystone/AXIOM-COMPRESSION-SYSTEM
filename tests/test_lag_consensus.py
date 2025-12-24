@@ -1,6 +1,5 @@
 """Tests for lag-tolerant consensus module."""
 
-import pytest
 from src.lag_consensus import (
     load_consensus_config,
     initialize_modified_raft,
@@ -8,7 +7,6 @@ from src.lag_consensus import (
     handle_heartbeat,
     start_election,
     request_vote,
-    handle_vote,
     append_entries_batch,
     commit_entries,
     modified_raft_consensus,
@@ -17,7 +15,6 @@ from src.lag_consensus import (
     snapshot_log,
     get_consensus_status,
     LogEntry,
-    NodeState,
 )
 
 

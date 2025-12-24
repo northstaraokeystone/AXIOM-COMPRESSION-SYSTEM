@@ -1,6 +1,5 @@
 """Tests for swarm testnet module."""
 
-import pytest
 from src.swarm_testnet import (
     load_swarm_config,
     init_swarm,

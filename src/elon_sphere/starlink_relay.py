@@ -8,7 +8,7 @@ import json
 import os
 import random
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from src.core import TENANT_ID, dual_hash, emit_receipt
 
@@ -117,14 +117,20 @@ def initialize_starlink_mesh(node_count: int = 10) -> Dict[str, Any]:
             "ts": datetime.utcnow().isoformat() + "Z",
             "nodes": result["nodes"],
             "total_capacity_gbps": result["total_capacity_gbps"],
-            "payload_hash": dual_hash(json.dumps({"nodes": result["nodes"]}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"nodes": result["nodes"]}, sort_keys=True)
+            ),
         },
     )
 
     return result
 
 
-def simulate_laser_link(distance_km: float = 1000.0, duration_sec: float = 60.0, gbps: int = STARLINK_LASER_GBPS) -> Dict[str, Any]:
+def simulate_laser_link(
+    distance_km: float = 1000.0,
+    duration_sec: float = 60.0,
+    gbps: int = STARLINK_LASER_GBPS,
+) -> Dict[str, Any]:
     """Simulate laser link performance.
 
     Args:
@@ -162,7 +168,11 @@ def simulate_laser_link(distance_km: float = 1000.0, duration_sec: float = 60.0,
     return result
 
 
-def relay_hop_latency(hops: int = STARLINK_RELAY_HOPS, distance_km: float = 1000.0, per_hop_ms: float = STARLINK_LATENCY_MS) -> Dict[str, Any]:
+def relay_hop_latency(
+    hops: int = STARLINK_RELAY_HOPS,
+    distance_km: float = 1000.0,
+    per_hop_ms: float = STARLINK_LATENCY_MS,
+) -> Dict[str, Any]:
     """Calculate total relay latency.
 
     Args:

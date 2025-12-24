@@ -1,7 +1,5 @@
 """Tests for autocatalytic pattern module."""
 
-import pytest
-
 
 class TestPatternDetector:
     """Test pattern detector functionality."""
@@ -16,7 +14,10 @@ class TestPatternDetector:
 
     def test_scan_receipt_stream(self):
         """Test receipt stream scanning."""
-        from src.autocatalytic.pattern_detector import init_detector, scan_receipt_stream
+        from src.autocatalytic.pattern_detector import (
+            init_detector,
+            scan_receipt_stream,
+        )
 
         detector = init_detector({})
         receipts = [
@@ -72,7 +73,9 @@ class TestCrossPlanetMigration:
 
     def test_migration_latency_tolerance(self):
         """Test migration latency tolerance."""
-        from src.autocatalytic.cross_planet_migration import MIGRATION_LATENCY_TOLERANCE_MS
+        from src.autocatalytic.cross_planet_migration import (
+            MIGRATION_LATENCY_TOLERANCE_MS,
+        )
 
         assert MIGRATION_LATENCY_TOLERANCE_MS == 5000
 

@@ -118,7 +118,9 @@ def load_halo2_config() -> Dict[str, Any]:
 # === CIRCUIT FUNCTIONS ===
 
 
-def generate_halo2_circuit(constraints: int = HALO2_CIRCUIT_SIZE, circuit_size: Optional[int] = None) -> Dict[str, Any]:
+def generate_halo2_circuit(
+    constraints: int = HALO2_CIRCUIT_SIZE, circuit_size: Optional[int] = None
+) -> Dict[str, Any]:
     """Generate Halo2 circuit structure (simulated).
 
     Halo2 circuits use PLONKish arithmetization with:
@@ -205,7 +207,10 @@ def generate_halo2_proof(
     # Handle alternative call signature
     if circuit is None:
         if circuit_id is not None:
-            circuit = {"circuit_id": circuit_id, "columns": {"advice": 10, "fixed": 5, "instance": 2}}
+            circuit = {
+                "circuit_id": circuit_id,
+                "columns": {"advice": 10, "fixed": 5, "instance": 2},
+            }
         else:
             circuit = generate_halo2_circuit()
     if witness is None:
@@ -233,7 +238,9 @@ def generate_halo2_proof(
             hashlib.sha256(f"advice_{i}".encode()).hexdigest()[:32]
             for i in range(circuit["columns"]["advice"])
         ],
-        "instance_evals": [random.random() for _ in range(circuit["columns"]["instance"])],
+        "instance_evals": [
+            random.random() for _ in range(circuit["columns"]["instance"])
+        ],
         "proof_size_bytes": 512,  # Halo2 proofs are compact
         "generation_time_ms": proof_time_ms,
         "proof_time_ms": proof_time_ms,  # Alias for tests
@@ -251,7 +258,9 @@ def generate_halo2_proof(
             "circuit_id": circuit["circuit_id"],
             "proof_size_bytes": 512,
             "generation_time_ms": proof_time_ms,
-            "payload_hash": dual_hash(json.dumps({"proof_id": proof_id}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"proof_id": proof_id}, sort_keys=True)
+            ),
         },
     )
 
@@ -293,7 +302,9 @@ def verify_halo2_proof(
     time.sleep(verify_time_ms / 1000.0 * 0.01)  # Scaled for simulation
 
     # Simulated verification (always passes for valid proofs)
-    is_valid = proof.get("proof_id") is not None and proof.get("recursion_compatible", True)
+    is_valid = proof.get("proof_id") is not None and proof.get(
+        "recursion_compatible", True
+    )
 
     emit_receipt(
         "halo2_verify",
@@ -305,12 +316,19 @@ def verify_halo2_proof(
             "valid": is_valid,
             "verify_time_ms": verify_time_ms,
             "payload_hash": dual_hash(
-                json.dumps({"proof_id": proof.get("proof_id"), "valid": is_valid}, sort_keys=True)
+                json.dumps(
+                    {"proof_id": proof.get("proof_id"), "valid": is_valid},
+                    sort_keys=True,
+                )
             ),
         },
     )
 
-    return {"valid": is_valid, "verify_time_ms": verify_time_ms, "proof_id": proof.get("proof_id")}
+    return {
+        "valid": is_valid,
+        "verify_time_ms": verify_time_ms,
+        "proof_id": proof.get("proof_id"),
+    }
 
 
 # === RECURSIVE PROOF FUNCTIONS ===
@@ -337,7 +355,12 @@ def accumulate_proofs(proofs: List[Any]) -> Dict[str, Any]:
     proof_dicts = []
     for p in proofs:
         if isinstance(p, str):
-            proof_dicts.append({"proof_id": p, "ipa_accumulator": hashlib.sha256(p.encode()).hexdigest()})
+            proof_dicts.append(
+                {
+                    "proof_id": p,
+                    "ipa_accumulator": hashlib.sha256(p.encode()).hexdigest(),
+                }
+            )
         else:
             proof_dicts.append(p)
 
@@ -404,7 +427,10 @@ def recursive_verify(
     """
     # Handle keyword arg alternative
     if accumulated is None and accumulated_proof is not None:
-        accumulated = {"accumulated_id": accumulated_proof, "combined_accumulator": accumulated_proof}
+        accumulated = {
+            "accumulated_id": accumulated_proof,
+            "combined_accumulator": accumulated_proof,
+        }
     elif accumulated is None:
         accumulated = {"accumulated_id": "unknown", "combined_accumulator": "unknown"}
 
@@ -469,13 +495,17 @@ def generate_recursive_proof(
     recursive_proof = {
         "recursive_id": recursive_id,
         "depth": depth,
-        "proof_chain": [p.get("proof_id", f"proof_{i}") for i, p in enumerate(proofs)],  # Tests expect this
+        "proof_chain": [
+            p.get("proof_id", f"proof_{i}") for i, p in enumerate(proofs)
+        ],  # Tests expect this
         "total_depth": depth,  # Tests expect this
         "accumulated_id": accumulated["accumulated_id"],
         "proof_count": len(proofs),
         "combined_accumulator": accumulated["combined_accumulator"],
         "accumulator": accumulated["combined_accumulator"],  # Tests expect this alias
-        "compression_ratio": len(proofs) / 1.0 if len(proofs) > 0 else 1.0,  # Tests expect this
+        "compression_ratio": len(proofs) / 1.0
+        if len(proofs) > 0
+        else 1.0,  # Tests expect this
         "proof_system": HALO2_PROOF_SYSTEM,
         "polynomial_commitment": "IPA",
         "proof_size_bytes": 512,  # Constant size
@@ -532,13 +562,14 @@ def verify_recursive_proof(
         }
 
     is_valid = (
-        recursive_proof is not None
-        and recursive_proof.get("recursive_id") is not None
+        recursive_proof is not None and recursive_proof.get("recursive_id") is not None
     )
 
     return {
         "valid": is_valid,
-        "accumulated_depth": len(recursive_proof.get("proof_chain", [])) if recursive_proof else 0,
+        "accumulated_depth": len(recursive_proof.get("proof_chain", []))
+        if recursive_proof
+        else 0,
         "accumulator_verified": is_valid,
     }
 
@@ -599,7 +630,9 @@ def create_halo2_attestation(
 
     attestation = {
         "attestation_id": attestation_id,
-        "proof_id": proofs[0]["proof_id"] if proofs else attestation_id,  # Tests expect this
+        "proof_id": proofs[0]["proof_id"]
+        if proofs
+        else attestation_id,  # Tests expect this
         "claims": claims,  # Tests expect this
         "public_inputs": [c.get("value", "") for c in claims],  # Tests expect this
         "metadata": {  # Tests expect this
@@ -670,7 +703,9 @@ def verify_halo2_attestation(
 
     return {
         "attestation_id": attestation.get("attestation_id"),
-        "valid": is_valid.get("valid", True) if isinstance(is_valid, dict) else is_valid,
+        "valid": is_valid.get("valid", True)
+        if isinstance(is_valid, dict)
+        else is_valid,
         "claim_count": attestation.get("claim_count"),
         "resilience": attestation.get("resilience", HALO2_RESILIENCE_TARGET),
     }
@@ -727,8 +762,12 @@ def benchmark_halo2(iterations: int = 10) -> Dict[str, Any]:
             "max": round(max(verify_times), 2) if verify_times else 0,
             "std": round(std_verify, 2),
         },
-        "throughput_proofs_per_sec": round(1000 / avg_proof, 2) if avg_proof > 0 else 0,  # Tests expect this
-        "throughput_verifies_per_sec": round(1000 / avg_verify, 2) if avg_verify > 0 else 0,  # Tests expect this
+        "throughput_proofs_per_sec": round(1000 / avg_proof, 2)
+        if avg_proof > 0
+        else 0,  # Tests expect this
+        "throughput_verifies_per_sec": round(1000 / avg_verify, 2)
+        if avg_verify > 0
+        else 0,  # Tests expect this
         "avg_proof_time_ms": round(avg_proof, 2),
         "avg_verify_time_ms": round(avg_verify, 2),
         "config_proof_time_ms": config.get("proof_time_ms", HALO2_PROOF_TIME_MS),
@@ -819,10 +858,12 @@ def run_halo2_audit(attestation_count: int = 10) -> Dict[str, Any]:
         attestation = create_halo2_attestation(claims)
         verification = verify_halo2_attestation(attestation)
 
-        attestations.append({
-            "attestation_id": attestation["attestation_id"],
-            "valid": verification["valid"],
-        })
+        attestations.append(
+            {
+                "attestation_id": attestation["attestation_id"],
+                "valid": verification["valid"],
+            }
+        )
 
         if not verification["valid"]:
             all_valid = False
@@ -841,7 +882,8 @@ def run_halo2_audit(attestation_count: int = 10) -> Dict[str, Any]:
         "overall_validated": all_valid,  # Tests expect this
         "resilience": verification_rate,  # Tests expect this
         "resilience_target": HALO2_RESILIENCE_TARGET,  # Tests expect this
-        "resilience_target_met": verification_rate >= HALO2_RESILIENCE_TARGET,  # Tests expect this
+        "resilience_target_met": verification_rate
+        >= HALO2_RESILIENCE_TARGET,  # Tests expect this
         "resilience_achieved": verification_rate,
         "target_met": all_valid,
         "proof_system": HALO2_PROOF_SYSTEM,

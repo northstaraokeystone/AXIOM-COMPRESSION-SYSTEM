@@ -1,6 +1,5 @@
 """Tests for parallel testnet module."""
 
-import pytest
 from src.testnet_parallel import (
     load_testnet_config,
     init_ethereum_testnet,

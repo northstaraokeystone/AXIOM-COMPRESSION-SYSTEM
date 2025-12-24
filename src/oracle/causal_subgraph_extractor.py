@@ -11,10 +11,9 @@ The Physics:
 
 import json
 import uuid
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -74,7 +73,9 @@ def init_extractor(history: List[Dict] = None) -> CausalSubgraphExtractor:
     return extractor
 
 
-def _build_graph_from_history(extractor: CausalSubgraphExtractor, history: List[Dict]) -> None:
+def _build_graph_from_history(
+    extractor: CausalSubgraphExtractor, history: List[Dict]
+) -> None:
     """Build causal graph from history.
 
     Args:
@@ -121,19 +122,23 @@ def build_causal_graph(receipts: List[Dict]) -> Dict[str, Any]:
     # Build node list
     for i, receipt in enumerate(receipts):
         node_id = receipt.get("payload_hash", f"node_{i}")[:16]
-        nodes.append({
-            "id": node_id,
-            "type": receipt.get("receipt_type", "unknown"),
-            "ts": receipt.get("ts", ""),
-        })
+        nodes.append(
+            {
+                "id": node_id,
+                "type": receipt.get("receipt_type", "unknown"),
+                "ts": receipt.get("ts", ""),
+            }
+        )
 
     # Build edges (temporal ordering)
     for i in range(1, len(nodes)):
-        edges.append({
-            "from": nodes[i - 1]["id"],
-            "to": nodes[i]["id"],
-            "type": "temporal",
-        })
+        edges.append(
+            {
+                "from": nodes[i - 1]["id"],
+                "to": nodes[i]["id"],
+                "type": "temporal",
+            }
+        )
 
     return {
         "nodes": nodes,
@@ -187,7 +192,9 @@ def find_maximal_subgraphs(extractor: CausalSubgraphExtractor) -> List[CausalSub
                     subgraph_id=subgraph_id,
                     nodes=component,
                     is_maximal=True,
-                    invariance_score=len(component) / len(extractor.nodes) if extractor.nodes else 0,
+                    invariance_score=len(component) / len(extractor.nodes)
+                    if extractor.nodes
+                    else 0,
                 )
                 subgraphs.append(subgraph)
 
@@ -195,7 +202,9 @@ def find_maximal_subgraphs(extractor: CausalSubgraphExtractor) -> List[CausalSub
     return subgraphs
 
 
-def subgraph_to_law(subgraph: CausalSubgraph, extractor: CausalSubgraphExtractor) -> Dict[str, Any]:
+def subgraph_to_law(
+    subgraph: CausalSubgraph, extractor: CausalSubgraphExtractor
+) -> Dict[str, Any]:
     """Convert invariant subgraph to law spec.
 
     Args:
@@ -259,7 +268,9 @@ def validate_causal_invariance(law: Dict, history: List[Dict]) -> bool:
     return types_present and invariance >= 0.5
 
 
-def emit_subgraph_receipt(extractor: CausalSubgraphExtractor, laws: List[Dict]) -> Dict[str, Any]:
+def emit_subgraph_receipt(
+    extractor: CausalSubgraphExtractor, laws: List[Dict]
+) -> Dict[str, Any]:
     """Emit causal_subgraph_law_receipt.
 
     Args:

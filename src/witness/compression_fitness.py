@@ -4,7 +4,7 @@ Uses MDL (Minimum Description Length) to score law quality.
 """
 
 import math
-from typing import Any, Dict, List
+from typing import Dict, List
 
 
 def compute_mdl_score(law: Dict, alpha: float = 1.0, beta: float = 0.10) -> float:
@@ -29,7 +29,9 @@ def compute_mdl_score(law: Dict, alpha: float = 1.0, beta: float = 0.10) -> floa
     coefficients = law.get("spline_coefficients", [])
     complexity = 0.0
     if coefficients:
-        total_coeffs = sum(len(layer) for layer in coefficients if isinstance(layer, list))
+        total_coeffs = sum(
+            len(layer) for layer in coefficients if isinstance(layer, list)
+        )
         complexity = math.log2(total_coeffs + 1) / 10  # Normalized
 
     mdl = alpha * data_fit + beta * complexity

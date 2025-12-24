@@ -3,9 +3,6 @@
 Laws ARE the maximal invariant subgraphs in chain history.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-
 
 class TestCausalSubgraphExtractor:
     """Tests for CausalSubgraphExtractor functionality."""
@@ -26,9 +23,21 @@ class TestCausalSubgraphExtractor:
         from src.oracle import build_causal_graph
 
         receipts = [
-            {"receipt_type": "a", "ts": "2024-01-01T00:00:00Z", "payload_hash": "hash1"},
-            {"receipt_type": "b", "ts": "2024-01-01T00:01:00Z", "payload_hash": "hash2"},
-            {"receipt_type": "c", "ts": "2024-01-01T00:02:00Z", "payload_hash": "hash3"},
+            {
+                "receipt_type": "a",
+                "ts": "2024-01-01T00:00:00Z",
+                "payload_hash": "hash1",
+            },
+            {
+                "receipt_type": "b",
+                "ts": "2024-01-01T00:01:00Z",
+                "payload_hash": "hash2",
+            },
+            {
+                "receipt_type": "c",
+                "ts": "2024-01-01T00:02:00Z",
+                "payload_hash": "hash3",
+            },
         ]
 
         graph = build_causal_graph(receipts)
@@ -44,9 +53,21 @@ class TestCausalSubgraphExtractor:
         from src.oracle import init_extractor, find_maximal_subgraphs
 
         history = [
-            {"receipt_type": "a", "ts": "2024-01-01T00:00:00Z", "payload_hash": "hash1"},
-            {"receipt_type": "b", "ts": "2024-01-01T00:01:00Z", "payload_hash": "hash2"},
-            {"receipt_type": "c", "ts": "2024-01-01T00:02:00Z", "payload_hash": "hash3"},
+            {
+                "receipt_type": "a",
+                "ts": "2024-01-01T00:00:00Z",
+                "payload_hash": "hash1",
+            },
+            {
+                "receipt_type": "b",
+                "ts": "2024-01-01T00:01:00Z",
+                "payload_hash": "hash2",
+            },
+            {
+                "receipt_type": "c",
+                "ts": "2024-01-01T00:02:00Z",
+                "payload_hash": "hash3",
+            },
         ]
 
         extractor = init_extractor(history)
@@ -62,8 +83,16 @@ class TestCausalSubgraphExtractor:
         from src.oracle import init_extractor, find_maximal_subgraphs, subgraph_to_law
 
         history = [
-            {"receipt_type": "a", "ts": "2024-01-01T00:00:00Z", "payload_hash": "hash1"},
-            {"receipt_type": "b", "ts": "2024-01-01T00:01:00Z", "payload_hash": "hash2"},
+            {
+                "receipt_type": "a",
+                "ts": "2024-01-01T00:00:00Z",
+                "payload_hash": "hash1",
+            },
+            {
+                "receipt_type": "b",
+                "ts": "2024-01-01T00:01:00Z",
+                "payload_hash": "hash2",
+            },
         ]
 
         extractor = init_extractor(history)

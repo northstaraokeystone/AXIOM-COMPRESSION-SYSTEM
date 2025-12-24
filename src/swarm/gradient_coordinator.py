@@ -9,7 +9,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 from .entropy_engine import EntropyEngine, GRADIENT_THRESHOLD
@@ -51,7 +51,9 @@ def init_coordinator(engine: EntropyEngine) -> GradientCoordinator:
     return GradientCoordinator(coordinator_id=coordinator_id, engine=engine)
 
 
-def propose_action(coord: GradientCoordinator, action: Dict[str, Any]) -> Dict[str, Any]:
+def propose_action(
+    coord: GradientCoordinator, action: Dict[str, Any]
+) -> Dict[str, Any]:
     """Propose action via gradient broadcast.
 
     Proposal propagates along entropy gradients.
@@ -101,7 +103,9 @@ def propose_action(coord: GradientCoordinator, action: Dict[str, Any]) -> Dict[s
     return result
 
 
-def collect_votes(coord: GradientCoordinator, proposal_id: str, timeout_ms: int = 1000) -> Dict[str, Any]:
+def collect_votes(
+    coord: GradientCoordinator, proposal_id: str, timeout_ms: int = 1000
+) -> Dict[str, Any]:
     """Collect entropy-weighted votes for proposal.
 
     Votes are weighted by inverse entropy - low entropy nodes have more weight.
@@ -132,7 +136,9 @@ def collect_votes(coord: GradientCoordinator, proposal_id: str, timeout_ms: int 
 
         # Simulate vote based on gradient alignment
         # Nodes aligned with entropy flow tend to approve
-        avg_gradient = sum(node.gradients.values()) / len(node.gradients) if node.gradients else 0
+        avg_gradient = (
+            sum(node.gradients.values()) / len(node.gradients) if node.gradients else 0
+        )
         vote = 1 if avg_gradient >= -GRADIENT_THRESHOLD else 0
 
         proposal.votes[node_id] = vote * weight
@@ -193,7 +199,9 @@ def achieve_consensus(coord: GradientCoordinator, proposal_id: str) -> bool:
         collect_votes(coord, proposal_id)
 
     # Calculate approval
-    total_weight = sum(1.0 / (1.0 + coord.engine.nodes[n].entropy) for n in coord.engine.nodes)
+    total_weight = sum(
+        1.0 / (1.0 + coord.engine.nodes[n].entropy) for n in coord.engine.nodes
+    )
     approve_weight = sum(proposal.votes.values())
     approval_ratio = approve_weight / total_weight if total_weight > 0 else 0
 
@@ -214,7 +222,13 @@ def achieve_consensus(coord: GradientCoordinator, proposal_id: str) -> bool:
             "consensus_achieved": consensus_achieved,
             "status": proposal.status,
             "payload_hash": dual_hash(
-                json.dumps({"proposal_id": proposal_id, "consensus_achieved": consensus_achieved}, sort_keys=True)
+                json.dumps(
+                    {
+                        "proposal_id": proposal_id,
+                        "consensus_achieved": consensus_achieved,
+                    },
+                    sort_keys=True,
+                )
             ),
         },
     )
@@ -222,7 +236,9 @@ def achieve_consensus(coord: GradientCoordinator, proposal_id: str) -> bool:
     return consensus_achieved
 
 
-def execute_coordinated(coord: GradientCoordinator, action: Dict[str, Any]) -> Dict[str, Any]:
+def execute_coordinated(
+    coord: GradientCoordinator, action: Dict[str, Any]
+) -> Dict[str, Any]:
     """Execute action if consensus achieved.
 
     Args:
@@ -244,7 +260,11 @@ def execute_coordinated(coord: GradientCoordinator, action: Dict[str, Any]) -> D
         result = {"action": action, "success": True}
     else:
         status = "rejected"
-        result = {"action": action, "success": False, "reason": "consensus_not_achieved"}
+        result = {
+            "action": action,
+            "success": False,
+            "reason": "consensus_not_achieved",
+        }
 
     return {
         "proposal_id": proposal_id,
@@ -306,14 +326,18 @@ def detect_partition(coord: GradientCoordinator) -> List[List[str]]:
             "partition_count": len(partitions),
             "partition_sizes": [len(p) for p in partitions],
             "is_partitioned": len(partitions) > 1,
-            "payload_hash": dual_hash(json.dumps({"partition_count": len(partitions)}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"partition_count": len(partitions)}, sort_keys=True)
+            ),
         },
     )
 
     return partitions
 
 
-def heal_partition(coord: GradientCoordinator, partitions: List[List[str]]) -> Dict[str, Any]:
+def heal_partition(
+    coord: GradientCoordinator, partitions: List[List[str]]
+) -> Dict[str, Any]:
     """Heal partition via gradient bridge.
 
     Creates gradient bridges between partitions.

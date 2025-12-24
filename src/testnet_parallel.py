@@ -96,11 +96,19 @@ def load_testnet_config() -> Dict[str, Any]:
         "parallel_enabled": TESTNET_PARALLEL_ENABLED,
         "ethereum": testnet_chains.get(
             "ethereum",
-            {"enabled": TESTNET_CHAIN_ETHEREUM, "rpc_simulation": True, "block_time_sec": 12},
+            {
+                "enabled": TESTNET_CHAIN_ETHEREUM,
+                "rpc_simulation": True,
+                "block_time_sec": 12,
+            },
         ),
         "solana": testnet_chains.get(
             "solana",
-            {"enabled": TESTNET_CHAIN_SOLANA, "rpc_simulation": True, "block_time_sec": 0.4},
+            {
+                "enabled": TESTNET_CHAIN_SOLANA,
+                "rpc_simulation": True,
+                "block_time_sec": 0.4,
+            },
         ),
         "bridge": bridge_config,
     }
@@ -389,7 +397,9 @@ def validate_cross_chain(tx_id: str) -> Dict[str, Any]:
         return {"error": f"Transaction {tx_id} not found"}
 
     # Simulate confirmation process
-    tx.confirmations = random.randint(required_confirmations, required_confirmations + 5)
+    tx.confirmations = random.randint(
+        required_confirmations, required_confirmations + 5
+    )
     tx.status = "confirmed" if tx.confirmations >= required_confirmations else "pending"
 
     if tx.status == "confirmed":

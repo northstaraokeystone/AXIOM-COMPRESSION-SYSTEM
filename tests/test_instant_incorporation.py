@@ -4,10 +4,6 @@ Instant incorporation: Real-time oracle update on receipt arrival.
 Incorporation latency must be < 100ms. No batch processing.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-import time
-
 
 class TestInstantIncorporator:
     """Tests for InstantIncorporator functionality."""

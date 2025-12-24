@@ -1,7 +1,5 @@
 """Tests for law discovery module."""
 
-import pytest
-
 
 class TestKANSwarm:
     """Test KAN swarm functionality."""

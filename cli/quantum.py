@@ -279,6 +279,8 @@ def cmd_quantum_alt_bell(args):
     print(f"Quantum limit: {result.get('quantum_limit', 2.828):.4f}")
     print(f"Bell violated: {result.get('bell_violated', False)}")
     print(f"Within quantum limit: {result.get('within_quantum_limit', False)}")
-    print(f"Quantum signature detected: {result.get('quantum_signature_detected', False)}")
+    print(
+        f"Quantum signature detected: {result.get('quantum_signature_detected', False)}"
+    )
 
     return result

@@ -9,7 +9,6 @@ Tests the core Darwinian selection mechanism:
 """
 
 import pytest
-import json
 import os
 import sys
 
@@ -24,12 +23,8 @@ from src.darwinian_enforce import (
     starve_path,
     get_generation,
     run_selection_cycle,
-    extract_surviving_pattern,
     is_law_candidate,
     impose_law,
-    validate_against_laws,
-    enforce_laws,
-    get_active_laws,
     reset_darwinian_state,
     get_darwinian_info,
     AMPLIFY_FACTOR_HIGH_COMPRESSION,
@@ -51,11 +46,15 @@ class TestSpecLoading:
 
         # Check spec has _hash field with dual-hash format (contains ':')
         assert "_hash" in spec, "Spec should contain _hash field"
-        assert ":" in spec["_hash"], "Spec hash should be dual-hash format (contains ':')"
+        assert ":" in spec["_hash"], (
+            "Spec hash should be dual-hash format (contains ':')"
+        )
 
         # Check receipt was emitted
         captured = capsys.readouterr()
-        assert "darwinian_spec_load" in captured.out, "Should emit darwinian_spec_load receipt"
+        assert "darwinian_spec_load" in captured.out, (
+            "Should emit darwinian_spec_load receipt"
+        )
         assert "payload_hash" in captured.out, "Receipt should contain payload_hash"
 
     def test_spec_contains_required_fields(self):
@@ -154,7 +153,9 @@ class TestPathAmplification:
         """Verify len(amplify_path(receipt, 2.0)) == 2."""
         receipt = {"id": "test", "compression": 0.95}
         amplified = amplify_path(receipt, 2.0)
-        assert len(amplified) == 2, "Amplification with factor 2.0 should produce 2 copies"
+        assert len(amplified) == 2, (
+            "Amplification with factor 2.0 should produce 2 copies"
+        )
 
     def test_amplification_preserves_data(self):
         """Amplified copies preserve original data."""
@@ -245,7 +246,9 @@ class TestSelectionCycle:
             if "compression" in s:
                 original_scores.append(s["compression"])
 
-        survivor_avg = sum(original_scores) / len(original_scores) if original_scores else 0
+        survivor_avg = (
+            sum(original_scores) / len(original_scores) if original_scores else 0
+        )
 
         # Survivors should have higher average (weak culled, strong amplified)
         assert survivor_avg >= input_avg, "Survivor avg should be >= input avg"

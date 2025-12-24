@@ -1,6 +1,5 @@
 """Tests for Mars HIL proof module."""
 
-import pytest
 from src.live_relay_hil import (
     load_hil_config,
     mars_hil_proof,

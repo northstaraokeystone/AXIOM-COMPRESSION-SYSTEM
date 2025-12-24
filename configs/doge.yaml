@@ -1,0 +1,43 @@
+# configs/doge.yaml
+# DOGE (Department of Government Efficiency) stakeholder configuration
+# D20 Production Evolution
+
+stakeholder: doge
+description: "Improper payments detection and audit trail"
+
+primary_modules:
+  - ledger
+  - detect
+  - anchor
+
+detect:
+  entropy_threshold_sigma: 3.0
+  fraud_classification: true
+  false_positive_max: 0.01
+
+ledger:
+  retention_days: 2555  # 7 years (federal requirement)
+  anchor_interval_receipts: 1000
+  anchor_interval_hours: 1
+  storage: postgresql
+
+anchor:
+  algorithm: dual_hash_merkle
+  proof_generation: true
+  batch_size: 1000
+
+domains:
+  - transactions
+  - payments
+
+value_metrics:
+  improper_payments_b: 162  # GAO FY2024 total
+  medicaid_improper_b: 31.1  # CMS FY2024
+  medicare_ffs_improper_b: 31.7  # CMS FY2024
+  target_reduction_pct: 10
+  potential_savings_b: 16.2
+
+compliance:
+  gao_audit: true
+  federal_retention: true
+  chain_of_custody: true

@@ -129,7 +129,9 @@ def estimate_path_compression(
     projected_compression = max(0.0, min(1.0, projected_compression))
 
     # MDL score combining current and projected
-    mdl_score = MDL_ALPHA * current_compression + (1 - MDL_ALPHA) * projected_compression
+    mdl_score = (
+        MDL_ALPHA * current_compression + (1 - MDL_ALPHA) * projected_compression
+    )
 
     # Classify path
     if projected_compression >= HIGH_COMPRESSION_THRESHOLD:
@@ -211,17 +213,23 @@ def estimate_batch_compression(
         estimate = estimate_path_compression(
             estimator, path_id, current_entropy, projected_entropy, travel_time
         )
-        estimates.append({
-            "path_id": estimate.path_id,
-            "projected_compression": estimate.projected_compression,
-            "classification": estimate.classification,
-            "recommendation": estimate.recommendation,
-        })
+        estimates.append(
+            {
+                "path_id": estimate.path_id,
+                "projected_compression": estimate.projected_compression,
+                "classification": estimate.classification,
+                "recommendation": estimate.recommendation,
+            }
+        )
 
     # Summary statistics
     high_count = sum(1 for e in estimates if e["classification"] == "high")
     low_count = sum(1 for e in estimates if e["classification"] == "low")
-    avg_compression = sum(e["projected_compression"] for e in estimates) / len(estimates) if estimates else 0
+    avg_compression = (
+        sum(e["projected_compression"] for e in estimates) / len(estimates)
+        if estimates
+        else 0
+    )
 
     result = {
         "estimator_id": estimator.estimator_id,

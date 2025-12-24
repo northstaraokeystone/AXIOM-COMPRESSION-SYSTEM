@@ -95,7 +95,9 @@ def initialize_dojo_cluster(tile_count: int = 25) -> Dict[str, Any]:
     return result
 
 
-def offload_recursion_training(tree_size: int = None, depth: int = 18, batch_size: int = None) -> Dict[str, Any]:
+def offload_recursion_training(
+    tree_size: int = None, depth: int = 18, batch_size: int = None
+) -> Dict[str, Any]:
     """Offload fractal recursion training to Dojo.
 
     Args:
@@ -124,11 +126,13 @@ def offload_recursion_training(tree_size: int = None, depth: int = 18, batch_siz
     for epoch in range(epochs):
         # Simulate loss reduction
         current_loss *= 0.8 + random.uniform(0, 0.1)
-        training_results.append({
-            "epoch": epoch,
-            "loss": round(current_loss, 6),
-            "accuracy": round(1.0 - current_loss, 4),
-        })
+        training_results.append(
+            {
+                "epoch": epoch,
+                "loss": round(current_loss, 6),
+                "accuracy": round(1.0 - current_loss, 4),
+            }
+        )
 
     final_accuracy = 1.0 - current_loss
 
@@ -163,7 +167,9 @@ def offload_recursion_training(tree_size: int = None, depth: int = 18, batch_siz
     return result
 
 
-def fractal_optimization_batch(batch_size: int = None, epochs: int = None, trees: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+def fractal_optimization_batch(
+    batch_size: int = None, epochs: int = None, trees: List[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Optimize batch of fractal trees on Dojo.
 
     Args:
@@ -221,7 +227,9 @@ def fractal_optimization_batch(batch_size: int = None, epochs: int = None, trees
             "trees_optimized": len(optimized),
             "avg_compression": round(avg_compression, 4),
             "avg_speedup": round(avg_speedup, 2),
-            "payload_hash": dual_hash(json.dumps({"count": len(optimized)}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"count": len(optimized)}, sort_keys=True)
+            ),
         },
     )
 

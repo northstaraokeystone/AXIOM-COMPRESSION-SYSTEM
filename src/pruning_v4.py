@@ -93,7 +93,9 @@ def load_pruning_config() -> Dict[str, Any]:
     return config
 
 
-def identify_holes_v4(tree: Dict[str, Any], depth: int = PRUNING_V4_PERSISTENCE_DEPTH) -> List[TopologicalHole]:
+def identify_holes_v4(
+    tree: Dict[str, Any], depth: int = PRUNING_V4_PERSISTENCE_DEPTH
+) -> List[TopologicalHole]:
     """Identify topological holes with enhanced detection.
 
     Uses persistence homology to identify H0 (components), H1 (loops),
@@ -367,8 +369,13 @@ def _prune_redundant(tree: Dict[str, Any]) -> Dict[str, Any]:
     for node in nodes:
         if isinstance(node, dict):
             # Keep nodes with actual data
-            if not all(k.endswith("_filled") or k.endswith("_connected") or k.endswith("_closed")
-                      for k in node.keys() if k != "children"):
+            if not all(
+                k.endswith("_filled")
+                or k.endswith("_connected")
+                or k.endswith("_closed")
+                for k in node.keys()
+                if k != "children"
+            ):
                 filtered.append(node)
         else:
             filtered.append(node)
@@ -476,9 +483,7 @@ def prune_v4(tree: Dict[str, Any]) -> Dict[str, Any]:
     return final_result
 
 
-def measure_compression_v4(
-    original: Dict[str, Any], pruned: Dict[str, Any]
-) -> float:
+def measure_compression_v4(original: Dict[str, Any], pruned: Dict[str, Any]) -> float:
     """Measure compression ratio between original and pruned.
 
     Args:

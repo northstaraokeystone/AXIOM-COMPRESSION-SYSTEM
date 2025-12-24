@@ -1,0 +1,49 @@
+# configs/defense.yaml
+# Defense stakeholder configuration
+# D20 Production Evolution
+
+stakeholder: defense
+description: "Fire-control telemetry with decision lineage"
+
+primary_modules:
+  - compress
+  - ledger
+  - anchor
+
+compression:
+  target_ratio: 50  # Higher for fire-control
+  min_recall: 0.9999  # Four nines required
+  algorithm: hybrid
+
+ledger:
+  retention_days: 3650  # 10 years
+  anchor_interval_receipts: 100  # More frequent
+  audit_trail: true
+  decision_lineage: true
+
+anchor:
+  algorithm: dual_hash_merkle
+  proof_generation: true
+  tamper_detection: true
+
+domains:
+  - telemetry
+  - decisions
+
+telemetry:
+  fleet_types:
+    - missile_defense
+    - radar_systems
+    - satellite_feeds
+  sample_rate_hz: 1000
+  latency_max_ms: 10
+
+value_metrics:
+  decision_latency_ms: 50
+  audit_completeness_pct: 100
+  tamper_detection_rate: 0.9999
+
+security:
+  classification: secret
+  encryption: aes256
+  key_rotation_hours: 24

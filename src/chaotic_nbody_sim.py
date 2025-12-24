@@ -119,7 +119,9 @@ def load_chaos_config() -> Dict[str, Any]:
             "lyapunov_threshold": config.get(
                 "lyapunov_threshold", LYAPUNOV_EXPONENT_THRESHOLD
             ),
-            "stability_target": config.get("stability_target", CHAOTIC_STABILITY_TARGET),
+            "stability_target": config.get(
+                "stability_target", CHAOTIC_STABILITY_TARGET
+            ),
             "payload_hash": dual_hash(json.dumps(config, sort_keys=True)),
         },
     )
@@ -147,7 +149,9 @@ def initialize_bodies(config: Optional[Dict[str, Any]] = None) -> List[Dict[str,
     bodies_spec = config.get("bodies", {"jovian": [], "inner": []})
 
     # Get body names from spec or use defaults
-    jovian_bodies = bodies_spec.get("jovian", ["titan", "europa", "ganymede", "callisto"])
+    jovian_bodies = bodies_spec.get(
+        "jovian", ["titan", "europa", "ganymede", "callisto"]
+    )
     inner_bodies = bodies_spec.get("inner", ["venus", "mercury", "mars"])
 
     # Always start with Sun, then add other bodies
@@ -173,19 +177,23 @@ def initialize_bodies(config: Optional[Dict[str, Any]] = None) -> List[Dict[str,
 
             # Circular orbital velocity
             # v = sqrt(G * M / r), normalized to AU/day
-            v_orbital = math.sqrt(1.0 / a) * 0.01720209895  # k = Gaussian gravitational constant
+            v_orbital = (
+                math.sqrt(1.0 / a) * 0.01720209895
+            )  # k = Gaussian gravitational constant
             vx = -v_orbital * math.sin(theta)
             vy = v_orbital * math.cos(theta)
             vz = 0.0
 
-        bodies.append({
-            "name": name,
-            "type": params["type"],
-            "mass": params["mass"],
-            "position": [x, y, z],
-            "velocity": [vx, vy, vz],
-            "semi_major_axis": a,
-        })
+        bodies.append(
+            {
+                "name": name,
+                "type": params["type"],
+                "mass": params["mass"],
+                "position": [x, y, z],
+                "velocity": [vx, vy, vz],
+                "semi_major_axis": a,
+            }
+        )
 
     emit_receipt(
         "chaotic_nbody_init",
@@ -695,7 +703,9 @@ def run_monte_carlo_stability(runs: int = 100, simulate: bool = True) -> Dict[st
     return result
 
 
-def compute_backbone_chaos_tolerance(sim_results: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def compute_backbone_chaos_tolerance(
+    sim_results: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """Compute backbone chaos tolerance from simulation results.
 
     Combines stability, energy conservation, and Lyapunov exponent
@@ -720,7 +730,9 @@ def compute_backbone_chaos_tolerance(sim_results: Optional[Dict[str, Any]] = Non
     energy_ok = 1.0 if sim_results.get("energy_conserved", False) else 0.5
 
     lyapunov = sim_results.get("lyapunov_exponent", 1.0)
-    lyapunov_threshold = sim_results.get("lyapunov_threshold", LYAPUNOV_EXPONENT_THRESHOLD)
+    lyapunov_threshold = sim_results.get(
+        "lyapunov_threshold", LYAPUNOV_EXPONENT_THRESHOLD
+    )
     lyapunov_factor = max(0.0, 1.0 - lyapunov / lyapunov_threshold)
 
     tolerance = (
@@ -751,11 +763,17 @@ def get_chaos_info() -> Dict[str, Any]:
     return {
         "body_count": config.get("body_count", NBODY_COUNT),
         "max_body_count": config.get("max_body_count", NBODY_MAX_COUNT),
-        "integration_method": config.get("integration_method", NBODY_INTEGRATION_METHOD),
+        "integration_method": config.get(
+            "integration_method", NBODY_INTEGRATION_METHOD
+        ),
         "timestep_days": config.get("timestep_days", NBODY_TIMESTEP_DAYS),
-        "lyapunov_threshold": config.get("lyapunov_threshold", LYAPUNOV_EXPONENT_THRESHOLD),
+        "lyapunov_threshold": config.get(
+            "lyapunov_threshold", LYAPUNOV_EXPONENT_THRESHOLD
+        ),
         "stability_target": config.get("stability_target", CHAOTIC_STABILITY_TARGET),
-        "chaos_duration_years": config.get("chaos_duration_years", CHAOS_DURATION_YEARS),
+        "chaos_duration_years": config.get(
+            "chaos_duration_years", CHAOS_DURATION_YEARS
+        ),
         "energy_tolerance": ENERGY_CONSERVATION_TOLERANCE,
         "bodies": config.get("bodies", {}),
         "description": "Chaotic n-body simulations for backbone stability validation",

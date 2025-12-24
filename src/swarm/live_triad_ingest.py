@@ -100,7 +100,9 @@ def init_live_ingest(config: Dict = None) -> LiveTriadIngest:
             "buffer_size": ingest.buffer_size,
             "synthetic_enabled": SYNTHETIC_SCENARIOS_ENABLED,
             "payload_hash": dual_hash(
-                json.dumps({"ingest_id": ingest_id, "source": ingest.source}, sort_keys=True)
+                json.dumps(
+                    {"ingest_id": ingest_id, "source": ingest.source}, sort_keys=True
+                )
             ),
         },
     )
@@ -133,7 +135,9 @@ def connect_agentproof(ingest: LiveTriadIngest) -> bool:
             "source": "agentproof_ledger",
             "connected": ingest.agentproof_connected,
             "payload_hash": dual_hash(
-                json.dumps({"ingest_id": ingest.ingest_id, "connected": True}, sort_keys=True)
+                json.dumps(
+                    {"ingest_id": ingest.ingest_id, "connected": True}, sort_keys=True
+                )
             ),
         },
     )
@@ -166,7 +170,9 @@ def connect_neuron(ingest: LiveTriadIngest) -> bool:
             "source": "neuron_ledger",
             "connected": ingest.neuron_connected,
             "payload_hash": dual_hash(
-                json.dumps({"ingest_id": ingest.ingest_id, "connected": True}, sort_keys=True)
+                json.dumps(
+                    {"ingest_id": ingest.ingest_id, "connected": True}, sort_keys=True
+                )
             ),
         },
     )
@@ -247,7 +253,10 @@ def batch_ingest(ingest: LiveTriadIngest, count: int, source: str = None) -> Lis
             "buffer_size": len(ingest.buffer),
             "total_ingested": ingest.total_ingested,
             "payload_hash": dual_hash(
-                json.dumps({"count": len(receipts), "total": ingest.total_ingested}, sort_keys=True)
+                json.dumps(
+                    {"count": len(receipts), "total": ingest.total_ingested},
+                    sort_keys=True,
+                )
             ),
         },
     )
@@ -255,7 +264,9 @@ def batch_ingest(ingest: LiveTriadIngest, count: int, source: str = None) -> Lis
     return receipts
 
 
-def calculate_live_entropy(ingest: LiveTriadIngest, receipts: List[Dict] = None) -> float:
+def calculate_live_entropy(
+    ingest: LiveTriadIngest, receipts: List[Dict] = None
+) -> float:
     """Shannon entropy of live stream.
 
     Args:
@@ -299,7 +310,9 @@ def calculate_live_entropy(ingest: LiveTriadIngest, receipts: List[Dict] = None)
             "source": "live_triad",
             "synthetic": False,
             "payload_hash": dual_hash(
-                json.dumps({"entropy": round(entropy, 6), "count": total}, sort_keys=True)
+                json.dumps(
+                    {"entropy": round(entropy, 6), "count": total}, sort_keys=True
+                )
             ),
         },
     )

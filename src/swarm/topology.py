@@ -5,10 +5,7 @@ Dynamic topology for 100-node swarm mesh.
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Any, Dict, List, Optional, Set
-
-from ..core import emit_receipt, dual_hash, TENANT_ID
 
 
 @dataclass
@@ -28,10 +25,6 @@ class SwarmTopology:
     nodes: Dict[str, TopologyNode] = field(default_factory=dict)
     clusters: Dict[str, List[str]] = field(default_factory=dict)
     mesh_density: float = 0.0
-
-
-# Fix Optional import
-from typing import Optional
 
 
 def init_topology(node_count: int = 100, full_mesh: bool = True) -> SwarmTopology:
@@ -65,7 +58,9 @@ def init_topology(node_count: int = 100, full_mesh: bool = True) -> SwarmTopolog
     return topology
 
 
-def add_node(topology: SwarmTopology, node_id: str, neighbors: List[str] = None) -> Dict[str, Any]:
+def add_node(
+    topology: SwarmTopology, node_id: str, neighbors: List[str] = None
+) -> Dict[str, Any]:
     """Add node to topology.
 
     Args:
@@ -201,7 +196,9 @@ def detect_clusters(topology: SwarmTopology, min_size: int = 5) -> Dict[str, Lis
     return clusters
 
 
-def rebalance_topology(topology: SwarmTopology, target_density: float = 0.5) -> Dict[str, Any]:
+def rebalance_topology(
+    topology: SwarmTopology, target_density: float = 0.5
+) -> Dict[str, Any]:
     """Rebalance topology toward target density.
 
     Args:

@@ -187,7 +187,9 @@ class StarlinkAnalogInterface:
                 "success": True,
                 "bytes": len(data),
                 "latency_ms": self.latency_ms,
-                "payload_hash": dual_hash(json.dumps({"success": True, "bytes": len(data)})),
+                "payload_hash": dual_hash(
+                    json.dumps({"success": True, "bytes": len(data)})
+                ),
             },
         )
         return True

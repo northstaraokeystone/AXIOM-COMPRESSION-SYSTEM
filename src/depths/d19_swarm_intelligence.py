@@ -329,7 +329,8 @@ def run_gate_2(config: Dict) -> Dict[str, Any]:
         "law_discovered": True,
         "law_id": law.get("law_id"),
         "compression_ratio": law.get("compression_ratio", 0),
-        "target_met": law.get("compression_ratio", 0) >= gate_config.get("compression_target", 0.90),
+        "target_met": law.get("compression_ratio", 0)
+        >= gate_config.get("compression_target", 0.90),
     }
 
     emit_receipt(
@@ -363,7 +364,8 @@ def run_gate_1_2_parallel(config: Dict) -> Dict[str, Any]:
         "mode": "parallel",
         "gate_1": gate_1_result,
         "gate_2": gate_2_result,
-        "both_passed": gate_1_result.get("target_met") and gate_2_result.get("target_met"),
+        "both_passed": gate_1_result.get("target_met")
+        and gate_2_result.get("target_met"),
     }
 
     emit_receipt(
@@ -376,7 +378,9 @@ def run_gate_1_2_parallel(config: Dict) -> Dict[str, Any]:
             "gate_1_passed": gate_1_result.get("target_met"),
             "gate_2_passed": gate_2_result.get("target_met"),
             "both_passed": combined["both_passed"],
-            "payload_hash": dual_hash(json.dumps(combined, sort_keys=True, default=str)),
+            "payload_hash": dual_hash(
+                json.dumps(combined, sort_keys=True, default=str)
+            ),
         },
     )
 
@@ -396,8 +400,16 @@ def run_gate_3(config: Dict) -> Dict[str, Any]:
     Returns:
         Gate 3 result
     """
-    from ..autocatalytic.pattern_detector import init_detector, scan_receipt_stream, detect_autocatalysis
-    from ..autocatalytic.pattern_lifecycle import init_lifecycle, birth_pattern, apply_selection_pressure
+    from ..autocatalytic.pattern_detector import (
+        init_detector,
+        scan_receipt_stream,
+        detect_autocatalysis,
+    )
+    from ..autocatalytic.pattern_lifecycle import (
+        init_lifecycle,
+        birth_pattern,
+        apply_selection_pressure,
+    )
     from ..autocatalytic.cross_planet_migration import (
         init_migration,
         identify_migration_candidates,
@@ -427,7 +439,9 @@ def run_gate_3(config: Dict) -> Dict[str, Any]:
     births = 0
     for pattern in detected[:5]:
         if pattern.get("self_references", 0) > 2:
-            birth_pattern(lifecycle, {"pattern_id": pattern["pattern_id"], "fitness": 0.75})
+            birth_pattern(
+                lifecycle, {"pattern_id": pattern["pattern_id"], "fitness": 0.75}
+            )
             births += 1
 
     # Apply selection pressure
@@ -522,14 +536,17 @@ def run_gate_4(config: Dict) -> Dict[str, Any]:
     result = {
         "gate": 4,
         "name": "multi_scale_federation",
-        "hierarchy_levels": gate_config.get("hierarchy_levels", ["node", "cluster", "planet", "system"]),
+        "hierarchy_levels": gate_config.get(
+            "hierarchy_levels", ["node", "cluster", "planet", "system"]
+        ),
         "cluster_laws": composition.get("cluster_laws_discovered", 0),
         "planet_laws": composition.get("planet_laws_discovered", 0),
         "system_law": composition.get("system_law_discovered", False),
         "constraints_propagated": propagation.get("constraints_propagated", 0),
         "dispute_detected": dispute.get("dispute_detected", False),
         "resolution_accuracy": resolution_accuracy,
-        "target_met": composition.get("system_law_discovered", False) and resolution_accuracy >= 0.90,
+        "target_met": composition.get("system_law_discovered", False)
+        and resolution_accuracy >= 0.90,
     }
 
     emit_receipt(
@@ -608,7 +625,8 @@ def run_gate_5(config: Dict) -> Dict[str, Any]:
         "state_sync_ratio": sync.get("sync_ratio", 0),
         "byzantine_detection_active": True,
         "byzantine_detected": byzantine_detected,
-        "target_met": consensus.get("consensus_achieved", False) and consensus.get("avg_correlation", 0) >= 0.99,
+        "target_met": consensus.get("consensus_achieved", False)
+        and consensus.get("avg_correlation", 0) >= 0.99,
     }
 
     emit_receipt(
@@ -638,13 +656,21 @@ def evaluate_innovation(results: Dict) -> Dict[str, Any]:
     targets = config.get("innovation_targets", {})
 
     evaluations = {
-        "laws_discovered_per_hour": results.get("gate_2", {}).get("law_discovered", False),
+        "laws_discovered_per_hour": results.get("gate_2", {}).get(
+            "law_discovered", False
+        ),
         "pattern_birth_rate": results.get("gate_3", {}).get("patterns_born", 0) / 100,
         "pattern_survival_rate": 0.75,  # Simulated
-        "cross_planet_migration_success": results.get("gate_3", {}).get("migration_success", False),
-        "emergent_arbitration_accuracy": results.get("gate_4", {}).get("resolution_accuracy", 0),
+        "cross_planet_migration_success": results.get("gate_3", {}).get(
+            "migration_success", False
+        ),
+        "emergent_arbitration_accuracy": results.get("gate_4", {}).get(
+            "resolution_accuracy", 0
+        ),
         "swarm_coherence": results.get("gate_1", {}).get("coherence", 0),
-        "quantum_consensus_achieved": results.get("gate_5", {}).get("consensus_achieved", False),
+        "quantum_consensus_achieved": results.get("gate_5", {}).get(
+            "consensus_achieved", False
+        ),
     }
 
     targets_met = sum(
@@ -679,7 +705,15 @@ def calculate_alpha(results: Dict) -> float:
     gate_4_contrib = 0.08 if results.get("gate_4", {}).get("target_met") else 0.04
     gate_5_contrib = 0.08 if results.get("gate_5", {}).get("target_met") else 0.04
 
-    eff_alpha = base_alpha + D19_UPLIFT + gate_1_contrib + gate_2_contrib + gate_3_contrib + gate_4_contrib + gate_5_contrib
+    eff_alpha = (
+        base_alpha
+        + D19_UPLIFT
+        + gate_1_contrib
+        + gate_2_contrib
+        + gate_3_contrib
+        + gate_4_contrib
+        + gate_5_contrib
+    )
 
     return round(eff_alpha, 4)
 
@@ -735,7 +769,8 @@ def run_d19(config: Dict = None) -> Dict[str, Any]:
         "all_gates_passed": all_gates_passed,
         "innovation": innovation,
         "gates": results,
-        "slo_passed": eff_alpha >= D19_ALPHA_FLOOR and innovation.get("success_ratio", 0) >= 0.7,
+        "slo_passed": eff_alpha >= D19_ALPHA_FLOOR
+        and innovation.get("success_ratio", 0) >= 0.7,
         "gate": "t48h",
     }
 
@@ -775,7 +810,13 @@ def get_d19_status() -> Dict[str, Any]:
         "alpha_target": D19_ALPHA_TARGET,
         "alpha_ceiling": D19_ALPHA_CEILING,
         "uplift": D19_UPLIFT,
-        "gates": ["swarm_entropy_engine", "law_witness_module", "autocatalytic_patterns", "multi_scale_federation", "quantum_consensus"],
+        "gates": [
+            "swarm_entropy_engine",
+            "law_witness_module",
+            "autocatalytic_patterns",
+            "multi_scale_federation",
+            "quantum_consensus",
+        ],
         "synthetic_enabled": SYNTHETIC_SCENARIOS_ENABLED,
         "entropy_source": ENTROPY_SOURCE,
         "alpha_law_threshold": ALPHA_LAW_THRESHOLD,
@@ -868,7 +909,9 @@ def run_d19_live_only(config: Dict = None) -> Dict[str, Any]:
         "threshold": ALPHA_LAW_THRESHOLD,
         "threshold_crossed": threshold_crossed,
         "law_triggered": law_result.get("triggered", False),
-        "law_id": law_result.get("law", {}).get("law_id") if law_result.get("law") else None,
+        "law_id": law_result.get("law", {}).get("law_id")
+        if law_result.get("law")
+        else None,
         "target_met": threshold_crossed,
     }
 
@@ -887,7 +930,9 @@ def run_d19_live_only(config: Dict = None) -> Dict[str, Any]:
         "chain_receipts": len(receipts),
         "law_extracted": "error" not in chain_law if chain_law else False,
         "compression_ratio": chain_law.get("compression_ratio", 0) if chain_law else 0,
-        "causality_verified": chain_law.get("causality_verified", False) if chain_law else False,
+        "causality_verified": chain_law.get("causality_verified", False)
+        if chain_law
+        else False,
         "law_enforced": enforce_result.get("enforced", False),
         "target_met": enforce_result.get("enforced", False),
     }
@@ -917,12 +962,14 @@ def run_d19_live_only(config: Dict = None) -> Dict[str, Any]:
     )
     eff_alpha = base_alpha + D19_UPLIFT + sum(gate_contributions)
 
-    all_gates_passed = all([
-        gate_1_result["target_met"],
-        gate_2_result["target_met"],
-        gate_3_result["target_met"],
-        gate_4_result["target_met"],
-    ])
+    all_gates_passed = all(
+        [
+            gate_1_result["target_met"],
+            gate_2_result["target_met"],
+            gate_3_result["target_met"],
+            gate_4_result["target_met"],
+        ]
+    )
 
     result = {
         "depth": D19_DEPTH,
@@ -1065,9 +1112,13 @@ def test_alpha_threshold() -> Dict[str, Any]:
         "below_threshold_check": not below_result,  # Should be False
         "above_threshold_check": above_result,  # Should be True
         "law_triggered": law_result.get("triggered", False),
-        "law_id": law_result.get("law", {}).get("law_id") if law_result.get("law") else None,
+        "law_id": law_result.get("law", {}).get("law_id")
+        if law_result.get("law")
+        else None,
         "status": status,
-        "passed": not below_result and above_result and law_result.get("triggered", False),
+        "passed": not below_result
+        and above_result
+        and law_result.get("triggered", False),
     }
 
     emit_receipt(
@@ -1152,7 +1203,9 @@ def run_d19_preemptive(config: Dict = None) -> Dict[str, Any]:
         else:
             # High entropy paths (low compression)
             entropy = 3.0 + ((i - 40) * 0.2)  # 3.0 to 5.0
-        sample_receipts.append({"receipt_type": f"coordination_{i}", "entropy": entropy})
+        sample_receipts.append(
+            {"receipt_type": f"coordination_{i}", "entropy": entropy}
+        )
 
     projection_result = project_all_paths(proj, sample_receipts, "proxima_centauri")
     entropy_estimates = estimate_future_entropy(proj, proj.projected_paths)
@@ -1182,12 +1235,14 @@ def run_d19_preemptive(config: Dict = None) -> Dict[str, Any]:
         else:
             projected_entropy = path.projected_entropy
 
-        paths_for_estimation.append({
-            "path_id": path_id,
-            "current_entropy": 1.0,
-            "projected_entropy": projected_entropy,
-            "travel_time_years": path.travel_time_years,
-        })
+        paths_for_estimation.append(
+            {
+                "path_id": path_id,
+                "current_entropy": 1.0,
+                "projected_entropy": projected_entropy,
+                "travel_time_years": path.travel_time_years,
+            }
+        )
 
     compression_result = estimate_batch_compression(estimator, paths_for_estimation)
     ranking = rank_by_projected_compression(estimator)
@@ -1205,7 +1260,9 @@ def run_d19_preemptive(config: Dict = None) -> Dict[str, Any]:
         "paths_evaluated": compression_result.get("paths_estimated", 0),
         "paths_amplified": selection_result.get("paths_amplified", 0),
         "paths_starved": selection_result.get("paths_starved", 0),
-        "avg_projected_compression": compression_result.get("avg_projected_compression", 0),
+        "avg_projected_compression": compression_result.get(
+            "avg_projected_compression", 0
+        ),
         "selection_basis": "projected_future",
         "reactive_mode": REACTIVE_MODE_ENABLED,
         "target_met": selection_result.get("paths_amplified", 0) > 0,
@@ -1229,7 +1286,9 @@ def run_d19_preemptive(config: Dict = None) -> Dict[str, Any]:
 
     # GATE 4: DELAY NULLIFICATION
     nullification = init_nullification(d19_2_config)
-    proxima_law = nullify_known_delay(nullification, "proxima_centauri", PROXIMA_RTT_YEARS)
+    proxima_law = nullify_known_delay(
+        nullification, "proxima_centauri", PROXIMA_RTT_YEARS
+    )
 
     # Insert laws into chain
     chain = init_weave_chain(d19_2_config)
@@ -1248,7 +1307,8 @@ def run_d19_preemptive(config: Dict = None) -> Dict[str, Any]:
         "laws_inserted": insertion_result.get("laws_inserted", 0),
         "chain_integrity": integrity_result.get("integrity_valid", False),
         "preemptive_laws_woven": True,
-        "target_met": insertion_result.get("laws_inserted", 0) > 0 and integrity_result.get("integrity_valid", False),
+        "target_met": insertion_result.get("laws_inserted", 0) > 0
+        and integrity_result.get("integrity_valid", False),
     }
 
     # GATE 5: SIMULATION KILL VERIFICATION
@@ -1278,13 +1338,15 @@ def run_d19_preemptive(config: Dict = None) -> Dict[str, Any]:
     )
     eff_alpha = base_alpha + D19_UPLIFT + sum(gate_contributions)
 
-    all_gates_passed = all([
-        gate_1_result["target_met"],
-        gate_2_result["target_met"],
-        gate_3_result["target_met"],
-        gate_4_result["target_met"],
-        gate_5_result["target_met"],
-    ])
+    all_gates_passed = all(
+        [
+            gate_1_result["target_met"],
+            gate_2_result["target_met"],
+            gate_3_result["target_met"],
+            gate_4_result["target_met"],
+            gate_5_result["target_met"],
+        ]
+    )
 
     result = {
         "depth": D19_DEPTH,
@@ -1372,7 +1434,8 @@ def test_future_projection() -> Dict[str, Any]:
         "light_speed_valid": path.light_speed_valid,
         "simulation_enabled": status.get("simulation_enabled", False),
         "reactive_mode": status.get("reactive_mode", False),
-        "passed": path.light_speed_valid and not status.get("simulation_enabled", False),
+        "passed": path.light_speed_valid
+        and not status.get("simulation_enabled", False),
     }
 
     emit_receipt(
@@ -1487,9 +1550,9 @@ def test_proxima_weave() -> Dict[str, Any]:
         "latency_is_input": entropy_status.get("latency_is_input", False),
         "latency_as_obstacle": entropy_status.get("latency_as_obstacle", True),
         "passed": (
-            abs(template.latency_years - PROXIMA_RTT_YEARS) < 0.01 and
-            len(template.nullification_laws) > 0 and
-            not entropy_status.get("latency_as_obstacle", True)
+            abs(template.latency_years - PROXIMA_RTT_YEARS) < 0.01
+            and len(template.nullification_laws) > 0
+            and not entropy_status.get("latency_as_obstacle", True)
         ),
     }
 
@@ -1547,12 +1610,10 @@ def run_d19_oracle_mode(config: Dict = None) -> Dict[str, Any]:
     from ..oracle import (
         init_incorporator,
         on_receipt_arrival,
-        emit_incorporation_receipt,
     )
     from ..oracle import (
         init_gap_detector,
         detect_gap,
-        classify_gap,
         trigger_minimal_law_selection,
         emit_gap_emergence_receipt,
     )
@@ -1575,7 +1636,9 @@ def run_d19_oracle_mode(config: Dict = None) -> Dict[str, Any]:
         "simulation_killed": simulation_killed,
         "preemptive_weave_killed": preemptive_weave_killed,
         "future_path_receipts_emitted": 0,  # Must be zero
-        "target_met": projection_killed and simulation_killed and preemptive_weave_killed,
+        "target_met": projection_killed
+        and simulation_killed
+        and preemptive_weave_killed,
     }
 
     # GATE 2: LIVE HISTORY ORACLE
@@ -1681,13 +1744,15 @@ def run_d19_oracle_mode(config: Dict = None) -> Dict[str, Any]:
     )
     eff_alpha = base_alpha + D19_UPLIFT + sum(gate_contributions)
 
-    all_gates_passed = all([
-        gate_1_result["target_met"],
-        gate_2_result["target_met"],
-        gate_3_result["target_met"],
-        gate_4_result["target_met"],
-        gate_5_result["target_met"],
-    ])
+    all_gates_passed = all(
+        [
+            gate_1_result["target_met"],
+            gate_2_result["target_met"],
+            gate_3_result["target_met"],
+            gate_4_result["target_met"],
+            gate_5_result["target_met"],
+        ]
+    )
 
     result = {
         "depth": D19_DEPTH,
@@ -1765,6 +1830,7 @@ def verify_projection_killed() -> Dict[str, Any]:
 
     # Check that projection/weave directories are killed
     import os
+
     base_path = os.path.dirname(os.path.dirname(__file__))
     projection_exists = os.path.isdir(os.path.join(base_path, "projection"))
     weave_exists = os.path.isdir(os.path.join(base_path, "weave"))
@@ -1785,11 +1851,11 @@ def verify_projection_killed() -> Dict[str, Any]:
         "weave_dir_exists": weave_exists,
         "killed_dir_exists": killed_exists,
         "passed": (
-            projection_killed and
-            simulation_killed and
-            preemptive_weave_killed and
-            not projection_exists and
-            not weave_exists
+            projection_killed
+            and simulation_killed
+            and preemptive_weave_killed
+            and not projection_exists
+            and not weave_exists
         ),
     }
 
@@ -1868,7 +1934,6 @@ def test_gap_silence() -> Dict[str, Any]:
     from ..oracle import (
         init_gap_detector,
         detect_gap,
-        classify_gap,
         minimal_sync_law,
     )
     from datetime import timedelta

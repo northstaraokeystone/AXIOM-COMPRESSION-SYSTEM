@@ -79,14 +79,22 @@ def load_relay_config() -> Dict[str, Any]:
     result = {
         "target_system": config.get("target_system", "proxima_centauri"),
         "distance_ly": config.get("distance_ly", PROXIMA_DISTANCE_LY),
-        "latency_multiplier": config.get("latency_multiplier", PROXIMA_LATENCY_MULTIPLIER),
+        "latency_multiplier": config.get(
+            "latency_multiplier", PROXIMA_LATENCY_MULTIPLIER
+        ),
         "one_way_years": config.get("one_way_years", PROXIMA_ONE_WAY_YEARS),
         "relay_node_count": config.get("relay_node_count", RELAY_NODE_COUNT),
         "relay_spacing_ly": config.get("relay_spacing_ly", RELAY_SPACING_LY),
-        "compression_target": config.get("compression_target", RELAY_COMPRESSION_TARGET),
-        "prediction_horizon_days": config.get("prediction_horizon_days", RELAY_PREDICTION_HORIZON_DAYS),
+        "compression_target": config.get(
+            "compression_target", RELAY_COMPRESSION_TARGET
+        ),
+        "prediction_horizon_days": config.get(
+            "prediction_horizon_days", RELAY_PREDICTION_HORIZON_DAYS
+        ),
         "autonomy_target": config.get("autonomy_target", RELAY_AUTONOMY_TARGET),
-        "coordination_method": config.get("coordination_method", "compressed_returns_with_prediction"),
+        "coordination_method": config.get(
+            "coordination_method", "compressed_returns_with_prediction"
+        ),
     }
 
     emit_receipt(
@@ -105,7 +113,9 @@ def load_relay_config() -> Dict[str, Any]:
     return result
 
 
-def initialize_relay_chain(nodes: int = RELAY_NODE_COUNT, spacing_ly: float = RELAY_SPACING_LY) -> List[Dict[str, Any]]:
+def initialize_relay_chain(
+    nodes: int = RELAY_NODE_COUNT, spacing_ly: float = RELAY_SPACING_LY
+) -> List[Dict[str, Any]]:
     """Set up relay chain nodes.
 
     Args:
@@ -147,7 +157,9 @@ def initialize_relay_chain(nodes: int = RELAY_NODE_COUNT, spacing_ly: float = RE
     return chain
 
 
-def compute_relay_latency(distance_ly: float, nodes: int = RELAY_NODE_COUNT) -> Dict[str, Any]:
+def compute_relay_latency(
+    distance_ly: float, nodes: int = RELAY_NODE_COUNT
+) -> Dict[str, Any]:
     """Compute latency metrics per hop.
 
     Args:
@@ -203,7 +215,9 @@ def simulate_proxima_coordination(duration_days: int = 365) -> Dict[str, Any]:
     Receipt: proxima_coordination_receipt
     """
     config = load_relay_config()
-    chain = initialize_relay_chain(config["relay_node_count"], config["relay_spacing_ly"])
+    chain = initialize_relay_chain(
+        config["relay_node_count"], config["relay_spacing_ly"]
+    )
     latency = compute_relay_latency(config["distance_ly"], config["relay_node_count"])
 
     # Simulate coordination cycles
@@ -331,7 +345,9 @@ def ml_latency_prediction(
 
     # Simulate ensemble prediction
     mean_latency = sum(history) / len(history)
-    std_latency = math.sqrt(sum((x - mean_latency) ** 2 for x in history) / len(history))
+    std_latency = math.sqrt(
+        sum((x - mean_latency) ** 2 for x in history) / len(history)
+    )
 
     predictions = []
     for d in range(horizon_days):
@@ -398,7 +414,9 @@ def relay_node_autonomy(
     # Higher latency requires higher autonomy
     base_autonomy = 0.99
     latency_factor = min(1.0, latency_days / 1000)
-    autonomy_level = base_autonomy + (RELAY_AUTONOMY_TARGET - base_autonomy) * latency_factor
+    autonomy_level = (
+        base_autonomy + (RELAY_AUTONOMY_TARGET - base_autonomy) * latency_factor
+    )
 
     result = {
         "node_id": node_id,
@@ -407,7 +425,9 @@ def relay_node_autonomy(
         "autonomy_target": RELAY_AUTONOMY_TARGET,
         "target_met": autonomy_level >= RELAY_AUTONOMY_TARGET,
         # Backward-compatible aliases for test interface
-        "distance_ly": round(latency_days / 365.25, 4) if distance_ly is None else distance_ly,
+        "distance_ly": round(latency_days / 365.25, 4)
+        if distance_ly is None
+        else distance_ly,
         "decision_latency_days": round(latency_days * 2, 2),  # Round-trip for decisions
     }
 
@@ -427,7 +447,9 @@ def relay_node_autonomy(
     return result
 
 
-def coordinate_relay_chain(nodes: List[Dict[str, Any]], message: Dict[str, Any]) -> Dict[str, Any]:
+def coordinate_relay_chain(
+    nodes: List[Dict[str, Any]], message: Dict[str, Any]
+) -> Dict[str, Any]:
     """Coordinate message across relay chain.
 
     Args:
@@ -488,11 +510,13 @@ def stress_test_relay(iterations: int = 100) -> Dict[str, Any]:
     results = []
     for _ in range(iterations):
         sim = simulate_proxima_coordination(duration_days=30)
-        results.append({
-            "viable": sim["coordination_viable"],
-            "autonomy": sim["autonomy_level"],
-            "compression": sim["compression_ratio"],
-        })
+        results.append(
+            {
+                "viable": sim["coordination_viable"],
+                "autonomy": sim["autonomy_level"],
+                "compression": sim["compression_ratio"],
+            }
+        )
 
     viable_count = sum(1 for r in results if r["viable"])
     avg_autonomy = sum(r["autonomy"] for r in results) / len(results)

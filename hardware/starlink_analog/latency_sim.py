@@ -86,7 +86,9 @@ def simulate_chain_latency(hops: int, per_hop_ms: float) -> float:
             "per_hop_ms": per_hop_ms,
             "total_ms": total_ms,
             "payload_hash": dual_hash(
-                json.dumps({"hops": hops, "per_hop_ms": per_hop_ms, "total_ms": total_ms})
+                json.dumps(
+                    {"hops": hops, "per_hop_ms": per_hop_ms, "total_ms": total_ms}
+                )
             ),
         },
     )
@@ -183,7 +185,9 @@ def simulate_proxima_latency() -> float:
     return latency_years
 
 
-def calculate_latency_multiplier(earth_latency_ms: float, target_latency_ms: float) -> float:
+def calculate_latency_multiplier(
+    earth_latency_ms: float, target_latency_ms: float
+) -> float:
     """Calculate latency multiplier for scaling.
 
     Args:

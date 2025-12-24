@@ -256,12 +256,12 @@ def cmd_pruning_v4(args=None):
         "metadata": {"created": "test", "version": "1.0"},
     }
 
-    print_header(f"PRUNING V4 (target: {target*100:.1f}%)")
+    print_header(f"PRUNING V4 (target: {target * 100:.1f}%)")
 
     result = prune_v4(test_tree)
 
-    print(f"\nCompression Achieved: {result['compression']*100:.2f}%")
-    print(f"Target: {result['target']*100:.1f}%")
+    print(f"\nCompression Achieved: {result['compression'] * 100:.2f}%")
+    print(f"Target: {result['target'] * 100:.1f}%")
     print(f"Target Met: {result['target_met']}")
     print(f"Original Size: {result['original_size']} bytes")
     print(f"Final Size: {result['final_size']} bytes")
@@ -304,8 +304,8 @@ def cmd_pruning_v4_compare(args=None):
 
     result = compare_to_v3(test_tree)
 
-    print(f"\nV3 Compression: {result['v3_compression']*100:.2f}%")
-    print(f"V4 Compression: {result['v4_compression']*100:.2f}%")
+    print(f"\nV3 Compression: {result['v3_compression'] * 100:.2f}%")
+    print(f"V4 Compression: {result['v4_compression'] * 100:.2f}%")
     print(f"Improvement: +{result['improvement_pct']:.2f}%")
     print(f"V4 Better: {result['v4_better']}")
 
@@ -329,7 +329,7 @@ def cmd_pruning_v4_status(args=None):
     status = get_pruning_status()
 
     print(f"\nEnabled: {status['enabled']}")
-    print(f"Compression Target: {status['compression_target']*100:.1f}%")
+    print(f"Compression Target: {status['compression_target'] * 100:.1f}%")
     print(f"Persistence Depth: H0-H{status['persistence_depth']}")
     print(f"Iterative Passes: {status['iterative_passes']}")
     print(f"Method: {status['method']}")
@@ -358,10 +358,10 @@ def cmd_quantum_refine(args=None):
     result = refine_correlation()
 
     print(f"\nPairs Processed: {result['pairs_processed']}")
-    print(f"Correlation Before: {result['correlation_before']*100:.2f}%")
-    print(f"Correlation After: {result['correlation_after']*100:.2f}%")
-    print(f"Improvement: +{result['improvement']*100:.2f}%")
-    print(f"Target: {result['target']*100:.1f}%")
+    print(f"Correlation Before: {result['correlation_before'] * 100:.2f}%")
+    print(f"Correlation After: {result['correlation_after'] * 100:.2f}%")
+    print(f"Improvement: +{result['improvement'] * 100:.2f}%")
+    print(f"Target: {result['target'] * 100:.1f}%")
     print(f"Target Met: {result['target_met']}")
 
     print("=" * 60)
@@ -383,7 +383,7 @@ def cmd_quantum_refine_info(args=None):
 
     status = get_refine_status()
 
-    print(f"\nCorrelation Target: {status['correlation_target']*100:.1f}%")
+    print(f"\nCorrelation Target: {status['correlation_target'] * 100:.1f}%")
     print(f"Decoherence Mitigation: {status['decoherence_mitigation']}")
     print(f"Error Correction: {status['error_correction']}")
     print(f"Refinement Iterations: {status['refinement_iterations']}")

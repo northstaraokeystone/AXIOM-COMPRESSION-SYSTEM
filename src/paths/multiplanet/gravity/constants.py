@@ -64,12 +64,12 @@ PLANET_GRAVITY_MAP = {
 
 # Gravity categories for operational planning
 GRAVITY_CATEGORIES = {
-    "micro": (0.0, 0.1),    # Asteroids, small moons
-    "low": (0.1, 0.3),      # Jovian moons, Pluto
-    "medium": (0.3, 0.6),   # Mars, Mercury
-    "high": (0.6, 1.0),     # Venus
+    "micro": (0.0, 0.1),  # Asteroids, small moons
+    "low": (0.1, 0.3),  # Jovian moons, Pluto
+    "medium": (0.3, 0.6),  # Mars, Mercury
+    "high": (0.6, 1.0),  # Venus
     "earth_like": (0.9, 1.1),  # Earth
-    "super": (1.1, 3.0),    # Gas giants
+    "super": (1.1, 3.0),  # Gas giants
 }
 
 

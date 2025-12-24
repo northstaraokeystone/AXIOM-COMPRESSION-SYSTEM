@@ -1,6 +1,5 @@
 """Tests for multi-planet federation module."""
 
-import pytest
 from src.federation_multiplanet import (
     load_federation_config,
     init_federation,

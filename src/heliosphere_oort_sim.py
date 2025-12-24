@@ -129,7 +129,9 @@ def load_heliosphere_config() -> Dict[str, Any]:
 
     # Add zones for test compatibility
     config["zones"] = {
-        "termination_shock": {"distance_au": config.get("termination_shock_au", TERMINATION_SHOCK_AU)},
+        "termination_shock": {
+            "distance_au": config.get("termination_shock_au", TERMINATION_SHOCK_AU)
+        },
         "heliopause": {"distance_au": config.get("heliopause_au", HELIOPAUSE_AU)},
         "bow_shock": {"distance_au": config.get("bow_shock_au", BOW_SHOCK_AU)},
     }
@@ -354,7 +356,9 @@ def initialize_oort_cloud(distance_au: float = OORT_SIMULATION_AU) -> Dict[str, 
         "estimated_bodies": config.get("body_count_estimate", OORT_BODY_COUNT_ESTIMATE),
         "zone": get_zone_for_distance(distance_au),
         "light_delay_hours": round(light_delay, 2),  # Tests expect this
-        "autonomy_target": config.get("autonomy_target", OORT_AUTONOMY_TARGET),  # Tests expect this
+        "autonomy_target": config.get(
+            "autonomy_target", OORT_AUTONOMY_TARGET
+        ),  # Tests expect this
     }
 
     emit_receipt(
@@ -402,7 +406,9 @@ def compute_round_trip_latency(distance_au: float) -> float:
 
 
 def simulate_oort_coordination(
-    au: float = OORT_SIMULATION_AU, duration_days: int = None, duration_hours: float = None
+    au: float = OORT_SIMULATION_AU,
+    duration_days: int = None,
+    duration_hours: float = None,
 ) -> Dict[str, Any]:
     """Run full Oort cloud coordination simulation.
 
@@ -442,7 +448,9 @@ def simulate_oort_coordination(
     # Simulate compression-held returns
     compression_result = compression_held_return(
         {"cycles": coordination_cycles, "latency_hours": round_trip},
-        compression_target=comp_config.get("compression_return_threshold", COMPRESSION_RETURN_THRESHOLD),
+        compression_target=comp_config.get(
+            "compression_return_threshold", COMPRESSION_RETURN_THRESHOLD
+        ),
     )
 
     # Evaluate autonomy
@@ -492,7 +500,9 @@ def simulate_oort_coordination(
     return result
 
 
-def compression_held_return(data: Dict[str, Any], threshold: float = None, compression_target: float = None) -> Dict[str, Any]:
+def compression_held_return(
+    data: Dict[str, Any], threshold: float = None, compression_target: float = None
+) -> Dict[str, Any]:
     """Execute compression-held return for latency mitigation.
 
     Compression-held returns defeat light-speed latency by:
@@ -528,7 +538,9 @@ def compression_held_return(data: Dict[str, Any], threshold: float = None, compr
 
     # Calculate latency savings (compression reduces round-trip needs)
     latency_hours = data.get("latency_hours", OORT_ROUND_TRIP_HOURS)
-    latency_savings_hours = latency_hours * compression_ratio if compression_viable else 0
+    latency_savings_hours = (
+        latency_hours * compression_ratio if compression_viable else 0
+    )
 
     result = {
         "original_size": data_size,
@@ -586,18 +598,14 @@ def predictive_coordination(
     predictions = [
         {
             "time_offset_hours": i * 6,
-            "confidence": round(prediction_accuracy * (1.0 - i * 0.01), 3)
+            "confidence": round(prediction_accuracy * (1.0 - i * 0.01), 3),
         }
         for i in range(num_predictions)
     ]
 
     # Generate coordination windows
     coordination_windows = [
-        {
-            "start_hour": i * 12,
-            "end_hour": (i + 1) * 12,
-            "optimal": i == 0
-        }
+        {"start_hour": i * 12, "end_hour": (i + 1) * 12, "optimal": i == 0}
         for i in range(max(1, int(horizon_hours / 12)))
     ]
 
@@ -617,7 +625,9 @@ def predictive_coordination(
     return result
 
 
-def evaluate_autonomy_level(coordination_results: Dict[str, Any] = None, distance_au: float = None) -> Dict[str, Any]:
+def evaluate_autonomy_level(
+    coordination_results: Dict[str, Any] = None, distance_au: float = None
+) -> Dict[str, Any]:
     """Evaluate autonomy level from coordination results or distance.
 
     Args:
@@ -667,9 +677,9 @@ def evaluate_autonomy_level(coordination_results: Dict[str, Any] = None, distanc
     # Decision categories
     decision_categories = {
         "routine": 0.999,  # Nearly all routine decisions autonomous
-        "tactical": 0.95,   # Most tactical decisions autonomous
+        "tactical": 0.95,  # Most tactical decisions autonomous
         "strategic": 0.80,  # Strategic decisions still need some consultation
-        "critical": 0.50,   # Critical decisions may need human approval
+        "critical": 0.50,  # Critical decisions may need human approval
     }
 
     # Human intervention rate (inverse of autonomy)

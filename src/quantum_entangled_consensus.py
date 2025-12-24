@@ -14,7 +14,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from .core import emit_receipt, dual_hash, TENANT_ID
 
@@ -74,7 +74,9 @@ def init_quantum_consensus(config: Dict = None) -> QuantumConsensus:
     return QuantumConsensus(consensus_id=consensus_id, config=config)
 
 
-def establish_entanglement(qc: QuantumConsensus, node_a: str, node_b: str) -> Dict[str, Any]:
+def establish_entanglement(
+    qc: QuantumConsensus, node_a: str, node_b: str
+) -> Dict[str, Any]:
     """Establish entanglement pair between two nodes.
 
     Args:
@@ -170,7 +172,11 @@ def verify_correlation(qc: QuantumConsensus, pair_id: str) -> float:
             "pair_id": pair_id,
             "correlation": round(pair.correlation, 6),
             "is_coherent": pair.is_coherent,
-            "payload_hash": dual_hash(json.dumps({"pair_id": pair_id, "corr": pair.correlation}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"pair_id": pair_id, "corr": pair.correlation}, sort_keys=True
+                )
+            ),
         },
     )
 
@@ -212,7 +218,12 @@ def detect_decoherence(qc: QuantumConsensus, pair_id: str) -> bool:
             "pair_id": pair_id,
             "correlation": round(current_corr, 6),
             "decoherence_detected": decoherence_detected,
-            "payload_hash": dual_hash(json.dumps({"pair_id": pair_id, "decoherence": decoherence_detected}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"pair_id": pair_id, "decoherence": decoherence_detected},
+                    sort_keys=True,
+                )
+            ),
         },
     )
 
@@ -277,7 +288,9 @@ def achieve_quantum_consensus(qc: QuantumConsensus, proposal: Dict) -> Dict[str,
     coherence_ratio = coherent_pairs / total_pairs if total_pairs > 0 else 0
 
     # Consensus achieved if >90% pairs are coherent
-    consensus_achieved = coherence_ratio >= 0.90 and avg_correlation >= (CORRELATION_TARGET - DECOHERENCE_THRESHOLD)
+    consensus_achieved = coherence_ratio >= 0.90 and avg_correlation >= (
+        CORRELATION_TARGET - DECOHERENCE_THRESHOLD
+    )
 
     elapsed_ms = (time.time() - start_time) * 1000
 
@@ -335,7 +348,9 @@ def sync_state_via_correlation(qc: QuantumConsensus, state: Dict) -> Dict[str, A
         "synced_nodes": len(synced_nodes),
         "total_nodes": len(qc.node_pairs),
         "sync_mode": STATE_SYNC_MODE,
-        "sync_ratio": round(len(synced_nodes) / len(qc.node_pairs), 4) if qc.node_pairs else 1.0,
+        "sync_ratio": round(len(synced_nodes) / len(qc.node_pairs), 4)
+        if qc.node_pairs
+        else 1.0,
     }
 
     emit_receipt(

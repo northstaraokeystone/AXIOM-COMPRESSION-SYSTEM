@@ -4,9 +4,6 @@ Tests for law discovery trigger when α > 1.20.
 Laws are not discovered—they are enforced by the receipt chain itself.
 """
 
-import pytest
-import time
-
 
 class TestAlphaThresholdConstants:
     """Test alpha threshold constants."""
@@ -197,7 +194,10 @@ class TestThresholdStatus:
 
     def test_get_threshold_status(self):
         """Test threshold status returns correct info."""
-        from src.witness.alpha_threshold import init_threshold_monitor, get_threshold_status
+        from src.witness.alpha_threshold import (
+            init_threshold_monitor,
+            get_threshold_status,
+        )
 
         monitor = init_threshold_monitor({})
         status = get_threshold_status(monitor)

@@ -7,7 +7,6 @@ Tests:
 - D16+Kuiper hybrid integration
 """
 
-import pytest
 from src.fractal_layers import (
     get_d16_spec,
     get_d16_uplift,

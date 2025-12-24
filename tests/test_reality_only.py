@@ -4,8 +4,6 @@ Tests verifying synthetic scenarios are KILLED.
 Reality is the only valid scenario.
 """
 
-import pytest
-
 
 class TestSyntheticKilled:
     """Test synthetic scenarios are killed."""
@@ -136,12 +134,23 @@ class TestReceiptEnforcedLaw:
 
     def test_extract_law_from_chain(self):
         """Test law extraction from receipt chain."""
-        from src.witness.receipt_enforced_law import init_enforcement, extract_law_from_chain
+        from src.witness.receipt_enforced_law import (
+            init_enforcement,
+            extract_law_from_chain,
+        )
 
         enforcement = init_enforcement({})
         receipts = [
-            {"receipt_type": "test", "ts": "2024-01-01T00:00:00Z", "payload_hash": "a:b"},
-            {"receipt_type": "test", "ts": "2024-01-01T00:00:01Z", "payload_hash": "c:d"},
+            {
+                "receipt_type": "test",
+                "ts": "2024-01-01T00:00:00Z",
+                "payload_hash": "a:b",
+            },
+            {
+                "receipt_type": "test",
+                "ts": "2024-01-01T00:00:01Z",
+                "payload_hash": "c:d",
+            },
         ]
         law = extract_law_from_chain(enforcement, receipts)
 
@@ -151,12 +160,23 @@ class TestReceiptEnforcedLaw:
 
     def test_validate_chain_causality(self):
         """Test chain causality validation."""
-        from src.witness.receipt_enforced_law import init_enforcement, validate_chain_causality
+        from src.witness.receipt_enforced_law import (
+            init_enforcement,
+            validate_chain_causality,
+        )
 
         enforcement = init_enforcement({})
         receipts = [
-            {"receipt_type": "test", "ts": "2024-01-01T00:00:00Z", "payload_hash": "a:b"},
-            {"receipt_type": "test", "ts": "2024-01-01T00:00:01Z", "payload_hash": "c:d"},
+            {
+                "receipt_type": "test",
+                "ts": "2024-01-01T00:00:00Z",
+                "payload_hash": "a:b",
+            },
+            {
+                "receipt_type": "test",
+                "ts": "2024-01-01T00:00:01Z",
+                "payload_hash": "c:d",
+            },
         ]
         valid = validate_chain_causality(enforcement, receipts)
 
@@ -164,7 +184,10 @@ class TestReceiptEnforcedLaw:
 
     def test_causality_violation_detected(self):
         """Test causality violation is detected."""
-        from src.witness.receipt_enforced_law import init_enforcement, validate_chain_causality
+        from src.witness.receipt_enforced_law import (
+            init_enforcement,
+            validate_chain_causality,
+        )
 
         enforcement = init_enforcement({})
         # Out of order timestamps

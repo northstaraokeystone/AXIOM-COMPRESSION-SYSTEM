@@ -11,8 +11,8 @@ def cmd_gravity_info(args) -> None:
     print("\n=== GRAVITY ADAPTIVE CONFIGURATION ===")
     print(f"Adaptive enabled: {status['adaptive_enabled']}")
     print(f"Planets configured: {status['planets_configured']}")
-    print(f"\n=== DEFAULT GRAVITY MAP ===")
-    for planet, gravity in status['default_gravity_map'].items():
+    print("\n=== DEFAULT GRAVITY MAP ===")
+    for planet, gravity in status["default_gravity_map"].items():
         print(f"  {planet}: {gravity}g")
 
 

@@ -16,7 +16,7 @@ def cmd_federation_multiplanet_info(args) -> None:
     print(f"Autonomy minimum: {config.get('autonomy_minimum', 0.995)}")
     print(f"Sync interval: {config.get('sync_interval_hours', 24)} hours")
     print(f"Arbitration enabled: {config.get('arbitration_enabled', True)}")
-    print(f"\n=== FEDERATION STATUS ===")
+    print("\n=== FEDERATION STATUS ===")
     print(f"Initialized: {status['initialized']}")
     print(f"Planet count: {status['planet_count']}")
     print(f"Consensus rounds: {status['consensus_round']}")

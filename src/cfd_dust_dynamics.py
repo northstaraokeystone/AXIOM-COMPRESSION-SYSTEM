@@ -1676,7 +1676,9 @@ def load_atacama_200hz_config() -> Dict[str, Any]:
             "tenant_id": CFD_TENANT_ID,
             "ts": datetime.utcnow().isoformat() + "Z",
             "sampling_hz": config.get("sampling_hz", ATACAMA_200HZ_SAMPLING),
-            "adaptive_sampling": config.get("adaptive_sampling", ATACAMA_200HZ_ADAPTIVE),
+            "adaptive_sampling": config.get(
+                "adaptive_sampling", ATACAMA_200HZ_ADAPTIVE
+            ),
             "correlation_target": config.get(
                 "correlation_target", ATACAMA_200HZ_CORRELATION_TARGET
             ),
@@ -1693,7 +1695,9 @@ def load_atacama_200hz_config() -> Dict[str, Any]:
     return config
 
 
-def atacama_200hz(duration_s: float = 10.0, duration_sec: float = None) -> Dict[str, Any]:
+def atacama_200hz(
+    duration_s: float = 10.0, duration_sec: float = None
+) -> Dict[str, Any]:
     """Run Atacama simulation at 200Hz sampling rate.
 
     2x upgrade from 100Hz mode with enhanced correlation target.
@@ -1717,6 +1721,7 @@ def atacama_200hz(duration_s: float = 10.0, duration_sec: float = None) -> Dict[
     # Simulate at 200Hz (double resolution)
     les_data = []
     import random
+
     random.seed(42)
 
     for i in range(samples):
@@ -1728,29 +1733,33 @@ def atacama_200hz(duration_s: float = 10.0, duration_sec: float = None) -> Dict[
         u_prime += 0.5 * math.sin(2 * math.pi * 5.0 * t)  # 5Hz component
         u = u_mean + u_prime
 
-        les_data.append({
-            "t_s": round(t, 4),
-            "u_m_s": round(u, 4),
-            "v_m_s": round(0.5 * u_prime, 4),
-            "w_m_s": round(0.1 * u_prime, 4),
-        })
+        les_data.append(
+            {
+                "t_s": round(t, 4),
+                "u_m_s": round(u, 4),
+                "v_m_s": round(0.5 * u_prime, 4),
+                "w_m_s": round(0.1 * u_prime, 4),
+            }
+        )
 
     # Generate drone data with 200Hz noise characteristics
     drone_data = []
     for les_point in les_data:
         noise_factor = 0.03  # Lower noise at higher sampling rate
-        drone_data.append({
-            "t_s": les_point["t_s"],
-            "u_m_s": round(
-                les_point["u_m_s"] * (1 + noise_factor * (random.random() - 0.5)), 4
-            ),
-            "v_m_s": round(
-                les_point["v_m_s"] * (1 + noise_factor * (random.random() - 0.5)), 4
-            ),
-            "w_m_s": round(
-                les_point["w_m_s"] * (1 + noise_factor * (random.random() - 0.5)), 4
-            ),
-        })
+        drone_data.append(
+            {
+                "t_s": les_point["t_s"],
+                "u_m_s": round(
+                    les_point["u_m_s"] * (1 + noise_factor * (random.random() - 0.5)), 4
+                ),
+                "v_m_s": round(
+                    les_point["v_m_s"] * (1 + noise_factor * (random.random() - 0.5)), 4
+                ),
+                "w_m_s": round(
+                    les_point["w_m_s"] * (1 + noise_factor * (random.random() - 0.5)), 4
+                ),
+            }
+        )
 
     # Compute correlation (should be higher at 200Hz)
     correlation = compute_realtime_correlation(
@@ -1889,6 +1898,7 @@ def predict_dust_devil(
     if duration_sec is not None:
         sampling_hz = sampling_hz or 200
         import random
+
         random.seed(42)
         samples = int(duration_sec * sampling_hz)
         data = [{"u_m_s": 15.0 + 2.0 * random.random()} for _ in range(samples)]
@@ -1947,7 +1957,9 @@ def predict_dust_devil(
         "velocity_variance": round(u_var, 4),
         "max_gradient": round(max_gradient, 4),
         "horizon_s": horizon_s,
-        "time_to_formation_s": round(time_to_formation_s, 1) if time_to_formation_s else None,
+        "time_to_formation_s": round(time_to_formation_s, 1)
+        if time_to_formation_s
+        else None,
         "samples_analyzed": len(u_values),
     }
 
@@ -2094,7 +2106,9 @@ def load_ml_ensemble_config() -> Dict[str, Any]:
             "agreement_threshold": config.get(
                 "agreement_threshold", ML_ENSEMBLE_AGREEMENT_THRESHOLD
             ),
-            "accuracy_target": config.get("accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET),
+            "accuracy_target": config.get(
+                "accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET
+            ),
             "payload_hash": dual_hash(json.dumps(config, sort_keys=True)),
         },
     )
@@ -2117,19 +2131,21 @@ def initialize_ensemble(model_types: Optional[list] = None) -> Dict[str, Any]:
 
     models = []
     for i, model_type in enumerate(model_types):
-        models.append({
-            "id": i,
-            "type": model_type,
-            "trained": False,
-            "initialized": True,
-            "weight": 1.0 / len(model_types),
-            "accuracy": 0.0,
-            "parameters": {
-                "learning_rate": 0.001,
-                "epochs": 100,
-                "batch_size": 32,
-            },
-        })
+        models.append(
+            {
+                "id": i,
+                "type": model_type,
+                "trained": False,
+                "initialized": True,
+                "weight": 1.0 / len(model_types),
+                "accuracy": 0.0,
+                "parameters": {
+                    "learning_rate": 0.001,
+                    "epochs": 100,
+                    "batch_size": 32,
+                },
+            }
+        )
 
     return {"models": models}
 
@@ -2196,9 +2212,7 @@ def train_ensemble(
 
 
 def ensemble_predict(
-    models: list = None,
-    features: Optional[list] = None,
-    horizon_s: int = 60
+    models: list = None, features: Optional[list] = None, horizon_s: int = 60
 ) -> Dict[str, float]:
     """Generate ensemble prediction from all models.
 
@@ -2250,15 +2264,14 @@ def compute_ensemble_agreement(predictions: Dict[str, float]) -> float:
 
     # Agreement = 1 - normalized std deviation
     # Max std for [0,1] is 0.5 (when half are 0 and half are 1)
-    std_dev = variance ** 0.5
+    std_dev = variance**0.5
     agreement = max(0.0, 1.0 - 2 * std_dev)
 
     return round(agreement, 4)
 
 
 def weighted_ensemble_average(
-    predictions: Dict[str, float],
-    weights: Optional[Dict[str, float]] = None
+    predictions: Dict[str, float], weights: Optional[Dict[str, float]] = None
 ) -> float:
     """Combine predictions using weighted average.
 
@@ -2286,7 +2299,9 @@ def weighted_ensemble_average(
     return round(weighted_sum / total_weight, 4)
 
 
-def ml_ensemble_forecast(horizon_s: int = ML_ENSEMBLE_PREDICTION_HORIZON_S) -> Dict[str, Any]:
+def ml_ensemble_forecast(
+    horizon_s: int = ML_ENSEMBLE_PREDICTION_HORIZON_S,
+) -> Dict[str, Any]:
     """Full 60s ML ensemble dust forecast.
 
     Args:
@@ -2324,15 +2339,15 @@ def ml_ensemble_forecast(horizon_s: int = ML_ENSEMBLE_PREDICTION_HORIZON_S) -> D
         "agreement_threshold": config.get(
             "agreement_threshold", ML_ENSEMBLE_AGREEMENT_THRESHOLD
         ),
-        "agreement_met": agreement >= config.get(
-            "agreement_threshold", ML_ENSEMBLE_AGREEMENT_THRESHOLD
-        ),
+        "agreement_met": agreement
+        >= config.get("agreement_threshold", ML_ENSEMBLE_AGREEMENT_THRESHOLD),
         "weighted_prediction": weighted_pred,
         "dust_event_predicted": dust_event_predicted,
         "confidence": round(confidence, 4),
         "accuracy": round(accuracy, 4),
         "accuracy_target": config.get("accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET),
-        "accuracy_met": accuracy >= config.get("accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET),
+        "accuracy_met": accuracy
+        >= config.get("accuracy_target", ML_ENSEMBLE_ACCURACY_TARGET),
         "ensemble_method": config.get("ensemble_method", "weighted_average"),
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
@@ -2531,12 +2546,14 @@ def initialize_90s_ensemble(model_types: Optional[list] = None) -> Dict[str, Any
     weights = {}
 
     for model_type in model_types:
-        models.append({
-            "type": model_type,
-            "initialized": True,
-            "horizon": ML_90S_PREDICTION_HORIZON_S,
-            "version": "d17",
-        })
+        models.append(
+            {
+                "type": model_type,
+                "initialized": True,
+                "horizon": ML_90S_PREDICTION_HORIZON_S,
+                "version": "d17",
+            }
+        )
         # Equal weights for all models
         weights[model_type] = 1.0 / len(model_types)
 
@@ -2580,19 +2597,23 @@ def ml_ensemble_forecast_90s(
         prediction = base_prediction * horizon_factor
         confidence = round(0.88 + random.uniform(-0.05, 0.05), 4)
 
-        predictions.append({
-            "model_type": model["type"],
-            "prediction": round(prediction, 4),
-            "confidence": confidence,
-        })
+        predictions.append(
+            {
+                "model_type": model["type"],
+                "prediction": round(prediction, 4),
+                "confidence": confidence,
+            }
+        )
 
         # Track model contributions
-        model_contributions.append({
-            "model": model["type"],
-            "contribution": round(prediction, 4),
-            "weight": ensemble["weights"][model["type"]],
-            "confidence": confidence,
-        })
+        model_contributions.append(
+            {
+                "model": model["type"],
+                "contribution": round(prediction, 4),
+                "weight": ensemble["weights"][model["type"]],
+                "confidence": confidence,
+            }
+        )
 
     # Compute agreement
     pred_values = [p["prediction"] for p in predictions]
@@ -2603,9 +2624,11 @@ def ml_ensemble_forecast_90s(
     # Compute weighted average
     confidences = [p["confidence"] for p in predictions]
     total_conf = sum(confidences)
-    weighted_pred = sum(
-        p["prediction"] * p["confidence"] for p in predictions
-    ) / total_conf if total_conf > 0 else mean_pred
+    weighted_pred = (
+        sum(p["prediction"] * p["confidence"] for p in predictions) / total_conf
+        if total_conf > 0
+        else mean_pred
+    )
 
     # Apply extended horizon correction
     correction_result = extended_horizon_correction([weighted_pred], horizon_s)
@@ -2615,7 +2638,7 @@ def ml_ensemble_forecast_90s(
     accuracy = min(0.95, 0.85 + agreement * 0.1)
 
     # Confidence interval based on variance
-    std_dev = variance ** 0.5
+    std_dev = variance**0.5
     confidence_interval = {
         "lower": round(corrected_pred - 1.96 * std_dev, 4),
         "upper": round(corrected_pred + 1.96 * std_dev, 4),
@@ -2635,12 +2658,12 @@ def ml_ensemble_forecast_90s(
         "agreement_threshold": config.get(
             "agreement_threshold", ML_90S_AGREEMENT_THRESHOLD
         ),
-        "agreement_met": agreement >= config.get(
-            "agreement_threshold", ML_90S_AGREEMENT_THRESHOLD
-        ),
+        "agreement_met": agreement
+        >= config.get("agreement_threshold", ML_90S_AGREEMENT_THRESHOLD),
         "accuracy": round(accuracy, 4),
         "accuracy_target": config.get("accuracy_target", ML_90S_ACCURACY_TARGET),
-        "accuracy_met": accuracy >= config.get("accuracy_target", ML_90S_ACCURACY_TARGET),
+        "accuracy_met": accuracy
+        >= config.get("accuracy_target", ML_90S_ACCURACY_TARGET),
         "target_met": (
             agreement >= config.get("agreement_threshold", ML_90S_AGREEMENT_THRESHOLD)
             and accuracy >= config.get("accuracy_target", ML_90S_ACCURACY_TARGET)

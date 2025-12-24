@@ -22,7 +22,7 @@ Source: NASA/TM-2010-216130 (Stuster 2010) for psychology constants
 
 import math
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from .core import emit_receipt, StopRule
 
@@ -707,7 +707,8 @@ def evolve_under_latency(
                 "generations_evolved": generations,
                 "latency_ms": latency_ms,
                 "survivor_count": len(current_pop),
-                "avg_tolerance": sum(r.get("tolerance", 0) for r in current_pop) / len(current_pop),
+                "avg_tolerance": sum(r.get("tolerance", 0) for r in current_pop)
+                / len(current_pop),
             },
         )
 

@@ -17,7 +17,7 @@ import random
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -47,7 +47,9 @@ class SplineFunction:
     def __post_init__(self):
         if not self.coefficients:
             # Initialize random coefficients
-            self.coefficients = [random.gauss(0, 0.1) for _ in range(self.n_knots + self.degree + 1)]
+            self.coefficients = [
+                random.gauss(0, 0.1) for _ in range(self.n_knots + self.degree + 1)
+            ]
 
     def evaluate(self, x: float) -> float:
         """Evaluate spline at point x."""
@@ -72,7 +74,8 @@ class KANLayer:
         if not self.splines:
             # Initialize splines for each input-output pair
             self.splines = [
-                [SplineFunction(n_knots=5) for _ in range(self.output_dim)] for _ in range(self.input_dim)
+                [SplineFunction(n_knots=5) for _ in range(self.output_dim)]
+                for _ in range(self.input_dim)
             ]
 
     def forward(self, inputs: List[float]) -> List[float]:
@@ -98,7 +101,9 @@ class SwarmKAN:
         if not self.layers:
             # Initialize layers based on architecture
             for i in range(len(self.architecture) - 1):
-                layer = KANLayer(input_dim=self.architecture[i], output_dim=self.architecture[i + 1])
+                layer = KANLayer(
+                    input_dim=self.architecture[i], output_dim=self.architecture[i + 1]
+                )
                 self.layers.append(layer)
 
     def forward(self, inputs: List[float]) -> float:
@@ -133,9 +138,14 @@ def init_swarm_kan(config: Dict = None) -> SwarmKAN:
             "kan_id": kan_id,
             "architecture": architecture,
             "total_splines": sum(
-                architecture[i] * architecture[i + 1] for i in range(len(architecture) - 1)
+                architecture[i] * architecture[i + 1]
+                for i in range(len(architecture) - 1)
             ),
-            "payload_hash": dual_hash(json.dumps({"kan_id": kan_id, "architecture": architecture}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"kan_id": kan_id, "architecture": architecture}, sort_keys=True
+                )
+            ),
         },
     )
 
@@ -169,15 +179,21 @@ def encode_swarm_state(engine: Any) -> List[float]:
             "tenant_id": TENANT_ID,
             "ts": datetime.utcnow().isoformat() + "Z",
             "node_count": len(entropies),
-            "mean_entropy": round(sum(entropies) / len(entropies) if entropies else 0, 6),
-            "payload_hash": dual_hash(json.dumps({"node_count": len(entropies)}, sort_keys=True)),
+            "mean_entropy": round(
+                sum(entropies) / len(entropies) if entropies else 0, 6
+            ),
+            "payload_hash": dual_hash(
+                json.dumps({"node_count": len(entropies)}, sort_keys=True)
+            ),
         },
     )
 
     return entropies
 
 
-def train_on_coordination(kan: SwarmKAN, states: List[List[float]], outcomes: List[float]) -> Dict[str, Any]:
+def train_on_coordination(
+    kan: SwarmKAN, states: List[List[float]], outcomes: List[float]
+) -> Dict[str, Any]:
     """Train KAN on coordination patterns.
 
     Args:
@@ -210,7 +226,11 @@ def train_on_coordination(kan: SwarmKAN, states: List[List[float]], outcomes: Li
                 for spline in spline_row:
                     for i in range(len(spline.coefficients)):
                         # Random perturbation for training
-                        spline.coefficients[i] -= learning_rate * random.gauss(0, 0.01) * (prediction - target)
+                        spline.coefficients[i] -= (
+                            learning_rate
+                            * random.gauss(0, 0.01)
+                            * (prediction - target)
+                        )
 
     avg_loss = total_loss / len(states) if states else 0
 
@@ -269,7 +289,9 @@ def compress_pattern(kan: SwarmKAN, state: List[float]) -> Dict[str, Any]:
     # Compute compression ratio
     original_bits = len(state) * 32  # 32 bits per float
     compressed_bits = len(active_splines) * 16  # Rough estimate
-    compression_ratio = 1 - (compressed_bits / original_bits) if original_bits > 0 else 0
+    compression_ratio = (
+        1 - (compressed_bits / original_bits) if original_bits > 0 else 0
+    )
 
     return {
         "coordination_score": round(coordination_score, 4),
@@ -378,7 +400,9 @@ def validate_law(law: Dict[str, Any], test_states: List[List[float]]) -> float:
             "law_id": law.get("law_id", "unknown"),
             "test_samples": len(test_states),
             "accuracy": round(accuracy, 4),
-            "payload_hash": dual_hash(json.dumps({"law_id": law.get("law_id")}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"law_id": law.get("law_id")}, sort_keys=True)
+            ),
         },
     )
 
@@ -396,13 +420,17 @@ def compare_laws(law_a: Dict[str, Any], law_b: Dict[str, Any]) -> float:
         Similarity score 0-1
     """
     # Compare compression ratios
-    ratio_diff = abs(law_a.get("compression_ratio", 0) - law_b.get("compression_ratio", 0))
+    ratio_diff = abs(
+        law_a.get("compression_ratio", 0) - law_b.get("compression_ratio", 0)
+    )
 
     # Compare fitness scores
     fitness_diff = abs(law_a.get("fitness_score", 0) - law_b.get("fitness_score", 0))
 
     # Compare pattern sources
-    source_match = 1.0 if law_a.get("pattern_source") == law_b.get("pattern_source") else 0.0
+    source_match = (
+        1.0 if law_a.get("pattern_source") == law_b.get("pattern_source") else 0.0
+    )
 
     similarity = 1.0 - (ratio_diff + fitness_diff) / 2
     similarity = (similarity + source_match) / 2

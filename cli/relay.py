@@ -30,7 +30,9 @@ def cmd_relay_info(args: Namespace) -> Dict[str, Any]:
     print(f"Compression target: {config.get('compression_target', 0.995)}")
     print(f"Prediction horizon: {config.get('prediction_horizon_days', 30)} days")
     print(f"Autonomy target: {config.get('autonomy_target', 0.9999)}")
-    print(f"Coordination method: {config.get('coordination_method', 'compressed_returns_with_prediction')}")
+    print(
+        f"Coordination method: {config.get('coordination_method', 'compressed_returns_with_prediction')}"
+    )
 
     return config
 

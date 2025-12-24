@@ -210,7 +210,9 @@ def generate_bulletproof(
         witness = {"value": value if value is not None else secrets.randbits(62)}
     if range_bits is None:
         range_bits = circuit.get("range_bits", BULLETPROOFS_RANGE_BITS)
-    _value = witness.get("value", value if value is not None else secrets.randbits(range_bits))
+    _value = witness.get(
+        "value", value if value is not None else secrets.randbits(range_bits)
+    )
 
     # Simulate proof generation
     start_time = time.time()
@@ -241,7 +243,9 @@ def generate_bulletproof(
 
     proof = {
         "type": "bulletproof_range",
-        "proof": hashlib.sha256(f"proof_{_value}".encode()).hexdigest()[:64],  # Tests expect this
+        "proof": hashlib.sha256(f"proof_{_value}".encode()).hexdigest()[
+            :64
+        ],  # Tests expect this
         "commitment": commitment,
         "L_vec": L_vec,
         "R_vec": R_vec,
@@ -275,7 +279,9 @@ def generate_bulletproof(
     return proof
 
 
-def verify_bulletproof(proof: Dict[str, Any], commitment: Dict[str, Any] = None) -> Dict[str, Any]:
+def verify_bulletproof(
+    proof: Dict[str, Any], commitment: Dict[str, Any] = None
+) -> Dict[str, Any]:
     """Verify a Bulletproof.
 
     Args:
@@ -387,10 +393,18 @@ def aggregate_bulletproofs(proofs: List[Dict[str, Any]]) -> Dict[str, Any]:
         "a": aggregate_a,
         "b": aggregate_b,
         "n_rounds": 6,
-        "L_vec": [hashlib.sha256(f"L_{i}_{n_proofs}".encode()).hexdigest()[:16] for i in range(6)],
-        "R_vec": [hashlib.sha256(f"R_{i}_{n_proofs}".encode()).hexdigest()[:16] for i in range(6)],
+        "L_vec": [
+            hashlib.sha256(f"L_{i}_{n_proofs}".encode()).hexdigest()[:16]
+            for i in range(6)
+        ],
+        "R_vec": [
+            hashlib.sha256(f"R_{i}_{n_proofs}".encode()).hexdigest()[:16]
+            for i in range(6)
+        ],
         "proof_size": aggregated_size,
-        "proof_hash": hashlib.sha256(f"{combined_commitment}{aggregate_a}{aggregate_b}".encode()).hexdigest()[:32],
+        "proof_hash": hashlib.sha256(
+            f"{combined_commitment}{aggregate_a}{aggregate_b}".encode()
+        ).hexdigest()[:32],
     }
     aggregated = {
         "type": "bulletproof_aggregate",
@@ -818,7 +832,9 @@ def run_bulletproofs_audit(
     """
     # Test proof generation
     proof_gen_result = generate_bulletproof(value=42)
-    proof_generation_passed = proof_gen_result is not None and "proof" in proof_gen_result
+    proof_generation_passed = (
+        proof_gen_result is not None and "proof" in proof_gen_result
+    )
 
     # Test proof verification
     proof_verify_result = verify_bulletproof(proof_gen_result)
@@ -827,7 +843,9 @@ def run_bulletproofs_audit(
     # Test aggregation
     test_proofs = [generate_bulletproof(value=i) for i in range(5)]
     aggregation_result = aggregate_bulletproofs(test_proofs)
-    aggregation_passed = aggregation_result is not None and "aggregated_proof" in aggregation_result
+    aggregation_passed = (
+        aggregation_result is not None and "aggregated_proof" in aggregation_result
+    )
 
     # Generate attestations
     attestations = []
@@ -985,7 +1003,9 @@ def load_infinite_config() -> Dict[str, Any]:
     return config
 
 
-def generate_infinite_chain_10k(depth: int = BULLETPROOFS_INFINITE_DEPTH) -> Dict[str, Any]:
+def generate_infinite_chain_10k(
+    depth: int = BULLETPROOFS_INFINITE_DEPTH,
+) -> Dict[str, Any]:
     """Generate 10,000-depth infinite proof chain.
 
     D17 extended chain generation for stress testing at extreme depth.
@@ -1022,11 +1042,13 @@ def generate_infinite_chain_10k(depth: int = BULLETPROOFS_INFINITE_DEPTH) -> Dic
             chain_hashes.append(current_hash)
 
             # Create proof stub (lightweight for 10k chain)
-            proofs.append({
-                "index": batch * batch_size + i,
-                "hash": current_hash,
-                "prev_hash": prev_hash,
-            })
+            proofs.append(
+                {
+                    "index": batch * batch_size + i,
+                    "hash": current_hash,
+                    "prev_hash": prev_hash,
+                }
+            )
 
             prev_hash = current_hash
 
@@ -1058,9 +1080,7 @@ def generate_infinite_chain_10k(depth: int = BULLETPROOFS_INFINITE_DEPTH) -> Dic
             "final_hash": prev_hash,
             "chain_valid": True,
             "payload_hash": dual_hash(
-                json.dumps(
-                    {"depth": depth, "final_hash": prev_hash}, sort_keys=True
-                )
+                json.dumps({"depth": depth, "final_hash": prev_hash}, sort_keys=True)
             ),
         },
     )
@@ -1120,9 +1140,7 @@ def aggregate_infinite(
     )
 
     # Aggregation hash
-    agg_hash = hashlib.sha256(
-        f"agg_{proof_count}_{factor}".encode()
-    ).hexdigest()[:16]
+    agg_hash = hashlib.sha256(f"agg_{proof_count}_{factor}".encode()).hexdigest()[:16]
 
     # Create aggregated proof structure
     aggregated_proof = {
@@ -1204,7 +1222,8 @@ def infinite_chain_test(depth: int = BULLETPROOFS_INFINITE_DEPTH) -> Dict[str, A
 
     # Aggregate with 100x factor
     aggregation = aggregate_infinite(
-        sample_proofs, config.get("aggregation_factor", BULLETPROOFS_INFINITE_AGGREGATION_FACTOR)
+        sample_proofs,
+        config.get("aggregation_factor", BULLETPROOFS_INFINITE_AGGREGATION_FACTOR),
     )
 
     elapsed_ms = (time.time() - start_time) * 1000
@@ -1363,18 +1382,25 @@ def benchmark_infinite_chain(depths: List[int] = None) -> Dict[str, Any]:
 
         elapsed = gen_time + verify_time + agg_time
 
-        benchmarks.append({
-            "depth": depth,
-            "elapsed_s": round(elapsed / 1000, 3),
-            "proofs_per_second": round(depth / (elapsed / 1000), 2) if elapsed > 0 else 0,
-            "target_met": verification_result["valid"] and aggregation["aggregation_valid"],
-        })
+        benchmarks.append(
+            {
+                "depth": depth,
+                "elapsed_s": round(elapsed / 1000, 3),
+                "proofs_per_second": round(depth / (elapsed / 1000), 2)
+                if elapsed > 0
+                else 0,
+                "target_met": verification_result["valid"]
+                and aggregation["aggregation_valid"],
+            }
+        )
 
     return {
         "generation_time_ms": round(total_generation_time, 2),
         "verification_time_ms": round(total_verification_time, 2),
         "aggregation_time_ms": round(total_aggregation_time, 2),
-        "total_time_ms": round(total_generation_time + total_verification_time + total_aggregation_time, 2),
+        "total_time_ms": round(
+            total_generation_time + total_verification_time + total_aggregation_time, 2
+        ),
         "benchmarks": benchmarks,
         "depths_tested": depths,
         "all_targets_met": all(b["target_met"] for b in benchmarks),

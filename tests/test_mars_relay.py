@@ -1,6 +1,5 @@
 """Tests for Mars relay node module."""
 
-import pytest
 from src.mars_relay_node import (
     load_mars_config,
     deploy_node,

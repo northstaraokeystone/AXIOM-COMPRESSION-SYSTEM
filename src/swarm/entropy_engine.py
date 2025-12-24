@@ -19,7 +19,7 @@ import random
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -106,7 +106,10 @@ def init_entropy_engine(config: Dict = None) -> EntropyEngine:
             "node_count": len(engine.nodes),
             "mesh_connections": len(engine.nodes) * (len(engine.nodes) - 1) // 2,
             "payload_hash": dual_hash(
-                json.dumps({"engine_id": engine_id, "node_count": len(engine.nodes)}, sort_keys=True)
+                json.dumps(
+                    {"engine_id": engine_id, "node_count": len(engine.nodes)},
+                    sort_keys=True,
+                )
             ),
         },
     )
@@ -154,7 +157,9 @@ def measure_local_entropy(node_id: str, receipts: List[Dict]) -> float:
             "receipt_count": total,
             "type_count": len(type_counts),
             "payload_hash": dual_hash(
-                json.dumps({"node_id": node_id, "entropy": round(entropy, 6)}, sort_keys=True)
+                json.dumps(
+                    {"node_id": node_id, "entropy": round(entropy, 6)}, sort_keys=True
+                )
             ),
         },
     )
@@ -162,7 +167,9 @@ def measure_local_entropy(node_id: str, receipts: List[Dict]) -> float:
     return entropy
 
 
-def compute_gradient(node_id: str, neighbors: List[str], engine: EntropyEngine) -> Dict[str, float]:
+def compute_gradient(
+    node_id: str, neighbors: List[str], engine: EntropyEngine
+) -> Dict[str, float]:
     """Compute entropy gradient to each neighbor.
 
     Gradient = H_self - H_neighbor
@@ -193,7 +200,9 @@ def compute_gradient(node_id: str, neighbors: List[str], engine: EntropyEngine) 
     return gradients
 
 
-def propagate_gradient(engine: EntropyEngine, gradients: Dict[str, Dict[str, float]]) -> Dict[str, Any]:
+def propagate_gradient(
+    engine: EntropyEngine, gradients: Dict[str, Dict[str, float]]
+) -> Dict[str, Any]:
     """Propagate gradients through mesh network.
 
     Args:
@@ -217,7 +226,9 @@ def propagate_gradient(engine: EntropyEngine, gradients: Dict[str, Dict[str, flo
 
     if all_gradients:
         mean_gradient = sum(all_gradients) / len(all_gradients)
-        variance = sum((g - mean_gradient) ** 2 for g in all_gradients) / len(all_gradients)
+        variance = sum((g - mean_gradient) ** 2 for g in all_gradients) / len(
+            all_gradients
+        )
         std_gradient = math.sqrt(variance)
     else:
         mean_gradient = 0.0
@@ -264,7 +275,11 @@ def detect_entropy_sink(engine: EntropyEngine) -> List[str]:
         List of sink node IDs
     """
     sinks = []
-    mean_entropy = sum(n.entropy for n in engine.nodes.values()) / len(engine.nodes) if engine.nodes else 0
+    mean_entropy = (
+        sum(n.entropy for n in engine.nodes.values()) / len(engine.nodes)
+        if engine.nodes
+        else 0
+    )
 
     for node_id, node in engine.nodes.items():
         if node.entropy < mean_entropy - GRADIENT_THRESHOLD:
@@ -289,7 +304,11 @@ def detect_entropy_source(engine: EntropyEngine) -> List[str]:
         List of source node IDs
     """
     sources = []
-    mean_entropy = sum(n.entropy for n in engine.nodes.values()) / len(engine.nodes) if engine.nodes else 0
+    mean_entropy = (
+        sum(n.entropy for n in engine.nodes.values()) / len(engine.nodes)
+        if engine.nodes
+        else 0
+    )
 
     for node_id, node in engine.nodes.items():
         if node.entropy > mean_entropy + GRADIENT_THRESHOLD:
@@ -326,7 +345,11 @@ def coordinate_via_gradient(engine: EntropyEngine, action: str) -> Dict[str, Any
     source_count = len(sources)
 
     # Coordination success based on clear gradient structure
-    success_rate = min(1.0, (sink_count + source_count) / participating_nodes) if participating_nodes > 0 else 0
+    success_rate = (
+        min(1.0, (sink_count + source_count) / participating_nodes)
+        if participating_nodes > 0
+        else 0
+    )
 
     result = {
         "action": action,
@@ -393,7 +416,10 @@ def measure_swarm_coherence(engine: EntropyEngine) -> float:
             "mean_entropy": round(mean_h, 6),
             "target_met": coherence >= CONVERGENCE_TARGET,
             "payload_hash": dual_hash(
-                json.dumps({"coherence": round(coherence, 4), "node_count": len(engine.nodes)}, sort_keys=True)
+                json.dumps(
+                    {"coherence": round(coherence, 4), "node_count": len(engine.nodes)},
+                    sort_keys=True,
+                )
             ),
         },
     )
@@ -426,7 +452,9 @@ def simulate_coordination(engine: EntropyEngine, scenario: str) -> Dict[str, Any
             node.entropy = random.uniform(0.0, 2.0)
 
         # Simulate receipt stream
-        node.receipts = [{"receipt_type": f"sim_{i}"} for i in range(random.randint(5, 20))]
+        node.receipts = [
+            {"receipt_type": f"sim_{i}"} for i in range(random.randint(5, 20))
+        ]
         node.entropy = measure_local_entropy(node.node_id, node.receipts)
 
     # Compute gradients
@@ -449,7 +477,8 @@ def simulate_coordination(engine: EntropyEngine, scenario: str) -> Dict[str, Any
         "propagation": prop_result,
         "coherence": coherence,
         "coordination": coord_result,
-        "success": coherence >= CONVERGENCE_TARGET * 0.8,  # 80% of target for simulation
+        "success": coherence
+        >= CONVERGENCE_TARGET * 0.8,  # 80% of target for simulation
     }
 
 
@@ -480,7 +509,9 @@ def get_engine_status() -> Dict[str, Any]:
 # KILLED: batch_generate() - NO SYNTHETIC GENERATION
 
 
-def ingest_live_entropy(engine: EntropyEngine, live_receipts: List[Dict]) -> Dict[str, Any]:
+def ingest_live_entropy(
+    engine: EntropyEngine, live_receipts: List[Dict]
+) -> Dict[str, Any]:
     """Ingest live receipts for entropy measurement.
 
     D19.1: Replaces synthetic entropy generation.
@@ -532,16 +563,16 @@ def ingest_live_entropy(engine: EntropyEngine, live_receipts: List[Dict]) -> Dic
             "nodes_updated": len(engine.nodes),
             "global_entropy": round(engine.global_entropy, 6),
             "synthetic": False,
-            "payload_hash": dual_hash(
-                json.dumps(result, sort_keys=True)
-            ),
+            "payload_hash": dual_hash(json.dumps(result, sort_keys=True)),
         },
     )
 
     return result
 
 
-def coordinate_from_live_stream(engine: EntropyEngine, live_receipts: List[Dict]) -> Dict[str, Any]:
+def coordinate_from_live_stream(
+    engine: EntropyEngine, live_receipts: List[Dict]
+) -> Dict[str, Any]:
     """Coordinate swarm from live receipt stream.
 
     D19.1: Full coordination cycle using live data only.

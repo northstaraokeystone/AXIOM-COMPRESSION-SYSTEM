@@ -36,7 +36,7 @@ def calculate_adjustment_factor(gravity_g: float) -> float:
         return 1.0
 
     gravity_ratio = gravity_g / GRAVITY_EARTH
-    return 1.0 / (gravity_ratio ** 0.5)
+    return 1.0 / (gravity_ratio**0.5)
 
 
 def get_consensus_timing(gravity_g: float) -> Dict[str, int]:

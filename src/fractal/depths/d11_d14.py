@@ -49,10 +49,11 @@ def get_d11_spec() -> Dict[str, Any]:
 
     Receipt: d11_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d11_venus_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d11_venus_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -337,10 +338,11 @@ def get_d13_spec() -> Dict[str, Any]:
 
     Receipt: d13_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d13_solar_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d13_solar_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -607,10 +609,11 @@ def get_d14_spec() -> Dict[str, Any]:
 
     Receipt: d14_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d14_interstellar_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d14_interstellar_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -662,10 +665,10 @@ def get_d14_uplift(depth: int) -> float:
     return float(uplift_map.get(str(depth), 0.0))
 
 
-def adaptive_termination_check(
+def d14_adaptive_termination_check(
     current: float, previous: float, threshold: float = D14_TERMINATION_THRESHOLD
 ) -> bool:
-    """Check if adaptive termination condition is met.
+    """Check if D14-specific adaptive termination condition is met.
 
     Adaptive termination stops recursion when delta between iterations
     falls below threshold, indicating diminishing returns.
@@ -887,5 +890,3 @@ def get_d14_info() -> Dict[str, Any]:
     )
 
     return info
-
-

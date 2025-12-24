@@ -19,7 +19,7 @@ import random
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 from .kan_swarm import SwarmKAN
@@ -184,7 +184,9 @@ def detect_emerging_pattern(ld: LawDiscovery, observations: List[Dict]) -> List[
             "ts": datetime.utcnow().isoformat() + "Z",
             "discovery_id": ld.discovery_id,
             "patterns_detected": len(emerging),
-            "payload_hash": dual_hash(json.dumps({"count": len(emerging)}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"count": len(emerging)}, sort_keys=True)
+            ),
         },
     )
 
@@ -219,7 +221,9 @@ def compress_pattern_to_law(ld: LawDiscovery, pattern: Dict) -> Dict[str, Any]:
     law = DiscoveredLaw(
         law_id=law_id,
         pattern_source=pattern_type,
-        spline_coefficients=[[random.gauss(0, 0.1) for _ in range(5)] for _ in range(3)],
+        spline_coefficients=[
+            [random.gauss(0, 0.1) for _ in range(5)] for _ in range(3)
+        ],
         compression_ratio=round(0.85 + random.uniform(0, 0.10), 4),
         fitness_score=round(0.80 + random.uniform(0, 0.15), 4),
         validation_accuracy=round(0.82 + random.uniform(0, 0.13), 4),
@@ -403,9 +407,16 @@ def evolve_laws(ld: LawDiscovery, laws: List[Dict]) -> List[Dict]:
         child = {
             "law_id": child_id,
             "pattern_source": f"{law_a.get('pattern_source', '')}_x_{law_b.get('pattern_source', '')}",
-            "compression_ratio": (law_a.get("compression_ratio", 0) + law_b.get("compression_ratio", 0)) / 2,
+            "compression_ratio": (
+                law_a.get("compression_ratio", 0) + law_b.get("compression_ratio", 0)
+            )
+            / 2,
             "fitness_score": 0,  # Will be evaluated
-            "validation_accuracy": (law_a.get("validation_accuracy", 0) + law_b.get("validation_accuracy", 0)) / 2,
+            "validation_accuracy": (
+                law_a.get("validation_accuracy", 0)
+                + law_b.get("validation_accuracy", 0)
+            )
+            / 2,
             "human_readable": f"Evolved from {law_a.get('law_id', '')} and {law_b.get('law_id', '')}",
             "status": "candidate",
         }
@@ -425,7 +436,11 @@ def evolve_laws(ld: LawDiscovery, laws: List[Dict]) -> List[Dict]:
             "discovery_id": ld.discovery_id,
             "parents": len(laws),
             "children": len(evolved),
-            "payload_hash": dual_hash(json.dumps({"parents": len(laws), "children": len(evolved)}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"parents": len(laws), "children": len(evolved)}, sort_keys=True
+                )
+            ),
         },
     )
 
@@ -473,7 +488,9 @@ def get_discovery_status() -> Dict[str, Any]:
 # === D19.1 ALPHA THRESHOLD LAW DISCOVERY ===
 
 
-def on_alpha_threshold(ld: LawDiscovery, alpha: float, receipts: List[Dict]) -> Dict[str, Any]:
+def on_alpha_threshold(
+    ld: LawDiscovery, alpha: float, receipts: List[Dict]
+) -> Dict[str, Any]:
     """Trigger discovery when α crosses threshold.
 
     D19.1: Laws are discovered from live stream when NEURON α > 1.20.
@@ -605,7 +622,11 @@ def discover_from_live_stream(ld: LawDiscovery, receipts: List[Dict]) -> Dict[st
             "synthetic": False,
             "payload_hash": dual_hash(
                 json.dumps(
-                    {"law_id": law_id, "pattern": dominant_type, "frequency": frequency},
+                    {
+                        "law_id": law_id,
+                        "pattern": dominant_type,
+                        "frequency": frequency,
+                    },
                     sort_keys=True,
                 )
             ),
@@ -638,7 +659,12 @@ def discover_from_oracle(ld: LawDiscovery, oracle: Any = None) -> Dict[str, Any]
     # Import oracle if not provided
     if oracle is None:
         try:
-            from ..oracle import init_oracle, load_chain_history, extract_laws_from_history
+            from ..oracle import (
+                init_oracle,
+                load_chain_history,
+                extract_laws_from_history,
+            )
+
             oracle = init_oracle()
             oracle.history = load_chain_history()
         except ImportError:
@@ -652,7 +678,8 @@ def discover_from_oracle(ld: LawDiscovery, oracle: Any = None) -> Dict[str, Any]
     # Extract laws from history
     try:
         from ..oracle import extract_laws_from_history, compute_history_compression
-        history = oracle.history if hasattr(oracle, 'history') else []
+
+        history = oracle.history if hasattr(oracle, "history") else []
         laws = extract_laws_from_history(history)
         compression = compute_history_compression(history)
     except ImportError:
@@ -672,7 +699,7 @@ def discover_from_oracle(ld: LawDiscovery, oracle: Any = None) -> Dict[str, Any]
         "discovery_mode": "oracle",
         "projection_used": False,
         "simulation_used": False,
-        "history_size": len(oracle.history) if hasattr(oracle, 'history') else 0,
+        "history_size": len(oracle.history) if hasattr(oracle, "history") else 0,
         "laws_discovered": len(promoted_laws),
         "compression_ratio": compression,
         "laws": promoted_laws,

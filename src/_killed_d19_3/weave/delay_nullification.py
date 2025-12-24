@@ -132,12 +132,14 @@ def nullify_known_delay(
     )
 
     nullification.preemptive_laws[law_id] = law
-    nullification.delays_nullified.append({
-        "law_id": law_id,
-        "destination": destination,
-        "delay_years": delay_years,
-        "nullified_at": now,
-    })
+    nullification.delays_nullified.append(
+        {
+            "law_id": law_id,
+            "destination": destination,
+            "delay_years": delay_years,
+            "nullified_at": now,
+        }
+    )
     nullification.total_years_nullified += delay_years
     nullification.verifications_pending += 1
 
@@ -156,7 +158,9 @@ def nullify_known_delay(
             "verification_pending": True,
             "insight": "delay appears to vanish - already accounted for",
             "payload_hash": dual_hash(
-                json.dumps({"law_id": law_id, "destination": destination}, sort_keys=True)
+                json.dumps(
+                    {"law_id": law_id, "destination": destination}, sort_keys=True
+                )
             ),
         },
     )
@@ -269,7 +273,8 @@ def verify_nullification(
         common_keys = projected_keys & resolved_keys
         if common_keys:
             matches = sum(
-                1 for k in common_keys
+                1
+                for k in common_keys
                 if projected_state.get(k) == resolved_state.get(k)
             )
             divergence = 1.0 - (matches / len(common_keys))
@@ -290,7 +295,9 @@ def verify_nullification(
         "state_divergence": round(divergence, 4),
         "delay_nullified_years": law.delay_nullified_years,
         "destination": law.target_destination,
-        "insight": "delay nullified - projected state matched" if verification_passed else "divergence detected",
+        "insight": "delay nullified - projected state matched"
+        if verification_passed
+        else "divergence detected",
     }
 
     emit_receipt(

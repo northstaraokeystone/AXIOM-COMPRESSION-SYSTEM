@@ -13,7 +13,11 @@ from ..partition import (
     PARTITION_MAX_TEST_PCT,
     BASE_ALPHA,
 )
-from .constants import MIN_EFF_ALPHA_BOUND, CYCLES_THRESHOLD_EARLY, CYCLES_THRESHOLD_CITY
+from .constants import (
+    MIN_EFF_ALPHA_BOUND,
+    CYCLES_THRESHOLD_EARLY,
+    CYCLES_THRESHOLD_CITY,
+)
 
 
 def partition_sweep(

@@ -15,7 +15,7 @@ import math
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from src.core import emit_receipt, dual_hash, TENANT_ID, StopRule
 
@@ -102,7 +102,9 @@ def init_model(config: Dict = None) -> LatencyBoundModel:
             "bodies_count": len(model.bodies),
             "light_speed_km_s": LIGHT_SPEED_KM_S,
             "payload_hash": dual_hash(
-                json.dumps({"model_id": model_id, "bodies": len(model.bodies)}, sort_keys=True)
+                json.dumps(
+                    {"model_id": model_id, "bodies": len(model.bodies)}, sort_keys=True
+                )
             ),
         },
     )
@@ -202,10 +204,14 @@ def calculate_geodesic(
             "path_id": path_id,
             "distance_km": round(distance_km, 2),
             "travel_time_seconds": round(travel_time_seconds, 4),
-            "gravitational_deflection_rad": round(path.gravitational_deflection_rad, 10),
+            "gravitational_deflection_rad": round(
+                path.gravitational_deflection_rad, 10
+            ),
             "light_speed_valid": path.light_speed_valid,
             "payload_hash": dual_hash(
-                json.dumps({"path_id": path_id, "distance": distance_km}, sort_keys=True)
+                json.dumps(
+                    {"path_id": path_id, "distance": distance_km}, sort_keys=True
+                )
             ),
         },
     )
@@ -288,7 +294,9 @@ def validate_light_speed(model: LatencyBoundModel, path: GeodesicPath) -> bool:
     """
     # Calculate implied speed
     if path.travel_time_seconds <= 0:
-        raise StopRule(f"Invalid travel time: {path.travel_time_seconds}s for path {path.path_id}")
+        raise StopRule(
+            f"Invalid travel time: {path.travel_time_seconds}s for path {path.path_id}"
+        )
 
     implied_speed = path.distance_km / path.travel_time_seconds
 

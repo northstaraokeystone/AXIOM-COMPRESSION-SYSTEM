@@ -8,10 +8,10 @@ import random
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
-from .pattern_detector import PatternDetector, DetectedPattern
+from .pattern_detector import PatternDetector
 
 # === D19 LIFECYCLE CONSTANTS ===
 
@@ -212,14 +212,18 @@ def apply_selection_pressure(lifecycle: PatternLifecycle) -> List[Dict]:
             "lifecycle_id": lifecycle.lifecycle_id,
             "patterns_evaluated": len(lifecycle.active_patterns) + len(selected),
             "patterns_selected": len(selected),
-            "payload_hash": dual_hash(json.dumps({"selected": len(selected)}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"selected": len(selected)}, sort_keys=True)
+            ),
         },
     )
 
     return selected
 
 
-def kill_pattern(lifecycle: PatternLifecycle, pattern_id: str, reason: str) -> Dict[str, Any]:
+def kill_pattern(
+    lifecycle: PatternLifecycle, pattern_id: str, reason: str
+) -> Dict[str, Any]:
     """Remove pattern (fitness too low).
 
     Args:

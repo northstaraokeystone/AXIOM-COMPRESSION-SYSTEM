@@ -142,18 +142,24 @@ def load_weave_template(
     if source in weave.latency_catalog.get("interstellar", {}):
         latency_info = weave.latency_catalog["interstellar"][source]
         latency_years = latency_info.get("rtt_years", PROXIMA_RTT_YEARS)
-        latency_seconds = latency_info.get("rtt_seconds", latency_years * 365.25 * 24 * 3600)
+        latency_seconds = latency_info.get(
+            "rtt_seconds", latency_years * 365.25 * 24 * 3600
+        )
     # Check solar system
     elif source in weave.latency_catalog.get("solar_system", {}):
         latency_info = weave.latency_catalog["solar_system"][source]
-        latency_seconds = latency_info.get("rtt_seconds", latency_info.get("rtt_seconds_avg", 0))
+        latency_seconds = latency_info.get(
+            "rtt_seconds", latency_info.get("rtt_seconds_avg", 0)
+        )
         latency_years = latency_seconds / (365.25 * 24 * 3600)
     else:
         # Default to Proxima Centauri
         latency_years = PROXIMA_RTT_YEARS
         latency_seconds = latency_years * 365.25 * 24 * 3600
 
-    uncertainty = latency_info.get("uncertainty_percent", 0.01) if latency_info else 0.01
+    uncertainty = (
+        latency_info.get("uncertainty_percent", 0.01) if latency_info else 0.01
+    )
 
     template_id = str(uuid.uuid4())[:8]
 
@@ -183,7 +189,9 @@ def load_weave_template(
             "latency_is_input": True,
             "latency_as_obstacle": False,
             "payload_hash": dual_hash(
-                json.dumps({"template_id": template_id, "source": source}, sort_keys=True)
+                json.dumps(
+                    {"template_id": template_id, "source": source}, sort_keys=True
+                )
             ),
         },
     )
@@ -310,7 +318,9 @@ def generate_nullification_laws(
             "law_types": [law["law_type"] for law in laws],
             "latency_nullified_years": template.latency_years,
             "payload_hash": dual_hash(
-                json.dumps({"count": len(laws), "source": template.source}, sort_keys=True)
+                json.dumps(
+                    {"count": len(laws), "source": template.source}, sort_keys=True
+                )
             ),
         },
     )

@@ -12,9 +12,9 @@ Constraints:
 import json
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -63,7 +63,9 @@ def init_incorporator(oracle: Any = None) -> InstantIncorporator:
     )
 
 
-def on_receipt_arrival(incorporator: InstantIncorporator, receipt: Dict) -> Dict[str, Any]:
+def on_receipt_arrival(
+    incorporator: InstantIncorporator, receipt: Dict
+) -> Dict[str, Any]:
     """Callback: instant incorporation. Update oracle.
 
     Args:
@@ -77,7 +79,7 @@ def on_receipt_arrival(incorporator: InstantIncorporator, receipt: Dict) -> Dict
     now = datetime.utcnow().isoformat() + "Z"
 
     # Update oracle history
-    if incorporator.oracle and hasattr(incorporator.oracle, 'history'):
+    if incorporator.oracle and hasattr(incorporator.oracle, "history"):
         incorporator.oracle.history.append(receipt)
 
     # Update compression
@@ -117,7 +119,8 @@ def on_receipt_arrival(incorporator: InstantIncorporator, receipt: Dict) -> Dict
     emit_incorporation_receipt(
         incorporator,
         receipt.get("payload_hash", "")[:16],
-        new_compression - (incorporator.oracle.compression_ratio if incorporator.oracle else 0),
+        new_compression
+        - (incorporator.oracle.compression_ratio if incorporator.oracle else 0),
     )
 
     return result
@@ -139,10 +142,12 @@ def update_compression(incorporator: InstantIncorporator, new_receipt: Dict) -> 
     # Import here to avoid circular imports
     from .live_history_oracle import compute_history_compression
 
-    history = incorporator.oracle.history if hasattr(incorporator.oracle, 'history') else []
+    history = (
+        incorporator.oracle.history if hasattr(incorporator.oracle, "history") else []
+    )
     new_compression = compute_history_compression(history)
 
-    if hasattr(incorporator.oracle, 'compression_ratio'):
+    if hasattr(incorporator.oracle, "compression_ratio"):
         incorporator.oracle.compression_ratio = new_compression
 
     return new_compression
@@ -156,9 +161,9 @@ def update_causal_graph(incorporator: InstantIncorporator, new_receipt: Dict) ->
         new_receipt: New receipt to add
     """
     # If oracle has a causal extractor, update it
-    if incorporator.oracle and hasattr(incorporator.oracle, 'extractor'):
+    if incorporator.oracle and hasattr(incorporator.oracle, "extractor"):
         extractor = incorporator.oracle.extractor
-        if extractor and hasattr(extractor, 'nodes'):
+        if extractor and hasattr(extractor, "nodes"):
             node_id = new_receipt.get("payload_hash", str(uuid.uuid4()))[:16]
 
             from .causal_subgraph_extractor import CausalNode
@@ -180,7 +185,9 @@ def update_causal_graph(incorporator: InstantIncorporator, new_receipt: Dict) ->
             extractor.nodes[node_id] = node
 
 
-def check_law_survival(incorporator: InstantIncorporator, new_receipt: Dict) -> List[Dict]:
+def check_law_survival(
+    incorporator: InstantIncorporator, new_receipt: Dict
+) -> List[Dict]:
     """Verify existing laws still hold. Kill violated.
 
     Args:
@@ -190,7 +197,7 @@ def check_law_survival(incorporator: InstantIncorporator, new_receipt: Dict) -> 
     Returns:
         List of surviving laws
     """
-    if not incorporator.oracle or not hasattr(incorporator.oracle, 'laws'):
+    if not incorporator.oracle or not hasattr(incorporator.oracle, "laws"):
         return []
 
     surviving_laws = []
@@ -212,9 +219,7 @@ def check_law_survival(incorporator: InstantIncorporator, new_receipt: Dict) -> 
 
 
 def emit_incorporation_receipt(
-    incorporator: InstantIncorporator,
-    receipt_id: str,
-    update_delta: float
+    incorporator: InstantIncorporator, receipt_id: str, update_delta: float
 ) -> Dict[str, Any]:
     """Emit instant_incorporation_receipt.
 
@@ -236,7 +241,8 @@ def emit_incorporation_receipt(
         "receipt_id": receipt_id,
         "update_delta": round(update_delta, 6),
         "latency_ms": round(incorporator.last_incorporation_latency_ms, 4),
-        "latency_ok": incorporator.last_incorporation_latency_ms < INCORPORATION_LATENCY_MAX_MS,
+        "latency_ok": incorporator.last_incorporation_latency_ms
+        < INCORPORATION_LATENCY_MAX_MS,
         "incorporation_count": incorporator.incorporation_count,
         "batch_processing": False,
         "payload_hash": dual_hash(

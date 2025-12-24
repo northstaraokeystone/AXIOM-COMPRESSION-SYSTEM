@@ -24,7 +24,7 @@ import random
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from src.core import TENANT_ID, StopRule, dual_hash, emit_receipt
 
@@ -280,7 +280,9 @@ def configure_latency(opposition: bool = True) -> Dict[str, Any]:
         latency_min = config.get("latency_opposition_min", MARS_LATENCY_OPPOSITION_MIN)
         phase = "opposition"
     else:
-        latency_min = config.get("latency_conjunction_min", MARS_LATENCY_CONJUNCTION_MIN)
+        latency_min = config.get(
+            "latency_conjunction_min", MARS_LATENCY_CONJUNCTION_MIN
+        )
         phase = "conjunction"
 
     latency_ms = latency_min * 60 * 1000  # Convert to ms
@@ -323,7 +325,9 @@ def measure_mars_latency() -> Dict[str, Any]:
 
     # Simulate latency measurement between opposition and conjunction
     opposition_min = config.get("latency_opposition_min", MARS_LATENCY_OPPOSITION_MIN)
-    conjunction_min = config.get("latency_conjunction_min", MARS_LATENCY_CONJUNCTION_MIN)
+    conjunction_min = config.get(
+        "latency_conjunction_min", MARS_LATENCY_CONJUNCTION_MIN
+    )
 
     # Random latency within the valid range
     measured_latency_min = random.uniform(opposition_min, conjunction_min)
@@ -397,7 +401,9 @@ def run_mars_proof(duration_hours: float = 1.0) -> Dict[str, Any]:
 
     elapsed_s = time.time() - start_time
     success_rate = messages_received / max(1, messages_sent)
-    autonomy_achieved = success_rate >= config.get("autonomy_target", MARS_AUTONOMY_TARGET)
+    autonomy_achieved = success_rate >= config.get(
+        "autonomy_target", MARS_AUTONOMY_TARGET
+    )
 
     result = {
         "proof_passed": autonomy_achieved and success_rate >= success_threshold,
@@ -552,7 +558,9 @@ def simulate_opposition() -> Dict[str, Any]:
         mars_relay_latency_receipt
     """
     config = load_mars_config()
-    opposition_latency = config.get("latency_opposition_min", MARS_LATENCY_OPPOSITION_MIN)
+    opposition_latency = config.get(
+        "latency_opposition_min", MARS_LATENCY_OPPOSITION_MIN
+    )
 
     # Simulate opposition with minimum latency
     latency_ms = opposition_latency * 60 * 1000

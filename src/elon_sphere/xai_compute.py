@@ -48,7 +48,9 @@ def load_xai_config() -> Dict[str, Any]:
         "enabled": config.get("enabled", True),
         "cluster_name": config.get("cluster_name", "colossus-ii"),
         "scale": config.get("scale", XAI_COLOSSUS_SCALE),
-        "quantum_sim_capacity": config.get("quantum_sim_capacity", XAI_QUANTUM_SIM_CAPACITY),
+        "quantum_sim_capacity": config.get(
+            "quantum_sim_capacity", XAI_QUANTUM_SIM_CAPACITY
+        ),
         "entanglement_modeling": config.get("entanglement_modeling", True),
     }
 
@@ -112,7 +114,9 @@ def initialize_colossus(gpu_count: int = None, scale: str = "II") -> Dict[str, A
     return result
 
 
-def quantum_sim_batch(qubits: int = 50, shots: int = 100, pairs: int = None, iterations: int = None) -> Dict[str, Any]:
+def quantum_sim_batch(
+    qubits: int = 50, shots: int = 100, pairs: int = None, iterations: int = None
+) -> Dict[str, Any]:
     """Run batch quantum simulation.
 
     Args:
@@ -180,7 +184,9 @@ def quantum_sim_batch(qubits: int = 50, shots: int = 100, pairs: int = None, ite
     return result
 
 
-def entanglement_modeling(pairs: int = None, pair_list: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+def entanglement_modeling(
+    pairs: int = None, pair_list: List[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Model entanglement dynamics at scale.
 
     Args:
@@ -217,7 +223,9 @@ def entanglement_modeling(pairs: int = None, pair_list: List[Dict[str, Any]] = N
         "avg_decoherence_time": round(avg_t2, 4),
         "avg_correlation": round(avg_correlation, 4),
         "correlations": correlations,
-        "coherence_maintained_ratio": round(sum(1 for t in decoherence_times if t > 0.5) / len(decoherence_times), 4),
+        "coherence_maintained_ratio": round(
+            sum(1 for t in decoherence_times if t > 0.5) / len(decoherence_times), 4
+        ),
         "modeling_successful": True,
     }
 
@@ -262,7 +270,9 @@ def scale_to_interstellar(results: Dict[str, Any]) -> Dict[str, Any]:
             "ts": datetime.utcnow().isoformat() + "Z",
             "scale_factor": scale_factor,
             "viability": result["viability"],
-            "payload_hash": dual_hash(json.dumps({"scale_factor": scale_factor}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"scale_factor": scale_factor}, sort_keys=True)
+            ),
         },
     )
 

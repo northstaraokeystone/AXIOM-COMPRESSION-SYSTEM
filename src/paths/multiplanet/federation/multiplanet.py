@@ -74,7 +74,9 @@ def cross_planet_sync(planets: Optional[List[str]] = None) -> Dict[str, Any]:
     return sync_result
 
 
-def run_multiplanet_consensus(proposal: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def run_multiplanet_consensus(
+    proposal: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """Run consensus across all planets.
 
     Args:
@@ -117,8 +119,11 @@ def get_planet_latencies() -> Dict[str, Dict[str, float]]:
 
     # Load planet profiles from spec
     import os
+
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))),
+        os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        ),
         "data",
         "federation_spec.json",
     )
@@ -132,7 +137,10 @@ def get_planet_latencies() -> Dict[str, Dict[str, float]]:
         latencies[planet] = {
             "latency_min": profile.get("latency_min", 3),
             "latency_max": profile.get("latency_max", 22),
-            "latency_avg": (profile.get("latency_min", 3) + profile.get("latency_max", 22)) / 2,
+            "latency_avg": (
+                profile.get("latency_min", 3) + profile.get("latency_max", 22)
+            )
+            / 2,
             "round_trip_min": profile.get("latency_min", 3) * 2,
             "round_trip_max": profile.get("latency_max", 22) * 2,
         }
@@ -160,6 +168,10 @@ def calculate_federation_reach() -> Dict[str, Any]:
         "max_latency_min": max_latency,
         "avg_latency_min": avg_latency,
         "max_round_trip_min": max_latency * 2,
-        "reach": "solar_system" if max_latency > 30 else "inner_solar" if max_latency > 10 else "near_earth",
+        "reach": "solar_system"
+        if max_latency > 30
+        else "inner_solar"
+        if max_latency > 10
+        else "near_earth",
         "federation_health": status.get("health", {}).get("healthy", False),
     }

@@ -139,8 +139,12 @@ def connect_starlink_analog() -> Dict[str, Any]:
 
     interface = StarlinkAnalogInterface(
         latency_ms=analog_config.get("latency_ms", STARLINK_ANALOG_LATENCY_MS),
-        packet_loss_rate=analog_config.get("packet_loss_rate", STARLINK_ANALOG_PACKET_LOSS),
-        bandwidth_gbps=analog_config.get("bandwidth_gbps", STARLINK_ANALOG_BANDWIDTH_GBPS),
+        packet_loss_rate=analog_config.get(
+            "packet_loss_rate", STARLINK_ANALOG_PACKET_LOSS
+        ),
+        bandwidth_gbps=analog_config.get(
+            "bandwidth_gbps", STARLINK_ANALOG_BANDWIDTH_GBPS
+        ),
         timeout_ms=analog_config.get("timeout_ms", HIL_TIMEOUT_MS),
         mock_mode=True,  # Using mock for now
     )
@@ -301,9 +305,7 @@ def send_packet(
     return result
 
 
-def receive_packet(
-    interface: Any, timeout_ms: int = HIL_TIMEOUT_MS
-) -> Dict[str, Any]:
+def receive_packet(interface: Any, timeout_ms: int = HIL_TIMEOUT_MS) -> Dict[str, Any]:
     """Receive packet from Starlink analog with timeout.
 
     Args:
@@ -499,12 +501,16 @@ def run_hil_test(duration_s: int = 60) -> Dict[str, Any]:
                         "test_passed": False,
                         "error": "packet_loss_exceeded",
                         "loss_rate": loss_rate,
-                        "threshold": config["starlink_analog_config"]["failure_threshold"],
+                        "threshold": config["starlink_analog_config"][
+                            "failure_threshold"
+                        ],
                         "payload_hash": dual_hash(json.dumps({"test_passed": False})),
                     },
                 )
                 disconnect_starlink_analog(interface)
-                raise HILPacketLossError(f"Packet loss {loss_rate:.2%} exceeded threshold")
+                raise HILPacketLossError(
+                    f"Packet loss {loss_rate:.2%} exceeded threshold"
+                )
 
         time.sleep(0.01)  # Small delay between packets
 

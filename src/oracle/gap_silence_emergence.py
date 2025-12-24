@@ -17,8 +17,8 @@ Gap Classification:
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -84,7 +84,9 @@ def init_gap_detector(latency_catalog: Dict[str, float] = None) -> GapSilenceEme
     )
 
 
-def detect_gap(detector: GapSilenceEmergence, last_receipt_ts: str, now: str = None) -> Dict[str, Any]:
+def detect_gap(
+    detector: GapSilenceEmergence, last_receipt_ts: str, now: str = None
+) -> Dict[str, Any]:
     """Identify gap duration and type.
 
     Args:
@@ -146,9 +148,7 @@ def classify_gap(detector: GapSilenceEmergence, gap_seconds: float) -> str:
 
 
 def trigger_minimal_law_selection(
-    detector: GapSilenceEmergence,
-    oracle: Any,
-    gap_type: str
+    detector: GapSilenceEmergence, oracle: Any, gap_type: str
 ) -> List[Dict]:
     """Select laws that survive this gap duration.
 
@@ -160,7 +160,7 @@ def trigger_minimal_law_selection(
     Returns:
         List of laws that survive the gap
     """
-    if not oracle or not hasattr(oracle, 'laws'):
+    if not oracle or not hasattr(oracle, "laws"):
         return []
 
     all_laws = oracle.laws
@@ -207,7 +207,9 @@ def minimal_sync_law(laws: List[Dict], gap_duration: float) -> List[Dict]:
 
     surviving = []
     for law in laws:
-        invariance = law.get("invariance_score", law.get("compression_contribution", 0.5))
+        invariance = law.get(
+            "invariance_score", law.get("compression_contribution", 0.5)
+        )
         if invariance >= min_invariance:
             law["survived_gap_years"] = gap_years
             law["minimal_sync"] = True
@@ -237,9 +239,7 @@ def _gap_type_to_duration(detector: GapSilenceEmergence, gap_type: str) -> float
 
 
 def emit_gap_emergence_receipt(
-    detector: GapSilenceEmergence,
-    gap: Dict,
-    emerged_laws: List[Dict]
+    detector: GapSilenceEmergence, gap: Dict, emerged_laws: List[Dict]
 ) -> Dict[str, Any]:
     """Emit gap_silence_emergence_receipt.
 

@@ -31,7 +31,9 @@ def cmd_d15_info(args: Namespace) -> Dict[str, Any]:
     print(f"  Alpha ceiling: {d15_config.get('alpha_ceiling', 3.84)}")
     print(f"  Uplift: {d15_config.get('uplift', 0.36)}")
     print(f"  Quantum entanglement: {d15_config.get('quantum_entanglement', True)}")
-    print(f"  Entanglement correlation: {d15_config.get('entanglement_correlation', 0.99)}")
+    print(
+        f"  Entanglement correlation: {d15_config.get('entanglement_correlation', 0.99)}"
+    )
 
     chaos = info.get("chaotic_nbody_config", {})
     print("\nChaotic N-Body:")

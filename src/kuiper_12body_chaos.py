@@ -71,7 +71,13 @@ KUIPER_BODY_PARAMETERS = {
     "ceres": {"a": 2.77, "mass": 4.73e-10, "type": "kuiper", "e": 0.076, "i": 10.59},
     "pluto": {"a": 39.48, "mass": 2.19e-9, "type": "kuiper", "e": 0.2488, "i": 17.16},
     "eris": {"a": 67.78, "mass": 2.78e-9, "type": "kuiper", "e": 0.4407, "i": 44.19},
-    "makemake": {"a": 45.79, "mass": 5.02e-10, "type": "kuiper", "e": 0.159, "i": 28.96},
+    "makemake": {
+        "a": 45.79,
+        "mass": 5.02e-10,
+        "type": "kuiper",
+        "e": 0.159,
+        "i": 28.96,
+    },
     "haumea": {"a": 43.13, "mass": 6.70e-10, "type": "kuiper", "e": 0.195, "i": 28.22},
 }
 
@@ -358,7 +364,9 @@ def symplectic_kuiper_integrate(
         _symplectic_step(bodies, dt, perturbations)
 
     final_energy = compute_kuiper_total_energy(bodies, perturbations)
-    energy_variation = abs(final_energy - initial_energy) / max(abs(initial_energy), 1e-10)
+    energy_variation = abs(final_energy - initial_energy) / max(
+        abs(initial_energy), 1e-10
+    )
 
     return {
         "bodies": bodies,
@@ -626,9 +634,7 @@ def simulate_kuiper(
     final_energy = compute_kuiper_total_energy(body_states, perturbations)
 
     # Compute metrics
-    energy_error = (
-        abs(final_energy - initial_energy) / abs(initial_energy + 1e-20)
-    )
+    energy_error = abs(final_energy - initial_energy) / abs(initial_energy + 1e-20)
     lyapunov = _compute_lyapunov_from_trajectory(trajectory)
     energy_conserved = energy_error < config.get(
         "energy_conservation_tolerance", KUIPER_ENERGY_TOLERANCE
@@ -733,24 +739,28 @@ def analyze_resonances(trajectory: List[List[float]]) -> Dict[str, Any]:
     for name, res in known_resonances.items():
         expected_period = neptune_period * res["ratio"]
         for body in res["bodies"] if res["bodies"] else ["unknown"]:
-            resonances.append({
-                "body1": body,
-                "body2": "neptune",
-                "ratio": res["ratio"],
-                "resonance_type": name,
-                "name": res["name"],
-                "expected_period_years": round(expected_period, 1),
-            })
+            resonances.append(
+                {
+                    "body1": body,
+                    "body2": "neptune",
+                    "ratio": res["ratio"],
+                    "resonance_type": name,
+                    "name": res["name"],
+                    "expected_period_years": round(expected_period, 1),
+                }
+            )
 
     # Add Pluto-Neptune resonance explicitly
     if not any(r["body1"] == "pluto" for r in resonances):
-        resonances.append({
-            "body1": "pluto",
-            "body2": "neptune",
-            "ratio": 1.5,
-            "resonance_type": "3:2",
-            "name": "Plutino",
-        })
+        resonances.append(
+            {
+                "body1": "pluto",
+                "body2": "neptune",
+                "ratio": 1.5,
+                "resonance_type": "3:2",
+                "name": "Plutino",
+            }
+        )
 
     # Estimate body count from trajectory
     body_count = len(trajectory[0]) // 6 if trajectory and trajectory[0] else 12
@@ -923,7 +933,9 @@ def compute_kuiper_chaos_tolerance(sim_results: Dict[str, Any]) -> float:
     energy_ok = 1.0 if sim_results.get("energy_conserved", False) else 0.5
 
     lyapunov = sim_results.get("lyapunov_exponent", 1.0)
-    lyapunov_threshold = sim_results.get("lyapunov_threshold", KUIPER_LYAPUNOV_THRESHOLD)
+    lyapunov_threshold = sim_results.get(
+        "lyapunov_threshold", KUIPER_LYAPUNOV_THRESHOLD
+    )
     lyapunov_factor = max(0.0, 1.0 - lyapunov / lyapunov_threshold)
 
     tolerance = (
@@ -966,7 +978,7 @@ def integrate_with_backbone(kuiper_results: Dict[str, Any] = None) -> Dict[str, 
     kuiper_stability = kuiper_results.get("stability", 0.93)
     backbone_stability = backbone_config.get("autonomy_target", 0.98)
     combined_stability = (kuiper_stability + backbone_stability) / 2
-    coordination = (kuiper_stability * 0.4 + backbone_stability * 0.6)
+    coordination = kuiper_stability * 0.4 + backbone_stability * 0.6
 
     result = {
         "integration_complete": True,
@@ -1012,7 +1024,9 @@ def get_kuiper_info() -> Dict[str, Any]:
         "bodies": config.get("bodies", {}),
         "integration_method": config.get("integration_method", "symplectic"),
         "timestep_days": config.get("timestep_days", KUIPER_TIMESTEP_DAYS),
-        "lyapunov_threshold": config.get("lyapunov_threshold", KUIPER_LYAPUNOV_THRESHOLD),
+        "lyapunov_threshold": config.get(
+            "lyapunov_threshold", KUIPER_LYAPUNOV_THRESHOLD
+        ),
         "stability_target": config.get("stability_target", KUIPER_STABILITY_TARGET),
         "chaos_duration_years": config.get(
             "chaos_duration_years", KUIPER_DURATION_YEARS

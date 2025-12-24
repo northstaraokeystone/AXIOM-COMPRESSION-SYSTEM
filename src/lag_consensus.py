@@ -285,9 +285,7 @@ def handle_heartbeat(
         node_obj.last_heartbeat = time.time()
         # Update commit index
         if heartbeat["leader_commit"] > node_obj.commit_index:
-            node_obj.commit_index = min(
-                heartbeat["leader_commit"], len(node_obj.log)
-            )
+            node_obj.commit_index = min(heartbeat["leader_commit"], len(node_obj.log))
 
     result = {
         "node": node,
@@ -387,7 +385,9 @@ def request_vote(
         if voter_node.voted_for is None or voter_node.voted_for == candidate:
             # Check log up-to-date
             voter_last_term = voter_node.log[-1].term if voter_node.log else 0
-            candidate_last_term = candidate_node.log[-1].term if candidate_node.log else 0
+            candidate_last_term = (
+                candidate_node.log[-1].term if candidate_node.log else 0
+            )
 
             if candidate_last_term >= voter_last_term:
                 vote_granted = True
@@ -646,9 +646,7 @@ def modified_raft_consensus(
     return result
 
 
-def measure_consensus_latency(
-    nodes: List[str], iterations: int = 10
-) -> Dict[str, Any]:
+def measure_consensus_latency(nodes: List[str], iterations: int = 10) -> Dict[str, Any]:
     """Measure consensus latency over iterations.
 
     Args:

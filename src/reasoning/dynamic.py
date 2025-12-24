@@ -3,11 +3,11 @@
 Functions for dynamic RL tuning, adaptive configuration, and integration status.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 import json
 
 from ..core import emit_receipt, dual_hash
-from ..gnn_cache import CACHE_DEPTH_BASELINE, ENTROPY_ASYMPTOTE_E
+from ..gnn_cache import ENTROPY_ASYMPTOTE_E
 from ..alpha_compute import ABLATION_MODES, SHANNON_FLOOR_ALPHA
 from ..reroute import MIN_EFF_ALPHA_FLOOR
 from .constants import CYCLES_THRESHOLD_EARLY, CYCLES_THRESHOLD_CITY

@@ -1,6 +1,5 @@
 """Tests for pruning v4 module."""
 
-import pytest
 from src.pruning_v4 import (
     load_pruning_config,
     prune_v4,

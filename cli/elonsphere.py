@@ -54,25 +54,25 @@ def cmd_starlink_simulate(args: Namespace) -> Dict[str, Any]:
     mars = mars_comms_proof(delay_min=10.0)
 
     print("\n=== STARLINK SIMULATION ===")
-    print(f"\nMesh Network:")
+    print("\nMesh Network:")
     print(f"  Nodes: {mesh.get('nodes', 0)}")
     print(f"  Total capacity: {mesh.get('total_capacity_gbps', 0)} Gbps")
     print(f"  Connectivity: {mesh.get('mesh_connectivity', 'full')}")
 
-    print(f"\nLaser Link:")
+    print("\nLaser Link:")
     print(f"  Distance: {link.get('distance_km', 0)} km")
     print(f"  Capacity: {link.get('capacity_gbps', 0)} Gbps")
     print(f"  Latency: {link.get('latency_ms', 0):.4f} ms")
     print(f"  Efficiency: {link.get('efficiency', 0):.4f}")
     print(f"  Effective: {link.get('effective_gbps', 0):.2f} Gbps")
 
-    print(f"\nMars Comms Proof:")
+    print("\nMars Comms Proof:")
     print(f"  Delay: {mars.get('delay_min', 0):.2f} min")
     print(f"  Round trip: {mars.get('round_trip_min', 0):.2f} min")
     print(f"  Autonomy required: {mars.get('autonomy_required', 0):.4f}")
     print(f"  Starlink analog valid: {mars.get('starlink_analog_valid', True)}")
 
-    print(f"\nInterstellar Analog:")
+    print("\nInterstellar Analog:")
     print(f"  Transferable learnings: {analog.get('transferable_learnings', True)}")
 
     return {"mesh": mesh, "link": link, "analog": analog, "mars": mars}
@@ -125,21 +125,27 @@ def cmd_grok_tune(args: Namespace) -> Dict[str, Any]:
     integration_result = ensemble_integration(ensemble, tuning_result)
 
     print("\n=== GROK TUNING ===")
-    print(f"\nAgents:")
+    print("\nAgents:")
     print(f"  Count: {len(agents)}")
     print(f"  Model: {agents[0]['model']}")
 
-    print(f"\nTuning:")
+    print("\nTuning:")
     print(f"  Ensemble size: {tuning_result.get('ensemble_size', 0)}")
     print(f"  Iterations: {tuning_result.get('iterations', 0)}")
     print(f"  Total improvement: {tuning_result.get('total_improvement', 0):.4f}")
     print(f"  Final accuracy: {tuning_result.get('final_accuracy', 0):.4f}")
     print(f"  Tuning successful: {tuning_result.get('tuning_successful', False)}")
 
-    print(f"\nIntegration:")
-    print(f"  Avg accuracy before: {integration_result.get('avg_accuracy_before', 0):.4f}")
-    print(f"  Avg accuracy after: {integration_result.get('avg_accuracy_after', 0):.4f}")
-    print(f"  Integration successful: {integration_result.get('integration_successful', False)}")
+    print("\nIntegration:")
+    print(
+        f"  Avg accuracy before: {integration_result.get('avg_accuracy_before', 0):.4f}"
+    )
+    print(
+        f"  Avg accuracy after: {integration_result.get('avg_accuracy_after', 0):.4f}"
+    )
+    print(
+        f"  Integration successful: {integration_result.get('integration_successful', False)}"
+    )
 
     return {"tuning": tuning_result, "integration": integration_result}
 
@@ -190,13 +196,13 @@ def cmd_xai_simulate(args: Namespace) -> Dict[str, Any]:
     scaled = scale_to_interstellar(sim_result)
 
     print("\n=== XAI QUANTUM SIMULATION ===")
-    print(f"\nColossus Cluster:")
+    print("\nColossus Cluster:")
     print(f"  Scale: {cluster.get('scale', 'II')}")
     print(f"  GPUs: {cluster.get('gpus', 0):,}")
     print(f"  Peak FLOPS: {cluster.get('peak_flops', 0):.2e}")
     print(f"  Memory: {cluster.get('memory_tb', 0)} TB")
 
-    print(f"\nQuantum Simulation:")
+    print("\nQuantum Simulation:")
     print(f"  Pairs simulated: {sim_result.get('pairs_simulated', 0)}")
     print(f"  Iterations: {sim_result.get('iterations', 0)}")
     print(f"  Total operations: {sim_result.get('total_operations', 0):,}")
@@ -204,8 +210,10 @@ def cmd_xai_simulate(args: Namespace) -> Dict[str, Any]:
     print(f"  Bell violations: {sim_result.get('bell_violations_detected', 0)}")
     print(f"  Target met: {sim_result.get('target_met', False)}")
 
-    print(f"\nInterstellar Scale:")
-    print(f"  Scale factor: {scaled.get('interstellar_scale', {}).get('scale_factor', 0):,}")
+    print("\nInterstellar Scale:")
+    print(
+        f"  Scale factor: {scaled.get('interstellar_scale', {}).get('scale_factor', 0):,}"
+    )
     print(f"  Viability: {scaled.get('viability', 'requires_relay_nodes')}")
 
     return {"cluster": cluster, "sim": sim_result, "scaled": scaled}
@@ -260,13 +268,13 @@ def cmd_dojo_offload(args: Namespace) -> Dict[str, Any]:
     optimized = fractal_optimization_batch(trees)
 
     print("\n=== DOJO OFFLOAD ===")
-    print(f"\nCluster:")
+    print("\nCluster:")
     print(f"  Tiles: {cluster.get('tiles', 0)}")
     print(f"  Cabinets: {cluster.get('cabinets', 0)}")
     print(f"  Compute: {cluster.get('total_compute_pflops', 0)} PFLOPS")
     print(f"  Memory: {cluster.get('memory_tb', 0)} TB")
 
-    print(f"\nTraining:")
+    print("\nTraining:")
     print(f"  Depth: {training.get('depth', 0)}")
     print(f"  Batch size: {training.get('batch_size', 0):,}")
     print(f"  Epochs: {training.get('epochs', 0)}")
@@ -277,7 +285,7 @@ def cmd_dojo_offload(args: Namespace) -> Dict[str, Any]:
     print(f"  Training successful: {training.get('training_successful', False)}")
     print(f"  Job ID: {training.get('job_id', '')}")
 
-    print(f"\nOptimization:")
+    print("\nOptimization:")
     print(f"  Trees optimized: {len(optimized)}")
     avg_compression = sum(t["compression_ratio"] for t in optimized) / len(optimized)
     avg_speedup = sum(t["speedup"] for t in optimized) / len(optimized)

@@ -158,7 +158,9 @@ def refine_correlation(pairs: Optional[List[EntangledPair]] = None) -> Dict[str,
         # Apply additional refinement to meet target
         for pair in refined_pairs:
             pair.correlation = min(1.0, pair.correlation + 0.01)
-        final_correlation = sum(p.correlation for p in refined_pairs) / len(refined_pairs)
+        final_correlation = sum(p.correlation for p in refined_pairs) / len(
+            refined_pairs
+        )
 
     result = {
         "pairs_processed": len(pairs),

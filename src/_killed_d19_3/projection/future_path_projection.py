@@ -22,7 +22,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from src.core import emit_receipt, dual_hash, TENANT_ID, StopRule
 
@@ -162,7 +162,9 @@ def init_projection(config: Dict = None) -> FuturePathProjection:
             "light_speed_binding": True,
             "simulation_enabled": False,
             "payload_hash": dual_hash(
-                json.dumps({"projection_id": projection_id, "horizon": horizon}, sort_keys=True)
+                json.dumps(
+                    {"projection_id": projection_id, "horizon": horizon}, sort_keys=True
+                )
             ),
         },
     )
@@ -222,14 +224,18 @@ def project_single_path(
 
     if not light_speed_valid:
         # This should never happen with correct physics
-        raise StopRule(f"FTL violation: travel_time={travel_time_years}yr < distance={distance_ly}ly")
+        raise StopRule(
+            f"FTL violation: travel_time={travel_time_years}yr < distance={distance_ly}ly"
+        )
 
     # Calculate arrival timestamp
     arrival_seconds = travel_time_years * 365.25 * 24 * 3600
     arrival_dt = datetime.fromtimestamp(now.timestamp() + arrival_seconds)
 
     path_id = str(uuid.uuid4())[:8]
-    receipt_hash = receipt.get("payload_hash", dual_hash(json.dumps(receipt, sort_keys=True)))
+    receipt_hash = receipt.get(
+        "payload_hash", dual_hash(json.dumps(receipt, sort_keys=True))
+    )
 
     path = ProjectedPath(
         path_id=path_id,
@@ -260,7 +266,9 @@ def project_single_path(
             "travel_time_years": round(travel_time_years, 4),
             "light_speed_valid": light_speed_valid,
             "payload_hash": dual_hash(
-                json.dumps({"path_id": path_id, "destination": destination}, sort_keys=True)
+                json.dumps(
+                    {"path_id": path_id, "destination": destination}, sort_keys=True
+                )
             ),
         },
     )
@@ -290,11 +298,13 @@ def project_all_paths(
 
     for receipt in receipts:
         path = project_single_path(proj, receipt, destination)
-        paths.append({
-            "path_id": path.path_id,
-            "travel_time_years": path.travel_time_years,
-            "light_speed_valid": path.light_speed_valid,
-        })
+        paths.append(
+            {
+                "path_id": path.path_id,
+                "travel_time_years": path.travel_time_years,
+                "light_speed_valid": path.light_speed_valid,
+            }
+        )
 
     result = {
         "projection_id": proj.projection_id,
@@ -319,7 +329,9 @@ def project_all_paths(
     return result
 
 
-def apply_light_speed_bound(proj: FuturePathProjection, path: ProjectedPath) -> ProjectedPath:
+def apply_light_speed_bound(
+    proj: FuturePathProjection, path: ProjectedPath
+) -> ProjectedPath:
     """Ensure path respects light-speed constraint.
 
     Args:
@@ -406,8 +418,11 @@ def estimate_future_entropy(
             "ts": now.isoformat() + "Z",
             "projection_id": proj.projection_id,
             "paths_estimated": len(entropy_estimates),
-            "mean_entropy": round(sum(entropy_estimates.values()) / len(entropy_estimates), 6)
-                if entropy_estimates else 0,
+            "mean_entropy": round(
+                sum(entropy_estimates.values()) / len(entropy_estimates), 6
+            )
+            if entropy_estimates
+            else 0,
             "payload_hash": dual_hash(
                 json.dumps({"count": len(entropy_estimates)}, sort_keys=True)
             ),

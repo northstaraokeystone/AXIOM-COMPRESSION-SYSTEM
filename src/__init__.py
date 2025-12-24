@@ -1,24 +1,35 @@
-"""AXIOM-CORE v1: The Pearl Without the Shell
+"""AXIOM-CORE v4: D20 Production Evolution
 
 One equation. One curve. One finding.
 
 sovereignty = internal_rate > external_rate
 threshold = 47 +/- 8 crew
 
-That's publishable.
+D20 PRODUCTION EVOLUTION:
+Names are not labels. Names are sales.
 
-v2: Helper layer + Support infrastructure + Optimization agent
-- optimize.py: Thompson sampling selection pressure
-- helper.py: HARVEST → HYPOTHESIZE → GATE → ACTUATE
-- support.py: L0-L4 receipt level infrastructure
-- sim.py: Integrated simulation framework
+STAKEHOLDER-INTUITIVE MODULES:
+- compress.py: Telemetry compression (10x+, 0.999 recall)
+- witness.py: KAN/MDL law discovery
+- sovereignty.py: Autonomy threshold calculator
+- detect.py: Entropy-based anomaly detection
+- ledger.py: Append-only receipt storage
+- anchor.py: Merkle proofs
+- loop.py: 60-second SENSE→ACTUATE cycle
 
-v3: Modular architecture refactor (Dec 2025)
-- constants.py: Centralized physics constants
-- receipts.py: Receipt emission helpers (DRY)
-- stoprules.py: Centralized stoprule registry
-- pruning_*.py: Split entropy pruning modules
-- gnn_*.py: Split GNN caching modules
+DOMAIN GENERATORS:
+- domains/galaxy.py: Galaxy rotation curves
+- domains/colony.py: Mars colony simulation
+- domains/telemetry.py: Fleet telemetry (Tesla/Starlink/SpaceX)
+
+STAKEHOLDER CONFIGS:
+- configs/xai.yaml: Elon/xAI
+- configs/doge.yaml: DOGE
+- configs/dot.yaml: DOT
+- configs/defense.yaml: Defense
+- configs/nro.yaml: NRO
+
+Source: D20 Production Evolution (Dec 2025)
 """
 
 from .core import dual_hash, emit_receipt, merkle, StopRule
@@ -186,4 +197,20 @@ __all__ = [
     "inject_gap",
     "run_scenario",
     "validate_constraints",
+    # D20 Production Evolution - Stakeholder-Intuitive Modules
+    "compress",
+    "detect",
+    "anchor",
+    "loop",
+    # D20 Domain Generators
+    "domains",
 ]
+
+# D20 Production Evolution - New Modules
+from . import compress
+from . import detect
+from . import anchor
+from . import loop
+
+# D20 Domain Generators
+from . import domains

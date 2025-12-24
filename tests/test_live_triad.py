@@ -4,8 +4,6 @@ Tests for live AgentProof + NEURON receipt ingest.
 Reality is the only valid scenario.
 """
 
-import pytest
-
 
 class TestLiveTriadIngestInit:
     """Test live triad ingest initialization."""
@@ -150,7 +148,11 @@ class TestAlphaTracking:
 
     def test_set_alpha(self):
         """Test setting alpha value."""
-        from src.swarm.live_triad_ingest import init_live_ingest, set_alpha, get_current_alpha
+        from src.swarm.live_triad_ingest import (
+            init_live_ingest,
+            set_alpha,
+            get_current_alpha,
+        )
 
         ingest = init_live_ingest({})
         set_alpha(ingest, 1.25)

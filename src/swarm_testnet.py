@@ -18,7 +18,7 @@ import random
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from src.core import TENANT_ID, dual_hash, emit_receipt
 
@@ -602,7 +602,11 @@ def stress_test_swarm(cycles: int = 100) -> Dict[str, Any]:
     for i in range(cycles):
         # Randomly inject failures (1% rate)
         if random.random() < 0.01:
-            active_nodes = [n for n in _swarm_state.nodes.keys() if _swarm_state.nodes[n].status == "active"]
+            active_nodes = [
+                n
+                for n in _swarm_state.nodes.keys()
+                if _swarm_state.nodes[n].status == "active"
+            ]
             if active_nodes:
                 node_to_fail = random.choice(active_nodes)
                 inject_failure(node_to_fail)
@@ -613,14 +617,20 @@ def stress_test_swarm(cycles: int = 100) -> Dict[str, Any]:
         consensus_results.append(consensus["consensus_reached"])
 
         # Recover failed nodes (50% rate)
-        failed_nodes = [n for n in _swarm_state.nodes.keys() if _swarm_state.nodes[n].status == "failed"]
+        failed_nodes = [
+            n
+            for n in _swarm_state.nodes.keys()
+            if _swarm_state.nodes[n].status == "failed"
+        ]
         for node_id in failed_nodes:
             if random.random() < 0.5:
                 recover_node(node_id)
                 recoveries_completed += 1
 
     total_time = time.time() - start_time
-    success_rate = sum(1 for r in consensus_results if r) / max(1, len(consensus_results))
+    success_rate = sum(1 for r in consensus_results if r) / max(
+        1, len(consensus_results)
+    )
 
     result = {
         "stress_passed": success_rate >= 0.95,
@@ -667,7 +677,9 @@ def get_swarm_status() -> Dict[str, Any]:
         "total_nodes": len(_swarm_state.nodes),
         "active_nodes": active_nodes,
         "failed_nodes": failed_nodes,
-        "mesh_connections": calculate_mesh_connections(len(_swarm_state.nodes)) if _swarm_state.mesh_created else 0,
+        "mesh_connections": calculate_mesh_connections(len(_swarm_state.nodes))
+        if _swarm_state.mesh_created
+        else 0,
         "consensus_rounds": _swarm_state.consensus_round,
         "total_failures": _swarm_state.total_failures,
         "total_recoveries": _swarm_state.total_recoveries,

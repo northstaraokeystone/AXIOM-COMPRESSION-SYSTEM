@@ -33,7 +33,9 @@ def cmd_chaos_info(args: Namespace) -> Dict[str, Any]:
 
     print("\nBodies:")
     for i, body in enumerate(config.get("bodies", [])):
-        print(f"  {i+1}. {body.get('name', f'Body_{i}')}: mass={body.get('mass', 0):.2e} kg")
+        print(
+            f"  {i + 1}. {body.get('name', f'Body_{i}')}: mass={body.get('mass', 0):.2e} kg"
+        )
 
     return config
 
@@ -191,7 +193,9 @@ def cmd_chaos_lyapunov(args: Namespace) -> Dict[str, Any]:
     print("\nInterpretation:")
     if result.get("lyapunov_exponent", 0) > 0:
         print("  System is CHAOTIC (positive Lyapunov exponent)")
-        print(f"  Prediction horizon: ~{1/result.get('lyapunov_exponent', 1):.1f} time units")
+        print(
+            f"  Prediction horizon: ~{1 / result.get('lyapunov_exponent', 1):.1f} time units"
+        )
     else:
         print("  System is STABLE (non-positive Lyapunov exponent)")
 

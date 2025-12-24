@@ -47,7 +47,9 @@ def cmd_darwinian_simulate(simulate: bool = True):
     survivors = run_selection_cycle(population)
 
     print(f"Survivors: {len(survivors)} receipts")
-    print("Selection cycle complete. Check receipts.jsonl for path_amplification and path_starvation receipts.")
+    print(
+        "Selection cycle complete. Check receipts.jsonl for path_amplification and path_starvation receipts."
+    )
 
 
 def cmd_latency_selection_test():
@@ -100,7 +102,9 @@ def cmd_show_laws():
     laws = get_active_laws()
 
     if not laws:
-        print("No active laws. Laws crystallize after 10 generations of Darwinian selection.")
+        print(
+            "No active laws. Laws crystallize after 10 generations of Darwinian selection."
+        )
         return
 
     print(f"=== ACTIVE LAWS ({len(laws)}) ===")
@@ -115,14 +119,11 @@ def cmd_evolve(generations: int, latency_ms: int, simulate: bool = True):
     reset_darwinian_state()
 
     # Create initial population
-    population = [
-        {"id": f"r{i}", "tolerance": 0.3 + (i * 0.05)}
-        for i in range(10)
-    ]
+    population = [{"id": f"r{i}", "tolerance": 0.3 + (i * 0.05)} for i in range(10)]
 
     initial_avg = sum(r.get("tolerance", 0) for r in population) / len(population)
 
-    print(f"=== EVOLUTION UNDER LATENCY ===")
+    print("=== EVOLUTION UNDER LATENCY ===")
     print(f"Latency: {latency_ms}ms")
     print(f"Generations: {generations}")
     print(f"Initial population: {len(population)} receipts")

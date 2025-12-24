@@ -8,11 +8,6 @@ from datetime import datetime
 import json
 
 from ..core import emit_receipt, StopRule, dual_hash
-from .constants import (
-    SCALABILITY_GATE_THRESHOLD,
-    SCALABILITY_INSTABILITY_TOLERANCE,
-    SCALABILITY_DEGRADATION_TOLERANCE,
-)
 
 
 def enforce_scalability_gate(sweep_results: Dict[str, Any]) -> bool:

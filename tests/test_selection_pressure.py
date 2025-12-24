@@ -25,8 +25,6 @@ from src.entropy import (
     calculate_selection_pressure,
     apply_selection_pressure,
     ingest_real_entropy,
-    stoprule_synthetic_entropy,
-    stoprule_no_entropy,
     calculate_latency_pressure,
     apply_latency_selection,
     is_delay_tolerant,
@@ -76,7 +74,9 @@ class TestSyntheticEntropyRejection:
         event = {"source": "synthetic", "id": "test"}
         with pytest.raises(StopRule) as exc_info:
             validate_entropy_source(event)
-        assert "stoprule" in str(exc_info.value).lower() or "Synthetic" in str(exc_info.value)
+        assert "stoprule" in str(exc_info.value).lower() or "Synthetic" in str(
+            exc_info.value
+        )
 
     def test_mock_entropy_rejected(self):
         """Mock source is also rejected."""
@@ -120,7 +120,9 @@ class TestPressureCalculation:
         pressure_high = calculate_selection_pressure(event_high)
         pressure_low = calculate_selection_pressure(event_low)
 
-        assert pressure_high > pressure_low, f"High {pressure_high} should > Low {pressure_low}"
+        assert pressure_high > pressure_low, (
+            f"High {pressure_high} should > Low {pressure_low}"
+        )
 
     def test_pressure_normalized_to_01(self):
         """Pressure is always in [0, 1] range."""
@@ -128,7 +130,9 @@ class TestPressureCalculation:
         for mag in test_magnitudes:
             event = {"magnitude": mag}
             pressure = calculate_selection_pressure(event)
-            assert 0 <= pressure <= 1, f"Pressure {pressure} out of range for magnitude {mag}"
+            assert 0 <= pressure <= 1, (
+                f"Pressure {pressure} out of range for magnitude {mag}"
+            )
 
     def test_disruption_increases_pressure(self):
         """Disruption events have higher pressure."""
@@ -160,7 +164,9 @@ class TestPressureElimination:
 
         survivors = apply_selection_pressure(0.9, weak_pop)
 
-        assert len(survivors) < len(weak_pop), "High pressure should eliminate weak receipts"
+        assert len(survivors) < len(weak_pop), (
+            "High pressure should eliminate weak receipts"
+        )
 
     def test_strong_survive_pressure(self):
         """Strong receipts survive even high pressure."""
@@ -262,8 +268,12 @@ class TestEvolutionUnderLatency:
         evolved = evolve_under_latency(pop, generations=5, latency_ms=100000)
 
         if evolved:
-            avg_tolerance_evolved = sum(r.get("tolerance", 0) for r in evolved) / len(evolved)
-            assert avg_tolerance_evolved > 0.5, "Tolerance should increase through evolution"
+            avg_tolerance_evolved = sum(r.get("tolerance", 0) for r in evolved) / len(
+                evolved
+            )
+            assert avg_tolerance_evolved > 0.5, (
+                "Tolerance should increase through evolution"
+            )
 
     def test_delay_tolerant_receipt_emitted(self, capsys):
         """Verify 'delay_tolerant' receipt is emitted after evolution."""

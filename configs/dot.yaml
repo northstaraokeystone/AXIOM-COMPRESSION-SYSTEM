@@ -1,0 +1,45 @@
+# configs/dot.yaml
+# DOT (Department of Transportation) stakeholder configuration
+# D20 Production Evolution
+
+stakeholder: dot
+description: "FMCSA ELD compliance and infrastructure telemetry"
+
+primary_modules:
+  - compress
+  - ledger
+  - detect
+
+compression:
+  target_ratio: 10
+  min_recall: 0.999
+  algorithm: hybrid
+
+detect:
+  entropy_threshold_sigma: 2.5
+  fraud_classification: true
+  infrastructure_monitoring: true
+
+ledger:
+  retention_days: 2555  # 7 years
+  anchor_interval_receipts: 1000
+
+domains:
+  - telemetry
+
+telemetry:
+  fleet_types:
+    - commercial_vehicles
+    - infrastructure_sensors
+  sample_rate_hz: 10
+
+compliance:
+  fmcsa_eld: true
+  fra_safety: true
+  hours_of_service: true
+  vehicle_inspection: true
+
+value_metrics:
+  fleet_size_vehicles: 12000000  # US commercial fleet
+  bandwidth_reduction_pct: 90
+  compliance_automation_pct: 95

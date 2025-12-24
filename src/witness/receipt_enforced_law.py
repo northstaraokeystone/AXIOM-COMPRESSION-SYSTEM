@@ -91,7 +91,10 @@ def init_enforcement(config: Dict = None) -> LawEnforcement:
             "compression_target": COMPRESSION_LAW_TARGET,
             "chain_causality_priority": CHAIN_CAUSALITY_PRIORITY,
             "payload_hash": dual_hash(
-                json.dumps({"enforcement_id": enforcement_id, "mode": LAW_ENFORCEMENT_MODE}, sort_keys=True)
+                json.dumps(
+                    {"enforcement_id": enforcement_id, "mode": LAW_ENFORCEMENT_MODE},
+                    sort_keys=True,
+                )
             ),
         },
     )
@@ -162,7 +165,8 @@ def extract_law_from_chain(enf: LawEnforcement, receipts: List[Dict]) -> Dict:
             "chain_receipts": law.chain_receipts,
             "payload_hash": dual_hash(
                 json.dumps(
-                    {"law_id": law_id, "compression": law.compression_ratio}, sort_keys=True
+                    {"law_id": law_id, "compression": law.compression_ratio},
+                    sort_keys=True,
                 )
             ),
         },
@@ -171,7 +175,9 @@ def extract_law_from_chain(enf: LawEnforcement, receipts: List[Dict]) -> Dict:
     return result
 
 
-def validate_chain_causality(enf: LawEnforcement, receipts: List[Dict] = None, law: Dict = None) -> bool:
+def validate_chain_causality(
+    enf: LawEnforcement, receipts: List[Dict] = None, law: Dict = None
+) -> bool:
     """Validate law is enforced by chain causality.
 
     Chain causality > simulation causality.
@@ -317,7 +323,11 @@ def enforce_law(enf: LawEnforcement, law: Dict) -> Dict:
             "active_laws": len(enf.active_laws),
             "payload_hash": dual_hash(
                 json.dumps(
-                    {"law_id": law_id, "enforced": enforced, "compression": compression},
+                    {
+                        "law_id": law_id,
+                        "enforced": enforced,
+                        "compression": compression,
+                    },
                     sort_keys=True,
                 )
             ),

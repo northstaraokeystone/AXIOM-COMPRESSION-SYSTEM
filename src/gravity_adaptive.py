@@ -12,7 +12,7 @@ Receipt Types:
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from src.core import TENANT_ID, dual_hash, emit_receipt
 
@@ -128,7 +128,7 @@ def adjust_for_gravity(gravity_g: float) -> Dict[str, Any]:
     gravity_ratio = gravity_g / GRAVITY_EARTH
 
     # Timing adjustment: lower gravity = slower physical settling
-    timing_factor = 1.0 / (gravity_ratio ** 0.5) if gravity_ratio > 0 else 1.0
+    timing_factor = 1.0 / (gravity_ratio**0.5) if gravity_ratio > 0 else 1.0
 
     # Consensus timing adjustment
     consensus_multiplier = timing_factor
@@ -178,7 +178,7 @@ def calculate_timing_adjustment(gravity_g: float) -> float:
         return 1.0
 
     gravity_ratio = gravity_g / GRAVITY_EARTH
-    return 1.0 / (gravity_ratio ** 0.5)
+    return 1.0 / (gravity_ratio**0.5)
 
 
 def adjust_consensus_timing(gravity_g: float) -> Dict[str, Any]:

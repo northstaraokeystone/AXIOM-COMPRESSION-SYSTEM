@@ -984,7 +984,10 @@ def integrate_chaos_validation(chaos_results: Dict[str, Any] = None) -> Dict[str
     # If no chaos results provided, run a default chaos simulation
     if chaos_results is None:
         from .chaotic_nbody_sim import simulate_chaos
-        chaos_results = simulate_chaos(bodies=INTERSTELLAR_BODY_COUNT, duration_years=10)
+
+        chaos_results = simulate_chaos(
+            bodies=INTERSTELLAR_BODY_COUNT, duration_years=10
+        )
 
     # Extract chaos metrics
     chaos_stability = chaos_results.get("stability", 0.0)
@@ -1009,7 +1012,8 @@ def integrate_chaos_validation(chaos_results: Dict[str, Any] = None) -> Dict[str
         "lyapunov_exponent": lyapunov,
         "energy_conserved": energy_conserved,
         "chaos_tolerance": tolerance,
-        "integration_successful": chaos_stability >= 0.95 and integrated_autonomy >= 0.98,
+        "integration_successful": chaos_stability >= 0.95
+        and integrated_autonomy >= 0.98,
     }
 
     emit_receipt(
@@ -1073,12 +1077,14 @@ def run_chaos_stress_test(perturbation: float = 0.1) -> Dict[str, Any]:
 
     # Recovery factor (higher perturbation = slower recovery)
     recovery_rate = 1.0 - perturbation * 0.5
-    recovered_autonomy = perturbed_autonomy + (
-        baseline["autonomy"] - perturbed_autonomy
-    ) * recovery_rate
+    recovered_autonomy = (
+        perturbed_autonomy + (baseline["autonomy"] - perturbed_autonomy) * recovery_rate
+    )
 
     # Stress test passes if recovery is >= 95% of baseline
-    recovery_ratio = recovered_autonomy / baseline["autonomy"] if baseline["autonomy"] > 0 else 0
+    recovery_ratio = (
+        recovered_autonomy / baseline["autonomy"] if baseline["autonomy"] > 0 else 0
+    )
     stress_passed = recovery_ratio >= 0.95
 
     result = {
@@ -1183,7 +1189,9 @@ def d15_chaos_hybrid(
         "d15_result": {
             "eff_alpha": d15_result["eff_alpha"],
             "entangled": d15_result.get("entangled", True),
-            "entanglement_correlation": d15_result.get("entanglement_correlation", 0.99),
+            "entanglement_correlation": d15_result.get(
+                "entanglement_correlation", 0.99
+            ),
             "floor_met": d15_result["floor_met"],
             "target_met": d15_result["target_met"],
             "ceiling_met": d15_result["ceiling_met"],
@@ -1271,8 +1279,7 @@ def integrate_kuiper_dynamics(kuiper_results: Dict[str, Any]) -> Dict[str, Any]:
 
     # Combined stability (weighted average)
     combined_stability = (
-        backbone_autonomy.get("autonomy", 0.98) * 0.5
-        + kuiper_stability * 0.5
+        backbone_autonomy.get("autonomy", 0.98) * 0.5 + kuiper_stability * 0.5
     )
 
     # Total body count
@@ -1437,8 +1444,7 @@ def d16_kuiper_hybrid_backbone(
         "combined_stability": round(combined_stability, 4),
         "combined_coordination": round(combined_coordination, 4),
         "all_targets_met": (
-            d16_result["target_met"]
-            and kuiper_result.get("target_met", True)
+            d16_result["target_met"] and kuiper_result.get("target_met", True)
         ),
         "gate": "t24h",
     }
@@ -1525,8 +1531,7 @@ def integrate_oort(oort_results: Dict[str, Any]) -> Dict[str, Any]:
 
     # Combined autonomy (weighted)
     combined_autonomy = (
-        backbone_autonomy.get("autonomy", 0.98) * 0.4
-        + oort_autonomy * 0.6
+        backbone_autonomy.get("autonomy", 0.98) * 0.4 + oort_autonomy * 0.6
     )
 
     result = {
@@ -1591,9 +1596,7 @@ def compute_heliosphere_coordination() -> Dict[str, Any]:
         "heliosphere_integration": helio_integration,
         "oort_integration": oort_integration,
         "kuiper_coordination": kuiper_coordination,
-        "total_coordinated_bodies": (
-            kuiper_coordination["total_bodies"]
-        ),
+        "total_coordinated_bodies": (kuiper_coordination["total_bodies"]),
         "oort_distance_au": OORT_INTEGRATION_DISTANCE_AU,
         "combined_autonomy": oort_integration["combined_autonomy"],
         "coordination_viable": oort_sim["coordination_viable"],

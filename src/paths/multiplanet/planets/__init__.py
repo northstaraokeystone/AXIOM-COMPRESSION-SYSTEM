@@ -15,15 +15,19 @@ from .venus import (
 
 __all__ = [
     # Venus
-    "integrate_venus", "compute_venus_autonomy",
-    "coordinate_inner_planets", "compute_solar_system_coverage",
+    "integrate_venus",
+    "compute_venus_autonomy",
+    "coordinate_inner_planets",
+    "compute_solar_system_coverage",
 ]
 
 RECEIPT_SCHEMA = {
     "module": "src.paths.multiplanet.planets",
     "receipt_types": [
-        "mp_venus_integrate", "mp_venus_autonomy",
-        "mp_inner_planets", "mp_solar_coverage",
+        "mp_venus_integrate",
+        "mp_venus_autonomy",
+        "mp_inner_planets",
+        "mp_solar_coverage",
     ],
     "version": "1.0.0",
 }

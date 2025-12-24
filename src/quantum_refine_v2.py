@@ -12,8 +12,6 @@ Receipt Types:
 
 import json
 import math
-import os
-import random
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -277,7 +275,9 @@ def deep_error_correction(
 
         if needs_correction:
             # Apply depth-dependent correction
-            correction_strength = 0.01 + (depth * 0.005)  # Stronger with deeper correction
+            correction_strength = 0.01 + (
+                depth * 0.005
+            )  # Stronger with deeper correction
             pair.fidelity = min(1.0, pair.fidelity + correction_strength)
             pair.correlation = min(1.0, pair.correlation + correction_strength * 0.5)
             pair.error_corrected = True
@@ -460,7 +460,8 @@ def compare_v1_v2(pairs: Optional[List[EntangledPair]] = None) -> Dict[str, Any]
         "v2_target": QUANTUM_CORRELATION_TARGET_V2,
         "v1_target_met": result_v1.get("target_met", False),
         "v2_target_met": result_v2["target_met"],
-        "improvement_v1_to_v2": result_v2["correlation_after"] - result_v1["correlation_after"],
+        "improvement_v1_to_v2": result_v2["correlation_after"]
+        - result_v1["correlation_after"],
         "v1_iterations": 10,
         "v2_iterations": QUANTUM_V2_ITERATIONS,
     }

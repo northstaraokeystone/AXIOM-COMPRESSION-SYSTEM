@@ -1,6 +1,5 @@
 """Tests for quantum refinement module."""
 
-import pytest
 from src.quantum_refine import (
     load_refine_config,
     create_entangled_pairs,

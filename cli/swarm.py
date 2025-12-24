@@ -79,7 +79,7 @@ def cmd_swarm_failure(args) -> None:
 
     result = inject_failure(node_id)
     if "error" in result:
-        print(f"\n=== ERROR ===")
+        print("\n=== ERROR ===")
         print(f"Error: {result['error']}")
     else:
         print("\n=== FAILURE INJECTED ===")
@@ -149,11 +149,11 @@ def cmd_testnet_init(args) -> None:
     sol = init_solana_testnet()
 
     print("\n=== TESTNETS INITIALIZED ===")
-    print(f"\nEthereum:")
+    print("\nEthereum:")
     print(f"  Block time: {eth['block_time_sec']}s")
     print(f"  Current block: {eth['current_block']}")
     print(f"  Status: {eth['status']}")
-    print(f"\nSolana:")
+    print("\nSolana:")
     print(f"  Block time: {sol['block_time_sec']}s")
     print(f"  Current block: {sol['current_block']}")
     print(f"  Status: {sol['status']}")
@@ -180,7 +180,7 @@ def cmd_testnet_cross_chain(args) -> None:
 
     send_result = send_cross_chain(from_chain, to_chain)
     if "error" in send_result:
-        print(f"\n=== ERROR ===")
+        print("\n=== ERROR ===")
         print(f"Error: {send_result['error']}")
         return
 
@@ -219,3 +219,24 @@ def cmd_testnet_status(args) -> None:
     status = get_testnet_status()
     print("\n=== TESTNET STATUS ===")
     print(json.dumps(status, indent=2))
+
+
+def cmd_testnet_ethereum(args) -> None:
+    """Ethereum testnet operations (stub)."""
+    print("\n=== ETHEREUM TESTNET ===")
+    print("Ethereum testnet operations not yet implemented.")
+    print("Use --testnet-bridge for cross-chain operations.")
+
+
+def cmd_testnet_solana(args) -> None:
+    """Solana testnet operations (stub)."""
+    print("\n=== SOLANA TESTNET ===")
+    print("Solana testnet operations not yet implemented.")
+    print("Use --testnet-bridge for cross-chain operations.")
+
+
+def cmd_testnet_sync(args) -> None:
+    """Testnet synchronization (stub)."""
+    print("\n=== TESTNET SYNC ===")
+    print("Testnet sync operations not yet implemented.")
+    print("Use --testnet-status for current state.")

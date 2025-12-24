@@ -15,8 +15,6 @@ from src.elon_sphere.starlink_relay import (
     mars_comms_proof,
     get_starlink_status,
     STARLINK_LASER_GBPS,
-    STARLINK_LATENCY_MS,
-    STARLINK_RELAY_HOPS,
 )
 
 from src.elon_sphere.grok_inference import (

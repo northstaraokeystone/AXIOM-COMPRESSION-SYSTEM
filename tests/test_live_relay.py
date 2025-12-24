@@ -15,7 +15,6 @@ from src.live_relay_hil import (
     measure_latency,
     HILConnectionError,
     HILTimeoutError,
-    HILPacketLossError,
 )
 
 

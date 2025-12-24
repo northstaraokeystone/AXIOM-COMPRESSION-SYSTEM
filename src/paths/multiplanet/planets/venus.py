@@ -14,7 +14,6 @@ from typing import Dict, Any, Optional, List
 
 from ...base import emit_path_receipt
 from ..core import (
-    EXPANSION_SEQUENCE,
     MULTIPLANET_TENANT_ID,
 )
 

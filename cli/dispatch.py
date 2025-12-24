@@ -505,6 +505,9 @@ from cli.swarm import (
     cmd_testnet_cross_chain,
     cmd_testnet_status,
     cmd_testnet_stress,
+    cmd_testnet_ethereum,
+    cmd_testnet_solana,
+    cmd_testnet_sync,
 )
 
 
@@ -1155,7 +1158,9 @@ def dispatch(args, docstring: str) -> None:
     if args.show_laws:
         return cmd_show_laws()
     if args.evolve:
-        return cmd_evolve(args.evolve_generations, args.evolve_latency_ms, args.simulate)
+        return cmd_evolve(
+            args.evolve_generations, args.evolve_latency_ms, args.simulate
+        )
     if args.darwinian_mode:
         return cmd_darwinian_mode(args, args.simulate)
 

@@ -228,11 +228,9 @@ def compute_projected_fitness(
 
     # Projected fitness combines current and projected
     projected_fitness = (
-        OBSERVED_FITNESS_WEIGHT * current_fitness +
-        PROJECTED_FITNESS_WEIGHT * (
-            0.50 * projected_entropy_reduction +
-            0.50 * projected_stability
-        )
+        OBSERVED_FITNESS_WEIGHT * current_fitness
+        + PROJECTED_FITNESS_WEIGHT
+        * (0.50 * projected_entropy_reduction + 0.50 * projected_stability)
     )
     projected_fitness = max(0.0, min(1.0, projected_fitness))
 
@@ -284,12 +282,14 @@ def select_by_projected_fitness(
     projections = []
     for pattern in patterns:
         projected = compute_projected_fitness(pattern, projection_years)
-        projections.append({
-            **pattern,
-            "projected_fitness": projected["projected_fitness"],
-            "classification": projected["classification"],
-            "recommendation": projected["recommendation"],
-        })
+        projections.append(
+            {
+                **pattern,
+                "projected_fitness": projected["projected_fitness"],
+                "classification": projected["classification"],
+                "recommendation": projected["recommendation"],
+            }
+        )
 
     # Sort by projected fitness descending
     projections.sort(key=lambda x: x.get("projected_fitness", 0), reverse=True)

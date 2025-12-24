@@ -4,7 +4,6 @@ D19.3: Projection KILLED. Preemptive weave KILLED. Simulation KILLED.
 History is the only truth.
 """
 
-import pytest
 import os
 
 
@@ -89,7 +88,9 @@ class TestKilledConstants:
 
     def test_preemptive_amplify_threshold_killed(self):
         """Verify PREEMPTIVE_AMPLIFY_THRESHOLD is killed (None)."""
-        from src.depths.d19_swarm_intelligence import PREEMPTIVE_AMPLIFY_THRESHOLD_KILLED
+        from src.depths.d19_swarm_intelligence import (
+            PREEMPTIVE_AMPLIFY_THRESHOLD_KILLED,
+        )
 
         assert PREEMPTIVE_AMPLIFY_THRESHOLD_KILLED is None
 

@@ -1,6 +1,5 @@
 """Tests for gravity adaptive module."""
 
-import pytest
 from src.gravity_adaptive import (
     get_gravity_status,
     get_planet_gravity,
@@ -80,7 +79,7 @@ class TestTimingAdjustment:
     def test_timing_factor_formula(self):
         """Formula: 1.0 / (gravity_ratio ^ 0.5)."""
         factor = calculate_timing_adjustment(0.38)
-        expected = 1.0 / (0.38 ** 0.5)
+        expected = 1.0 / (0.38**0.5)
         assert abs(factor - expected) < 0.001
 
 
@@ -91,7 +90,9 @@ class TestConsensusAdjustment:
         """Mars consensus timing adjusted."""
         result = adjust_consensus_timing(0.38)
         assert result["adjusted_heartbeat_ms"] > result["base_heartbeat_ms"]
-        assert result["adjusted_election_timeout_ms"] > result["base_election_timeout_ms"]
+        assert (
+            result["adjusted_election_timeout_ms"] > result["base_election_timeout_ms"]
+        )
 
 
 class TestPacketAdjustment:

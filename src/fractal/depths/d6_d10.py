@@ -49,10 +49,11 @@ def get_d6_spec() -> Dict[str, Any]:
 
     Receipt: d6_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d6_titan_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d6_titan_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -308,10 +309,11 @@ def get_d7_spec() -> Dict[str, Any]:
 
     Receipt: d7_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d7_europa_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d7_europa_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -568,10 +570,11 @@ def get_d8_spec() -> Dict[str, Any]:
 
     Receipt: d8_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d8_multi_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d8_multi_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -829,10 +832,11 @@ def get_d9_spec() -> Dict[str, Any]:
 
     Receipt: d9_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d9_ganymede_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d9_ganymede_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -1092,10 +1096,11 @@ def get_d10_spec() -> Dict[str, Any]:
 
     Receipt: d10_spec_load
     """
-    import os
 
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "d10_jovian_spec.json"
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data",
+        "d10_jovian_spec.json",
     )
 
     with open(spec_path, "r") as f:
@@ -1326,5 +1331,3 @@ def get_d10_info() -> Dict[str, Any]:
     )
 
     return info
-
-

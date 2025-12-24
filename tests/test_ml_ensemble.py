@@ -9,7 +9,6 @@ Tests:
 - Accuracy assessment
 """
 
-import pytest
 from src.cfd_dust_dynamics import (
     load_ml_ensemble_config,
     initialize_ensemble,

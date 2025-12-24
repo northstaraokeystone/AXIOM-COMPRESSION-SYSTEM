@@ -87,7 +87,9 @@ class TestD19_2SpecLoading:
         with open(spec_path) as f:
             spec = json.load(f)
         d19_2 = spec.get("d19_2_config", {})
-        assert d19_2.get("reactive_mode_enabled") is False, "Reactive mode must be disabled"
+        assert d19_2.get("reactive_mode_enabled") is False, (
+            "Reactive mode must be disabled"
+        )
 
 
 class TestD19_2Constants:
@@ -96,37 +98,48 @@ class TestD19_2Constants:
     def test_simulation_enabled_is_false(self):
         """Verify SIMULATION_ENABLED is False."""
         from src.depths.d19_swarm_intelligence import SIMULATION_ENABLED
+
         assert SIMULATION_ENABLED is False, "SIMULATION_ENABLED must be False"
 
     def test_reactive_mode_enabled_is_false(self):
         """Verify REACTIVE_MODE_ENABLED is False."""
         from src.depths.d19_swarm_intelligence import REACTIVE_MODE_ENABLED
+
         assert REACTIVE_MODE_ENABLED is False, "REACTIVE_MODE_ENABLED must be False"
 
     def test_future_projection_mode_is_true(self):
         """Verify FUTURE_PROJECTION_MODE is True."""
         from src.depths.d19_swarm_intelligence import FUTURE_PROJECTION_MODE
+
         assert FUTURE_PROJECTION_MODE is True, "FUTURE_PROJECTION_MODE must be True"
 
     def test_proxima_rtt_years(self):
         """Verify PROXIMA_RTT_YEARS is 8.48."""
         from src.depths.d19_swarm_intelligence import PROXIMA_RTT_YEARS
+
         assert PROXIMA_RTT_YEARS == 8.48, "PROXIMA_RTT_YEARS must be 8.48"
 
     def test_projection_horizon_years(self):
         """Verify PROJECTION_HORIZON_YEARS is 10."""
         from src.depths.d19_swarm_intelligence import PROJECTION_HORIZON_YEARS
+
         assert PROJECTION_HORIZON_YEARS == 10, "PROJECTION_HORIZON_YEARS must be 10"
 
     def test_preemptive_amplify_threshold(self):
         """Verify PREEMPTIVE_AMPLIFY_THRESHOLD is 0.85."""
         from src.depths.d19_swarm_intelligence import PREEMPTIVE_AMPLIFY_THRESHOLD
-        assert PREEMPTIVE_AMPLIFY_THRESHOLD == 0.85, "PREEMPTIVE_AMPLIFY_THRESHOLD must be 0.85"
+
+        assert PREEMPTIVE_AMPLIFY_THRESHOLD == 0.85, (
+            "PREEMPTIVE_AMPLIFY_THRESHOLD must be 0.85"
+        )
 
     def test_preemptive_starve_threshold(self):
         """Verify PREEMPTIVE_STARVE_THRESHOLD is 0.50."""
         from src.depths.d19_swarm_intelligence import PREEMPTIVE_STARVE_THRESHOLD
-        assert PREEMPTIVE_STARVE_THRESHOLD == 0.50, "PREEMPTIVE_STARVE_THRESHOLD must be 0.50"
+
+        assert PREEMPTIVE_STARVE_THRESHOLD == 0.50, (
+            "PREEMPTIVE_STARVE_THRESHOLD must be 0.50"
+        )
 
 
 class TestProjectionPackage:
@@ -140,6 +153,7 @@ class TestProjectionPackage:
             project_all_paths,
             get_projection_status,
         )
+
         assert init_projection is not None
         assert project_single_path is not None
         assert project_all_paths is not None
@@ -153,6 +167,7 @@ class TestProjectionPackage:
             validate_light_speed,
             get_model_status,
         )
+
         assert init_model is not None
         assert calculate_geodesic is not None
         assert validate_light_speed is not None
@@ -166,6 +181,7 @@ class TestProjectionPackage:
             estimate_batch_compression,
             get_estimator_status,
         )
+
         assert init_estimator is not None
         assert estimate_path_compression is not None
         assert estimate_batch_compression is not None
@@ -184,6 +200,7 @@ class TestWeavePackage:
             apply_preemptive_selection,
             get_weave_status,
         )
+
         assert init_preemptive_weave is not None
         assert amplify_high_future_paths is not None
         assert starve_low_future_paths is not None
@@ -198,6 +215,7 @@ class TestWeavePackage:
             weave_from_known_latency,
             get_entropy_weave_status,
         )
+
         assert init_entropy_weave is not None
         assert load_weave_template is not None
         assert weave_from_known_latency is not None
@@ -211,6 +229,7 @@ class TestWeavePackage:
             generate_preemptive_law,
             get_nullification_status,
         )
+
         assert init_nullification is not None
         assert nullify_known_delay is not None
         assert generate_preemptive_law is not None
@@ -225,6 +244,7 @@ class TestWeavePackage:
             verify_chain_integrity,
             get_chain_status,
         )
+
         assert init_weave_chain is not None
         assert insert_woven_law is not None
         assert batch_insert_laws is not None
@@ -238,6 +258,7 @@ class TestFuturePathProjection:
     def test_init_projection(self):
         """Test projection initialization."""
         from src.projection import init_projection
+
         proj = init_projection({})
         assert proj is not None
         assert proj.projection_id is not None
@@ -246,6 +267,7 @@ class TestFuturePathProjection:
     def test_project_single_path_respects_light_speed(self):
         """Verify single path projection respects light speed."""
         from src.projection import init_projection, project_single_path
+
         proj = init_projection({})
         receipt = {"receipt_type": "test", "payload_hash": "test"}
         path = project_single_path(proj, receipt, "proxima_centauri")
@@ -258,6 +280,7 @@ class TestFuturePathProjection:
     def test_projection_status_simulation_disabled(self):
         """Verify projection status shows simulation disabled."""
         from src.projection import get_projection_status
+
         status = get_projection_status()
         assert status.get("simulation_enabled") is False
         assert status.get("reactive_mode") is False
@@ -269,6 +292,7 @@ class TestPreemptiveWeave:
     def test_init_preemptive_weave(self):
         """Test preemptive weave initialization."""
         from src.weave import init_preemptive_weave
+
         weave = init_preemptive_weave({})
         assert weave is not None
         assert weave.weave_id is not None
@@ -276,6 +300,7 @@ class TestPreemptiveWeave:
     def test_amplify_high_future_paths(self):
         """Test amplification of high-future-compression paths."""
         from src.weave import init_preemptive_weave, amplify_high_future_paths
+
         weave = init_preemptive_weave({})
         paths = [
             {"path_id": "high_1", "projected_compression": 0.90},
@@ -289,6 +314,7 @@ class TestPreemptiveWeave:
     def test_starve_low_future_paths(self):
         """Test starvation of low-future-compression paths."""
         from src.weave import init_preemptive_weave, starve_low_future_paths
+
         weave = init_preemptive_weave({})
         paths = [
             {"path_id": "low_1", "projected_compression": 0.40},
@@ -302,6 +328,7 @@ class TestPreemptiveWeave:
     def test_weave_status_reactive_disabled(self):
         """Verify weave status shows reactive mode disabled."""
         from src.weave import get_weave_status
+
         status = get_weave_status()
         assert status.get("reactive_mode_enabled") is False
         assert status.get("selection_on_past") is False
@@ -313,6 +340,7 @@ class TestImpendingEntropyWeave:
     def test_init_entropy_weave(self):
         """Test entropy weave initialization."""
         from src.weave import init_entropy_weave
+
         weave = init_entropy_weave({})
         assert weave is not None
         assert weave.latency_catalog is not None
@@ -320,6 +348,7 @@ class TestImpendingEntropyWeave:
     def test_load_proxima_weave_template(self):
         """Test loading Proxima Centauri weave template."""
         from src.weave import init_entropy_weave, load_weave_template
+
         weave = init_entropy_weave({})
         template = load_weave_template(weave, "proxima_centauri")
         assert template is not None
@@ -327,7 +356,12 @@ class TestImpendingEntropyWeave:
 
     def test_weave_from_known_latency(self):
         """Test weaving from known latency."""
-        from src.weave import init_entropy_weave, load_weave_template, weave_from_known_latency
+        from src.weave import (
+            init_entropy_weave,
+            load_weave_template,
+            weave_from_known_latency,
+        )
+
         weave = init_entropy_weave({})
         template = load_weave_template(weave, "proxima_centauri")
         result = weave_from_known_latency(weave, template)
@@ -337,6 +371,7 @@ class TestImpendingEntropyWeave:
     def test_entropy_weave_status_latency_not_obstacle(self):
         """Verify entropy weave status shows latency is not obstacle."""
         from src.weave import get_entropy_weave_status
+
         status = get_entropy_weave_status()
         assert status.get("latency_as_obstacle") is False
         assert status.get("latency_is_input") is True
@@ -348,6 +383,7 @@ class TestDelayNullification:
     def test_init_nullification(self):
         """Test nullification initialization."""
         from src.weave import init_nullification
+
         nullification = init_nullification({})
         assert nullification is not None
         assert nullification.nullification_id is not None
@@ -355,6 +391,7 @@ class TestDelayNullification:
     def test_nullify_proxima_delay(self):
         """Test nullifying Proxima Centauri delay."""
         from src.weave import init_nullification, nullify_known_delay
+
         nullification = init_nullification({})
         law = nullify_known_delay(nullification, "proxima_centauri", 8.48)
         assert law is not None
@@ -368,6 +405,7 @@ class TestWeaveToChain:
     def test_init_weave_chain(self):
         """Test weave chain initialization."""
         from src.weave import init_weave_chain
+
         chain = init_weave_chain({})
         assert chain is not None
         assert chain.chain_id is not None
@@ -375,8 +413,11 @@ class TestWeaveToChain:
     def test_insert_woven_law(self):
         """Test inserting woven law into chain."""
         from src.weave import init_weave_chain, insert_woven_law
+
         chain = init_weave_chain({})
-        woven = insert_woven_law(chain, "test_law", "delay_nullification", {"test": True})
+        woven = insert_woven_law(
+            chain, "test_law", "delay_nullification", {"test": True}
+        )
         assert woven is not None
         assert woven.law_id == "test_law"
         assert chain.current_merkle_root is not None
@@ -384,6 +425,7 @@ class TestWeaveToChain:
     def test_verify_chain_integrity(self):
         """Test chain integrity verification."""
         from src.weave import init_weave_chain, insert_woven_law, verify_chain_integrity
+
         chain = init_weave_chain({})
         insert_woven_law(chain, "test_law", "delay_nullification", {"test": True})
         result = verify_chain_integrity(chain)
@@ -396,6 +438,7 @@ class TestProjectedFutureFitness:
     def test_compute_projected_fitness(self):
         """Test computing projected fitness."""
         from src.autocatalytic.fitness_evaluator import compute_projected_fitness
+
         pattern = {"fitness": 0.8, "entropy": 1.0, "stability": 0.9}
         result = compute_projected_fitness(pattern)
         assert result.get("projected_fitness") is not None
@@ -404,6 +447,7 @@ class TestProjectedFutureFitness:
     def test_high_future_fitness_classified_amplify(self):
         """Test high future fitness classified for amplification."""
         from src.autocatalytic.fitness_evaluator import compute_projected_fitness
+
         pattern = {"fitness": 0.95, "entropy": 0.5, "stability": 0.95}
         result = compute_projected_fitness(pattern)
         assert result.get("classification") == "high_future"
@@ -412,6 +456,7 @@ class TestProjectedFutureFitness:
     def test_low_future_fitness_classified_starve(self):
         """Test low future fitness classified for starvation."""
         from src.autocatalytic.fitness_evaluator import compute_projected_fitness
+
         pattern = {"fitness": 0.2, "entropy": 5.0, "stability": 0.1}
         result = compute_projected_fitness(pattern)
         assert result.get("classification") == "low_future"
@@ -424,6 +469,7 @@ class TestD19_2Integration:
     def test_run_d19_preemptive_executes(self):
         """Test that run_d19_preemptive executes successfully."""
         from src.depths.d19_swarm_intelligence import run_d19_preemptive
+
         result = run_d19_preemptive()
         assert result is not None
         assert result.get("mode") == "preemptive_weave"
@@ -431,6 +477,7 @@ class TestD19_2Integration:
     def test_run_d19_preemptive_simulation_killed(self):
         """Verify simulation is killed in D19.2 run."""
         from src.depths.d19_swarm_intelligence import run_d19_preemptive
+
         result = run_d19_preemptive()
         assert result.get("simulation_enabled") is False
         gates = result.get("gates", {})
@@ -440,6 +487,7 @@ class TestD19_2Integration:
     def test_run_d19_preemptive_reactive_killed(self):
         """Verify reactive mode is killed in D19.2 run."""
         from src.depths.d19_swarm_intelligence import run_d19_preemptive
+
         result = run_d19_preemptive()
         assert result.get("reactive_mode_enabled") is False
         gates = result.get("gates", {})
@@ -449,12 +497,14 @@ class TestD19_2Integration:
     def test_run_d19_preemptive_all_gates_pass(self):
         """Verify all gates pass in D19.2 run."""
         from src.depths.d19_swarm_intelligence import run_d19_preemptive
+
         result = run_d19_preemptive()
         assert result.get("all_gates_passed") is True
 
     def test_run_d19_preemptive_slo_passed(self):
         """Verify SLO passes in D19.2 run."""
         from src.depths.d19_swarm_intelligence import run_d19_preemptive
+
         result = run_d19_preemptive()
         assert result.get("slo_passed") is True
 

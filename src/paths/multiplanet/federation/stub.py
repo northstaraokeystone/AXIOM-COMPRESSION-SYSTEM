@@ -36,7 +36,9 @@ def load_federation_config() -> Dict[str, Any]:
     Receipt: federation_stub_receipt
     """
     spec_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))),
+        os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        ),
         "data",
         "d18_interstellar_spec.json",
     )
@@ -104,7 +106,9 @@ def initialize_federation(systems: List[str] = None) -> Dict[str, Any]:
     return result
 
 
-def consensus_with_lag(proposal: Dict[str, Any], lag_years: float = 4.24) -> Dict[str, Any]:
+def consensus_with_lag(
+    proposal: Dict[str, Any], lag_years: float = 4.24
+) -> Dict[str, Any]:
     """Run consensus protocol with communication lag.
 
     For interstellar distances, consensus must account for

@@ -77,9 +77,15 @@ def load_quantum_config() -> Dict[str, Any]:
     result = {
         "enabled": config.get("enabled", True),
         "nonlocal_simulation": config.get("nonlocal_simulation", True),
-        "correlation_target": config.get("correlation_target", QUANTUM_CORRELATION_TARGET),
-        "entanglement_pairs": config.get("entanglement_pairs", QUANTUM_ENTANGLEMENT_PAIRS),
-        "decoherence_tolerance": config.get("decoherence_tolerance", QUANTUM_DECOHERENCE_TOLERANCE),
+        "correlation_target": config.get(
+            "correlation_target", QUANTUM_CORRELATION_TARGET
+        ),
+        "entanglement_pairs": config.get(
+            "entanglement_pairs", QUANTUM_ENTANGLEMENT_PAIRS
+        ),
+        "decoherence_tolerance": config.get(
+            "decoherence_tolerance", QUANTUM_DECOHERENCE_TOLERANCE
+        ),
         "bell_violation_check": config.get("bell_violation_check", True),
         "no_ftl_constraint": config.get("no_ftl_constraint", NO_FTL_CONSTRAINT),
     }
@@ -100,7 +106,9 @@ def load_quantum_config() -> Dict[str, Any]:
     return result
 
 
-def initialize_entanglement_pairs(count: int = QUANTUM_ENTANGLEMENT_PAIRS) -> List[Dict[str, Any]]:
+def initialize_entanglement_pairs(
+    count: int = QUANTUM_ENTANGLEMENT_PAIRS,
+) -> List[Dict[str, Any]]:
     """Create entanglement pair pool.
 
     Args:
@@ -123,8 +131,12 @@ def initialize_entanglement_pairs(count: int = QUANTUM_ENTANGLEMENT_PAIRS) -> Li
             "state": "entangled",
             "theta": round(theta, 4),
             "phi": round(phi, 4),
-            "correlation": random.uniform(0.985, 0.995),  # Higher baseline to meet 0.98 target after decoherence
-            "decoherence": random.uniform(0.001, 0.005),  # Lower decoherence for better fidelity
+            "correlation": random.uniform(
+                0.985, 0.995
+            ),  # Higher baseline to meet 0.98 target after decoherence
+            "decoherence": random.uniform(
+                0.001, 0.005
+            ),  # Lower decoherence for better fidelity
             "measured": False,
         }
         pairs.append(pair)
@@ -136,8 +148,12 @@ def initialize_entanglement_pairs(count: int = QUANTUM_ENTANGLEMENT_PAIRS) -> Li
             "tenant_id": TENANT_ID,
             "ts": datetime.utcnow().isoformat() + "Z",
             "pairs_created": len(pairs),
-            "avg_correlation": round(sum(p["correlation"] for p in pairs) / len(pairs), 4),
-            "payload_hash": dual_hash(json.dumps({"count": len(pairs)}, sort_keys=True)),
+            "avg_correlation": round(
+                sum(p["correlation"] for p in pairs) / len(pairs), 4
+            ),
+            "payload_hash": dual_hash(
+                json.dumps({"count": len(pairs)}, sort_keys=True)
+            ),
         },
     )
 
@@ -475,7 +491,8 @@ def quantum_coordination_protocol(
         "systems": system_names,
         "pairs_count": len(pairs),
         "correlation_achieved": sim_result["mean_correlation"],
-        "coordination_viable": sim_result["target_met"] and sim_result["nonlocal_viable"],
+        "coordination_viable": sim_result["target_met"]
+        and sim_result["nonlocal_viable"],
     }
 
     emit_receipt(
@@ -494,7 +511,9 @@ def quantum_coordination_protocol(
     return result
 
 
-def evaluate_quantum_advantage(classical: Dict[str, Any], quantum: Dict[str, Any]) -> Dict[str, Any]:
+def evaluate_quantum_advantage(
+    classical: Dict[str, Any], quantum: Dict[str, Any]
+) -> Dict[str, Any]:
     """Compare classical vs quantum coordination.
 
     Args:
@@ -533,10 +552,12 @@ def stress_test_quantum(iterations: int = 100) -> Dict[str, Any]:
     for _ in range(iterations):
         pairs = initialize_entanglement_pairs(100)
         sim = simulate_nonlocal_correlation(pairs)
-        results.append({
-            "target_met": sim["target_met"],
-            "correlation": sim["mean_correlation"],
-        })
+        results.append(
+            {
+                "target_met": sim["target_met"],
+                "correlation": sim["mean_correlation"],
+            }
+        )
 
     target_met_count = sum(1 for r in results if r["target_met"])
     avg_correlation = sum(r["correlation"] for r in results) / len(results)

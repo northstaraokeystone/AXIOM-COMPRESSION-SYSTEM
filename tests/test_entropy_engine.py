@@ -1,7 +1,5 @@
 """Tests for swarm entropy engine module."""
 
-import pytest
-
 
 class TestEntropyEngine:
     """Test entropy engine functionality."""
@@ -31,7 +29,10 @@ class TestEntropyEngine:
 
     def test_measure_swarm_coherence(self):
         """Test swarm coherence measurement."""
-        from src.swarm.entropy_engine import init_entropy_engine, measure_swarm_coherence
+        from src.swarm.entropy_engine import (
+            init_entropy_engine,
+            measure_swarm_coherence,
+        )
 
         engine = init_entropy_engine({})
         coherence = measure_swarm_coherence(engine)

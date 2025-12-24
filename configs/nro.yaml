@@ -1,0 +1,47 @@
+# configs/nro.yaml
+# NRO (National Reconnaissance Office) stakeholder configuration
+# D20 Production Evolution
+
+stakeholder: nro
+description: "Constellation sovereignty and ground control independence"
+
+primary_modules:
+  - compress
+  - anchor
+  - sovereignty
+
+compression:
+  target_ratio: 20
+  min_recall: 0.9999
+  algorithm: hybrid
+
+sovereignty:
+  target: constellation
+  ground_control_latency_ms: 500
+  min_autonomous_satellites: 10
+  bandwidth_mbps: 100
+
+anchor:
+  algorithm: dual_hash_merkle
+  proof_generation: true
+  distributed_anchoring: true
+
+domains:
+  - telemetry
+
+telemetry:
+  fleet_types:
+    - reconnaissance_satellite
+    - relay_satellite
+  sample_rate_hz: 100
+  downlink_mbps: 1000
+
+value_metrics:
+  constellation_size: 50
+  ground_independence_hours: 24
+  decision_autonomy_pct: 95
+
+operations:
+  autonomous_maneuvering: true
+  collision_avoidance: true
+  task_scheduling: true

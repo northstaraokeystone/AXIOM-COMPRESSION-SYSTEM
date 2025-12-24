@@ -174,7 +174,11 @@ def classify_dispute(arb: Arbitration, dispute: Dict) -> str:
             "arbitration_id": arb.arbitration_id,
             "dispute_id": dispute_id,
             "classification": classification,
-            "payload_hash": dual_hash(json.dumps({"dispute_id": dispute_id, "type": classification}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"dispute_id": dispute_id, "type": classification}, sort_keys=True
+                )
+            ),
         },
     )
 
@@ -208,7 +212,9 @@ def discover_resolution_law(arb: Arbitration, dispute: Dict) -> Dict[str, Any]:
     law = {
         "law_id": law_id,
         "dispute_type": dispute_type,
-        "resolution": resolution_templates.get(dispute_type, "Default: entropy-weighted consensus"),
+        "resolution": resolution_templates.get(
+            dispute_type, "Default: entropy-weighted consensus"
+        ),
         "compression_ratio": round(random.uniform(0.85, 0.95), 4),
         "fitness": round(random.uniform(0.80, 0.95), 4),
         "discovered_at": datetime.utcnow().isoformat() + "Z",
@@ -307,7 +313,11 @@ def validate_resolution(arb: Arbitration, resolution: Dict) -> float:
             "arbitration_id": arb.arbitration_id,
             "dispute_id": dispute_id,
             "effectiveness": round(effectiveness, 4),
-            "payload_hash": dual_hash(json.dumps({"dispute_id": dispute_id, "eff": effectiveness}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps(
+                    {"dispute_id": dispute_id, "eff": effectiveness}, sort_keys=True
+                )
+            ),
         },
     )
 

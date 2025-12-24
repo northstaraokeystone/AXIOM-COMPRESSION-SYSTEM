@@ -4,9 +4,6 @@ D19.3: Laws are oracled directly from the live chain's emergent causality.
 Projection KILLED. Simulation KILLED. History is the only truth.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-
 
 class TestLiveHistoryOracle:
     """Tests for LiveHistoryOracle functionality."""

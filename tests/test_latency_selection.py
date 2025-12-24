@@ -42,14 +42,18 @@ class TestLatencyPressure:
         pressure_high = calculate_latency_pressure(1000000)
         pressure_low = calculate_latency_pressure(1000)
 
-        assert pressure_high > pressure_low, "Higher latency should mean higher pressure"
+        assert pressure_high > pressure_low, (
+            "Higher latency should mean higher pressure"
+        )
 
     def test_pressure_normalized_to_01(self):
         """Latency pressure is always in [0, 1] range."""
         test_latencies = [0, 1000, 100000, MARS_MAX_LATENCY_MS, JUPITER_MAX_LATENCY_MS]
         for lat in test_latencies:
             pressure = calculate_latency_pressure(lat)
-            assert 0 <= pressure <= 1, f"Pressure {pressure} out of range for latency {lat}"
+            assert 0 <= pressure <= 1, (
+                f"Pressure {pressure} out of range for latency {lat}"
+            )
 
     def test_zero_latency_zero_pressure(self):
         """Zero latency should have zero pressure."""
@@ -148,10 +152,14 @@ class TestEvolutionUnderLatency:
         ]
 
         # Use high latency (Jupiter = full pressure)
-        evolved = evolve_under_latency(pop, generations=3, latency_ms=JUPITER_MAX_LATENCY_MS)
+        evolved = evolve_under_latency(
+            pop, generations=3, latency_ms=JUPITER_MAX_LATENCY_MS
+        )
 
         # Only the tolerant one should survive (or few)
-        assert len(evolved) <= 1, f"High latency should eliminate weak, got {len(evolved)}"
+        assert len(evolved) <= 1, (
+            f"High latency should eliminate weak, got {len(evolved)}"
+        )
 
     def test_delay_tolerant_receipt_emitted(self, capsys):
         """Verify 'delay_tolerant' receipt is emitted after evolution."""

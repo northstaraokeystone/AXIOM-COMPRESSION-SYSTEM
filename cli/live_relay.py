@@ -28,12 +28,14 @@ def cmd_live_relay_info(args: Namespace) -> Dict[str, Any]:
     analog = config["starlink_analog_config"]
     print(f"  Latency: {analog['latency_ms']}ms")
     print(f"  Bandwidth: {analog['bandwidth_gbps']} Gbps")
-    print(f"  Packet Loss: {analog['packet_loss_rate']*100:.2f}%")
+    print(f"  Packet Loss: {analog['packet_loss_rate'] * 100:.2f}%")
     print(f"  Timeout: {analog['timeout_ms']}ms")
     print("\n--- Mars HIL ---")
     mars = config["mars_hil_config"]
     print(f"  Enabled: {mars['enabled']}")
-    print(f"  Latency Range: {mars['latency_min_minutes']}-{mars['latency_max_minutes']} min")
+    print(
+        f"  Latency Range: {mars['latency_min_minutes']}-{mars['latency_max_minutes']} min"
+    )
     print(f"  Proof Duration: {mars['proof_duration_hours']} hours")
 
     return config
@@ -82,7 +84,7 @@ def cmd_live_relay_test(args: Namespace) -> Dict[str, Any]:
     print(f"Test Passed: {result['test_passed']}")
     print(f"Packets Sent: {result['packets_sent']}")
     print(f"Packets Received: {result['packets_received']}")
-    print(f"Loss Rate: {result['loss_rate']*100:.2f}%")
+    print(f"Loss Rate: {result['loss_rate'] * 100:.2f}%")
     print(f"Avg Latency: {result['avg_latency_ms']:.2f}ms")
     print(f"Throughput: {result['throughput_pps']:.1f} pps")
 
@@ -108,8 +110,8 @@ def cmd_live_relay_mars(args: Namespace) -> Dict[str, Any]:
     print(f"Proof Passed: {result['proof_passed']}")
     print(f"Messages Sent: {result['messages_sent']}")
     print(f"Messages Received: {result['messages_received']}")
-    print(f"Success Rate: {result['success_rate']*100:.2f}%")
-    print(f"Autonomy Target: {result['autonomy_target']*100:.1f}%")
+    print(f"Success Rate: {result['success_rate'] * 100:.2f}%")
+    print(f"Autonomy Target: {result['autonomy_target'] * 100:.1f}%")
     print(f"Opposition Latency: {result['opposition_latency_min']:.1f} min")
     print(f"Conjunction Latency: {result['conjunction_latency_min']:.1f} min")
 
@@ -135,7 +137,7 @@ def cmd_live_relay_stress(args: Namespace) -> Dict[str, Any]:
     print(f"Stress Passed: {result['stress_passed']}")
     print(f"Iterations: {result['iterations']}")
     print(f"Success Count: {result['success_count']}")
-    print(f"Success Rate: {result['success_rate']*100:.2f}%")
+    print(f"Success Rate: {result['success_rate'] * 100:.2f}%")
     print(f"Avg Latency: {result['avg_latency_ms']:.2f}ms")
     print(f"Throughput: {result['throughput_ops']:.1f} ops/s")
 

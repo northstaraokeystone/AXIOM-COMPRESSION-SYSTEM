@@ -29,7 +29,6 @@ from src.darwinian_enforce import (
     enforce_laws,
     get_active_laws,
     reset_darwinian_state,
-    amplify_path,
     run_selection_cycle,
     DARWINIAN_GENERATIONS_PER_CYCLE,
 )
@@ -52,7 +51,9 @@ class TestPatternExtraction:
 
         assert isinstance(pattern, dict), "Pattern should be a dict"
         # Common values should be extracted
-        assert "pattern_type" in pattern or "value" in pattern, "Should extract common keys"
+        assert "pattern_type" in pattern or "value" in pattern, (
+            "Should extract common keys"
+        )
 
     def test_pattern_extraction_empty(self):
         """Empty survivors list returns empty pattern."""

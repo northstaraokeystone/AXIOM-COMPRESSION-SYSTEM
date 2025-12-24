@@ -1,13 +1,63 @@
 # AXIOM Architecture Specification
 
-> **Version:** 3.1.0
+> **Version:** 4.0.0
 > **Date:** 2025-12-24
-> **Status:** ACTIVE
-> **Dual-Hash:** Updated via architecture audit
+> **Status:** ACTIVE - D20 Production Evolution
+> **Dual-Hash:** Updated via D20 Production Evolution
 
 ---
 
-## §0 LAWS
+## §0 D20 PRODUCTION EVOLUTION
+
+### The Paradigm Inversion
+
+**Names are not labels. Names are sales.**
+
+When a DOT secretary sees `qed.py`, they see nothing. When they see `compress.py` with a config that says "10x telemetry reduction for FMCSA compliance," they see budget savings.
+
+### Module Taxonomy (D20)
+
+| Module | Purpose | Primary Stakeholder | Value Metric |
+|--------|---------|---------------------|--------------|
+| compress.py | Telemetry compression | Elon/xAI | 10x bandwidth savings |
+| witness.py | Law discovery | Elon/SpaceX | Physics discovery acceleration |
+| sovereignty.py | Autonomy threshold | Elon/Space Force | Minimum crew for independence |
+| detect.py | Entropy anomaly | DOGE | $162B improper payments |
+| ledger.py | Receipt storage | DOGE/DOT | Full audit trail |
+| anchor.py | Merkle proofs | Defense/NRO | Tamper-proof verification |
+| loop.py | 60s cycle | All | Automated improvement |
+
+### Domain Generators (D20)
+
+| Domain | Path | Purpose |
+|--------|------|---------|
+| galaxy | src/domains/galaxy.py | Galaxy rotation curves |
+| colony | src/domains/colony.py | Mars colony simulation |
+| telemetry | src/domains/telemetry.py | Fleet telemetry (Tesla/Starlink/SpaceX) |
+
+### Stakeholder Configs (D20)
+
+| Stakeholder | Config | Primary Modules |
+|-------------|--------|-----------------|
+| Elon/xAI | configs/xai.yaml | compress, witness, sovereignty |
+| DOGE | configs/doge.yaml | ledger, detect, anchor |
+| DOT | configs/dot.yaml | compress, ledger, detect |
+| Defense | configs/defense.yaml | compress, ledger, anchor |
+| NRO | configs/nro.yaml | compress, anchor, sovereignty |
+
+### SLOs (D20)
+
+| Module | Metric | Threshold | Stoprule |
+|--------|--------|-----------|----------|
+| compress | compression_ratio | >= 10 | FAIL if < 10 |
+| compress | recall | >= 0.999 | FAIL if < 0.999 |
+| witness | mdl_score | < baseline | WARN |
+| detect | false_positive_rate | < 0.01 | FAIL if > 0.01 |
+| loop | cycle_time_sec | <= 60 | WARN if > 60 |
+
+---
+
+## §0.1 LAWS
 
 ```python
 LAW_1 = "No receipt → not real"

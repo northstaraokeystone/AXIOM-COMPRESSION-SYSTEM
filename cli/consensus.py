@@ -22,10 +22,14 @@ def cmd_consensus_info(args: Namespace) -> Dict[str, Any]:
 
     print("\n=== LAG-TOLERANT CONSENSUS CONFIGURATION ===")
     print(f"Algorithm: {config['algorithm']}")
-    print(f"Heartbeat: {config['heartbeat_ms']}ms ({config['heartbeat_ms']/1000:.0f}s)")
-    print(f"Election Timeout: {config['election_timeout_ms']}ms ({config['election_timeout_ms']/1000:.0f}s)")
+    print(
+        f"Heartbeat: {config['heartbeat_ms']}ms ({config['heartbeat_ms'] / 1000:.0f}s)"
+    )
+    print(
+        f"Election Timeout: {config['election_timeout_ms']}ms ({config['election_timeout_ms'] / 1000:.0f}s)"
+    )
     print(f"Batch Size: {config['batch_size']}")
-    print(f"Quorum Fraction: {config['quorum_fraction']*100:.0f}%")
+    print(f"Quorum Fraction: {config['quorum_fraction'] * 100:.0f}%")
     print(f"Max Latency: {config['max_latency_years']} years (one-way)")
     print(f"Log Replication: {config['log_replication']}")
     print(f"Snapshot Interval: {config['snapshot_interval']} entries")
@@ -92,7 +96,7 @@ def cmd_consensus_simulate(args: Namespace) -> Dict[str, Any]:
     print(f"Entries Committed: {result['entries_committed']}")
     print(f"Effective Heartbeat: {result['effective_heartbeat_ms']:.0f}ms")
     print(f"Effective Election: {result['effective_election_ms']:.0f}ms")
-    print(f"Quorum: {result['quorum_fraction']*100:.0f}%")
+    print(f"Quorum: {result['quorum_fraction'] * 100:.0f}%")
 
     return result
 
@@ -106,7 +110,12 @@ def cmd_consensus_election(args: Namespace) -> Dict[str, Any]:
     Returns:
         dict: Election result.
     """
-    from src.lag_consensus import initialize_modified_raft, start_election, request_vote, handle_vote
+    from src.lag_consensus import (
+        initialize_modified_raft,
+        start_election,
+        request_vote,
+        handle_vote,
+    )
 
     nodes = getattr(args, "nodes", 5)
     node_ids = [f"node_{i}" for i in range(nodes)]
@@ -168,7 +177,7 @@ def cmd_consensus_status(args: Namespace) -> Dict[str, Any]:
     print(f"Heartbeat: {status['heartbeat_ms']}ms")
     print(f"Election Timeout: {status['election_timeout_ms']}ms")
     print(f"Batch Size: {status['batch_size']}")
-    print(f"Quorum: {status['quorum_fraction']*100:.0f}%")
+    print(f"Quorum: {status['quorum_fraction'] * 100:.0f}%")
     print(f"Max Latency: {status['max_latency_years']} years")
     print(f"Latency Multiplier: {status['latency_multiplier']}x")
 

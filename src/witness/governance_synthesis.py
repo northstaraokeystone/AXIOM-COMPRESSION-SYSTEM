@@ -7,7 +7,7 @@ import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from ..core import emit_receipt, dual_hash, TENANT_ID
 
@@ -81,7 +81,9 @@ def synthesize_protocol(law: Dict) -> Protocol:
             "law_id": law_id,
             "conditions": len(conditions),
             "actions": len(actions),
-            "payload_hash": dual_hash(json.dumps({"protocol_id": protocol_id}, sort_keys=True)),
+            "payload_hash": dual_hash(
+                json.dumps({"protocol_id": protocol_id}, sort_keys=True)
+            ),
         },
     )
 
@@ -260,7 +262,9 @@ def compare_to_hardcoded(protocol: Protocol, baseline: str) -> Dict[str, Any]:
     import random
 
     discovered_performance = protocol.performance_score or random.uniform(0.85, 0.95)
-    baseline_performance = random.uniform(0.80, 0.90)  # Hardcoded baselines slightly worse
+    baseline_performance = random.uniform(
+        0.80, 0.90
+    )  # Hardcoded baselines slightly worse
 
     improvement = discovered_performance - baseline_performance
 
