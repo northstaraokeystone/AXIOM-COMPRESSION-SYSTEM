@@ -1,4 +1,4 @@
-"""SpaceProof v4.0.0 - Space-grade proof infrastructure.
+"""SpaceProof v5.0.0 - Space-grade proof infrastructure.
 
 No receipt, not real.
 
@@ -19,6 +19,17 @@ DOMAIN GENERATORS:
 - domain/colony.py: Mars colony simulation
 - domain/telemetry.py: Fleet telemetry (Tesla/Starlink/SpaceX)
 
+DEFENSE EXPANSION DOMAINS (v5.0):
+- domain/orbital_compute.py: Starcloud orbital compute provenance
+- domain/constellation_ops.py: Starlink maneuver audit chains
+- domain/autonomous_decision.py: Defense DOD 3000.09 compliance
+- domain/firmware_integrity.py: Supply chain verification
+
+INTEGRATION LAYERS:
+- meta_integration.py: Meta-Loop v2.1 topology classification
+- context_router.py: Confidence-gated fallback
+- mcp_server.py: MCP protocol for Claude Desktop
+
 STAKEHOLDER CONFIGS:
 - config/xai.yaml: Elon/xAI
 - config/doge.yaml: DOGE
@@ -26,7 +37,7 @@ STAKEHOLDER CONFIGS:
 - config/defense.yaml: Defense
 - config/nro.yaml: NRO
 
-Source: D20 Production Evolution (Dec 2025)
+Source: D20 Production Evolution + Defense Expansion v1.0 (Dec 2025)
 """
 
 # Core primitives
@@ -107,7 +118,12 @@ from .loop import (
 # Domain generators
 from . import domain
 
-__version__ = "4.0.0"
+# Defense expansion integration layers
+from . import meta_integration
+from . import context_router
+from . import mcp_server
+
+__version__ = "5.0.0"
 __series__ = "ProofChain"
 
 __all__ = [
@@ -178,4 +194,8 @@ __all__ = [
     "run_loop_continuous",
     # Domain
     "domain",
+    # Defense expansion integration layers
+    "meta_integration",
+    "context_router",
+    "mcp_server",
 ]

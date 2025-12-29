@@ -1,13 +1,21 @@
-# SpaceProof Specification v4.0
+# SpaceProof Specification v5.0
 
 **Space-grade proof infrastructure. No receipt, not real.**
 
 Part of ProofChain: SpaceProof | SpendProof | ClaimProof | VoteProof | OriginProof | GreenProof
 
-> **Version:** 4.0.0
-> **Date:** 2025-12-24
-> **Status:** ACTIVE - D20 Production Evolution + v3.0 Multi-Tier Autonomy
+> **Version:** 5.0.0
+> **Date:** 2025-12-29
+> **Status:** ACTIVE - Defense Expansion v1.0 + D20 Production Evolution
 > **Dual-Hash:** SHA256:BLAKE3 format
+
+### v5.0 Highlights (Defense Expansion)
+- **Starcloud Orbital Compute** - In-space AI provenance with radiation detection via entropy
+- **Starlink Maneuver Audit** - 9K+ satellite collision avoidance with FCC compliance chains
+- **Defense Decision Lineage** - DOD 3000.09 compliance with HITL/HOTL accountability
+- **Firmware Integrity** - Supply chain verification from source commit to orbit execution
+- **Meta-Loop v2.1** - Topology classification (open/closed/hybrid) with 5x cascade
+- **MCP Protocol** - Claude Desktop integration for receipt queries
 
 ### v3.0 Highlights (Multi-Tier Autonomy Network)
 - **1M colonists by 2050** - Network of 1000 colonies with distributed sovereignty
@@ -58,6 +66,10 @@ When a DOT secretary sees `qed.py`, they see nothing. When they see `compress.py
 | telemetry | spaceproof/domain/telemetry.py | Fleet telemetry (Tesla/Starlink/SpaceX) |
 | starship_fleet | spaceproof/domain/starship_fleet.py | 1000 launches/year model (v3.0) |
 | colony_network | spaceproof/domain/colony_network.py | Multi-colony 1M colonist network (v3.0) |
+| orbital_compute | spaceproof/domain/orbital_compute.py | Starcloud orbital compute provenance (v5.0) |
+| constellation_ops | spaceproof/domain/constellation_ops.py | Starlink maneuver audit chains (v5.0) |
+| autonomous_decision | spaceproof/domain/autonomous_decision.py | Defense DOD 3000.09 compliance (v5.0) |
+| firmware_integrity | spaceproof/domain/firmware_integrity.py | Supply chain verification (v5.0) |
 
 ### Stakeholder Configs (D20)
 
@@ -847,8 +859,282 @@ spaceproof sovereignty mars --config X --report output.md
 
 ---
 
+## §12 DEFENSE EXPANSION v5.0
+
+### 12.1 Executive Summary
+
+**SpaceProof Defense Expansion targets $50B+ addressable market across Starcloud, Starlink, and Defense contracts with receipts-native proof infrastructure.**
+
+The expansion adds four highest-ROI modules validated by Grok research:
+
+| Module | Target | Impact×Reach | ROI Score |
+|--------|--------|--------------|-----------|
+| Decision Lineage | Defense | 9×9 | **81** |
+| Orbital Compute | Starcloud | 8×9 | **72** |
+| Maneuver Audit | Starlink | 9×8 | **72** |
+| Firmware Integrity | All | 7×8 | **56** |
+
+---
+
+### 12.2 STARCLOUD - Orbital Compute Provenance
+
+**EXEC SUM:** Starcloud runs AI models in-orbit. Radiation causes bit flips. SpaceProof provides cryptographic proof that inference results are valid despite the radiation environment.
+
+**THE PROBLEM:**
+- Radiation-induced single-event upsets (SEUs) corrupt AI model outputs
+- No way to prove inference results weren't tampered with
+- Cloud customers need provenance for compliance
+
+**THE SOLUTION:**
+```
+data_ingest → radiation_check → inference → merkle_anchor → receipt
+     ↓              ↓               ↓            ↓
+  input_hash   entropy_delta   result_hash  chain_proof
+```
+
+**KEY METRIC:** Entropy conservation. If H(output) >> H(expected), radiation detected.
+
+**ROI POTENTIAL:**
+- Starcloud target: $2B cloud revenue by 2030
+- Provenance receipts enable enterprise compliance (SOC2, FedRAMP)
+- Each compute job = receipt = billable audit trail
+- **Estimated value: $200M/year in compliance-gated enterprise contracts**
+
+**MODULE:** `spaceproof/domain/orbital_compute.py`
+
+**RECEIPT TYPES:** `data_ingest`, `compute_inference`, `radiation_detection`, `compute_provenance`
+
+---
+
+### 12.3 STARLINK - Maneuver Audit Chain
+
+**EXEC SUM:** Starlink operates 9K+ satellites requiring collision avoidance maneuvers. SpaceProof provides FCC-compliant audit chains from conjunction alert to deorbit verification.
+
+**THE PROBLEM:**
+- 9K satellites executing autonomous maneuvers daily
+- FCC requires deorbit compliance proof (90% demisability)
+- No cryptographic chain from alert → decision → execution → outcome
+
+**THE SOLUTION:**
+```
+conjunction_alert → maneuver_decision → execution → outcome → deorbit
+        ↓                  ↓               ↓          ↓         ↓
+   alert_hash       decision_hash     exec_hash  outcome   merkle_chain
+```
+
+**KEY METRIC:** Miss distance achieved vs. predicted. Merkle chain = full accountability.
+
+**ROI POTENTIAL:**
+- Starlink: $6.6B revenue (2024), targeting $15B+ by 2030
+- FCC spectrum licenses require compliance proof
+- Each maneuver = receipt = regulatory defense
+- **Estimated value: $500M/year in avoided regulatory friction + contract wins**
+
+**MODULE:** `spaceproof/domain/constellation_ops.py`
+
+**RECEIPT TYPES:** `conjunction_alert`, `maneuver_decision`, `maneuver_execution`, `maneuver_outcome`, `maneuver_audit`, `deorbit_verification`, `fcc_compliance_report`
+
+---
+
+### 12.4 DEFENSE - Autonomous Decision Lineage
+
+**EXEC SUM:** DOD Directive 3000.09 mandates human oversight for autonomous weapons. SpaceProof provides cryptographic proof of human-in-the-loop compliance for every lethal/critical decision.
+
+**THE PROBLEM:**
+- DOD 3000.09 requires "appropriate levels of human judgment" for autonomous systems
+- No standard audit chain for sensor → algorithm → decision → human override
+- $1.8B Starlink-DoD contract requires accountability proof
+
+**THE SOLUTION:**
+```
+sensor_inputs → algorithm_output → decision → human_override (if critical)
+      ↓              ↓               ↓              ↓
+  inputs_hash    algo_hash     decision_id   override_receipt
+                                    ↓
+                           merkle_lineage_chain
+```
+
+**KEY CONSTRAINT:** `override_available = True` on ALL decisions. Period.
+
+**DECISION MATRIX:**
+| Criticality | Override | Response Time |
+|-------------|----------|---------------|
+| CRITICAL | HITL (Human In The Loop) | Pause for human |
+| HIGH | HOTL (Human On The Loop) | Human monitoring |
+| MEDIUM | Autonomous + log | 60s receipt |
+| LOW | Autonomous | Batch receipt |
+
+**ROI POTENTIAL:**
+- DoD autonomous systems budget: $18B+ annually
+- Compliance proof = contract eligibility
+- Each decision = receipt = audit defense
+- **Estimated value: $2B/year in defense contract eligibility**
+
+**MODULE:** `spaceproof/domain/autonomous_decision.py`
+
+**RECEIPT TYPES:** `sensor_input`, `decision_lineage`, `human_override`, `accountability_validation`, `decision_lineage_chain`
+
+---
+
+### 12.5 FIRMWARE INTEGRITY - Supply Chain Verification
+
+**EXEC SUM:** Satellites run firmware deployed from ground. Supply chain attacks can compromise entire constellations. SpaceProof provides Merkle chain from git commit to in-orbit execution.
+
+**THE PROBLEM:**
+- SolarWinds-style attacks can compromise satellite firmware
+- No cryptographic proof linking source → build → deploy → execute
+- NRO/DoD require supply chain provenance for classified payloads
+
+**THE SOLUTION:**
+```
+source_commit → build_artifact → firmware_deploy → in_orbit_execution
+      ↓              ↓               ↓                  ↓
+  commit_hash    binary_hash    deploy_proof      execution_proof
+                                    ↓
+                           merkle_supply_chain
+```
+
+**ATTACK DETECTION:** If any hash breaks chain, supply chain compromised.
+
+**ROI POTENTIAL:**
+- NRO classified satellite budget: $15B+ annually
+- Supply chain compliance = contract requirement
+- Each firmware update = receipt = provenance proof
+- **Estimated value: $300M/year in classified contract eligibility**
+
+**MODULE:** `spaceproof/domain/firmware_integrity.py`
+
+**RECEIPT TYPES:** `source_commit`, `build_artifact`, `firmware_deployment`, `firmware_execution`, `integrity_verification`, `firmware_integrity`, `supply_chain_attack_detection`
+
+---
+
+### 12.6 Integration Layers
+
+#### 12.6.1 Meta-Loop v2.1 Topology Classification
+
+Patterns graduate from "learned" to "cascaded" based on:
+
+| Topology | Criteria | Action |
+|----------|----------|--------|
+| **Open** | E >= V_esc AND A > 0.75 | Cascade (spawn 5 variants) |
+| **Hybrid** | T > 0.70 | Transfer to adjacent domains |
+| **Closed** | Default | Continue training |
+
+**Constants:**
+```python
+ESCAPE_VELOCITY = {
+    "orbital_compute": 0.90,
+    "constellation_ops": 0.85,
+    "autonomous_decision": 0.88,
+    "firmware_integrity": 0.80,
+}
+AUTONOMY_THRESHOLD = 0.75
+TRANSFER_THRESHOLD = 0.70
+CASCADE_MULTIPLIER = 5
+```
+
+**MODULE:** `spaceproof/meta_integration.py`
+
+#### 12.6.2 Context Router (Confidence-Gated Fallback)
+
+| Query Type | Primary Source | Threshold | Fallback |
+|------------|----------------|-----------|----------|
+| Historical Fact | Receipt Ledger | 0.95 | None |
+| Pattern Match | Meta-Loop | 0.85 | Receipt Ledger |
+| External Validation | Web Search | 0.70 | Fail gracefully |
+| Cross-Domain | Temporal Graph | 0.80 | Meta-Loop |
+
+**MODULE:** `spaceproof/context_router.py`
+
+#### 12.6.3 MCP Server (Claude Desktop Integration)
+
+```json
+{
+    "mcpServers": {
+        "spaceproof": {
+            "command": "python",
+            "args": ["-m", "spaceproof.mcp_server"],
+            "tools": ["query_receipts", "verify_chain", "get_topology"]
+        }
+    }
+}
+```
+
+**Tools:**
+- `query_receipts`: Query by type, domain, time range, satellite_id
+- `verify_chain`: Verify Merkle chain integrity between hashes
+- `get_topology`: Get pattern topology classification
+
+**MODULE:** `spaceproof/mcp_server.py`
+
+---
+
+### 12.7 New Receipt Types (v5.0)
+
+| Receipt | Module | Required Fields |
+|---------|--------|-----------------|
+| compute_provenance | orbital_compute | satellite_id, input_hash, model_id, inference_result_hash, merkle_anchor |
+| maneuver_audit | constellation_ops | satellite_id, conjunction_id, merkle_chain, outcome_metrics |
+| deorbit_verification | constellation_ops | satellite_id, deorbit_epoch, demise_confirmed, demisability_percent, merkle_chain |
+| decision_lineage | autonomous_decision | decision_id, inputs_hash, algorithm_id, output_hash, confidence, override_available |
+| human_override | autonomous_decision | decision_id, human_id, override_timestamp, reason_code |
+| firmware_integrity | firmware_integrity | satellite_id, source_commit_hash, build_binary_hash, merkle_supply_chain, integrity_verified |
+| topology | meta_integration | pattern_id, domain, topology, effectiveness, autonomy_score |
+| cascade | meta_integration | parent_pattern_id, child_pattern_ids, mutation_rate |
+| transfer | meta_integration | pattern_id, from_domain, to_domain, transfer_score |
+| context_routing | context_router | query_type, primary_source, confidence, fallback_triggered |
+
+---
+
+### 12.8 Validation Commands (v5.0)
+
+```bash
+# Core imports
+python -c "from spaceproof.domain import orbital_compute, constellation_ops, autonomous_decision, firmware_integrity; print('Defense domains OK')"
+
+# Integration layers
+python -c "from spaceproof import meta_integration, context_router, mcp_server; print('Integration layers OK')"
+
+# Orbital compute provenance
+python -c "from spaceproof.domain.orbital_compute import emit_provenance_chain; print('Orbital compute OK')"
+
+# Maneuver audit chain
+python -c "from spaceproof.domain.constellation_ops import emit_maneuver_audit_chain; print('Constellation ops OK')"
+
+# Decision lineage
+python -c "from spaceproof.domain.autonomous_decision import emit_decision_lineage; print('Autonomous decision OK')"
+
+# Firmware integrity
+python -c "from spaceproof.domain.firmware_integrity import emit_firmware_integrity; print('Firmware integrity OK')"
+
+# Meta-Loop topology
+python -c "from spaceproof.meta_integration import classify_pattern, Topology; print('Meta-Loop OK')"
+
+# MCP server
+python -c "from spaceproof.mcp_server import query_receipts, verify_chain, get_topology; print('MCP server OK')"
+
+# Full test suite
+pytest test/test_orbital_compute.py test/test_constellation_ops.py test/test_autonomous_decision.py test/test_firmware_integrity.py test/test_meta_integration.py -v
+```
+
+---
+
+### 12.9 ROI Summary
+
+| Target | Module | Annual Value | Contract Enabler |
+|--------|--------|--------------|------------------|
+| **Starcloud** | orbital_compute | $200M | Enterprise compliance (SOC2, FedRAMP) |
+| **Starlink** | constellation_ops | $500M | FCC spectrum licenses, insurance |
+| **Defense** | autonomous_decision | $2B | DOD 3000.09 compliance |
+| **NRO/All** | firmware_integrity | $300M | Classified payload provenance |
+| **Total** | | **$3B/year** | Receipts-native audit trails |
+
+**Key Insight:** Receipts ARE the product. Every operation = receipt = billable compliance proof.
+
+---
+
 **Document Status:** ACTIVE
-**Last Updated:** 2025-12-24
-**Reviewed By:** SpaceProof Architecture Audit Sprint
+**Last Updated:** 2025-12-29
+**Reviewed By:** SpaceProof Defense Expansion Sprint
 
 *No receipt → not real. Ship at T+48h or kill.*

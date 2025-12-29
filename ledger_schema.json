@@ -29,7 +29,37 @@
     "life_support_balance",
     "decision_capacity",
     "resource_balance",
-    "monte_carlo_result"
+    "monte_carlo_result",
+    "data_ingest",
+    "compute_inference",
+    "radiation_detection",
+    "compute_provenance",
+    "conjunction_alert",
+    "maneuver_decision",
+    "maneuver_execution",
+    "maneuver_outcome",
+    "maneuver_audit",
+    "deorbit_verification",
+    "fcc_compliance_report",
+    "sensor_input",
+    "decision_lineage",
+    "human_override",
+    "accountability_validation",
+    "decision_lineage_chain",
+    "source_commit",
+    "build_artifact",
+    "firmware_deployment",
+    "firmware_execution",
+    "integrity_verification",
+    "firmware_integrity",
+    "supply_chain_attack_detection",
+    "topology",
+    "cascade",
+    "transfer",
+    "entropy_violation",
+    "context_routing",
+    "web_fallback",
+    "chain_verification"
   ],
   "v2_receipt_schemas": {
     "build_rate": {
@@ -89,6 +119,48 @@
       "optional": ["scenarios_tested", "confidence_interval_95_lower", "confidence_interval_95_upper", "top_failure_mode"]
     }
   },
+  "v3_receipt_schemas": {
+    "compute_provenance": {
+      "required": ["satellite_id", "input_hash", "model_id", "inference_result_hash", "merkle_anchor"],
+      "optional": ["model_version", "entropy_delta", "radiation_detected"]
+    },
+    "maneuver_audit": {
+      "required": ["satellite_id", "conjunction_id", "merkle_chain", "outcome_metrics"],
+      "optional": ["alert_hash", "decision_hash", "execution_hash"]
+    },
+    "deorbit_verification": {
+      "required": ["satellite_id", "deorbit_epoch", "demise_confirmed", "demisability_percent", "merkle_chain"],
+      "optional": ["altitude_profile", "fcc_compliant"]
+    },
+    "decision_lineage": {
+      "required": ["decision_id", "inputs_hash", "algorithm_id", "output_hash", "confidence", "override_available"],
+      "optional": ["algorithm_version", "criticality", "human_override_occurred", "merkle_lineage"]
+    },
+    "human_override": {
+      "required": ["decision_id", "human_id", "override_timestamp", "reason_code"],
+      "optional": ["justification", "corrected_output"]
+    },
+    "firmware_integrity": {
+      "required": ["satellite_id", "source_commit_hash", "build_binary_hash", "merkle_supply_chain", "integrity_verified"],
+      "optional": ["deployment_hash", "execution_proof_hash"]
+    },
+    "topology": {
+      "required": ["pattern_id", "domain", "topology", "effectiveness", "autonomy_score"],
+      "optional": ["transfer_score", "escape_velocity", "confidence", "action"]
+    },
+    "cascade": {
+      "required": ["parent_pattern_id", "child_pattern_ids", "mutation_rate"],
+      "optional": ["backtest_results"]
+    },
+    "transfer": {
+      "required": ["pattern_id", "from_domain", "to_domain", "transfer_score"],
+      "optional": ["similarity_metrics"]
+    },
+    "context_routing": {
+      "required": ["query_type", "primary_source", "confidence", "fallback_triggered"],
+      "optional": ["fallback_source", "merged_result"]
+    }
+  },
   "constants": {
     "THRESHOLD_PERSON_EQUIVALENT": 1000000,
     "STAGE_GATE_INITIAL": 0.30,
@@ -109,7 +181,21 @@
     "CREW_MIN_GEORGE_MASON": 22,
     "CREW_MIN_SALOTTI": 110,
     "STARSHIP_PAYLOAD_KG": 125000,
-    "MOXIE_O2_G_PER_HOUR": 5.5
+    "MOXIE_O2_G_PER_HOUR": 5.5,
+    "RADIATION_ENTROPY_THRESHOLD": 0.15,
+    "ENTROPY_CONSERVATION_LIMIT": 0.01,
+    "FCC_DEMISABILITY_THRESHOLD": 0.90,
+    "CONJUNCTION_PROBABILITY_THRESHOLD": 0.0001,
+    "STARLINK_CONSTELLATION_SIZE": 9000,
+    "STARLINK_TARGET_SIZE": 42000,
+    "ESCAPE_VELOCITY_ORBITAL_COMPUTE": 0.90,
+    "ESCAPE_VELOCITY_CONSTELLATION_OPS": 0.85,
+    "ESCAPE_VELOCITY_AUTONOMOUS_DECISION": 0.88,
+    "ESCAPE_VELOCITY_FIRMWARE_INTEGRITY": 0.80,
+    "AUTONOMY_THRESHOLD": 0.75,
+    "TRANSFER_THRESHOLD": 0.70,
+    "CASCADE_MULTIPLIER": 5,
+    "CONFIDENCE_FALLBACK": 0.85
   },
-  "version": "2.0"
+  "version": "3.0"
 }

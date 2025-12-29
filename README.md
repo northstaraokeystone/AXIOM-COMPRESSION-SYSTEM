@@ -4,7 +4,7 @@
 
 Part of the ProofChain series: SpaceProof | SpendProof | ClaimProof | VoteProof | OriginProof | GreenProof
 
-> **v3.0: Multi-Tier Autonomy Network** - Scale from single colony to 1M colonists across 1000 colonies with AI/Neuralink augmentation
+> **v5.0: Defense Expansion** - Starcloud, Starlink, Defense receipts-native proof infrastructure targeting $3B/year compliance market
 
 ## What SpaceProof Does
 
@@ -17,6 +17,14 @@ Part of the ProofChain series: SpaceProof | SpendProof | ClaimProof | VoteProof 
 | ledger | Receipt storage | Full audit trail |
 | anchor | Merkle proofs | Tamper-proof |
 | loop | 60-second SENSE->ACTUATE cycle | Automated improvement |
+| **v5.0 Defense Expansion** | | |
+| orbital_compute | Starcloud in-orbit AI provenance | $200M/yr enterprise compliance |
+| constellation_ops | Starlink maneuver audit chains | $500M/yr FCC compliance |
+| autonomous_decision | DOD 3000.09 decision lineage | $2B/yr defense contracts |
+| firmware_integrity | Supply chain verification | $300M/yr classified eligibility |
+| meta_integration | Meta-Loop topology classification | Pattern cascade (5x) |
+| context_router | Confidence-gated fallback | Context enrichment |
+| mcp_server | MCP protocol for Claude Desktop | AI integration |
 | **v3.0 Modules** | | |
 | starship_fleet | 1000 launches/year model | Entropy delivery |
 | colony_network | Multi-colony network dynamics | 1M colonist scale |
@@ -42,6 +50,51 @@ python cli.py --test
 # Run with stakeholder config
 python cli.py --config xai --test
 python cli.py --config doge --test
+```
+
+### v5.0 Defense Expansion Features
+
+```bash
+# Orbital Compute Provenance (Starcloud)
+python -c "
+from spaceproof.domain.orbital_compute import emit_provenance_chain
+receipt = emit_provenance_chain('SAT-001', 'input-data', 'llama-3b', 'inference-result')
+print(f'Provenance: {receipt[\"integrity_verified\"]}')
+"
+
+# Maneuver Audit Chain (Starlink)
+python -c "
+from spaceproof.domain.constellation_ops import emit_maneuver_audit_chain
+receipt = emit_maneuver_audit_chain('STARLINK-1234', 'CONJ-001', ['alert', 'decision', 'exec'])
+print(f'Audit chain: {len(receipt[\"merkle_chain\"])} events')
+"
+
+# Decision Lineage (Defense DOD 3000.09)
+python -c "
+from spaceproof.domain.autonomous_decision import emit_decision_lineage
+receipt = emit_decision_lineage('DEC-001', ['sensor1', 'sensor2'], 'nav-algo-v1', {'waypoint': 1}, 0.95)
+print(f'Override available: {receipt[\"override_available\"]}')
+"
+
+# Firmware Integrity (Supply Chain)
+python -c "
+from spaceproof.domain.firmware_integrity import emit_firmware_integrity
+receipt = emit_firmware_integrity('SAT-001', 'abc123', 'def456', ['commit', 'build', 'deploy'])
+print(f'Integrity verified: {receipt[\"integrity_verified\"]}')
+"
+
+# Meta-Loop Topology Classification
+python -c "
+from spaceproof.meta_integration import classify_pattern, Topology
+pattern = {'effectiveness': 0.92, 'autonomy_score': 0.80}
+topology = classify_pattern(pattern, 'orbital_compute')
+print(f'Topology: {topology}')
+"
+
+# MCP Server
+python -m spaceproof.mcp_server --port 3000 &
+# Or stdio mode for Claude Desktop:
+python -m spaceproof.mcp_server --stdio
 ```
 
 ### v3.0 Multi-Tier Features
@@ -123,7 +176,11 @@ spaceproof/
 │   ├── colony.py                 # Mars colony simulation
 │   ├── telemetry.py              # Fleet telemetry
 │   ├── starship_fleet.py         # 1000 launches/year model
-│   └── colony_network.py         # 1M colonist multi-colony network
+│   ├── colony_network.py         # 1M colonist multi-colony network
+│   ├── orbital_compute.py        # Starcloud provenance (v5.0)
+│   ├── constellation_ops.py      # Starlink audit chains (v5.0)
+│   ├── autonomous_decision.py    # DOD 3000.09 (v5.0)
+│   └── firmware_integrity.py     # Supply chain (v5.0)
 │
 ├── engine/                       # Core engine components
 │   ├── entropy.py                # Entropy calculations
@@ -147,6 +204,10 @@ spaceproof/
 ├── tiers/                        # Multi-tier autonomy (v3.0)
 │   └── autonomy_tiers.py         # LEO/Mars/Deep-space tiers
 │
+├── meta_integration.py           # Meta-Loop topology (v5.0)
+├── context_router.py             # Confidence-gated fallback (v5.0)
+├── mcp_server.py                 # MCP protocol server (v5.0)
+│
 └── sim/                          # Simulation framework
     ├── monte_carlo.py            # Monte Carlo engine
     ├── dimensions/               # Scenario dimensions
@@ -162,7 +223,11 @@ spaceproof/
         ├── singularity.py
         ├── thermodynamic.py
         ├── network.py            # 1M colonist validation
-        └── adversarial.py        # DoD hostile audit
+        ├── adversarial.py        # DoD hostile audit
+        ├── orbital_compute.py    # Starcloud validation (v5.0)
+        ├── constellation_scale.py # Starlink validation (v5.0)
+        ├── autonomous_accountability.py # DOD validation (v5.0)
+        └── firmware_supply_chain.py # Supply chain validation (v5.0)
 ```
 
 ## Domain Generators
@@ -174,6 +239,11 @@ spaceproof/
 | telemetry | spaceproof/domain/telemetry.py | Fleet telemetry (Tesla/Starlink/SpaceX) |
 | starship_fleet | spaceproof/domain/starship_fleet.py | 1000 launches/year model (v3.0) |
 | colony_network | spaceproof/domain/colony_network.py | Multi-colony 1M colonist network (v3.0) |
+| **v5.0 Defense Expansion** | | |
+| orbital_compute | spaceproof/domain/orbital_compute.py | Starcloud in-orbit AI provenance |
+| constellation_ops | spaceproof/domain/constellation_ops.py | Starlink maneuver audit chains |
+| autonomous_decision | spaceproof/domain/autonomous_decision.py | DOD 3000.09 decision lineage |
+| firmware_integrity | spaceproof/domain/firmware_integrity.py | Supply chain verification |
 
 ## Mars Sovereignty Calculator (v3.0)
 
@@ -271,6 +341,43 @@ Light-speed delay FORCES computational sovereignty:
 
 **Key insight:** 4 crew + AI (4×5=20) equals 20 crew human-only for sovereignty calculations.
 
+## v5.0 Defense Expansion
+
+**Target Market: $50B+ addressable across Starcloud, Starlink, and Defense contracts.**
+
+### ROI Summary
+
+| Target | Module | Annual Value | Contract Enabler |
+|--------|--------|--------------|------------------|
+| **Starcloud** | orbital_compute | $200M | Enterprise compliance (SOC2, FedRAMP) |
+| **Starlink** | constellation_ops | $500M | FCC spectrum licenses, insurance |
+| **Defense** | autonomous_decision | $2B | DOD 3000.09 compliance |
+| **NRO/All** | firmware_integrity | $300M | Classified payload provenance |
+| **Total** | | **$3B/year** | Receipts-native audit trails |
+
+### Key Paradigms
+
+| Module | Problem | Solution |
+|--------|---------|----------|
+| orbital_compute | Radiation corrupts AI models | Entropy conservation proves integrity |
+| constellation_ops | 9K satellites need audit | Merkle chain from alert to deorbit |
+| autonomous_decision | DOD requires human oversight | HITL/HOTL decision lineage |
+| firmware_integrity | Supply chain attacks | Hash chain from git to orbit |
+
+### MCP Integration (Claude Desktop)
+
+```json
+{
+    "mcpServers": {
+        "spaceproof": {
+            "command": "python",
+            "args": ["-m", "spaceproof.mcp_server", "--stdio"],
+            "tools": ["query_receipts", "verify_chain", "get_topology"]
+        }
+    }
+}
+```
+
 ## ProofChain Series
 
 SpaceProof is the flagship engine. Future repositories:
@@ -286,4 +393,6 @@ MIT
 
 ---
 
-*Space-grade proof. No receipt, not real. Ship at T+24h or kill.*
+*Space-grade proof. No receipt, not real. Ship at T+48h or kill.*
+
+**v5.0 Defense Expansion** - December 2025
