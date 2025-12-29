@@ -70,4 +70,53 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--test", action="store_true", help="Emit test receipt")
     parser.add_argument("--config", type=str, help="Config name")
 
+    # === HARDWARE VERIFICATION COMMANDS (v3.0) ===
+
+    # hardware-verify: Verify component authenticity
+    hw_verify_p = subparsers.add_parser(
+        "hardware-verify",
+        help="Verify component authenticity and lifecycle",
+    )
+    hw_verify_p.add_argument("component_id", type=str, help="Component ID to verify")
+    hw_verify_p.add_argument("--manufacturer", type=str, help="Expected manufacturer")
+    hw_verify_p.add_argument("--data-file", type=str, help="JSON file with component data")
+
+    # supply-chain-audit: Audit entire module supply chain
+    sc_audit_p = subparsers.add_parser(
+        "supply-chain-audit",
+        help="Audit entire module supply chain",
+    )
+    sc_audit_p.add_argument("module_id", type=str, help="Module ID to audit")
+    sc_audit_p.add_argument("--data-file", type=str, help="JSON file with module data")
+    sc_audit_p.add_argument("--verbose", action="store_true", help="Verbose output")
+
+    # spawn-helpers: Trigger helper pattern discovery
+    spawn_p = subparsers.add_parser(
+        "spawn-helpers",
+        help="Trigger META-LOOP helper pattern discovery",
+    )
+    spawn_p.add_argument("scenario", type=str, help="Scenario name")
+    spawn_p.add_argument("--cycles", type=int, default=100, help="META-LOOP cycles")
+
+    # export-compliance: Generate compliance report
+    export_p = subparsers.add_parser(
+        "export-compliance",
+        help="Export compliance report",
+    )
+    export_p.add_argument("module_id", type=str, help="Module ID")
+    export_p.add_argument(
+        "--format",
+        type=str,
+        default="nasa_eee_inst_002",
+        choices=["nasa_eee_inst_002", "dod_dfar", "fda_fsma", "fda_dscsa"],
+        help="Compliance format",
+    )
+    export_p.add_argument("--output", type=str, help="Output file path")
+
+    # simulate: Run simulation scenario
+    sim_p = subparsers.add_parser("simulate", help="Run simulation scenario")
+    sim_p.add_argument("scenario", type=str, nargs="?", help="Scenario name")
+    sim_p.add_argument("--all", action="store_true", help="Run all scenarios")
+    sim_p.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+
     return parser

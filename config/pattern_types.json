@@ -1,0 +1,82 @@
+{
+  "hardware_patterns": {
+    "COUNTERFEIT_HUNTER": {
+      "detects": "missing_provenance",
+      "escape_velocity": 0.90,
+      "cascade_multiplier": 5,
+      "transfer_domains": ["food_supply_chain", "pharma_supply_chain"],
+      "validation": "entropy_mismatch",
+      "variants": [
+        {"entropy_threshold": 0.12, "description": "sensitive"},
+        {"entropy_threshold": 0.15, "description": "standard"},
+        {"entropy_threshold": 0.18, "description": "specific"},
+        {"provenance_depth": 3, "description": "shallow_check"},
+        {"provenance_depth": 5, "description": "deep_check"}
+      ]
+    },
+    "REWORK_SHEPHERD": {
+      "detects": "rework_accumulation",
+      "escape_velocity": 0.85,
+      "cascade_multiplier": 5,
+      "transfer_domains": ["food_supply_chain", "pharma_supply_chain"],
+      "validation": "entropy_trajectory",
+      "variants": [
+        {"max_rework": 2, "description": "strict"},
+        {"max_rework": 3, "description": "standard"},
+        {"max_rework": 4, "description": "lenient"},
+        {"entropy_slope": "increasing", "description": "degradation_focus"},
+        {"entropy_slope": "volatile", "description": "instability_focus"}
+      ]
+    },
+    "PROVENANCE_ARCHITECT": {
+      "detects": "chain_integrity",
+      "escape_velocity": 0.88,
+      "cascade_multiplier": 5,
+      "transfer_domains": ["food_supply_chain", "pharma_supply_chain"],
+      "validation": "merkle_verification",
+      "variants": [
+        {"chain_validation": "strict", "description": "full_chain"},
+        {"chain_validation": "relaxed", "description": "key_points"},
+        {"merkle_depth": "shallow", "description": "fast"},
+        {"merkle_depth": "deep", "description": "thorough"},
+        {"manufacturer_verify": true, "description": "origin_focus"}
+      ]
+    },
+    "ENTROPY_ARCHITECT": {
+      "detects": "anomaly_patterns",
+      "escape_velocity": 0.92,
+      "cascade_multiplier": 5,
+      "transfer_domains": ["all"],
+      "validation": "physics_conservation",
+      "variants": [
+        {"detection_mode": "statistical", "description": "sigma_based"},
+        {"detection_mode": "threshold", "description": "fixed_limit"},
+        {"detection_mode": "adaptive", "description": "learning"},
+        {"detection_mode": "comparative", "description": "baseline_diff"},
+        {"detection_mode": "hybrid", "description": "multi_method"}
+      ]
+    }
+  },
+  "regulatory_mappings": {
+    "hardware_supply_chain": {
+      "regulation": "NASA EEE-INST-002",
+      "mil_spec": "MIL-STD-883",
+      "compliance_format": "nasa_eee_inst_002"
+    },
+    "food_supply_chain": {
+      "regulation": "FDA FSMA",
+      "traceability": "FSMA 204",
+      "compliance_format": "fda_fsma_204"
+    },
+    "pharma_supply_chain": {
+      "regulation": "FDA DSCSA",
+      "serialization": "DSCSA",
+      "compliance_format": "fda_dscsa"
+    }
+  },
+  "meta": {
+    "version": "3.0.0",
+    "paradigm": "Patterns emerge from META-LOOP, not hard-coded. Stop coding solutions, start discovering them.",
+    "source": "hardware_ecosystem_v3.md"
+  }
+}

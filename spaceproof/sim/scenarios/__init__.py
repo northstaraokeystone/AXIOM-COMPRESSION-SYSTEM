@@ -1,4 +1,4 @@
-"""SpaceProof Scenarios - Fourteen-Scenario Validation Framework.
+"""SpaceProof Scenarios - Eighteen-Scenario Validation Framework.
 
 The scenarios probe different aspects of system behavior:
 
@@ -23,6 +23,10 @@ GOVERNANCE & TRAINING SCENARIOS (v2.0):
 PRIVACY & OFFLINE SCENARIOS (v2.0):
 13. PRIVACY_ENFORCEMENT: PII redaction and differential privacy
 14. OFFLINE_RESILIENCE: Light-delay tolerant sync and conflict resolution
+
+HARDWARE SUPPLY CHAIN SCENARIOS (v3.0):
+15. HARDWARE_SUPPLY_CHAIN_DISCOVERY: META-LOOP discovers counterfeit/rework patterns
+16. POWER_SUPPLY_PROTOTYPE: Jay's exact use case - module verification
 
 Each scenario implements:
 - Specific input distribution generators
@@ -50,6 +54,12 @@ from spaceproof.sim.scenarios.training_production import TrainingProductionScena
 from spaceproof.sim.scenarios.privacy_enforcement import PrivacyEnforcementScenario
 from spaceproof.sim.scenarios.offline_resilience import OfflineResilienceScenario
 
+# v3.0 Hardware supply chain scenarios
+from spaceproof.sim.scenarios.hardware_supply_chain import (
+    HardwareSupplyChainScenario,
+    PowerSupplyPrototypeScenario,
+)
+
 __all__ = [
     # Core scenarios
     "BaselineScenario",
@@ -68,4 +78,7 @@ __all__ = [
     "TrainingProductionScenario",
     "PrivacyEnforcementScenario",
     "OfflineResilienceScenario",
+    # v3.0 Hardware supply chain scenarios
+    "HardwareSupplyChainScenario",
+    "PowerSupplyPrototypeScenario",
 ]

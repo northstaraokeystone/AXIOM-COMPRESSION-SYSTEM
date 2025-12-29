@@ -1,0 +1,32 @@
+{
+  "component_baseline": {
+    "legitimate_max": 0.35,
+    "counterfeit_min": 0.70,
+    "gray_zone": [0.35, 0.70],
+    "description": "Legitimate parts have low entropy (controlled manufacturing), counterfeits have high entropy (random properties)"
+  },
+  "rework_detection": {
+    "max_cycles": 3,
+    "entropy_increase_threshold": 0.10,
+    "degradation_alert": 0.15,
+    "description": "Rework should decrease entropy. If entropy increases, degradation detected."
+  },
+  "supply_chain_compression": {
+    "legitimate_min": 0.85,
+    "fraudulent_max": 0.70,
+    "investigate": [0.70, 0.85],
+    "description": "Legitimate supply chains compress well (predictable). Fraudulent chains don't (random)."
+  },
+  "counterfeit_detection": {
+    "threshold": 0.15,
+    "description": "15% entropy deviation from baseline signals counterfeit (from Grok research)"
+  },
+  "conservation": {
+    "delta_s_max": 0.01,
+    "description": "|ΔS| must be < 0.01 every cycle for entropy conservation"
+  },
+  "meta": {
+    "version": "3.0.0",
+    "source": "Grok Research - $700M+ NASA losses, 15% DoD fake semiconductors"
+  }
+}
