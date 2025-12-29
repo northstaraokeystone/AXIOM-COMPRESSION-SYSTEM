@@ -1,0 +1,26 @@
+{
+  "existing_velocities": {
+    "orbital_compute": 0.90,
+    "constellation_ops": 0.85,
+    "autonomous_decision": 0.88,
+    "firmware_integrity": 0.80
+  },
+  "hardware_velocities": {
+    "counterfeit_detection": 0.90,
+    "rework_anomaly": 0.85,
+    "supply_chain_provenance": 0.88,
+    "hardware_lifecycle": 0.80,
+    "entropy_accounting": 0.92
+  },
+  "transfer_thresholds": {
+    "space_to_food": 0.72,
+    "space_to_pharma": 0.75,
+    "food_to_pharma": 0.68,
+    "hardware_to_space": 0.80
+  },
+  "meta": {
+    "version": "3.0.0",
+    "description": "Escape velocities for META-LOOP pattern graduation",
+    "source": "Meta_loop_v2_1.txt + hardware_ecosystem_v3.md"
+  }
+}
