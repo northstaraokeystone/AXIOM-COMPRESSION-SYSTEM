@@ -266,3 +266,13 @@ def clear_privacy_config() -> None:
     """Clear privacy config cache (for testing)."""
     global _privacy_config
     _privacy_config = None
+
+
+def get_pii_patterns() -> Dict[str, Any]:
+    """Get configured PII patterns.
+
+    Returns:
+        Dict of pattern name to pattern config
+    """
+    config = load_privacy_config()
+    return config.get("pii_patterns", {})

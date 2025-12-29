@@ -247,3 +247,49 @@ def clear_sync_state() -> None:
     global _sync_queues, _sync_history
     _sync_queues = {}
     _sync_history = []
+
+
+# Aliases and additional functions for API compatibility
+def sync_offline_receipts(
+    source_node: str,
+    target_node: str,
+    receipts: Optional[List[Dict[str, Any]]] = None,
+    light_delay_sec: float = MARS_LIGHT_DELAY_MIN_SEC,
+) -> SyncResult:
+    """Sync offline receipts between nodes (alias for sync_ledger).
+
+    Args:
+        source_node: Source node ID
+        target_node: Target node ID
+        receipts: Optional receipts to sync (if provided, queues them first)
+        light_delay_sec: Light delay in seconds
+
+    Returns:
+        SyncResult
+    """
+    if receipts:
+        for receipt in receipts:
+            queue_for_sync(source_node, receipt)
+
+    return sync_ledger(source_node, target_node, light_delay_sec)
+
+
+def calculate_sync_delay(
+    distance_au: float = 1.5,
+    overhead_ms: float = 100.0,
+) -> float:
+    """Calculate synchronization delay based on distance.
+
+    Args:
+        distance_au: Distance in astronomical units (Mars = ~1.5 AU average)
+        overhead_ms: Processing overhead in milliseconds
+
+    Returns:
+        Total delay in seconds
+    """
+    # Light travels 1 AU in ~8.3 minutes (499 seconds)
+    light_delay_sec = distance_au * 499.0
+    overhead_sec = overhead_ms / 1000.0
+
+    # Round trip + overhead
+    return (light_delay_sec * 2) + overhead_sec

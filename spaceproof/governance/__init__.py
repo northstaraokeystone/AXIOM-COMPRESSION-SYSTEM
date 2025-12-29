@@ -40,6 +40,7 @@ from .accountability import (
 from .escalation import (
     get_escalation_path,
     should_escalate,
+    evaluate_escalation,
     emit_escalation_receipt,
     EscalationResult,
 )
@@ -72,6 +73,7 @@ __all__ = [
     # Escalation
     "get_escalation_path",
     "should_escalate",
+    "evaluate_escalation",
     "emit_escalation_receipt",
     "EscalationResult",
 ]

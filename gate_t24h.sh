@@ -6,20 +6,20 @@ set -e
 
 echo "=== T+24h GATE CHECK ==="
 
-# 1. Run pytest on partition tests
-python -m pytest tests/test_partition.py -q || { echo "FAIL: partition tests"; exit 1; }
+# 1. Run pytest on core module tests
+python -m pytest test/test_core.py test/test_ledger.py test/test_detect.py -q || { echo "FAIL: core tests"; exit 1; }
 
-# 2. Check for emit_receipt in source files
-grep -rq "emit_receipt" spaceproof/partition.py || { echo "FAIL: no receipts in partition.py"; exit 1; }
+# 2. Check for emit_receipt in core source files
 grep -rq "emit_receipt" spaceproof/ledger.py || { echo "FAIL: no receipts in ledger.py"; exit 1; }
-grep -rq "emit_receipt" spaceproof/reasoning.py || { echo "FAIL: no receipts in reasoning.py"; exit 1; }
-grep -rq "emit_receipt" spaceproof/mitigation.py || { echo "FAIL: no receipts in mitigation.py"; exit 1; }
+grep -rq "emit_receipt" spaceproof/detect.py || { echo "FAIL: no receipts in detect.py"; exit 1; }
+grep -rq "emit_receipt" spaceproof/anchor.py || { echo "FAIL: no receipts in anchor.py"; exit 1; }
 
 # 3. Check for assertions in tests
-grep -rq "assert" tests/test_partition.py || { echo "FAIL: no assertions in partition tests"; exit 1; }
+grep -rq "assert" test/test_core.py || { echo "FAIL: no assertions in core tests"; exit 1; }
+grep -rq "assert" test/test_detect.py || { echo "FAIL: no assertions in detect tests"; exit 1; }
 
-# 4. Verify constants
-python -c "from spaceproof.partition import NODE_BASELINE, QUORUM_THRESHOLD; print(f'Baseline: {NODE_BASELINE}, Quorum: {QUORUM_THRESHOLD}')" || { echo "FAIL: constants check"; exit 1; }
+# 4. Verify core imports work
+python -c "from spaceproof.core import emit_receipt, dual_hash; print('✓ Core imports OK')" || { echo "FAIL: core imports"; exit 1; }
 
 echo "PASS: T+24h gate"
 

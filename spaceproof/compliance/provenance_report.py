@@ -282,3 +282,60 @@ def clear_provenance_records() -> None:
     _policy_versions = []
     _decisions = []
     _rollbacks = []
+
+
+def get_provenance_history(
+    entity_id: Optional[str] = None,
+    entity_type: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Get combined provenance history for models and policies.
+
+    Args:
+        entity_id: Filter by entity ID
+        entity_type: Filter by entity type ("model" or "policy")
+
+    Returns:
+        Combined list of provenance records
+    """
+    history = []
+
+    # Include model versions
+    if entity_type is None or entity_type == "model":
+        for m in _model_versions:
+            if entity_id is None or m["model_id"] == entity_id:
+                history.append({**m, "entity_type": "model"})
+
+    # Include policy versions
+    if entity_type is None or entity_type == "policy":
+        for p in _policy_versions:
+            if entity_id is None or p["policy_id"] == entity_id:
+                history.append({**p, "entity_type": "policy"})
+
+    # Sort by timestamp
+    history.sort(
+        key=lambda x: x.get("deployed_at") or x.get("activated_at") or "",
+        reverse=True,
+    )
+
+    return history
+
+
+def emit_provenance_report_receipt(report: ProvenanceReport) -> Dict[str, Any]:
+    """Emit a receipt for provenance report generation.
+
+    Args:
+        report: The generated provenance report
+
+    Returns:
+        Receipt dictionary
+    """
+    return emit_receipt(
+        "provenance_report",
+        {
+            "tenant_id": COMPLIANCE_TENANT,
+            "report_id": report.report_id,
+            "model_changes": report.model_changes,
+            "policy_changes": report.policy_changes,
+            "rollbacks": len(report.rollbacks),
+        },
+    )

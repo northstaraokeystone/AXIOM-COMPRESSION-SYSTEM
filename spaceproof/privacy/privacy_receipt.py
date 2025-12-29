@@ -178,3 +178,89 @@ def clear_privacy_audit_log() -> None:
     """Clear privacy audit log (for testing)."""
     global _privacy_audit_log
     _privacy_audit_log = []
+
+
+# Additional functions for API compatibility
+def emit_privacy_operation_receipt(
+    operation_type: str,
+    actor_id: str,
+    target_type: str,
+    target_id: str,
+    details: Optional[Dict[str, Any]] = None,
+    privacy_cost: float = 0.0,
+    success: bool = True,
+) -> Dict[str, Any]:
+    """Track and emit privacy operation receipt in one call.
+
+    Args:
+        operation_type: Type of operation
+        actor_id: Who performed the operation
+        target_type: Type of target
+        target_id: Target identifier
+        details: Operation details
+        privacy_cost: Epsilon spent
+        success: Whether operation succeeded
+
+    Returns:
+        Receipt dict
+    """
+    operation = track_privacy_operation(
+        operation_type, actor_id, target_type, target_id, details, privacy_cost, success
+    )
+    return emit_privacy_receipt(operation)
+
+
+def get_privacy_operations(
+    operation_types: Optional[List[str]] = None,
+    limit: int = 100,
+) -> List[Dict[str, Any]]:
+    """Get privacy operations as dict list.
+
+    Args:
+        operation_types: Filter by operation types
+        limit: Maximum results
+
+    Returns:
+        List of operation dicts
+    """
+    operations = get_privacy_audit_log(operation_types=operation_types)
+    return [op.to_dict() for op in operations[:limit]]
+
+
+def validate_privacy_compliance(
+    actor_id: str,
+    budget_threshold: float = 10.0,
+    max_operations_per_day: int = 1000,
+) -> Dict[str, Any]:
+    """Validate privacy compliance for an actor.
+
+    Args:
+        actor_id: Actor to validate
+        budget_threshold: Maximum budget allowed
+        max_operations_per_day: Maximum operations per day
+
+    Returns:
+        Compliance result dict
+    """
+    operations = get_privacy_audit_log(actor_id=actor_id)
+    total_cost = sum(op.privacy_cost for op in operations)
+
+    # Check for today's operations
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today_operations = [op for op in operations if op.timestamp.startswith(today)]
+
+    violations = []
+
+    if total_cost > budget_threshold:
+        violations.append(f"Budget exceeded: {total_cost:.2f} > {budget_threshold}")
+
+    if len(today_operations) > max_operations_per_day:
+        violations.append(f"Daily limit exceeded: {len(today_operations)} > {max_operations_per_day}")
+
+    return {
+        "actor_id": actor_id,
+        "compliant": len(violations) == 0,
+        "total_privacy_cost": total_cost,
+        "operations_today": len(today_operations),
+        "violations": violations,
+    }

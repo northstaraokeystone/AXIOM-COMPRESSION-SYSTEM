@@ -273,3 +273,13 @@ def emit_conflict_receipt(result: ConflictResult) -> Dict[str, Any]:
             **result.to_dict(),
         },
     )
+
+
+# Alias for API compatibility
+def resolve_conflict(
+    entries_a: List[Dict[str, Any]],
+    entries_b: List[Dict[str, Any]],
+    strategy: MergeStrategy = MergeStrategy.HASH_ORDER,
+) -> ConflictResult:
+    """Alias for resolve_conflicts for API compatibility."""
+    return resolve_conflicts(entries_a, entries_b, strategy)

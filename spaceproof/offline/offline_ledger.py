@@ -275,3 +275,75 @@ def clear_offline_ledgers() -> None:
     """Clear all offline ledgers (for testing)."""
     global _offline_ledgers
     _offline_ledgers = {}
+
+
+def merge_offline_ledger(
+    source_node_id: str,
+    target_node_id: str,
+) -> Dict[str, Any]:
+    """Merge source ledger into target ledger.
+
+    Args:
+        source_node_id: Source node ID
+        target_node_id: Target node ID
+
+    Returns:
+        Merge result dict
+    """
+    source = _offline_ledgers.get(source_node_id)
+    target = _offline_ledgers.get(target_node_id)
+
+    if not source:
+        return {
+            "merged": False,
+            "reason": "source ledger not found",
+            "entries_merged": 0,
+        }
+
+    if not target:
+        target = create_offline_ledger(target_node_id)
+
+    # Get unsynced entries from source
+    unsynced = [e for e in source.entries if not e.synced]
+
+    # Merge into target
+    entries_merged = 0
+    for entry in unsynced:
+        # Check if already exists in target
+        exists = any(e.entry_id == entry.entry_id for e in target.entries)
+        if not exists:
+            target.entries.append(entry)
+            target.sequence_counter += 1
+            entries_merged += 1
+            entry.synced = True
+            entry.synced_at = datetime.utcnow().isoformat() + "Z"
+
+    # Update target Merkle root
+    target.merkle_root = merkle([e.to_dict() for e in target.entries])
+    target.last_modified = datetime.utcnow().isoformat() + "Z"
+
+    return {
+        "merged": True,
+        "source_node": source_node_id,
+        "target_node": target_node_id,
+        "entries_merged": entries_merged,
+        "target_merkle_root": target.merkle_root,
+    }
+
+
+def emit_offline_ledger_receipt(ledger: OfflineLedger) -> Dict[str, Any]:
+    """Emit receipt for offline ledger state.
+
+    Args:
+        ledger: OfflineLedger to emit
+
+    Returns:
+        Receipt dict
+    """
+    return emit_receipt(
+        "offline_ledger",
+        {
+            "tenant_id": OFFLINE_TENANT,
+            **ledger.to_dict(),
+        },
+    )

@@ -234,3 +234,39 @@ def clear_raci_decisions() -> None:
     """Clear RACI decisions (for testing)."""
     global _raci_decisions
     _raci_decisions = []
+
+
+def get_raci_coverage() -> float:
+    """Get current RACI coverage percentage.
+
+    Returns:
+        Coverage percentage (0-100)
+    """
+    if not _raci_decisions:
+        return 0.0
+
+    decisions_with_raci = sum(
+        1 for d in _raci_decisions if d.get("responsible") and d.get("accountable")
+    )
+    return decisions_with_raci / len(_raci_decisions) * 100
+
+
+def emit_raci_report_receipt(report: RACIReport) -> Dict[str, Any]:
+    """Emit a receipt for RACI report generation.
+
+    Args:
+        report: The generated RACI report
+
+    Returns:
+        Receipt dictionary
+    """
+    return emit_receipt(
+        "raci_report",
+        {
+            "tenant_id": COMPLIANCE_TENANT,
+            "report_id": report.report_id,
+            "total_decisions": report.total_decisions,
+            "raci_coverage": report.raci_coverage,
+            "gaps_found": len(report.accountability_gaps),
+        },
+    )

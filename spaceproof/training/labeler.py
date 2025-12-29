@@ -213,3 +213,66 @@ def batch_label(
         List of LabeledExample objects
     """
     return [apply_label(ex) for ex in examples]
+
+
+# Additional functions for API compatibility
+def apply_labels(
+    examples: List[TrainingExample],
+    additional_labels: Optional[Dict[str, Any]] = None,
+) -> List[LabeledExample]:
+    """Apply labels to multiple examples (alias for batch_label with options).
+
+    Args:
+        examples: List of TrainingExample objects
+        additional_labels: Optional additional labels to apply to all
+
+    Returns:
+        List of LabeledExample objects
+    """
+    return [apply_label(ex, additional_labels) for ex in examples]
+
+
+def get_label_schema() -> Dict[str, Any]:
+    """Get the label schema for training examples.
+
+    Returns:
+        Schema dict describing label structure
+    """
+    return {
+        "categories": list(LABEL_CATEGORIES.keys()),
+        "reason_codes": list(REASON_TO_CATEGORY.keys()),
+        "severity_levels": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+        "subcategory_options": ["safety_critical", "accuracy", "behavior"],
+        "label_fields": [
+            "reason_code",
+            "category",
+            "requires_retraining",
+            "is_safety_critical",
+            "is_accuracy_issue",
+            "is_behavior_issue",
+        ],
+    }
+
+
+def emit_labeling_receipt(labeled_example: LabeledExample) -> Dict[str, Any]:
+    """Emit receipt for labeling operation.
+
+    Args:
+        labeled_example: The labeled example
+
+    Returns:
+        Receipt dict
+    """
+    from spaceproof.core import emit_receipt
+
+    return emit_receipt(
+        "labeling",
+        {
+            "tenant_id": "spaceproof-training",
+            "example_id": labeled_example.example_id,
+            "category": labeled_example.category,
+            "subcategories": labeled_example.subcategories,
+            "severity_weight": labeled_example.severity_weight,
+            "requires_retraining": labeled_example.requires_retraining,
+        },
+    )

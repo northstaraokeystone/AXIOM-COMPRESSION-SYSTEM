@@ -276,3 +276,45 @@ def clear_audit_trail() -> None:
 def get_audit_entry_count() -> int:
     """Get total audit entry count."""
     return len(_audit_entries)
+
+
+# Aliases for API compatibility
+def get_audit_trail(
+    start_time: Optional[str] = None,
+    end_time: Optional[str] = None,
+    event_types: Optional[List[str]] = None,
+    actor_id: Optional[str] = None,
+    limit: int = 1000,
+) -> List[AuditTrailEntry]:
+    """Alias for query_audit_trail for API compatibility."""
+    return query_audit_trail(start_time, end_time, event_types, actor_id, limit)
+
+
+def emit_audit_receipt(
+    event_type: str,
+    actor_id: str,
+    action: str,
+    details: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Emit an audit receipt for an action.
+
+    Args:
+        event_type: Type of audit event
+        actor_id: Actor performing the action
+        action: Action being audited
+        details: Additional audit details
+
+    Returns:
+        Receipt dictionary
+    """
+    receipt = emit_receipt(
+        "audit",
+        {
+            "tenant_id": COMPLIANCE_TENANT,
+            "event_type": event_type,
+            "actor_id": actor_id,
+            "action": action,
+            "details": details or {},
+        },
+    )
+    return receipt

@@ -35,50 +35,134 @@ Each scenario implements:
 - Receipt patterns appropriate to the scenario
 """
 
-from spaceproof.sim.scenarios.baseline import BaselineScenario
-from spaceproof.sim.scenarios.stress import StressScenario
-from spaceproof.sim.scenarios.genesis import GenesisScenario
-from spaceproof.sim.scenarios.singularity import SingularityScenario
-from spaceproof.sim.scenarios.thermodynamic import ThermodynamicScenario
-from spaceproof.sim.scenarios.godel import GodelScenario
+from spaceproof.sim.scenarios.baseline import (
+    BaselineScenario,
+    BaselineConfig,
+    BaselineResult,
+)
+from spaceproof.sim.scenarios.stress import StressScenario, StressConfig, StressResult
+from spaceproof.sim.scenarios.genesis import (
+    GenesisScenario,
+    GenesisConfig,
+    GenesisResult,
+)
+from spaceproof.sim.scenarios.singularity import (
+    SingularityScenario,
+    SingularityConfig,
+    SingularityResult,
+)
+from spaceproof.sim.scenarios.thermodynamic import (
+    ThermodynamicScenario,
+    ThermodynamicConfig,
+    ThermodynamicResult,
+)
+from spaceproof.sim.scenarios.godel import GodelScenario, GodelConfig, GodelResult
 
 # Defense expansion scenarios
-from spaceproof.sim.scenarios.orbital_compute import OrbitalComputeScenario
-from spaceproof.sim.scenarios.constellation_scale import ConstellationScaleScenario
-from spaceproof.sim.scenarios.autonomous_accountability import AutonomousAccountabilityScenario
-from spaceproof.sim.scenarios.firmware_supply_chain import FirmwareSupplyChainScenario
+from spaceproof.sim.scenarios.orbital_compute import (
+    OrbitalComputeScenario,
+    OrbitalComputeConfig,
+    OrbitalComputeResult,
+)
+from spaceproof.sim.scenarios.constellation_scale import (
+    ConstellationScaleScenario,
+    ConstellationScaleConfig,
+    ConstellationScaleResult,
+)
+from spaceproof.sim.scenarios.autonomous_accountability import (
+    AutonomousAccountabilityScenario,
+    AutonomousAccountabilityConfig,
+    AutonomousAccountabilityResult,
+)
+from spaceproof.sim.scenarios.firmware_supply_chain import (
+    FirmwareSupplyChainScenario,
+    FirmwareSupplyChainConfig,
+    FirmwareSupplyChainResult,
+)
 
 # v2.0 scenarios
-from spaceproof.sim.scenarios.governance import GovernanceScenario
-from spaceproof.sim.scenarios.training_production import TrainingProductionScenario
-from spaceproof.sim.scenarios.privacy_enforcement import PrivacyEnforcementScenario
-from spaceproof.sim.scenarios.offline_resilience import OfflineResilienceScenario
+from spaceproof.sim.scenarios.governance import (
+    GovernanceScenario,
+    GovernanceConfig,
+    GovernanceResult,
+)
+from spaceproof.sim.scenarios.training_production import (
+    TrainingProductionScenario,
+    TrainingProductionConfig,
+    TrainingProductionResult,
+)
+from spaceproof.sim.scenarios.privacy_enforcement import (
+    PrivacyEnforcementScenario,
+    PrivacyEnforcementConfig,
+    PrivacyEnforcementResult,
+)
+from spaceproof.sim.scenarios.offline_resilience import (
+    OfflineResilienceScenario,
+    OfflineResilienceConfig,
+    OfflineResilienceResult,
+)
 
 # v3.0 Hardware supply chain scenarios
 from spaceproof.sim.scenarios.hardware_supply_chain import (
     HardwareSupplyChainScenario,
+    HardwareSupplyChainConfig,
+    HardwareSupplyChainResult,
     PowerSupplyPrototypeScenario,
+    PowerSupplyPrototypeConfig,
+    PowerSupplyPrototypeResult,
 )
 
 __all__ = [
     # Core scenarios
     "BaselineScenario",
+    "BaselineConfig",
+    "BaselineResult",
     "StressScenario",
+    "StressConfig",
+    "StressResult",
     "GenesisScenario",
+    "GenesisConfig",
+    "GenesisResult",
     "SingularityScenario",
+    "SingularityConfig",
+    "SingularityResult",
     "ThermodynamicScenario",
+    "ThermodynamicConfig",
+    "ThermodynamicResult",
     "GodelScenario",
+    "GodelConfig",
+    "GodelResult",
     # Defense expansion scenarios
     "OrbitalComputeScenario",
+    "OrbitalComputeConfig",
+    "OrbitalComputeResult",
     "ConstellationScaleScenario",
+    "ConstellationScaleConfig",
+    "ConstellationScaleResult",
     "AutonomousAccountabilityScenario",
+    "AutonomousAccountabilityConfig",
+    "AutonomousAccountabilityResult",
     "FirmwareSupplyChainScenario",
+    "FirmwareSupplyChainConfig",
+    "FirmwareSupplyChainResult",
     # v2.0 scenarios
     "GovernanceScenario",
+    "GovernanceConfig",
+    "GovernanceResult",
     "TrainingProductionScenario",
+    "TrainingProductionConfig",
+    "TrainingProductionResult",
     "PrivacyEnforcementScenario",
+    "PrivacyEnforcementConfig",
+    "PrivacyEnforcementResult",
     "OfflineResilienceScenario",
+    "OfflineResilienceConfig",
+    "OfflineResilienceResult",
     # v3.0 Hardware supply chain scenarios
     "HardwareSupplyChainScenario",
+    "HardwareSupplyChainConfig",
+    "HardwareSupplyChainResult",
     "PowerSupplyPrototypeScenario",
+    "PowerSupplyPrototypeConfig",
+    "PowerSupplyPrototypeResult",
 ]

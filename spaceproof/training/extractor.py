@@ -349,3 +349,9 @@ def clear_examples() -> None:
     """Clear all training examples (for testing)."""
     global _training_examples
     _training_examples = {}
+
+
+# Alias for API compatibility
+def emit_extraction_receipt(example: TrainingExample) -> Dict[str, Any]:
+    """Alias for emit_training_example_receipt."""
+    return emit_training_example_receipt(example)

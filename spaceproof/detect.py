@@ -357,8 +357,8 @@ HARDWARE_ENTROPY_THRESHOLDS = {
 # Rework detection thresholds
 REWORK_THRESHOLDS = {
     "max_cycles": 3,  # More than 3 reworks = reject
-    "entropy_increase_threshold": 0.10,  # Entropy should decrease, not increase
-    "degradation_alert": 0.15,  # Alert if entropy increases by this much
+    "entropy_increase_threshold": 0.05,  # Entropy should decrease, not increase
+    "degradation_alert": 0.10,  # Alert if entropy increases by this much
 }
 
 # Supply chain compression thresholds

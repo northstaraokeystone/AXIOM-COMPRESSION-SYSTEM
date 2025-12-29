@@ -285,3 +285,23 @@ def deduplicate_examples(
     )
 
     return deduplicated, result
+
+
+def emit_dedup_receipt(result: DedupResult) -> Dict[str, Any]:
+    """Emit receipt for deduplication operation.
+
+    Args:
+        result: The dedup result
+
+    Returns:
+        Receipt dict
+    """
+    from spaceproof.core import emit_receipt
+
+    return emit_receipt(
+        "deduplication",
+        {
+            "tenant_id": "spaceproof-training",
+            **result.to_dict(),
+        },
+    )

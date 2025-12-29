@@ -191,3 +191,23 @@ def clear_interventions() -> None:
     """Clear interventions (for testing)."""
     global _interventions
     _interventions = []
+
+
+def emit_intervention_report_receipt(report: InterventionReport) -> Dict[str, Any]:
+    """Emit a receipt for intervention report generation.
+
+    Args:
+        report: The generated intervention report
+
+    Returns:
+        Receipt dictionary
+    """
+    return emit_receipt(
+        "intervention_report",
+        {
+            "tenant_id": COMPLIANCE_TENANT,
+            "report_id": report.report_id,
+            "total_interventions": report.total_interventions,
+            "retraining_required_count": report.retraining_required_count,
+        },
+    )

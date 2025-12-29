@@ -8,6 +8,10 @@ from .receipt_economy import (
     check_authorization,
     revoke_authorization,
     emit_authorization_receipt,
+    authorize_with_receipt,
+    verify_receipt_for_access,
+    emit_access_receipt,
+    record_operation_cost,
     ResourceAuthorization,
 )
 
@@ -35,6 +39,10 @@ __all__ = [
     "check_authorization",
     "revoke_authorization",
     "emit_authorization_receipt",
+    "authorize_with_receipt",
+    "verify_receipt_for_access",
+    "emit_access_receipt",
+    "record_operation_cost",
     "ResourceAuthorization",
     # Cost accounting
     "track_operation_cost",

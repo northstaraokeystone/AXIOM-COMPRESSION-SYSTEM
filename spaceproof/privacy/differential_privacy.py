@@ -305,3 +305,26 @@ def clear_all_budgets() -> None:
     """Clear all budgets (for testing)."""
     global _budgets
     _budgets = {}
+
+
+# Aliases for API compatibility
+def get_privacy_budget(budget_id: str = "default") -> Dict[str, Any]:
+    """Alias for check_privacy_budget."""
+    return check_privacy_budget(budget_id)
+
+
+def spend_privacy_budget(
+    budget_id: str = "default",
+    epsilon: float = 1.0,
+) -> bool:
+    """Spend from privacy budget.
+
+    Args:
+        budget_id: Budget identifier
+        epsilon: Amount to spend
+
+    Returns:
+        True if successful, False if budget exhausted
+    """
+    budget = get_or_create_budget(budget_id)
+    return budget.spend(epsilon)

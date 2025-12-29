@@ -319,3 +319,41 @@ def reset_feedback_loop() -> None:
     _total_processed = 0
     _baseline_correction_rate = 0.1
     _current_correction_rate = 0.1
+
+
+def emit_feedback_receipt(state: FeedbackLoopState) -> Dict[str, Any]:
+    """Emit receipt for feedback loop state.
+
+    Args:
+        state: The feedback loop state
+
+    Returns:
+        Receipt dict
+    """
+    return emit_receipt(
+        "feedback_loop",
+        {
+            "tenant_id": TRAINING_TENANT,
+            **state.to_dict(),
+        },
+    )
+
+
+def prioritize_queue(
+    priority: str,
+    max_examples: int = 100,
+) -> List[TrainingExample]:
+    """Get prioritized examples from the retraining queue.
+
+    Args:
+        priority: Priority level to filter by ("IMMEDIATE", "HIGH", "MEDIUM", "LOW")
+        max_examples: Maximum number of examples to return
+
+    Returns:
+        List of prioritized TrainingExample objects
+    """
+    if priority not in _retraining_queue:
+        return []
+
+    queue = _retraining_queue[priority]
+    return list(queue)[:max_examples]

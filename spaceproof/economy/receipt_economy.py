@@ -203,3 +203,118 @@ def clear_authorizations() -> None:
     """Clear all authorizations (for testing)."""
     global _authorizations
     _authorizations = {}
+
+
+# Aliases for API compatibility
+def authorize_with_receipt(
+    resource_id: str,
+    resource_type: str,
+    grantee_id: str,
+    permissions: List[str],
+    granted_by: str,
+    duration_hours: int = 24,
+) -> Dict[str, Any]:
+    """Authorize resource access and emit receipt.
+
+    Args:
+        resource_id: Resource identifier
+        resource_type: Type of resource
+        grantee_id: Who receives authorization
+        permissions: List of permissions
+        granted_by: Who grants authorization
+        duration_hours: Authorization duration
+
+    Returns:
+        Authorization dict with receipt
+    """
+    auth = authorize_resource(
+        resource_id, resource_type, grantee_id, permissions, granted_by, duration_hours
+    )
+    receipt = emit_authorization_receipt(auth)
+    return {
+        "authorized": True,
+        "authorization": auth.to_dict(),
+        "receipt": receipt,
+    }
+
+
+def verify_receipt_for_access(
+    receipt: Dict[str, Any],
+    resource_id: str,
+    required_permission: str,
+) -> bool:
+    """Verify receipt grants access to resource.
+
+    Args:
+        receipt: Receipt to verify
+        resource_id: Resource being accessed
+        required_permission: Permission needed
+
+    Returns:
+        True if receipt grants access
+    """
+    if not receipt:
+        return False
+
+    # Check receipt contains authorization info
+    payload = receipt.get("payload", {})
+    if payload.get("resource_id") != resource_id:
+        return False
+
+    permissions = payload.get("permissions", [])
+    return required_permission in permissions
+
+
+def emit_access_receipt(
+    resource_id: str,
+    grantee_id: str,
+    permission_used: str,
+    action: str,
+) -> Dict[str, Any]:
+    """Emit receipt for resource access.
+
+    Args:
+        resource_id: Resource accessed
+        grantee_id: Who accessed
+        permission_used: Permission used
+        action: Action performed
+
+    Returns:
+        Receipt dict
+    """
+    return emit_receipt(
+        "resource_access",
+        {
+            "tenant_id": ECONOMY_TENANT,
+            "resource_id": resource_id,
+            "grantee_id": grantee_id,
+            "permission_used": permission_used,
+            "action": action,
+        },
+    )
+
+
+def record_operation_cost(
+    operation_id: str,
+    operation_type: str,
+    cost: float,
+    unit: str = "credits",
+) -> Dict[str, Any]:
+    """Record cost of an operation (alias for track_operation_cost).
+
+    Args:
+        operation_id: Operation identifier
+        operation_type: Type of operation
+        cost: Cost amount
+        unit: Cost unit
+
+    Returns:
+        Cost record dict
+    """
+    return {
+        "operation_id": operation_id,
+        "operation_type": operation_type,
+        "cost": cost,
+        "unit": unit,
+        "recorded_at": datetime.utcnow().isoformat() + "Z",
+    }

@@ -314,3 +314,23 @@ def compute_quality_distribution(
         "above_threshold_count": above_threshold,
         "above_threshold_percentage": above_threshold / len(scores) * 100,
     }
+
+
+def emit_quality_receipt(quality_score: QualityScore) -> Dict[str, Any]:
+    """Emit receipt for quality scoring operation.
+
+    Args:
+        quality_score: The quality score result
+
+    Returns:
+        Receipt dict
+    """
+    from spaceproof.core import emit_receipt
+
+    return emit_receipt(
+        "quality_score",
+        {
+            "tenant_id": "spaceproof-training",
+            **quality_score.to_dict(),
+        },
+    )

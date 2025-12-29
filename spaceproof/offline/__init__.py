@@ -8,12 +8,15 @@ from .sync import (
     queue_for_sync,
     get_sync_status,
     emit_sync_receipt,
+    sync_offline_receipts,
+    calculate_sync_delay,
     SyncResult,
     SyncQueue,
 )
 
 from .conflict_resolution import (
     resolve_conflicts,
+    resolve_conflict,
     detect_conflicts,
     merge_receipts,
     emit_conflict_receipt,
@@ -26,6 +29,8 @@ from .offline_ledger import (
     append_offline,
     get_offline_entries,
     prepare_for_sync,
+    merge_offline_ledger,
+    emit_offline_ledger_receipt,
     OfflineLedger,
     OfflineEntry,
 )
@@ -36,10 +41,13 @@ __all__ = [
     "queue_for_sync",
     "get_sync_status",
     "emit_sync_receipt",
+    "sync_offline_receipts",
+    "calculate_sync_delay",
     "SyncResult",
     "SyncQueue",
     # Conflict resolution
     "resolve_conflicts",
+    "resolve_conflict",
     "detect_conflicts",
     "merge_receipts",
     "emit_conflict_receipt",
@@ -50,6 +58,8 @@ __all__ = [
     "append_offline",
     "get_offline_entries",
     "prepare_for_sync",
+    "merge_offline_ledger",
+    "emit_offline_ledger_receipt",
     "OfflineLedger",
     "OfflineEntry",
 ]

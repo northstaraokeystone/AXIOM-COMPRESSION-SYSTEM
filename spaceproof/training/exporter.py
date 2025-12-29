@@ -280,3 +280,21 @@ def clear_export_stats() -> None:
         "total_bytes": 0,
         "formats_used": {},
     }
+
+
+def emit_export_receipt(result: ExportResult) -> Dict[str, Any]:
+    """Emit receipt for export operation.
+
+    Args:
+        result: The export result
+
+    Returns:
+        Receipt dict
+    """
+    return emit_receipt(
+        "training_export",
+        {
+            "tenant_id": TRAINING_TENANT,
+            **result.to_dict(),
+        },
+    )

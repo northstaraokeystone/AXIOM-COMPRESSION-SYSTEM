@@ -6,7 +6,13 @@ Standard for receipt-driven execution with cryptographic guarantees.
 from .execution_standard import (
     validate_rnes_compliance,
     check_receipt_coverage,
+    check_receipt_emission,
     get_compliance_report,
+    emit_rnes_receipt,
+    execute_receipt_chain,
+    get_execution_result,
+    emit_interpretation_receipt,
+    validate_sandbox_output,
     RNESCompliance,
     ComplianceIssue,
 )
@@ -33,7 +39,13 @@ __all__ = [
     # Execution standard
     "validate_rnes_compliance",
     "check_receipt_coverage",
+    "check_receipt_emission",
     "get_compliance_report",
+    "emit_rnes_receipt",
+    "execute_receipt_chain",
+    "get_execution_result",
+    "emit_interpretation_receipt",
+    "validate_sandbox_output",
     "RNESCompliance",
     "ComplianceIssue",
     # Interpreter
