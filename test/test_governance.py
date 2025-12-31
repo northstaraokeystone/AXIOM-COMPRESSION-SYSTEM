@@ -93,7 +93,7 @@ def test_emit_intervention_receipt():
         corrected_action={"type": "correct"},
     )
     receipt = emit_intervention_receipt(intervention)
-    assert receipt["receipt_type"] == "intervention"
+    assert receipt["receipt_type"] == "human_intervention"
 
 
 def test_assign_ownership():

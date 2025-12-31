@@ -135,7 +135,8 @@ class VerificationEngine:
             baselines = json.load(f)
 
         # Navigate to baseline using dot notation
-        parts = baseline_key.split(".")
+        # Only split on first dot to preserve version numbers like "0.5mg"
+        parts = baseline_key.split(".", 1)
         current = baselines
 
         for part in parts:

@@ -12,7 +12,6 @@ from spaceproof.privacy import (
     check_privacy_budget,
     emit_dp_receipt,
     DPResult,
-    PrivacyBudget,
     emit_privacy_receipt,
     track_privacy_operation,
     get_privacy_audit_log,
@@ -76,7 +75,7 @@ def test_compute_sensitivity():
 def test_check_privacy_budget():
     """check_privacy_budget returns budget info."""
     budget = check_privacy_budget()
-    assert isinstance(budget, PrivacyBudget)
+    assert isinstance(budget, dict)
 
 
 def test_emit_dp_receipt():

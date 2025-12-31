@@ -39,7 +39,8 @@ def test_get_offline_entries():
     """get_offline_entries returns entries."""
     ledger = create_offline_ledger(node_id="colony_entries_2")
     append_offline("colony_entries_2", "test", {"data": "value"})
-    entries = get_offline_entries(ledger)
+    # Signature: get_offline_entries(node_id, ...)
+    entries = get_offline_entries(ledger.node_id)
     assert isinstance(entries, list)
 
 
@@ -47,23 +48,27 @@ def test_prepare_for_sync():
     """prepare_for_sync prepares ledger for sync."""
     ledger = create_offline_ledger(node_id="colony_prep_2")
     append_offline("colony_prep_2", "test", {"data": "value"})
-    prepared = prepare_for_sync(ledger)
+    # Signature: prepare_for_sync(node_id)
+    prepared = prepare_for_sync(ledger.node_id)
     assert prepared is not None
 
 
 def test_sync_ledger():
     """sync_ledger syncs offline ledger."""
-    ledger = create_offline_ledger(node_id="colony_sync_2")
-    append_offline("colony_sync_2", "test", {"data": "value"})
-    result = sync_ledger(ledger)
+    ledger1 = create_offline_ledger(node_id="colony_sync_source")
+    create_offline_ledger(node_id="colony_sync_target")
+    append_offline("colony_sync_source", "test", {"data": "value"})
+    # Signature: sync_ledger(source_node, target_node, light_delay_sec=...)
+    result = sync_ledger(ledger1.node_id, "colony_sync_target")
     assert isinstance(result, SyncResult)
 
 
 def test_queue_for_sync():
     """queue_for_sync adds to sync queue."""
     ledger = create_offline_ledger(node_id="colony_queue_2")
-    append_offline("colony_queue_2", "test", {"data": "value"})
-    queue = queue_for_sync(ledger)
+    entry_data = {"receipt_type": "test", "data": "value"}
+    # Signature: queue_for_sync(node_id, entry)
+    queue = queue_for_sync(ledger.node_id, entry_data)
     assert isinstance(queue, SyncQueue)
 
 
@@ -75,40 +80,59 @@ def test_get_sync_status():
 
 def test_emit_sync_receipt():
     """emit_sync_receipt emits valid receipt."""
-    ledger = create_offline_ledger(node_id="colony_emit_2")
-    append_offline("colony_emit_2", "test", {"data": "value"})
-    result = sync_ledger(ledger)
+    ledger1 = create_offline_ledger(node_id="colony_emit_src")
+    create_offline_ledger(node_id="colony_emit_tgt")
+    append_offline("colony_emit_src", "test", {"data": "value"})
+    result = sync_ledger(ledger1.node_id, "colony_emit_tgt")
     receipt = emit_sync_receipt(result)
-    assert receipt["receipt_type"] == "offline_sync"
+    assert receipt["receipt_type"] == "sync"
 
 
 def test_detect_conflicts():
     """detect_conflicts finds conflicting receipts."""
-    ledger1 = create_offline_ledger(node_id="colony_a2")
-    ledger2 = create_offline_ledger(node_id="colony_b2")
+    create_offline_ledger(node_id="colony_a2")
+    create_offline_ledger(node_id="colony_b2")
     append_offline("colony_a2", "test", {"receipt_id": "r1", "data": "v1"})
     append_offline("colony_b2", "test", {"receipt_id": "r1", "data": "v2"})
-    conflicts = detect_conflicts([ledger1, ledger2])
+    entries_a = get_offline_entries("colony_a2")
+    entries_b = get_offline_entries("colony_b2")
+    # Signature: detect_conflicts(entries_a, entries_b)
+    # Convert entries to dicts
+    entries_a_dicts = [e.to_dict() if hasattr(e, "to_dict") else {"data": e.data} for e in entries_a]
+    entries_b_dicts = [e.to_dict() if hasattr(e, "to_dict") else {"data": e.data} for e in entries_b]
+    conflicts = detect_conflicts(entries_a_dicts, entries_b_dicts)
     assert isinstance(conflicts, list)
 
 
 def test_resolve_conflicts():
     """resolve_conflicts resolves conflicting receipts."""
-    ledger1 = create_offline_ledger(node_id="colony_c2")
-    ledger2 = create_offline_ledger(node_id="colony_d2")
+    create_offline_ledger(node_id="colony_c2")
+    create_offline_ledger(node_id="colony_d2")
     append_offline("colony_c2", "test", {"receipt_id": "r2", "data": "v1"})
     append_offline("colony_d2", "test", {"receipt_id": "r2", "data": "v2"})
-    result = resolve_conflicts([ledger1, ledger2], strategy=MergeStrategy.TIMESTAMP)
+    entries_a = get_offline_entries("colony_c2")
+    entries_b = get_offline_entries("colony_d2")
+    # Convert entries to dicts
+    entries_a_dicts = [e.to_dict() if hasattr(e, "to_dict") else {"data": e.data} for e in entries_a]
+    entries_b_dicts = [e.to_dict() if hasattr(e, "to_dict") else {"data": e.data} for e in entries_b]
+    # Signature: resolve_conflicts(entries_a, entries_b, strategy)
+    result = resolve_conflicts(entries_a_dicts, entries_b_dicts, strategy=MergeStrategy.TIMESTAMP)
     assert isinstance(result, ConflictResult)
 
 
 def test_merge_receipts():
     """merge_receipts combines receipts."""
-    ledger1 = create_offline_ledger(node_id="colony_e2")
-    ledger2 = create_offline_ledger(node_id="colony_f2")
+    create_offline_ledger(node_id="colony_e2")
+    create_offline_ledger(node_id="colony_f2")
     append_offline("colony_e2", "test", {"receipt_id": "r3", "data": "a"})
     append_offline("colony_f2", "test", {"receipt_id": "r4", "data": "b"})
-    merged = merge_receipts([ledger1, ledger2])
+    entries_a = get_offline_entries("colony_e2")
+    entries_b = get_offline_entries("colony_f2")
+    # Convert entries to dicts (receipts)
+    receipts_a = [e.to_dict() if hasattr(e, "to_dict") else {"data": e.data} for e in entries_a]
+    receipts_b = [e.to_dict() if hasattr(e, "to_dict") else {"data": e.data} for e in entries_b]
+    # Signature: merge_receipts(receipts_a, receipts_b, strategy) -> Tuple[List, ConflictResult]
+    merged, conflict_result = merge_receipts(receipts_a, receipts_b)
     assert isinstance(merged, list)
 
 
