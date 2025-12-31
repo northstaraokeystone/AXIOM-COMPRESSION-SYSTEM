@@ -26,8 +26,22 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 import json
+import numpy as np
 
 from spaceproof.core import dual_hash, emit_receipt, merkle
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON encoder for numpy types."""
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
 
 # === CONSTANTS ===
 
@@ -265,7 +279,7 @@ def log_execution(
     execution_id = dual_hash(f"{satellite_id}:{binary_hash}:{execution_timestamp}")
 
     # Hash the execution proof
-    proof_hash = dual_hash(json.dumps(execution_proof, sort_keys=True))
+    proof_hash = dual_hash(json.dumps(execution_proof, sort_keys=True, cls=NumpyEncoder))
 
     receipt = emit_receipt(
         "firmware_execution",

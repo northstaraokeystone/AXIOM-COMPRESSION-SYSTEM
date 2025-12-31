@@ -79,18 +79,30 @@ _sync_history: List[SyncResult] = []
 
 
 def queue_for_sync(
-    node_id: str,
-    entry: Dict[str, Any],
+    node_id_or_ledger,
+    entry: Dict[str, Any] = None,
 ) -> SyncQueue:
-    """Queue an entry for synchronization.
+    """Queue an entry or ledger for synchronization.
 
     Args:
-        node_id: Node identifier
-        entry: Entry to queue
+        node_id_or_ledger: Node identifier (str) or OfflineLedger object
+        entry: Entry to queue (optional if ledger is passed)
 
     Returns:
         Updated SyncQueue
     """
+    from spaceproof.offline.offline_ledger import OfflineLedger
+
+    # Accept either node_id string or OfflineLedger object
+    if isinstance(node_id_or_ledger, OfflineLedger):
+        ledger = node_id_or_ledger
+        node_id = ledger.node_id
+        # Queue all unsynced entries from ledger
+        entries_to_queue = [e.to_dict() for e in ledger.entries if not e.synced]
+    else:
+        node_id = node_id_or_ledger
+        entries_to_queue = [entry] if entry else []
+
     if node_id not in _sync_queues:
         _sync_queues[node_id] = SyncQueue(
             queue_id=str(uuid.uuid4()),
@@ -99,7 +111,8 @@ def queue_for_sync(
         )
 
     queue = _sync_queues[node_id]
-    queue.entries.append(entry)
+    for e in entries_to_queue:
+        queue.entries.append(e)
 
     return queue
 
@@ -141,14 +154,14 @@ def get_sync_status(node_id: str) -> Dict[str, Any]:
 
 
 def sync_ledger(
-    source_node: str,
-    target_node: str,
+    source_node_or_ledger,
+    target_node: str = "earth-canonical",
     light_delay_sec: float = MARS_LIGHT_DELAY_MIN_SEC,
 ) -> SyncResult:
     """Synchronize ledger between nodes.
 
     Args:
-        source_node: Source node ID
+        source_node_or_ledger: Source node ID (str) or OfflineLedger object
         target_node: Target node ID
         light_delay_sec: Light delay in seconds
 
@@ -156,8 +169,19 @@ def sync_ledger(
         SyncResult
     """
     import time
+    from spaceproof.offline.offline_ledger import OfflineLedger
 
     start_time = time.time()
+
+    # Accept either node_id string or OfflineLedger object
+    if isinstance(source_node_or_ledger, OfflineLedger):
+        ledger = source_node_or_ledger
+        source_node = ledger.node_id
+        # Queue entries if not already queued
+        if source_node not in _sync_queues:
+            queue_for_sync(ledger)
+    else:
+        source_node = source_node_or_ledger
 
     source_queue = _sync_queues.get(source_node)
 
@@ -211,7 +235,7 @@ def emit_sync_receipt(result: SyncResult) -> Dict[str, Any]:
         Receipt dict
     """
     return emit_receipt(
-        "sync",
+        "offline_sync",
         {
             "tenant_id": OFFLINE_TENANT,
             **result.to_dict(),

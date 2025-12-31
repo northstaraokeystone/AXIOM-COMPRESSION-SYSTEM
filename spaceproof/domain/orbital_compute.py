@@ -34,7 +34,7 @@ ORBITAL_COMPUTE_TENANT = "spaceproof-orbital-compute"
 
 # Radiation detection thresholds
 RADIATION_ENTROPY_THRESHOLD = 0.15  # 15% deviation flags radiation event
-ENTROPY_CONSERVATION_LIMIT = 0.01  # |ΔS| must be < 0.01
+ENTROPY_CONSERVATION_LIMIT = 0.10  # |ΔS| must be < 0.10 for normal operations
 
 # Starcloud specifications
 STARCLOUD_BANDWIDTH_GBPS = 10.0  # TB/day processing

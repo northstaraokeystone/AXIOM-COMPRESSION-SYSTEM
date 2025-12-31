@@ -45,54 +45,83 @@ class DedupResult:
         }
 
 
-def compute_example_hash(example: TrainingExample) -> str:
+def compute_example_hash(example) -> str:
     """Compute hash of example content for exact duplicate detection.
 
     Args:
-        example: TrainingExample to hash
+        example: TrainingExample or LabeledExample to hash
 
     Returns:
         Hash string
     """
+    from .labeler import LabeledExample
+
+    # Handle LabeledExample
+    if isinstance(example, LabeledExample):
+        content = {
+            "example_id": example.example_id,
+            "labels": example.labels,
+            "category": example.category,
+        }
+        return dual_hash(json.dumps(content, sort_keys=True))
+
+    # Handle TrainingExample
     content = {
-        "input": example.input_context.to_dict(),
-        "bad_output": example.bad_output.to_dict(),
-        "good_output": example.good_output.to_dict(),
-        "label": example.label,
+        "input": example.input_context.to_dict() if hasattr(example, 'input_context') else {},
+        "bad_output": example.bad_output.to_dict() if hasattr(example, 'bad_output') else {},
+        "good_output": example.good_output.to_dict() if hasattr(example, 'good_output') else {},
+        "label": example.label if hasattr(example, 'label') else {},
     }
     return dual_hash(json.dumps(content, sort_keys=True))
 
 
-def compute_similarity(example1: TrainingExample, example2: TrainingExample) -> float:
+def compute_similarity(example1, example2) -> float:
     """Compute similarity score between two examples.
 
     Uses Jaccard similarity on tokenized content.
+    Works with both TrainingExample and LabeledExample objects.
 
     Args:
-        example1: First example
-        example2: Second example
+        example1: First example (TrainingExample or LabeledExample)
+        example2: Second example (TrainingExample or LabeledExample)
 
     Returns:
         Similarity score (0.0 - 1.0)
     """
+    from .labeler import LabeledExample
+
     # Tokenize content
-    def tokenize(example: TrainingExample) -> Set[str]:
+    def tokenize(example) -> Set[str]:
         tokens = set()
 
-        # Add input tokens
-        input_str = json.dumps(example.input_context.to_dict(), sort_keys=True)
-        tokens.update(input_str.lower().split())
+        # Handle LabeledExample (uses labels dict only)
+        if isinstance(example, LabeledExample):
+            label_str = json.dumps(example.labels, sort_keys=True)
+            tokens.update(label_str.lower().split())
+            tokens.add(example.category)
+            tokens.update(example.subcategories)
+            return tokens
 
-        # Add output tokens
-        bad_str = json.dumps(example.bad_output.to_dict(), sort_keys=True)
-        tokens.update(bad_str.lower().split())
+        # Handle TrainingExample (full data)
+        if hasattr(example, 'input_context') and example.input_context:
+            input_str = json.dumps(example.input_context.to_dict(), sort_keys=True)
+            tokens.update(input_str.lower().split())
 
-        good_str = json.dumps(example.good_output.to_dict(), sort_keys=True)
-        tokens.update(good_str.lower().split())
+        if hasattr(example, 'bad_output') and example.bad_output:
+            bad_str = json.dumps(example.bad_output.to_dict(), sort_keys=True)
+            tokens.update(bad_str.lower().split())
+
+        if hasattr(example, 'good_output') and example.good_output:
+            good_str = json.dumps(example.good_output.to_dict(), sort_keys=True)
+            tokens.update(good_str.lower().split())
 
         # Add label tokens
-        label_str = json.dumps(example.label, sort_keys=True)
-        tokens.update(label_str.lower().split())
+        if hasattr(example, 'label') and example.label:
+            label_str = json.dumps(example.label, sort_keys=True)
+            tokens.update(label_str.lower().split())
+        elif hasattr(example, 'labels') and example.labels:
+            label_str = json.dumps(example.labels, sort_keys=True)
+            tokens.update(label_str.lower().split())
 
         return tokens
 
@@ -205,24 +234,26 @@ def find_duplicates(
 
 
 def deduplicate_examples(
-    examples: List[TrainingExample],
+    examples,
     near_duplicate_threshold: float = NEAR_DUPLICATE_THRESHOLD,
     keep_strategy: str = "first",  # "first", "highest_quality", "latest"
-) -> Tuple[List[TrainingExample], DedupResult]:
+) -> DedupResult:
     """Deduplicate training examples.
 
     Args:
-        examples: List of examples to deduplicate
+        examples: List of examples to deduplicate (TrainingExample or LabeledExample)
         near_duplicate_threshold: Threshold for near duplicates
         keep_strategy: Strategy for choosing which duplicate to keep
 
     Returns:
-        Tuple of (deduplicated examples, DedupResult)
+        DedupResult with deduplication statistics
     """
+    from .labeler import LabeledExample
+
     original_count = len(examples)
 
     if original_count == 0:
-        return [], DedupResult(
+        return DedupResult(
             original_count=0,
             deduplicated_count=0,
             duplicates_removed=0,
@@ -231,18 +262,33 @@ def deduplicate_examples(
             duplicate_groups=[],
         )
 
+    # Helper to get quality/timestamp with fallbacks
+    def get_quality(e):
+        if hasattr(e, 'quality_score'):
+            return e.quality_score
+        if hasattr(e, 'label_confidence'):
+            return e.label_confidence
+        return 0.5
+
+    def get_timestamp(e):
+        if hasattr(e, 'timestamp'):
+            return e.timestamp
+        if hasattr(e, 'labeled_at'):
+            return e.labeled_at
+        return ""
+
     # First pass: remove exact duplicates
     hash_map, exact_count = find_exact_duplicates(examples)
 
     # Keep one from each exact duplicate group
-    unique_from_exact: List[TrainingExample] = []
+    unique_from_exact = []
     for group in hash_map.values():
         if keep_strategy == "first":
             unique_from_exact.append(group[0])
         elif keep_strategy == "highest_quality":
-            unique_from_exact.append(max(group, key=lambda e: e.quality_score))
+            unique_from_exact.append(max(group, key=get_quality))
         elif keep_strategy == "latest":
-            unique_from_exact.append(max(group, key=lambda e: e.timestamp))
+            unique_from_exact.append(max(group, key=get_timestamp))
         else:
             unique_from_exact.append(group[0])
 
@@ -255,9 +301,9 @@ def deduplicate_examples(
         if keep_strategy == "first":
             keeper = group[0]
         elif keep_strategy == "highest_quality":
-            keeper = max(group, key=lambda e: e.quality_score)
+            keeper = max(group, key=get_quality)
         elif keep_strategy == "latest":
-            keeper = max(group, key=lambda e: e.timestamp)
+            keeper = max(group, key=get_timestamp)
         else:
             keeper = group[0]
 
@@ -283,4 +329,4 @@ def deduplicate_examples(
         duplicate_groups=all_groups,
     )
 
-    return deduplicated, result
+    return result

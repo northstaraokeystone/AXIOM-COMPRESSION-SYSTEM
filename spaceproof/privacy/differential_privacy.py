@@ -254,21 +254,16 @@ def add_gaussian_noise(
     )
 
 
-def check_privacy_budget(budget_id: str = "default") -> Dict[str, Any]:
+def check_privacy_budget(budget_id: str = "default") -> PrivacyBudget:
     """Check privacy budget status.
 
     Args:
         budget_id: Budget identifier
 
     Returns:
-        Budget status
+        PrivacyBudget object
     """
-    budget = get_or_create_budget(budget_id)
-    return {
-        **budget.to_dict(),
-        "is_exhausted": budget.remaining_budget <= 0,
-        "utilization": (budget.initial_budget - budget.remaining_budget) / budget.initial_budget * 100,
-    }
+    return get_or_create_budget(budget_id)
 
 
 def emit_dp_receipt(result: DPResult) -> Dict[str, Any]:

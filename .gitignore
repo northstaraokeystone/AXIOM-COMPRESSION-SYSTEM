@@ -11,3 +11,4 @@ build/
 .venv/
 venv/
 outputs/
+training_data/
