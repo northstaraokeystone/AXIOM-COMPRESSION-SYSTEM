@@ -248,8 +248,6 @@ def deduplicate_examples(
     Returns:
         DedupResult with deduplication statistics
     """
-    from .labeler import LabeledExample
-
     original_count = len(examples)
 
     if original_count == 0:

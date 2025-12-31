@@ -29,6 +29,8 @@ from typing import Any, Dict, List, Optional
 import json
 import numpy as np
 
+from spaceproof.core import dual_hash, emit_receipt, merkle
+
 
 class NumpyEncoder(json.JSONEncoder):
     """Custom JSON encoder for numpy types."""
@@ -42,7 +44,6 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         return super().default(obj)
 
-from spaceproof.core import dual_hash, emit_receipt, merkle
 
 # === CONSTANTS ===
 
