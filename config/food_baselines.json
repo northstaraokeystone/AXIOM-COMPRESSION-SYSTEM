@@ -1,0 +1,152 @@
+{
+  "olive_oil": {
+    "extra_virgin": {
+      "spectral_entropy_min": 3.8,
+      "spectral_entropy_max": 4.6,
+      "entropy_min": 3.8,
+      "entropy_max": 4.6,
+      "polyphenol_variance": 0.15,
+      "source": "Grok research: genuine oils exhibit natural random gradients in polyphenols/fatty acids",
+      "adulteration_indicators": {
+        "homogenization_threshold": 3.2,
+        "description": "Adulterants like sunflower/vegetable oil show low spectral entropy (<3.2) due to homogenization"
+      },
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    },
+    "virgin": {
+      "spectral_entropy_min": 3.5,
+      "spectral_entropy_max": 4.3,
+      "entropy_min": 3.5,
+      "entropy_max": 4.3,
+      "polyphenol_variance": 0.12,
+      "source": "Grok research: virgin grade shows slightly lower but still natural variance",
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    },
+    "pure": {
+      "spectral_entropy_min": 3.2,
+      "spectral_entropy_max": 4.0,
+      "entropy_min": 3.2,
+      "entropy_max": 4.0,
+      "polyphenol_variance": 0.10,
+      "source": "Grok research: refined/pure grades have lower natural variance",
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    }
+  },
+  "honey": {
+    "manuka": {
+      "texture_entropy_min": 4.2,
+      "texture_entropy_max": 5.1,
+      "entropy_min": 4.2,
+      "entropy_max": 5.1,
+      "pollen_count_min": 500,
+      "pollen_diversity_min": 2.5,
+      "source": "Grok research: authentic manuka honey has high pollen distribution randomness and crystallization variance",
+      "adulteration_indicators": {
+        "syrup_threshold": 3.5,
+        "description": "Corn syrup adulteration lowers texture entropy below 3.5"
+      },
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    },
+    "wildflower": {
+      "texture_entropy_min": 3.9,
+      "texture_entropy_max": 4.8,
+      "entropy_min": 3.9,
+      "entropy_max": 4.8,
+      "pollen_count_min": 300,
+      "pollen_diversity_min": 3.0,
+      "source": "Grok research: wildflower honey shows high variance due to multi-source origin",
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    },
+    "clover": {
+      "texture_entropy_min": 3.6,
+      "texture_entropy_max": 4.5,
+      "entropy_min": 3.6,
+      "entropy_max": 4.5,
+      "pollen_count_min": 200,
+      "pollen_diversity_min": 1.5,
+      "source": "Grok research: clover honey has moderate variance from single-source origin",
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    }
+  },
+  "seafood": {
+    "blue_crab": {
+      "tissue_entropy_min": 4.5,
+      "tissue_entropy_max": 5.3,
+      "entropy_min": 4.5,
+      "entropy_max": 5.3,
+      "density_variance": 0.18,
+      "source": "Grok research: genuine blue crab tissue shows natural biological variance in muscle structure",
+      "substitution_indicators": {
+        "foreign_crab_range": [3.8, 4.2],
+        "description": "Foreign crab species have different tissue entropy signatures"
+      },
+      "compliance": ["FSMA_204_high_risk", "21_CFR_Part_11"]
+    },
+    "wild_salmon": {
+      "tissue_entropy_min": 4.3,
+      "tissue_entropy_max": 5.1,
+      "entropy_min": 4.3,
+      "entropy_max": 5.1,
+      "density_variance": 0.15,
+      "fat_distribution_entropy_min": 3.8,
+      "source": "Grok research: wild salmon tissue shows high natural variance vs farmed",
+      "substitution_indicators": {
+        "farmed_salmon_range": [3.5, 4.0],
+        "description": "Farmed salmon shows lower tissue entropy due to controlled diet"
+      },
+      "compliance": ["FSMA_204_high_risk", "21_CFR_Part_11"]
+    },
+    "cod": {
+      "tissue_entropy_min": 4.0,
+      "tissue_entropy_max": 4.8,
+      "entropy_min": 4.0,
+      "entropy_max": 4.8,
+      "density_variance": 0.12,
+      "source": "Grok research: cod tissue entropy signature distinguishes from cheaper substitutes",
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    },
+    "tuna": {
+      "tissue_entropy_min": 4.2,
+      "tissue_entropy_max": 5.0,
+      "entropy_min": 4.2,
+      "entropy_max": 5.0,
+      "density_variance": 0.16,
+      "source": "Grok research: tuna tissue shows species-specific entropy patterns",
+      "compliance": ["FSMA_204_high_risk", "21_CFR_Part_11"]
+    }
+  },
+  "wine": {
+    "bordeaux": {
+      "chemical_entropy_min": 4.0,
+      "chemical_entropy_max": 4.8,
+      "entropy_min": 4.0,
+      "entropy_max": 4.8,
+      "source": "Grok research: genuine Bordeaux shows complex chemical variance",
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    }
+  },
+  "spices": {
+    "saffron": {
+      "spectral_entropy_min": 4.5,
+      "spectral_entropy_max": 5.5,
+      "entropy_min": 4.5,
+      "entropy_max": 5.5,
+      "source": "Grok research: genuine saffron has high spectral variance, adulterants show low entropy",
+      "compliance": ["FSMA_204", "21_CFR_Part_11"]
+    }
+  },
+  "meta": {
+    "version": "1.0.0",
+    "source": "Grok Research - Food fraud detection via entropy analysis",
+    "tam": {
+      "olive_oil_fraud_annual_b": 40,
+      "honey_fraud_annual_b": 10,
+      "seafood_fraud_annual_b": 25,
+      "total_food_fraud_annual_b": 40
+    },
+    "detection_targets": {
+      "recall": 0.999,
+      "false_positive_rate": 0.01
+    }
+  }
+}

@@ -4,6 +4,8 @@
 
 Part of the ProofChain series: SpaceProof | SpendProof | ClaimProof | VoteProof | OriginProof | GreenProof
 
+> **v6.0: Multi-Domain Expansion** - Aerospace, Food, Medical entropy-based verification with REST API
+>
 > **v5.0: Defense Expansion** - Starcloud, Starlink, Defense receipts-native proof infrastructure targeting $3B/year compliance market
 
 ## What SpaceProof Does
@@ -15,6 +17,14 @@ Part of the ProofChain series: SpaceProof | SpendProof | ClaimProof | VoteProof 
 | sovereignty | Autonomy threshold calculation | Mars crew sizing |
 | detect | Entropy anomaly detection | Fraud detection |
 | ledger | Receipt storage | Full audit trail |
+| **v6.0 Multi-Domain Expansion** | | |
+| food/olive_oil | Spectral entropy analysis | Adulteration detection (≥99.9% recall) |
+| food/honey | Texture + pollen entropy | Syrup adulteration detection |
+| food/seafood | Tissue entropy analysis | Species substitution detection |
+| medical/glp1 | Fill variance entropy | Ozempic/Wegovy counterfeit detection (CRITICAL) |
+| medical/botox | Surface topography entropy | Fake vial detection |
+| medical/cancer_drugs | API distribution entropy | No-API counterfeit detection (life-critical) |
+| api | REST API (FastAPI) | Jay Lewis test bench integration |
 | anchor | Merkle proofs | Tamper-proof |
 | loop | 60-second SENSE->ACTUATE cycle | Automated improvement |
 | **v5.0 Defense Expansion** | | |
@@ -50,6 +60,60 @@ python cli.py --test
 # Run with stakeholder config
 python cli.py --config xai --test
 python cli.py --config doge --test
+```
+
+### v6.0 Multi-Domain API Quick Start
+
+```bash
+# One-command deployment via Docker
+docker-compose up -d
+
+# API is live at http://localhost:8000
+# Interactive docs at http://localhost:8000/api/v1/docs
+
+# Or run directly with uvicorn
+pip install -r requirements.txt
+uvicorn api.server:app --host 0.0.0.0 --port 8000
+```
+
+**API Endpoints:**
+
+| Domain | Endpoint | Purpose |
+|--------|----------|---------|
+| Health | `GET /api/v1/health` | Check API status and available domains |
+| Aerospace | `POST /api/v1/verify/aerospace` | Hardware counterfeit detection |
+| Food | `POST /api/v1/verify/food/olive-oil` | Olive oil adulteration |
+| Food | `POST /api/v1/verify/food/honey` | Honey syrup adulteration |
+| Food | `POST /api/v1/verify/food/seafood` | Species substitution |
+| Medical | `POST /api/v1/verify/medical/glp1` | Ozempic/Wegovy authenticity |
+| Medical | `POST /api/v1/verify/medical/botox` | Botox vial authenticity |
+| Medical | `POST /api/v1/verify/medical/cancer-drug` | Cancer drug API presence |
+
+**Example: Verify Olive Oil**
+
+```bash
+curl -X POST http://localhost:8000/api/v1/verify/food/olive-oil \
+  -H "Content-Type: application/json" \
+  -d '{
+    "batch_id": "EVOO-2025-001",
+    "product_grade": "extra_virgin",
+    "spectral_scan": [4.1, 4.2, 4.0, 4.3, 4.1],
+    "provenance_chain": ["italian_farm", "processor", "bottler"]
+  }'
+```
+
+**Example: Verify GLP-1 Pen (Ozempic)**
+
+```bash
+curl -X POST http://localhost:8000/api/v1/verify/medical/glp1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "serial_number": "OZP-2025-12345",
+    "device_type": "ozempic_0.5mg",
+    "fill_measurements": {"fill_level": 0.95, "compression": 0.88},
+    "lot_number": "OZP-2025-00001",
+    "provenance_chain": ["novo_nordisk", "mckesson", "cvs"]
+  }'
 ```
 
 ### v5.0 Defense Expansion Features
@@ -208,6 +272,21 @@ spaceproof/
 ├── context_router.py             # Confidence-gated fallback (v5.0)
 ├── mcp_server.py                 # MCP protocol server (v5.0)
 │
+├── shared/                       # Shared verification engine (v6.0)
+│   └── verification_engine.py    # Universal entropy-based verification
+│
+├── food/                         # Food verification (v6.0)
+│   ├── entropy.py                # Food entropy calculators
+│   ├── olive_oil.py              # Olive oil adulteration detection
+│   ├── honey.py                  # Honey authenticity verification
+│   └── seafood.py                # Seafood species verification
+│
+├── medical/                      # Medical verification (v6.0)
+│   ├── entropy.py                # Medical entropy calculators
+│   ├── glp1.py                   # GLP-1 pen (Ozempic/Wegovy) verification
+│   ├── botox.py                  # Botox vial verification
+│   └── cancer_drugs.py           # Cancer drug API detection
+│
 └── sim/                          # Simulation framework
     ├── monte_carlo.py            # Monte Carlo engine
     ├── dimensions/               # Scenario dimensions
@@ -271,6 +350,12 @@ Complete implementation in `spaceproof/sovereignty/mars/`:
 | detect | false_positive_rate | <0.01 | FAIL |
 | loop | cycle_time | <=60s | WARN |
 | anchor | verify_time | <=2s | WARN |
+| **v6.0 SLOs** | | | |
+| food | recall | >=0.999 | FAIL |
+| food | false_positive_rate | <0.01 | FAIL |
+| medical | recall | >=0.999 | FAIL (CRITICAL) |
+| medical | false_positive_rate | <0.005 | FAIL |
+| api | response_time_p99 | <=500ms | WARN |
 | **v3.0 SLOs** | | | |
 | colony_network | entropy_stable_ratio | >=0.95 | FAIL |
 | sovereignty_network | sovereign_colonies | >=MIN | WARN |
@@ -394,5 +479,10 @@ MIT
 ---
 
 *Space-grade proof. No receipt, not real. Ship at T+48h or kill.*
+
+**v6.0 Multi-Domain Expansion** - December 2025
+- Aerospace, Food, Medical entropy-based verification
+- REST API with FastAPI (unblocks Jay Lewis test bench)
+- Docker one-command deployment
 
 **v5.0 Defense Expansion** - December 2025

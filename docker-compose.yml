@@ -1,0 +1,54 @@
+# SpaceProof Multi-Domain Verification Stack
+# One-command deployment: docker-compose up -d
+# API available at: http://localhost:8000
+
+version: "3.8"
+
+services:
+  spaceproof-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spaceproof-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist receipts ledger
+      - ./receipts.jsonl:/app/receipts.jsonl
+      # Mount config for runtime updates
+      - ./config:/app/config:ro
+    environment:
+      - PYTHONPATH=/app
+      - SPACEPROOF_ENV=production
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - spaceproof-network
+    labels:
+      - "com.spaceproof.service=api"
+      - "com.spaceproof.domain=multi"
+
+  # Optional: Redis for caching (future enhancement)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: spaceproof-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - spaceproof-network
+
+networks:
+  spaceproof-network:
+    driver: bridge
+    name: spaceproof-network
+
+# volumes:
+#   redis-data:

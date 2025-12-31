@@ -96,8 +96,46 @@
     "offline_checkpoint",
     "partition_end",
     "sync_complete",
-    "merkle_verification"
+    "merkle_verification",
+    "olive_oil_verification",
+    "honey_verification",
+    "seafood_verification",
+    "glp1_verification",
+    "botox_verification",
+    "cancer_drug_verification",
+    "aerospace_verification",
+    "verification_error",
+    "food_safety_scenario",
+    "medical_device_scenario"
   ],
+  "v7_food_receipt_schemas": {
+    "olive_oil_verification": {
+      "required": ["batch_id", "product_grade", "spectral_entropy", "baseline_min", "baseline_max", "deviation_pct", "verdict", "confidence", "compliance_standard", "provenance_chain"],
+      "optional": ["flags", "polyphenol_variance", "sensor_data_hash"]
+    },
+    "honey_verification": {
+      "required": ["batch_id", "honey_type", "texture_entropy", "pollen_entropy", "combined_entropy", "baseline_min", "baseline_max", "deviation_pct", "verdict", "confidence", "pollen_count", "compliance_standard", "provenance_chain"],
+      "optional": ["flags", "pollen_species"]
+    },
+    "seafood_verification": {
+      "required": ["sample_id", "claimed_species", "tissue_entropy", "baseline_min", "baseline_max", "deviation_pct", "verdict", "confidence", "dna_verified", "compliance_standard", "provenance_chain"],
+      "optional": ["flags", "dna_barcode", "dna_contradiction"]
+    }
+  },
+  "v7_medical_receipt_schemas": {
+    "glp1_verification": {
+      "required": ["serial_number", "device_type", "fill_entropy", "baseline_min", "baseline_max", "deviation_pct", "verdict", "confidence", "lot_number", "lot_format_valid", "risk_level", "compliance_standard", "provenance_chain"],
+      "optional": ["flags", "manufacturer", "compression_variance"]
+    },
+    "botox_verification": {
+      "required": ["vial_id", "unit_count", "surface_entropy", "solution_entropy", "combined_entropy", "baseline_min", "baseline_max", "deviation_pct", "verdict", "confidence", "risk_level", "compliance_standard", "provenance_chain"],
+      "optional": ["flags", "manufacturer", "concentration_variance"]
+    },
+    "cancer_drug_verification": {
+      "required": ["drug_id", "drug_name", "api_distribution_entropy", "api_present", "baseline_min", "baseline_max", "deviation_pct", "verdict", "confidence", "risk_level", "compliance_standard", "provenance_chain", "treatment_impact"],
+      "optional": ["flags", "manufacturer", "coating_thickness_variance"]
+    }
+  },
   "v2_receipt_schemas": {
     "build_rate": {
       "required": ["autonomy_level", "propulsion_level", "build_rate", "alpha", "constant"],
@@ -342,7 +380,24 @@
     "AUTONOMY_THRESHOLD": 0.75,
     "TRANSFER_THRESHOLD": 0.70,
     "CASCADE_MULTIPLIER": 5,
-    "CONFIDENCE_FALLBACK": 0.85
+    "CONFIDENCE_FALLBACK": 0.85,
+    "FOOD_DETECTION_RECALL_TARGET": 0.999,
+    "FOOD_FALSE_POSITIVE_MAX": 0.01,
+    "MEDICAL_DETECTION_RECALL_TARGET": 0.999,
+    "MEDICAL_FALSE_POSITIVE_MAX": 0.005,
+    "MEDICAL_CRITICAL_MISS_TOLERANCE": 0,
+    "OLIVE_OIL_ENTROPY_MIN": 3.8,
+    "OLIVE_OIL_ENTROPY_MAX": 4.6,
+    "HONEY_ENTROPY_MIN": 4.2,
+    "HONEY_ENTROPY_MAX": 5.1,
+    "SEAFOOD_ENTROPY_MIN": 4.5,
+    "SEAFOOD_ENTROPY_MAX": 5.3,
+    "GLP1_ENTROPY_MIN": 2.8,
+    "GLP1_ENTROPY_MAX": 3.4,
+    "BOTOX_ENTROPY_MIN": 3.2,
+    "BOTOX_ENTROPY_MAX": 3.9,
+    "CANCER_DRUG_ENTROPY_MIN": 4.1,
+    "CANCER_DRUG_ENTROPY_MAX": 4.9
   },
-  "version": "6.0"
+  "version": "7.0"
 }

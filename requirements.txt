@@ -1,0 +1,22 @@
+# SpaceProof Multi-Domain Verification Dependencies
+# Core
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Web API
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+hypercorn>=0.16.0
+pydantic>=2.5.0
+
+# Cryptographic hashing
+hashlib
+blake3>=0.3.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+httpx>=0.26.0
+
+# Optional: Development tools
+python-dotenv>=1.0.0
