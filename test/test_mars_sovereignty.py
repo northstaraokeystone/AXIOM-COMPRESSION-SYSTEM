@@ -6,8 +6,6 @@ Validates research benchmarks:
 """
 
 import json
-import math
-import pytest
 from io import StringIO
 from contextlib import redirect_stdout
 
@@ -21,8 +19,6 @@ from spaceproof.sovereignty.mars import (
     MARS_CONJUNCTION_BLACKOUT_DAYS,
     MARS_SYNODIC_PERIOD_DAYS,
     MOXIE_O2_G_PER_HOUR,
-    TENANT_ID,
-    # Crew matrix
     define_skill_matrix,
     calculate_coverage,
     calculate_redundancy,
@@ -44,7 +40,6 @@ from spaceproof.sovereignty.mars import (
     calculate_isru_closure,
     calculate_reserve_buffer,
     calculate_resupply_cadence,
-    calculate_starship_manifest,
     identify_binding_resource,
     # Integrator
     calculate_sovereignty_score,

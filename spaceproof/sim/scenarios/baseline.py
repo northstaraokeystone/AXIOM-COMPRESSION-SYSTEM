@@ -9,14 +9,12 @@ This is the reference scenario against which all others are compared.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 import numpy as np
 
 from spaceproof.engine.entropy import (
     shannon_entropy,
     coherence_score,
-    COHERENCE_THRESHOLD,
-    ENTROPY_DELTA_HEALTHY,
 )
 from spaceproof.core import emit_receipt
 

@@ -13,7 +13,6 @@ THE PHYSICS:
     not resource scarcity.
 """
 
-from typing import Any
 
 from spaceproof.core import emit_receipt
 
@@ -22,8 +21,6 @@ from .constants import (
     CREW_MIN_SALOTTI,
     DEFAULT_WEIGHTS,
     RESEARCH_VALIDATION_TOLERANCE,
-    SOVEREIGNTY_SCORE_MAX,
-    SOVEREIGNTY_SCORE_MIN,
     TENANT_ID,
 )
 
@@ -66,7 +63,6 @@ def calculate_sovereignty_score(
     # Decision capacity: ratio of internal/external
     # >= 1 means sovereign, use sigmoid to normalize
     # decision_capacity can be 0 to inf
-    import math
 
     if decision_capacity >= 1.0:
         # Already sovereign, score based on how much margin

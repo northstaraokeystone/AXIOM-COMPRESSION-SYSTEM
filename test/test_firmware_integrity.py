@@ -1,6 +1,5 @@
 """Tests for firmware_integrity.py - Supply chain verification."""
 
-import pytest
 from spaceproof.domain.firmware_integrity import (
     log_source_commit,
     log_build_artifact,

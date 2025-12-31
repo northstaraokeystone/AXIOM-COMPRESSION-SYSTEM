@@ -4,7 +4,6 @@ Tests for GLP-1 pens, Botox vials, and cancer drugs.
 Detection target: ≥99.9% recall (CRITICAL - life-threatening)
 """
 
-import pytest
 import numpy as np
 
 from spaceproof.medical.glp1 import verify_glp1_pen, compute_fill_entropy, validate_lot_format
@@ -70,7 +69,7 @@ class TestGLP1Verification:
         )
 
         assert verdict == "COUNTERFEIT"
-        assert receipt.get("lot_format_valid") == False
+        assert not receipt.get("lot_format_valid")
         assert "invalid_lot_format" in receipt.get("flags", [])
 
     def test_critical_risk_level_tagging(self, suppress_receipts):
@@ -89,10 +88,10 @@ class TestGLP1Verification:
 
     def test_lot_format_validation(self):
         """Validate lot number format patterns."""
-        assert validate_lot_format("OZP-2025-12345", "ozempic_0.5mg") == True
-        assert validate_lot_format("WGY-2025-12345", "wegovy_1.7mg") == True
-        assert validate_lot_format("FAKE-001", "ozempic_0.5mg") == False
-        assert validate_lot_format("OZP2025-12345", "ozempic_0.5mg") == False
+        assert validate_lot_format("OZP-2025-12345", "ozempic_0.5mg")
+        assert validate_lot_format("WGY-2025-12345", "wegovy_1.7mg")
+        assert not validate_lot_format("FAKE-001", "ozempic_0.5mg")
+        assert not validate_lot_format("OZP2025-12345", "ozempic_0.5mg")
 
 
 class TestBotoxVerification:
@@ -146,7 +145,7 @@ class TestCancerDrugVerification:
 
         assert verdict in ["AUTHENTIC", "SUSPICIOUS"]
         assert receipt.get("risk_level") == "CRITICAL"
-        assert receipt.get("api_present") == True
+        assert receipt.get("api_present")
         assert "treatment_impact" in receipt
 
     def test_counterfeit_no_api(self, suppress_receipts):
@@ -162,18 +161,18 @@ class TestCancerDrugVerification:
         )
 
         assert verdict == "COUNTERFEIT"
-        assert receipt.get("api_present") == False
+        assert not receipt.get("api_present")
         assert "no_api_detected" in receipt.get("flags", [])
 
     def test_detect_no_api_function(self):
         """Test no-API detection function."""
         # No API
         no_api_raman = np.zeros(200)
-        assert detect_no_api(no_api_raman, "imfinzi_120mg") == True
+        assert detect_no_api(no_api_raman, "imfinzi_120mg")
 
         # Has API
         has_api_raman = np.random.uniform(0.5, 1.0, 200)
-        assert detect_no_api(has_api_raman, "imfinzi_120mg") == False
+        assert not detect_no_api(has_api_raman, "imfinzi_120mg")
 
     def test_treatment_impact_field(self, suppress_receipts):
         """Cancer drug receipts include treatment_impact."""

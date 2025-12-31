@@ -13,12 +13,10 @@ following the "receipts all the way down" principle.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 import re
-from datetime import datetime
 
 from spaceproof.engine.entropy import shannon_entropy
-from spaceproof.core import emit_receipt
 
 
 @dataclass

@@ -30,7 +30,6 @@ from spaceproof.engine.entropy import (
     shannon_entropy,
     coherence_score,
     COHERENCE_THRESHOLD,
-    ENTROPY_DELTA_CRITICAL,
 )
 
 # === CONSTANTS ===

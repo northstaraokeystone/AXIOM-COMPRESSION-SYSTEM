@@ -10,7 +10,7 @@ THE COLONY INSIGHT:
 Source: SpaceProof D20 Production Evolution
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import List, Dict, Optional, Tuple
 import numpy as np

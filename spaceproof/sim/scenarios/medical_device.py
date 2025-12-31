@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 import numpy as np
 
-from spaceproof.core import emit_receipt, StopRule
+from spaceproof.core import emit_receipt
 from spaceproof.medical.glp1 import verify_glp1_pen
 from spaceproof.medical.botox import verify_botox_vial
 from spaceproof.medical.cancer_drugs import verify_cancer_drug

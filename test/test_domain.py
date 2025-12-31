@@ -1,6 +1,5 @@
 """Tests for spaceproof.domain module."""
 
-import pytest
 from spaceproof.domain import galaxy, colony, telemetry
 
 

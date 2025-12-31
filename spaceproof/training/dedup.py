@@ -4,11 +4,10 @@ Prevent duplicate or near-duplicate examples in training set.
 Uses content hashing and similarity scoring for deduplication.
 """
 
-import hashlib
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 from spaceproof.core import dual_hash
 

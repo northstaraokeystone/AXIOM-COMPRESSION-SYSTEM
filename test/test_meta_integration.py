@@ -1,6 +1,5 @@
 """Tests for meta_integration.py - Meta-Loop topology classification."""
 
-import pytest
 from spaceproof.meta_integration import (
     classify_pattern,
     calculate_effectiveness,
@@ -16,9 +15,6 @@ from spaceproof.meta_integration import (
     get_domain_escape_velocity,
     validate_entropy_conservation,
     Topology,
-    ESCAPE_VELOCITY,
-    AUTONOMY_THRESHOLD,
-    TRANSFER_THRESHOLD,
     CASCADE_MULTIPLIER,
     CONFIDENCE_FALLBACK,
 )

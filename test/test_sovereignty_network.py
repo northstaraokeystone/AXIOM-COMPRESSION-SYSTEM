@@ -3,12 +3,9 @@
 Tests network sovereignty threshold calculations.
 """
 
-import pytest
 
 from spaceproof.domain.colony_network import initialize_network
 from spaceproof.sovereignty_network import (
-    TENANT_ID,
-    MIN_SOVEREIGN_COLONIES,
     network_decision_capacity,
     earth_input_rate,
     network_sovereignty_threshold,

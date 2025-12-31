@@ -5,7 +5,7 @@ Aggregates by reason code and severity for pattern analysis.
 """
 
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 

@@ -1,6 +1,5 @@
 """Tests for spaceproof.compress module."""
 
-import pytest
 from spaceproof.compress import (
     compress,
     decompress,

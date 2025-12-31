@@ -3,13 +3,9 @@
 Tests LEO → Mars → Deep-space tier transitions.
 """
 
-import pytest
 
 from spaceproof.tiers.autonomy_tiers import (
     AutonomyTier,
-    TierConfig,
-    TierTransitionResult,
-    TIER_CONFIGS,
     LIGHT_DELAY_LEO_SEC,
     LIGHT_DELAY_MARS_SEC,
     LIGHT_DELAY_DEEP_SPACE_SEC,

@@ -4,12 +4,11 @@ Handle Mars-scale communication delays (3-22 minutes) with eventual consistency.
 """
 
 import uuid
-from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from spaceproof.core import emit_receipt, merkle, MARS_LIGHT_DELAY_MIN_SEC, MARS_LIGHT_DELAY_MAX_SEC
+from spaceproof.core import emit_receipt, MARS_LIGHT_DELAY_MIN_SEC
 
 # === CONSTANTS ===
 

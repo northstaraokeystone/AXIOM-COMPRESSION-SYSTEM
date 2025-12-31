@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
-from spaceproof.shared.verification_engine import VerificationEngine, VerificationResult
+from spaceproof.shared.verification_engine import VerificationEngine
 from .entropy import spectral_entropy
 
 

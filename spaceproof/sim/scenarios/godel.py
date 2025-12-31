@@ -10,13 +10,12 @@ This scenario tests the system's ability to recognize its own limits.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set
 import numpy as np
 
 from spaceproof.engine.entropy import (
     shannon_entropy,
     coherence_score,
-    COHERENCE_THRESHOLD,
 )
 from spaceproof.core import emit_receipt
 

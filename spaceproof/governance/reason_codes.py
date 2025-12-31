@@ -9,9 +9,9 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from spaceproof.core import dual_hash, emit_receipt
+from spaceproof.core import emit_receipt
 
 # === CONSTANTS ===
 

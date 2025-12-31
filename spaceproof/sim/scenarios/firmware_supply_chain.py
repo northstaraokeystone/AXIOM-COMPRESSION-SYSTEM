@@ -29,7 +29,6 @@ from spaceproof.domain.firmware_integrity import (
     emit_firmware_integrity,
     build_complete_chain,
     detect_supply_chain_attack,
-    MAX_VERIFICATION_TIME_MS,
 )
 
 # === CONSTANTS ===
@@ -167,7 +166,7 @@ class FirmwareSupplyChainScenario:
 
         # Verify integrity
         start_time = time.time()
-        verification = verify_integrity_chain(
+        verify_integrity_chain(
             source_hash=commit_hash,
             execution_hash=deployed_hash,
             chain=[source.receipt, build.receipt, deployment.receipt, execution.receipt],

@@ -4,12 +4,11 @@ Tests for olive oil, honey, and seafood verification.
 Detection target: ≥99.9% recall, <1% false positive
 """
 
-import pytest
 import numpy as np
 
-from spaceproof.food.olive_oil import verify_olive_oil, compute_spectral_entropy
-from spaceproof.food.honey import verify_honey, compute_texture_entropy, compute_pollen_entropy
-from spaceproof.food.seafood import verify_seafood, compute_tissue_entropy
+from spaceproof.food.olive_oil import verify_olive_oil
+from spaceproof.food.honey import verify_honey
+from spaceproof.food.seafood import verify_seafood
 from spaceproof.food.entropy import spectral_entropy, texture_entropy, pollen_diversity_entropy
 
 
@@ -189,7 +188,7 @@ class TestSeafoodVerification:
             provenance_chain=["fishery"],
         )
 
-        assert receipt.get("dna_verified") == True
+        assert receipt.get("dna_verified")
 
 
 class TestEntropyCalculators:

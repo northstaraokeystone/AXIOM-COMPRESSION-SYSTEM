@@ -3,8 +3,6 @@
 Execute operations in sandboxed environment for safety.
 """
 
-import os
-import tempfile
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -220,7 +218,7 @@ def execute_in_sandbox(
         )
 
     # Execute with resource tracking
-    start_time = time.time()
+    time.time()
     start_cpu = time.process_time()
 
     try:
@@ -232,7 +230,7 @@ def execute_in_sandbox(
         success = False
         error = str(e)
 
-    end_time = time.time()
+    time.time()
     end_cpu = time.process_time()
 
     cpu_used = end_cpu - start_cpu

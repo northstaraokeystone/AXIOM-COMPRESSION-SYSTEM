@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 import numpy as np
 
-from spaceproof.core import emit_receipt, merkle, dual_hash
+from spaceproof.core import emit_receipt, dual_hash
 from spaceproof.domain.autonomous_decision import (
     log_sensor_inputs,
     log_decision,
@@ -258,7 +258,7 @@ class AutonomousAccountabilityScenario:
         dod_compliance = accountability.valid
 
         # Emit decision lineage
-        lineage_receipt = emit_decision_lineage(
+        emit_decision_lineage(
             [r for r in self.all_receipts if r.get("receipt_type") in ["sensor_input", "decision_lineage"]],
             system_id="defense-autonomous-system",
         )

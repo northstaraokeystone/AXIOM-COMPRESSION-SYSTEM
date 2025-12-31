@@ -27,30 +27,20 @@ Source: Jay's power supply verification use case
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 import numpy as np
 
 from spaceproof.core import emit_receipt, dual_hash
 from spaceproof.detect import (
-    detect_counterfeit_signature,
-    detect_rework_accumulation,
-    compute_supply_chain_compression,
     detect_hardware_fraud,
-    HARDWARE_ENTROPY_THRESHOLDS,
-    REWORK_THRESHOLDS,
 )
 from spaceproof.anchor import (
-    anchor_component_provenance,
-    validate_provenance_chain,
-    merge_component_chains,
     create_manufacturer_receipt,
     create_rework_receipt,
 )
 from spaceproof.meta_integration import (
-    discover_hardware_patterns,
     run_hardware_meta_loop,
     validate_entropy_conservation,
-    ESCAPE_VELOCITY,
 )
 
 # === CONSTANTS ===

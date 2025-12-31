@@ -9,14 +9,13 @@ Source: SpaceProof v3.0 Multi-Tier Autonomy Network Evolution
 Grok: "1M colonists by 2050"
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
+from dataclasses import dataclass
+from typing import List, Dict, Tuple
 from enum import Enum
 import math
 import numpy as np
 
-from ..core import emit_receipt, dual_hash, merkle
-from .colony import ColonyConfig, generate as generate_colony, DEFAULT_CREW_SIZE
+from ..core import emit_receipt, dual_hash
 
 # === CONSTANTS ===
 

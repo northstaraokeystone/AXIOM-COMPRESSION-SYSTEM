@@ -9,10 +9,10 @@ Source: SpaceProof v3.0 Multi-Tier Autonomy Network Evolution
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 import numpy as np
 
-from spaceproof.core import emit_receipt, merkle
+from spaceproof.core import emit_receipt
 from spaceproof.domain.colony_network import (
     ColonyNetwork,
     NetworkState,
@@ -26,10 +26,8 @@ from spaceproof.domain.colony_network import (
     NETWORK_ENTROPY_STABLE_THRESHOLD,
 )
 from spaceproof.sovereignty_network import (
-    network_sovereignty_threshold,
     validate_network_sovereignty,
 )
-from spaceproof.engine.entropy import shannon_entropy, coherence_score
 
 # === CONSTANTS ===
 
@@ -288,7 +286,7 @@ class NetworkScenario:
             failed_colonies.append(c.colony_id)
 
         # Re-simulate to check cascade
-        cascade_states = simulate_network(
+        simulate_network(
             self.network,
             30,  # 30 days
             seed=self.config.seed + 1000,

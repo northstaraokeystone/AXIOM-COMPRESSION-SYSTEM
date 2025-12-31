@@ -5,7 +5,6 @@ Jay Lewis's primary use case: Hardware counterfeit detection.
 
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
-import numpy as np
 
 from spaceproof.core import emit_receipt
 from spaceproof.detect import detect_hardware_fraud
@@ -115,7 +114,7 @@ async def verify_aerospace_component(request: AerospaceRequest) -> VerificationR
 
     except Exception as e:
         # Emit error receipt
-        error_receipt = emit_receipt(
+        emit_receipt(
             "verification_error",
             {
                 "tenant_id": request.tenant_id or "spaceproof",

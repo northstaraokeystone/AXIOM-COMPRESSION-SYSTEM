@@ -9,18 +9,14 @@ THE PHYSICS:
     Starship payload = 125t per flight, must optimize cargo mix.
 """
 
-from typing import Any
 
 from spaceproof.core import emit_receipt
 
 from .constants import (
     BUFFER_DAYS_MINIMUM,
-    BUFFER_DAYS_NOMINAL,
     HUMAN_FOOD_KG_PER_DAY,
-    HUMAN_KCAL_PER_DAY,
     HUMAN_O2_KG_PER_DAY,
     HUMAN_WATER_KG_PER_DAY,
-    ISRU_CLOSURE_TARGET,
     MARS_SYNODIC_PERIOD_DAYS,
     STARSHIP_PAYLOAD_KG,
     TENANT_ID,

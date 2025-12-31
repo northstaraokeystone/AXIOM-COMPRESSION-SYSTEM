@@ -9,9 +9,7 @@ Target: Unblock Jay Lewis test bench integration.
 Response time: <500ms per verification (99th percentile)
 """
 
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -82,11 +80,11 @@ async def health_check() -> HealthResponse:
 
     # Check domain imports
     try:
-        from spaceproof.food import verify_olive_oil
-        from spaceproof.medical import verify_glp1_pen
-        from spaceproof.detect import detect_hardware_fraud
+        from spaceproof.food import verify_olive_oil  # noqa: F401
+        from spaceproof.medical import verify_glp1_pen  # noqa: F401
+        from spaceproof.detect import detect_hardware_fraud  # noqa: F401
         domains_available = ["aerospace", "food", "medical"]
-    except ImportError as e:
+    except ImportError:
         domains_available = ["aerospace"]  # Minimal fallback
 
     # Determine overall health

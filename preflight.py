@@ -64,7 +64,7 @@ def check_syntax() -> Tuple[bool, str]:
             errors.append(f"{py_file}: {e}")
 
     if errors:
-        return False, f"Syntax errors:\n  " + "\n  ".join(errors)
+        return False, "Syntax errors:\n  " + "\n  ".join(errors)
 
     return True, f"All {len(py_files)} Python files parse correctly"
 

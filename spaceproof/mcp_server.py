@@ -27,8 +27,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import Any, Dict, List, Optional
 import threading
 
-from spaceproof.core import dual_hash, emit_receipt, merkle, TENANT_ID
-from spaceproof.meta_integration import classify_pattern, Topology
+from spaceproof.core import emit_receipt, merkle
+from spaceproof.meta_integration import classify_pattern
 
 # === CONSTANTS ===
 
@@ -474,7 +474,6 @@ def handle_mcp_message(message: Dict[str, Any]) -> Dict[str, Any]:
 
 def run_stdio_mode():
     """Run MCP server in stdio mode for Claude Desktop."""
-    import sys
 
     for line in sys.stdin:
         try:

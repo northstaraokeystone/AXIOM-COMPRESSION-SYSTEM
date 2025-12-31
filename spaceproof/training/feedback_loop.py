@@ -13,7 +13,6 @@ from typing import Any, Deque, Dict, List, Optional, Tuple
 from spaceproof.core import emit_receipt
 
 from .extractor import TrainingExample
-from .labeler import LabeledExample
 
 # === CONSTANTS ===
 

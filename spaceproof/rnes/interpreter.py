@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
-from spaceproof.core import dual_hash, emit_receipt
+from spaceproof.core import emit_receipt
 
 # === CONSTANTS ===
 

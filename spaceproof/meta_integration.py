@@ -15,14 +15,13 @@ Source: Meta_loop_v2_1.txt (document #14)
 """
 
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 import json
 import math
 import uuid
 
-from spaceproof.core import dual_hash, emit_receipt, merkle, TENANT_ID
+from spaceproof.core import dual_hash, emit_receipt
 
 # === CONSTANTS (from Meta-Loop v2.1) ===
 

@@ -1,6 +1,5 @@
 """Tests for spaceproof.ledger module."""
 
-import pytest
 import tempfile
 import os
 from spaceproof.ledger import (

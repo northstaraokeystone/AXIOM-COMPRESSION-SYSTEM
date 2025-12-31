@@ -1,149 +1,165 @@
 """Tests for spaceproof.economy module."""
 
-import pytest
 from spaceproof.economy import (
-    authorize_with_receipt,
-    verify_receipt_for_access,
-    emit_access_receipt,
-    record_operation_cost,
+    authorize_resource,
+    check_authorization,
+    ResourceAuthorization,
+    track_operation_cost,
     get_cost_summary,
-    emit_cost_receipt,
+    allocate_budget,
+    OperationCost,
+    CostBudget,
     check_quota,
     consume_quota,
     reset_quota,
     emit_quota_receipt,
+    QuotaStatus,
 )
 
 
-def test_authorize_with_receipt_valid():
-    """authorize_with_receipt grants access with valid receipt."""
-    receipt = {
-        "receipt_type": "access_grant",
-        "tenant_id": "test-tenant",
-        "resource": "compute",
-        "valid_until": "2030-01-01T00:00:00Z",
-    }
-    result = authorize_with_receipt(receipt, resource="compute")
-    assert result["authorized"] is True
-
-
-def test_authorize_with_receipt_invalid():
-    """authorize_with_receipt denies access with invalid receipt."""
-    receipt = {
-        "receipt_type": "access_grant",
-        "tenant_id": "test-tenant",
-        "resource": "storage",
-    }
-    result = authorize_with_receipt(receipt, resource="compute")
-    assert result["authorized"] is False
-
-
-def test_verify_receipt_for_access():
-    """verify_receipt_for_access validates receipt chain."""
-    receipt = {
-        "receipt_type": "access_grant",
-        "payload_hash": "abc123:def456",
-    }
-    result = verify_receipt_for_access(receipt)
-    assert isinstance(result, dict)
-    assert "valid" in result
-
-
-def test_emit_access_receipt(capsys):
-    """emit_access_receipt emits valid receipt."""
-    receipt = emit_access_receipt(
-        tenant_id="test-tenant",
-        resource="compute",
-        action="read",
-        authorized=True,
+def test_authorize_resource():
+    """authorize_resource creates valid authorization."""
+    auth = authorize_resource(
+        resource_id="compute-001",
+        resource_type="compute",
+        grantee_id="user-123",
+        permissions=["read", "write"],
+        granted_by="admin-001",
     )
-    assert receipt["receipt_type"] == "access_authorization"
-    assert receipt["authorized"] is True
+    assert isinstance(auth, ResourceAuthorization)
+    assert auth.resource_id == "compute-001"
+    assert auth.grantee_id == "user-123"
+    assert "read" in auth.permissions
 
 
-def test_record_operation_cost():
-    """record_operation_cost tracks operation cost."""
-    result = record_operation_cost(
-        tenant_id="test-tenant",
-        operation="inference",
-        cost_units=10.5,
+def test_check_authorization_valid():
+    """check_authorization finds valid authorization."""
+    authorize_resource(
+        resource_id="storage-001",
+        resource_type="storage",
+        grantee_id="user-check",
+        permissions=["read"],
+        granted_by="admin-001",
     )
-    assert result["recorded"] is True
-    assert result["cost_units"] == 10.5
+    result = check_authorization(
+        resource_id="storage-001",
+        grantee_id="user-check",
+        required_permission="read",
+    )
+    assert result is not None
+    assert result.grantee_id == "user-check"
+
+
+def test_check_authorization_no_permission():
+    """check_authorization returns None when no permission."""
+    authorize_resource(
+        resource_id="storage-002",
+        resource_type="storage",
+        grantee_id="user-limited",
+        permissions=["read"],
+        granted_by="admin-001",
+    )
+    result = check_authorization(
+        resource_id="storage-002",
+        grantee_id="user-limited",
+        required_permission="write",
+    )
+    assert result is None
+
+
+def test_track_operation_cost():
+    """track_operation_cost records cost."""
+    cost = track_operation_cost(
+        operation_type="inference",
+        resource_units=10.5,
+        actor_id="user-123",
+    )
+    assert isinstance(cost, OperationCost)
+    assert cost.resource_units == 10.5
+    assert cost.total_cost > 0
 
 
 def test_get_cost_summary():
     """get_cost_summary returns cost aggregation."""
-    summary = get_cost_summary(
-        tenant_id="test-tenant",
-        period="2024-01",
+    # Track some costs
+    track_operation_cost(
+        operation_type="compute",
+        resource_units=5.0,
+        actor_id="user-summary",
     )
+    summary = get_cost_summary(actor_id="user-summary")
     assert isinstance(summary, dict)
-    assert "total" in summary or "costs" in summary
+    assert "total_cost" in summary
 
 
-def test_emit_cost_receipt(capsys):
-    """emit_cost_receipt emits valid receipt."""
-    receipt = emit_cost_receipt(
-        tenant_id="test-tenant",
-        operation="inference",
-        cost_units=15.0,
+def test_allocate_budget():
+    """allocate_budget creates budget."""
+    budget = allocate_budget(owner_id="user-budget", amount=1000.0)
+    assert isinstance(budget, CostBudget)
+    assert budget.remaining_amount == 1000.0
+
+
+def test_check_quota():
+    """check_quota returns quota status."""
+    from spaceproof.economy.quota_enforcement import create_quota
+
+    create_quota(
+        resource_type="api_calls",
+        limit=1000,
+        actor_id="user-quota",
     )
-    assert receipt["receipt_type"] == "cost_accounting"
-    assert receipt["cost_units"] == 15.0
-
-
-def test_check_quota_available():
-    """check_quota returns available quota."""
-    result = check_quota(
-        tenant_id="test-tenant",
-        resource="api_calls",
+    status = check_quota(
+        actor_id="user-quota",
+        resource_type="api_calls",
     )
-    assert "available" in result or "remaining" in result
+    assert isinstance(status, QuotaStatus)
+    assert status.limit == 1000
 
 
 def test_consume_quota():
     """consume_quota deducts from quota."""
-    result = consume_quota(
-        tenant_id="test-tenant",
-        resource="api_calls",
+    from spaceproof.economy.quota_enforcement import create_quota
+
+    create_quota(
+        resource_type="requests",
+        limit=100,
+        actor_id="user-consume",
+    )
+    success, status = consume_quota(
+        actor_id="user-consume",
+        resource_type="requests",
         amount=1,
     )
-    assert result["success"] is True or result.get("exceeded") is True
-
-
-def test_consume_quota_exceeded():
-    """consume_quota handles quota exceeded."""
-    # First exhaust quota
-    for _ in range(1000):
-        consume_quota("test-exceed", "api_calls", 100)
-
-    result = consume_quota(
-        tenant_id="test-exceed",
-        resource="api_calls",
-        amount=1,
-    )
-    # Should either succeed or be rejected
-    assert "success" in result or "exceeded" in result
+    assert success is True
+    assert status.used >= 1
 
 
 def test_reset_quota():
-    """reset_quota resets quota to initial value."""
-    result = reset_quota(
-        tenant_id="test-tenant",
-        resource="api_calls",
+    """reset_quota resets usage."""
+    from spaceproof.economy.quota_enforcement import create_quota
+
+    create_quota(
+        resource_type="resets",
+        limit=100,
+        actor_id="user-reset",
     )
-    assert result["success"] is True
+    consume_quota(actor_id="user-reset", resource_type="resets", amount=10)
+    result = reset_quota(actor_id="user-reset", resource_type="resets")
+    assert result is True
 
 
-def test_emit_quota_receipt(capsys):
+def test_emit_quota_receipt():
     """emit_quota_receipt emits valid receipt."""
-    receipt = emit_quota_receipt(
-        tenant_id="test-tenant",
-        resource="api_calls",
-        consumed=50,
+    status = QuotaStatus(
+        quota_id="test-quota",
+        resource_type="api_calls",
+        limit=1000,
+        used=50,
         remaining=950,
+        window_start="2024-01-01T00:00:00Z",
+        window_end="2024-01-02T00:00:00Z",
+        is_exceeded=False,
+        utilization_pct=5.0,
     )
+    receipt = emit_quota_receipt(status)
     assert receipt["receipt_type"] == "quota_enforcement"
-    assert receipt["consumed"] == 50
-    assert receipt["remaining"] == 950

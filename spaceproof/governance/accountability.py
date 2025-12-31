@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from spaceproof.core import dual_hash, emit_receipt, merkle
+from spaceproof.core import emit_receipt, merkle
 
 # === CONSTANTS ===
 

@@ -16,7 +16,7 @@ Stakeholder Value:
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import json
 
 from .core import emit_receipt, dual_hash, merkle
@@ -330,10 +330,6 @@ def chain_receipts(receipts: List[Dict]) -> Dict:
 # Source: Jay's power supply verification use case
 
 
-from typing import Optional
-from dataclasses import field
-
-
 @dataclass
 class ComponentProvenanceReceipt:
     """Provenance receipt for a hardware component."""
@@ -428,9 +424,11 @@ def anchor_component_provenance(
 
     # Validate chain starts with manufacturer receipt
     first_receipt = receipts[0]
-    has_manufacturer = first_receipt.get("receipt_type") == "manufacturer" or \
-                       first_receipt.get("type") == "manufacturer" or \
-                       "manufacturer" in str(first_receipt.get("receipt_type", "")).lower()
+    has_manufacturer = (
+        first_receipt.get("receipt_type") == "manufacturer"
+        or first_receipt.get("type") == "manufacturer"
+        or "manufacturer" in str(first_receipt.get("receipt_type", "")).lower()
+    )
 
     if not has_manufacturer:
         # Check if any receipt is manufacturer receipt
@@ -450,9 +448,11 @@ def anchor_component_provenance(
     # Count rework receipts
     rework_count = sum(
         1 for r in receipts
-        if r.get("receipt_type") == "rework" or
-           r.get("type") == "rework" or
-           "rework" in str(r.get("receipt_type", "")).lower()
+        if (
+            r.get("receipt_type") == "rework"
+            or r.get("type") == "rework"
+            or "rework" in str(r.get("receipt_type", "")).lower()
+        )
     )
 
     # Extract entropy at each step

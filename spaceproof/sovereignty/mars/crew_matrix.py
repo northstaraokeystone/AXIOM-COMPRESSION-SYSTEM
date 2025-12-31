@@ -10,7 +10,6 @@ THE PHYSICS:
 """
 
 import math
-from typing import Any
 
 from spaceproof.core import emit_receipt
 
@@ -19,10 +18,6 @@ from .constants import (
     MAX_WORK_HOURS_PER_WEEK,
     MIN_REDUNDANCY_CRITICAL,
     MIN_REDUNDANCY_HIGH,
-    SKILL_CATEGORY_CRITICAL,
-    SKILL_CATEGORY_HIGH,
-    SKILL_CATEGORY_LOW,
-    SKILL_CATEGORY_MEDIUM,
     TENANT_ID,
 )
 

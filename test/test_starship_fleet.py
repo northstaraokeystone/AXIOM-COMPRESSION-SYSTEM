@@ -3,13 +3,9 @@
 Tests 1000+ launches/year with entropy accounting.
 """
 
-import pytest
-import numpy as np
 
 from spaceproof.domain.starship_fleet import (
     FleetConfig,
-    FleetState,
-    StarshipLaunch,
     STARSHIP_PAYLOAD_KG,
     STARSHIP_FLIGHTS_PER_YEAR,
     calculate_entropy_delivered,

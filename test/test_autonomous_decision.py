@@ -1,6 +1,5 @@
 """Tests for autonomous_decision.py - Defense DOD 3000.09 compliance."""
 
-import pytest
 from spaceproof.domain.autonomous_decision import (
     log_sensor_inputs,
     log_decision,

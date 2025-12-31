@@ -10,7 +10,7 @@ Grok: "500t payload", "1000 flights/year target"
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict
 from enum import Enum
 import math
 import numpy as np
@@ -281,7 +281,7 @@ def simulate_fleet(config: FleetConfig, duration_years: int, seed: int = 42) -> 
         cumulative_entropy += year_entropy
 
         # Determine fleet status
-        success_rate = sum(1 for l in year_launches if l.success) / len(year_launches)
+        success_rate = sum(1 for launch in year_launches if launch.success) / len(year_launches)
         if success_rate >= 0.95:
             status = FleetStatus.NOMINAL.value
         elif success_rate >= 0.80:
@@ -333,9 +333,9 @@ def fleet_to_colony_entropy(fleet_state: FleetState, colony_ids: List[str]) -> D
         return {}
 
     # Filter to Mars surface deliveries
-    mars_launches = [l for l in fleet_state.launches if l.destination == "mars_surface" and l.success]
+    mars_launches = [launch for launch in fleet_state.launches if launch.destination == "mars_surface" and launch.success]
 
-    total_entropy = sum(l.entropy_delivered for l in mars_launches)
+    total_entropy = sum(launch.entropy_delivered for launch in mars_launches)
 
     # Distribute entropy across colonies (equal distribution for now)
     per_colony = total_entropy / len(colony_ids) if colony_ids else 0.0
@@ -370,7 +370,7 @@ def calculate_fleet_bandwidth(fleet_state: FleetState, bits_per_joule: float = 1
         Effective bandwidth in bits/second (annualized)
     """
     # Total entropy delivered this year
-    year_entropy = sum(l.entropy_delivered for l in fleet_state.launches if l.success)
+    year_entropy = sum(launch.entropy_delivered for launch in fleet_state.launches if launch.success)
 
     # Convert to bits and annualize (bits per second)
     seconds_per_year = 365.25 * 24 * 3600

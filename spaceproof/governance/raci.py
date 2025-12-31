@@ -9,11 +9,10 @@ import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from spaceproof.core import dual_hash, emit_receipt
+from spaceproof.core import emit_receipt
 
 # === CONSTANTS ===
 

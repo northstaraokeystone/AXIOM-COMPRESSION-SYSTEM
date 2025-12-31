@@ -15,14 +15,11 @@ Sources:
 """
 
 import math
-from typing import Any
 
 from spaceproof.core import emit_receipt
 
 from .constants import (
     HAB_TARGET_TEMP_C,
-    HAB_TEMP_MAX_C,
-    HAB_TEMP_MIN_C,
     HUMAN_METABOLIC_HEAT_W,
     HUMAN_O2_KG_PER_DAY,
     HUMAN_WATER_KG_PER_DAY,
@@ -31,8 +28,6 @@ from .constants import (
     ISS_O2_CLOSURE_RATIO,
     MARS_AMBIENT_TEMP_K,
     MOXIE_O2_G_PER_HOUR,
-    O2_PARTIAL_PRESSURE_MAX_KPA,
-    O2_PARTIAL_PRESSURE_MIN_KPA,
     STEFAN_BOLTZMANN_W_M2_K4,
     TENANT_ID,
 )
@@ -204,7 +199,7 @@ def calculate_eclss_reliability(
     mission_hours = mission_duration_days * 24
 
     # Base failure rate (failures per hour)
-    lambda_base = 1.0 / mtbf_hours
+    1.0 / mtbf_hours
 
     # Effective MTBF with redundancy (series-parallel reliability)
     # For n-redundant system: effective_mtbf ≈ mtbf * (1 + 1/2 + ... + 1/n)

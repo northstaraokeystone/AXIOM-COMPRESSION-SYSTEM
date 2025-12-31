@@ -8,8 +8,7 @@ Intermediate dimensions handle cross-cutting concerns:
     D10 - Dependency Validation: Module dependency satisfaction
 """
 
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 import numpy as np
 
 from spaceproof.engine.entropy import coherence_score, COHERENCE_THRESHOLD

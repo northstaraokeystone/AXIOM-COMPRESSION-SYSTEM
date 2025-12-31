@@ -17,14 +17,13 @@ THE ENTROPY PUMP PARADIGM:
 Source: xAI collaboration constants and SpaceProof D20 Production Evolution
 """
 
-import math
 import zlib
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 import numpy as np
 
 # Import from parent core module (spaceproof/core.py, not spaceproof/core/)
-from spaceproof.core import emit_receipt, dual_hash
+from spaceproof.core import emit_receipt
 
 # === XAI CONSTANTS (MUST PRESERVE) ===
 

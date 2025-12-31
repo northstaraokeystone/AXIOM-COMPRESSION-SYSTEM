@@ -14,12 +14,12 @@ Pass Criteria:
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Optional
 import uuid
 
 import numpy as np
 
-from spaceproof.core import emit_receipt, merkle, dual_hash, MARS_LIGHT_DELAY_MIN_SEC, MARS_LIGHT_DELAY_MAX_SEC
+from spaceproof.core import emit_receipt, merkle, dual_hash, MARS_LIGHT_DELAY_MAX_SEC
 
 CHECKPOINT_FREQUENCY = 50
 TENANT_ID = "spaceproof-scenario-offline"
@@ -83,7 +83,7 @@ class OfflineResilienceScenario:
             self._create_conflict(i)
 
         # Perform sync and conflict resolution
-        sync_success = self._perform_sync()
+        self._perform_sync()
 
         # Verify Merkle integrity
         merkle_ok = self._verify_merkle_integrity()
@@ -105,7 +105,7 @@ class OfflineResilienceScenario:
             failure_reasons.append("Merkle chain integrity not maintained")
 
         if not sync_ok:
-            failure_reasons.append(f"Sync latency exceeded 2x light-delay")
+            failure_reasons.append("Sync latency exceeded 2x light-delay")
 
         if self.conflicts_resolved < self.conflicts_detected:
             failure_reasons.append(f"Only {self.conflicts_resolved}/{self.conflicts_detected} conflicts resolved")

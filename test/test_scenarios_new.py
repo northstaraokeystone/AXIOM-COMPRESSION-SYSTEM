@@ -3,16 +3,13 @@
 Tests network-scale validation and DoD hostile audit.
 """
 
-import pytest
 
 from spaceproof.sim.scenarios.network import (
-    NetworkScenario,
     NetworkScenarioConfig,
     NetworkScenarioResult,
     run_scenario as run_network_scenario,
 )
 from spaceproof.sim.scenarios.adversarial import (
-    AdversarialScenario,
     AdversarialConfig,
     AdversarialResult,
     AttackType,

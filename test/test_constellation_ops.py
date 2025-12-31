@@ -1,6 +1,5 @@
 """Tests for constellation_ops.py - Starlink maneuver audit."""
 
-import pytest
 from spaceproof.domain.constellation_ops import (
     log_conjunction_alert,
     log_maneuver_decision,

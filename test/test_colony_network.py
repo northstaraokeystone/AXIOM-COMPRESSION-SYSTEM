@@ -4,23 +4,17 @@ Tests 1000 colonies, 1M colonists network dynamics.
 """
 
 import pytest
-import numpy as np
 
 from spaceproof.domain.colony_network import (
-    ColonyNetwork,
     ColonyNode,
-    NetworkState,
     MARS_COLONIST_TARGET_2050,
     COLONY_NETWORK_SIZE_TARGET,
-    INTER_COLONY_BANDWIDTH_MBPS,
-    calculate_distance,
     inter_colony_bandwidth,
     initialize_network,
     simulate_network,
     detect_partition,
     merge_partitions,
     scale_network,
-    network_entropy_rate,
 )
 
 

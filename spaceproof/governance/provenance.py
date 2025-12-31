@@ -4,12 +4,11 @@ Every decision must have provenance: which model, which policy, what state.
 Captures model version and policy state at decision time for reproducibility.
 """
 
-import hashlib
 import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from spaceproof.core import dual_hash, emit_receipt
 
@@ -210,7 +209,7 @@ def verify_provenance(provenance: ProvenanceCapture) -> bool:
     """
     # Recompute model hash
     model_content = f"{provenance.model_id}:v{provenance.model_version}:weights"
-    expected_model_hash = dual_hash(model_content)
+    dual_hash(model_content)
 
     # For simulation, model hashes may not match exactly
     # In production, would verify against model registry

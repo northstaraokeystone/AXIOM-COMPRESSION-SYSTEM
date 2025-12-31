@@ -1,6 +1,5 @@
 """Tests for spaceproof.witness module."""
 
-import pytest
 import numpy as np
 from spaceproof.witness import KAN, KANConfig, train
 

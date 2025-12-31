@@ -11,22 +11,16 @@ Ultimate dimensions implement the highest validation maturity:
 SpaceProof back-builds from these, following "receipts all the way down".
 """
 
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List
 import numpy as np
 import json
-import hashlib
 
 from spaceproof.engine.entropy import (
-    shannon_entropy,
     coherence_score,
-    entropy_delta,
     fitness_score,
     COHERENCE_THRESHOLD,
-    ENTROPY_DELTA_HEALTHY,
-    ENTROPY_DELTA_CRITICAL,
 )
-from spaceproof.core import emit_receipt, dual_hash
+from spaceproof.core import dual_hash
 from spaceproof.sim.dimensions.foundation import BaseDimension, DimensionResult
 
 

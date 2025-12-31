@@ -24,10 +24,9 @@ Source: Grok Research Starlink pain points
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
-import json
+from typing import Any, Dict, List, Optional
 
-from spaceproof.core import dual_hash, emit_receipt, merkle, TENANT_ID
+from spaceproof.core import dual_hash, emit_receipt, merkle
 
 # === CONSTANTS ===
 

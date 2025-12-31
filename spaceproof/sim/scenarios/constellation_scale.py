@@ -29,7 +29,6 @@ from spaceproof.domain.constellation_ops import (
     emit_maneuver_audit_chain,
     generate_fcc_report,
     FCC_DEMISABILITY_THRESHOLD,
-    STARLINK_CONSTELLATION_SIZE,
 )
 
 # === CONSTANTS ===
@@ -256,7 +255,7 @@ class ConstellationScaleScenario:
 
         # Generate FCC report and time it
         start_time = time.time()
-        fcc_report = generate_fcc_report(self.deorbit_verifications)
+        generate_fcc_report(self.deorbit_verifications)
         fcc_report_time = time.time() - start_time
 
         # Check all criteria

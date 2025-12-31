@@ -1,6 +1,5 @@
 """Tests for orbital_compute.py - Starcloud orbital compute provenance."""
 
-import pytest
 from spaceproof.domain.orbital_compute import (
     ingest_raw_data,
     execute_inference,
@@ -9,7 +8,6 @@ from spaceproof.domain.orbital_compute import (
     verify_provenance,
     compute_effectiveness,
     RADIATION_ENTROPY_THRESHOLD,
-    ENTROPY_CONSERVATION_LIMIT,
 )
 
 

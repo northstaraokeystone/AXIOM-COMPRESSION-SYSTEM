@@ -18,10 +18,10 @@ Source: Receipts_native_architecture_v2_0.txt (document #12)
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 import json
 
-from spaceproof.core import dual_hash, emit_receipt, merkle, TENANT_ID
+from spaceproof.core import dual_hash, emit_receipt
 
 # === CONSTANTS ===
 

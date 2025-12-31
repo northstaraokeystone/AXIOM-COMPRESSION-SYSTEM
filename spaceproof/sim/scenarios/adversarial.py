@@ -16,12 +16,12 @@ Grok: "$1.8B Starlink-DoD deal Dec 2025"
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 from enum import Enum
 import time
 import numpy as np
 
-from spaceproof.core import emit_receipt, dual_hash, merkle, StopRule
+from spaceproof.core import emit_receipt, dual_hash, merkle
 
 # === CONSTANTS ===
 
@@ -401,7 +401,7 @@ class AdversarialScenario:
         blocked = True
 
         for i in range(n_fake_colonies):
-            fake_receipt = {
+            {
                 "receipt_id": f"FAKE-{i:04d}",
                 "receipt_type": "colony_decision",
                 "timestamp": time.time(),

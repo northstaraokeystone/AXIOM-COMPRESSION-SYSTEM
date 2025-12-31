@@ -4,7 +4,6 @@ All medical verifications are risk_level=CRITICAL.
 Detection target: ≥99.9% recall (life-threatening if missed).
 """
 
-from datetime import datetime
 from fastapi import APIRouter, HTTPException
 import numpy as np
 
@@ -64,7 +63,7 @@ async def verify_glp1_endpoint(request: GLP1Request) -> VerificationResponse:
         )
 
     except Exception as e:
-        error_receipt = emit_receipt(
+        emit_receipt(
             "verification_error",
             {
                 "tenant_id": "spaceproof",
@@ -123,7 +122,7 @@ async def verify_botox_endpoint(request: BotoxRequest) -> VerificationResponse:
         )
 
     except Exception as e:
-        error_receipt = emit_receipt(
+        emit_receipt(
             "verification_error",
             {
                 "tenant_id": "spaceproof",
@@ -182,7 +181,7 @@ async def verify_cancer_drug_endpoint(request: CancerDrugRequest) -> Verificatio
         )
 
     except Exception as e:
-        error_receipt = emit_receipt(
+        emit_receipt(
             "verification_error",
             {
                 "tenant_id": "spaceproof",

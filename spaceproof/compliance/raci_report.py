@@ -4,8 +4,8 @@ Generate reports on RACI assignments and accountability.
 Tracks coverage and identifies decisions without proper assignment.
 """
 
-from collections import Counter, defaultdict
-from dataclasses import dataclass, field
+from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 

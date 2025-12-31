@@ -1,6 +1,5 @@
 """Tests for defense expansion scenarios."""
 
-import pytest
 from spaceproof.sim.scenarios.orbital_compute import (
     OrbitalComputeScenario,
     OrbitalComputeConfig,

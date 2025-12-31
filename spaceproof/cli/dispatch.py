@@ -1,7 +1,6 @@
 """SpaceProof CLI command dispatcher."""
 
 import json
-import sys
 
 from spaceproof.core import emit_receipt
 
@@ -127,13 +126,12 @@ def handle_witness(args) -> None:
     from spaceproof.witness import KAN, KANConfig
 
     config = KANConfig()
-    kan = KAN(config)
+    KAN(config)
     print(json.dumps({"status": "witness initialized", "domain": args.domain}))
 
 
 def handle_detect(args) -> None:
     """Handle detect command."""
-    from spaceproof.detect import detect_anomaly
 
     print(json.dumps({"status": "detect initialized", "config": args.config}))
 
@@ -149,7 +147,7 @@ def handle_loop(args) -> None:
 
     loop = Loop()
     for i in range(args.cycles):
-        result = loop.run_cycle({})
+        loop.run_cycle({})
     print(json.dumps({"cycles_completed": args.cycles}))
 
 
@@ -210,20 +208,20 @@ def handle_hardware_verify(args) -> None:
     print(f"\nComponent: {component_id}")
     print(f"Status: {status}")
     print(f"Risk Score: {result['risk_score']:.2f}")
-    print(f"\nCounterfeit Analysis:")
+    print("\nCounterfeit Analysis:")
     print(f"  Classification: {result['counterfeit']['classification']}")
     print(f"  Entropy: {result['counterfeit']['entropy']:.2f}")
     print(f"  Confidence: {result['counterfeit']['confidence']:.2f}")
-    print(f"\nRework Analysis:")
+    print("\nRework Analysis:")
     print(f"  Count: {result['rework']['count']}")
     print(f"  Trend: {result['rework']['trend']}")
     print(f"  Risk Level: {result['rework']['risk_level']}")
-    print(f"\nProvenance Analysis:")
+    print("\nProvenance Analysis:")
     print(f"  Classification: {result['provenance']['classification']}")
     print(f"  Valid: {result['provenance']['valid']}")
 
     if result["reject_reasons"]:
-        print(f"\nReject Reasons:")
+        print("\nReject Reasons:")
         for reason in result["reject_reasons"]:
             print(f"  - {reason}")
 
@@ -308,7 +306,6 @@ def handle_spawn_helpers(args) -> None:
     Example:
         spaceproof spawn-helpers HARDWARE_SUPPLY_CHAIN_DISCOVERY --cycles 100
     """
-    from spaceproof.meta_integration import run_hardware_meta_loop, discover_hardware_patterns
 
     scenario = args.scenario
     cycles = getattr(args, "cycles", 100)
@@ -323,7 +320,7 @@ def handle_spawn_helpers(args) -> None:
         scenario_runner = HardwareSupplyChainScenario()
         result = scenario_runner.run()
 
-        print(f"\nResults:")
+        print("\nResults:")
         print(f"  Counterfeits Detected: {result.counterfeits_detected}/{result.counterfeits_total}")
         print(f"  Rework Issues Detected: {result.excessive_rework_detected}/{result.excessive_rework_total}")
         print(f"  Broken Chains Detected: {result.broken_chains_detected}/{result.broken_chains_total}")
@@ -339,7 +336,7 @@ def handle_spawn_helpers(args) -> None:
         scenario_runner = PowerSupplyPrototypeScenario()
         result = scenario_runner.run()
 
-        print(f"\nResults:")
+        print("\nResults:")
         print(f"  Module: {result.module_id}")
         print(f"  Components Analyzed: {result.components_analyzed}")
         print(f"  Issues Detected: {result.reliability_compromising_detected}")
@@ -364,7 +361,6 @@ def handle_export_compliance(args) -> None:
     Example:
         spaceproof export-compliance power_supply_001 --format nasa_eee_inst_002
     """
-    from datetime import datetime
 
     module_id = args.module_id
     format_type = getattr(args, "format", "nasa_eee_inst_002")
@@ -497,7 +493,7 @@ def handle_simulate(args) -> None:
     """
     scenario = getattr(args, "scenario", None)
     run_all = getattr(args, "all", False)
-    verbose = getattr(args, "verbose", False)
+    getattr(args, "verbose", False)
 
     if run_all:
         print("Running all scenarios...")
@@ -543,12 +539,10 @@ def handle_validate(args) -> None:
     Example:
         spaceproof validate --report aerospace --format terminal
     """
-    from datetime import datetime
-    import numpy as np
 
     report_type = getattr(args, "report", "all")
     output_format = getattr(args, "format", "terminal")
-    run_tests = getattr(args, "run_tests", False)
+    getattr(args, "run_tests", False)
 
     # Collect validation results
     results = run_validation_suite(report_type)
@@ -564,7 +558,6 @@ def handle_validate(args) -> None:
 
 def run_validation_suite(report_type: str) -> dict:
     """Run validation tests and collect results."""
-    import numpy as np
     from datetime import datetime
 
     results = {
@@ -915,7 +908,6 @@ def run_medical_validation() -> dict:
 def run_api_validation() -> dict:
     """Run API validation."""
     try:
-        from api.server import app
         return {
             "status": "AVAILABLE",
             "endpoints": [
@@ -1000,10 +992,10 @@ def generate_terminal_report(results: dict, report_type: str) -> str:
             lines.append(f"│    [{fake_icon}] Counterfeit component correctly rejected                         │")
             lines.append("│                                                                              │")
             lines.append("│  Entropy Threshold:                                                          │")
-            lines.append(f"│    • Legitimate:    ≤ 0.35                                                   │")
-            lines.append(f"│    • Counterfeit:   ≥ 0.70                                                   │")
+            lines.append("│    • Legitimate:    ≤ 0.35                                                   │")
+            lines.append("│    • Counterfeit:   ≥ 0.70                                                   │")
         else:
-            lines.append(f"│  Status: [✗] ERROR                                                           │")
+            lines.append("│  Status: [✗] ERROR                                                           │")
             lines.append(f"│  Error: {aero.get('error', 'Unknown')[:66]:<66} │")
 
         lines.append("└──────────────────────────────────────────────────────────────────────────────┘")
@@ -1031,7 +1023,7 @@ def generate_terminal_report(results: dict, report_type: str) -> str:
             lines.append(f"│  Aggregate Recall:        {food['aggregate_recall']*100:.1f}% (target: ≥99.9%)                         │")
             lines.append(f"│  Aggregate False Pos:     {food['aggregate_false_positive']*100:.1f}% (target: <1%)                            │")
         else:
-            lines.append(f"│  Status: [✗] ERROR                                                           │")
+            lines.append("│  Status: [✗] ERROR                                                           │")
 
         lines.append("└──────────────────────────────────────────────────────────────────────────────┘")
         lines.append("")
@@ -1059,9 +1051,9 @@ def generate_terminal_report(results: dict, report_type: str) -> str:
 
             lines.append("│                                                                              │")
             lines.append(f"│  Aggregate Recall:        {med['aggregate_recall']*100:.1f}% (target: ≥99.9%)                         │")
-            lines.append(f"│  No-API Detection:        ENABLED                                           │")
+            lines.append("│  No-API Detection:        ENABLED                                           │")
         else:
-            lines.append(f"│  Status: [✗] ERROR                                                           │")
+            lines.append("│  Status: [✗] ERROR                                                           │")
 
         lines.append("└──────────────────────────────────────────────────────────────────────────────┘")
         lines.append("")

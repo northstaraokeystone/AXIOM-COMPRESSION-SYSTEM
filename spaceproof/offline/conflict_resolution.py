@@ -7,7 +7,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from spaceproof.core import dual_hash, emit_receipt, merkle
 
@@ -89,8 +89,8 @@ def detect_conflicts(
     conflicts = []
 
     # Build hash map for quick lookup
-    hash_map_a = {dual_hash(str(e)): e for e in entries_a}
-    hash_map_b = {dual_hash(str(e)): e for e in entries_b}
+    {dual_hash(str(e)): e for e in entries_a}
+    {dual_hash(str(e)): e for e in entries_b}
 
     # Check for same-ID different-content conflicts
     id_map_a = {e.get("id", e.get("receipt_id")): e for e in entries_a if e.get("id") or e.get("receipt_id")}

@@ -19,7 +19,7 @@ import time
 from pathlib import Path
 from typing import Callable, List, Tuple
 
-from spaceproof.core import emit_receipt, dual_hash
+from spaceproof.core import emit_receipt
 
 # === CONSTANTS ===
 
@@ -147,8 +147,8 @@ def check_tests() -> Tuple[bool, str]:
             # Extract failure summary
             output = result.stdout + result.stderr
             lines = output.split("\n")
-            summary = [l for l in lines if "FAILED" in l or "error" in l.lower()][:5]
-            return False, f"Tests failed:\n" + "\n".join(summary)
+            summary = [line for line in lines if "FAILED" in line or "error" in line.lower()][:5]
+            return False, "Tests failed:\n" + "\n".join(summary)
 
     except subprocess.TimeoutExpired:
         return False, "Tests timed out after 300 seconds"
@@ -177,7 +177,7 @@ def check_lint() -> Tuple[bool, str]:
         else:
             # Count errors
             lines = result.stdout.strip().split("\n")
-            error_count = len([l for l in lines if l.strip()])
+            error_count = len([line for line in lines if line.strip()])
             return False, f"Lint errors ({error_count}):\n" + "\n".join(lines[:10])
 
     except FileNotFoundError:

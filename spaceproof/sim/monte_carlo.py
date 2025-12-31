@@ -15,25 +15,20 @@ Module Composition Matrix (3-of-7 selection):
 Source: SpaceProof D20 Production Evolution + xAI collaboration
 """
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 import time
-import random
 import numpy as np
 
 from spaceproof.core import emit_receipt, merkle
 
 from spaceproof.engine.entropy import (
     shannon_entropy,
-    entropy_delta,
     coherence_score,
     fitness_score,
     ThompsonState,
-    thompson_select,
     COHERENCE_THRESHOLD,
-    ENTROPY_DELTA_HEALTHY,
     ENTROPY_DELTA_CRITICAL,
 )
 
@@ -47,7 +42,6 @@ from spaceproof.engine.receipts import (
     build_dot_receipt,
 )
 
-from spaceproof.engine.saga import create_entropy_pump_saga
 
 # === CONSTANTS ===
 

@@ -11,15 +11,13 @@ This scenario validates that the entropy pump respects thermodynamic principles.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 import numpy as np
 
 from spaceproof.engine.entropy import (
     shannon_entropy,
     coherence_score,
     fitness_score,
-    COHERENCE_THRESHOLD,
-    ENTROPY_DELTA_HEALTHY,
 )
 from spaceproof.core import emit_receipt
 
@@ -141,7 +139,7 @@ class ThermodynamicScenario:
 
     def _emit_checkpoint(self, step: int) -> None:
         """Emit thermodynamic checkpoint receipt."""
-        recent = self.results[-CHECKPOINT_FREQUENCY:]
+        self.results[-CHECKPOINT_FREQUENCY:]
 
         # Check second law for each subsystem
         second_law_violations = 0

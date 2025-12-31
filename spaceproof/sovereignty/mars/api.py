@@ -12,26 +12,18 @@ Usage:
     )
 """
 
-import json
 from pathlib import Path
-from typing import Any
 
 import yaml
 
-from spaceproof.core import emit_receipt
 
 from .constants import (
-    BUFFER_DAYS_MINIMUM,
-    CREW_MIN_GEORGE_MASON,
-    CREW_MIN_SALOTTI,
-    DEFAULT_WEIGHTS,
     HUMAN_O2_KG_PER_DAY,
     HUMAN_WATER_KG_PER_DAY,
     ISS_ECLSS_MTBF_HOURS,
     ISS_H2O_RECOVERY_RATIO,
     ISS_O2_CLOSURE_RATIO,
     MARS_LIGHT_DELAY_AVG_SEC,
-    TENANT_ID,
 )
 from .crew_matrix import (
     calculate_coverage,
@@ -48,9 +40,7 @@ from .decision_capacity import (
 )
 from .integrator import (
     calculate_comprehensive_sovereignty,
-    calculate_sovereignty_score,
     emit_mars_sovereignty_receipt,
-    validate_against_research,
 )
 from .life_support import (
     calculate_eclss_reliability,
@@ -61,10 +51,7 @@ from .life_support import (
 )
 from .monte_carlo import emit_monte_carlo_result_receipt, run_simulation
 from .resources import (
-    calculate_isru_closure,
-    calculate_reserve_buffer,
     calculate_resource_score,
-    calculate_starship_manifest,
 )
 
 

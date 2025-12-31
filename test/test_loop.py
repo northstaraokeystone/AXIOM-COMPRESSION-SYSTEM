@@ -1,12 +1,9 @@
 """Tests for spaceproof.loop module."""
 
-import pytest
 from spaceproof.loop import (
     Loop,
     Action,
     run_loop_once,
-    CYCLE_TIME_LIMIT_SEC,
-    HIGH_RISK_THRESHOLD,
 )
 
 

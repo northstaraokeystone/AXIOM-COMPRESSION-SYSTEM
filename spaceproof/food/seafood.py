@@ -99,7 +99,6 @@ def verify_seafood(
 
     # DNA validation (if available)
     dna_verified = False
-    dna_contradicts_entropy = False
 
     if dna_barcode:
         # Simple DNA barcode validation (in real system, would match against database)

@@ -10,7 +10,6 @@ THE PHYSICS:
 
 import math
 import random
-from typing import Any
 
 from spaceproof.core import emit_receipt
 

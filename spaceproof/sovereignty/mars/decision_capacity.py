@@ -15,7 +15,6 @@ THE PHYSICS:
 """
 
 import math
-from typing import Any
 
 from spaceproof.core import emit_receipt
 
@@ -30,8 +29,6 @@ from .constants import (
     DECISIONS_PER_DAY_MEDIUM,
     MARS_CONJUNCTION_BLACKOUT_DAYS,
     MARS_LIGHT_DELAY_AVG_SEC,
-    MARS_LIGHT_DELAY_MAX_SEC,
-    MARS_LIGHT_DELAY_MIN_SEC,
     TENANT_ID,
 )
 

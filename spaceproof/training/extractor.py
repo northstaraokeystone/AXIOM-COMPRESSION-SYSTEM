@@ -4,13 +4,12 @@ Every human correction becomes a labeled training example.
 Captures context, actions, and justification for model improvement.
 """
 
-import json
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from spaceproof.core import dual_hash, emit_receipt
+from spaceproof.core import emit_receipt
 
 # === CONSTANTS ===
 

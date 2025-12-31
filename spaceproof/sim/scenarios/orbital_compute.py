@@ -15,7 +15,7 @@ Source: Grok Research Starcloud pain points
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 import numpy as np
 
 from spaceproof.core import emit_receipt
@@ -24,8 +24,6 @@ from spaceproof.domain.orbital_compute import (
     execute_inference,
     detect_radiation_anomaly,
     emit_provenance_chain,
-    compute_effectiveness,
-    RADIATION_ENTROPY_THRESHOLD,
     ENTROPY_CONSERVATION_LIMIT,
 )
 from spaceproof.meta_integration import classify_pattern
@@ -203,7 +201,7 @@ class OrbitalComputeScenario:
                     entropy_violations += 1
 
         # Emit provenance chain
-        chain = emit_provenance_chain(self.receipts, self.config.satellite_id)
+        emit_provenance_chain(self.receipts, self.config.satellite_id)
 
         # Test topology classification
         topology_correct = 0

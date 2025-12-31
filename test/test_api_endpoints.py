@@ -1,7 +1,14 @@
 """test_api_endpoints.py - REST API endpoint tests."""
 
 import pytest
-from fastapi.testclient import TestClient
+
+# Try to import fastapi
+try:
+    from fastapi.testclient import TestClient
+    HAS_FASTAPI = True
+except ImportError:
+    HAS_FASTAPI = False
+    TestClient = None
 
 # Import app for testing
 try:
@@ -12,12 +19,24 @@ except ImportError:
     app = None
 
 
+pytestmark = pytest.mark.skipif(
+    not HAS_FASTAPI or not HAS_API,
+    reason="FastAPI or API module not available"
+)
+
+
 @pytest.fixture
 def client():
     """Create test client."""
-    if not HAS_API:
-        pytest.skip("API module not available")
+    if not HAS_FASTAPI or not HAS_API:
+        pytest.skip("API dependencies not available")
     return TestClient(app)
+
+
+@pytest.fixture
+def suppress_receipts():
+    """Suppress receipt output during tests."""
+    yield
 
 
 class TestHealthEndpoint:

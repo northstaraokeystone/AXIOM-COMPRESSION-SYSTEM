@@ -7,8 +7,7 @@ Advanced dimensions handle complex validation:
     D14 - Statistical Validation: Distribution testing
 """
 
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import numpy as np
 
 from spaceproof.engine.entropy import shannon_entropy, FRAUD_SIGNAL_THRESHOLD, RANDOM_SIGNAL_THRESHOLD

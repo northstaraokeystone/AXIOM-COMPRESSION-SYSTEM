@@ -28,7 +28,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 import json
 
-from spaceproof.core import dual_hash, emit_receipt, merkle, TENANT_ID
+from spaceproof.core import dual_hash, emit_receipt, merkle
 
 # === CONSTANTS ===
 

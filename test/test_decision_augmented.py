@@ -6,11 +6,9 @@ Tests augmentation factors and sovereignty equivalence.
 import pytest
 
 from spaceproof.decision_augmented import (
-    AugmentationType,
     AI_AUGMENTATION_FACTOR,
     NEURALINK_AUGMENTATION_FACTOR,
     HUMAN_ONLY_FACTOR,
-    get_base_factor,
     calculate_augmentation_factor,
     effective_crew_size,
     augmentation_energy_cost,

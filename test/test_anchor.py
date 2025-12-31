@@ -1,6 +1,5 @@
 """Tests for spaceproof.anchor module."""
 
-import pytest
 from spaceproof.anchor import (
     create_proof,
     verify_proof,

@@ -1,6 +1,5 @@
 """food.py - Food verification endpoints."""
 
-from datetime import datetime
 from fastapi import APIRouter, HTTPException
 import numpy as np
 
@@ -56,7 +55,7 @@ async def verify_olive_oil_endpoint(request: OliveOilRequest) -> VerificationRes
         )
 
     except Exception as e:
-        error_receipt = emit_receipt(
+        emit_receipt(
             "verification_error",
             {
                 "tenant_id": "spaceproof",
@@ -111,7 +110,7 @@ async def verify_honey_endpoint(request: HoneyRequest) -> VerificationResponse:
         )
 
     except Exception as e:
-        error_receipt = emit_receipt(
+        emit_receipt(
             "verification_error",
             {
                 "tenant_id": "spaceproof",
@@ -165,7 +164,7 @@ async def verify_seafood_endpoint(request: SeafoodRequest) -> VerificationRespon
         )
 
     except Exception as e:
-        error_receipt = emit_receipt(
+        emit_receipt(
             "verification_error",
             {
                 "tenant_id": "spaceproof",
