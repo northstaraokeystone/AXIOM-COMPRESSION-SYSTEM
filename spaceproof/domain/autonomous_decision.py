@@ -27,6 +27,20 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 import json
+import numpy as np
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON encoder for numpy types."""
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
 
 from spaceproof.core import dual_hash, emit_receipt, merkle
 
@@ -152,7 +166,7 @@ def log_sensor_inputs(
     if timestamp is None:
         timestamp = datetime.utcnow().isoformat() + "Z"
 
-    data_bytes = json.dumps(sensor_data, sort_keys=True).encode()
+    data_bytes = json.dumps(sensor_data, sort_keys=True, cls=NumpyEncoder).encode()
     input_hash = dual_hash(data_bytes)
     input_id = dual_hash(f"{sensor_type}:{timestamp}")
 
@@ -199,7 +213,7 @@ def log_decision(
     Returns:
         DecisionRecord with receipt
     """
-    output_bytes = json.dumps(output, sort_keys=True).encode()
+    output_bytes = json.dumps(output, sort_keys=True, cls=NumpyEncoder).encode()
     output_hash = dual_hash(output_bytes)
     decision_id = dual_hash(f"{inputs_hash}:{algorithm_id}:{datetime.utcnow().isoformat()}")
 
@@ -273,7 +287,7 @@ def log_human_override(
             "override_timestamp": override_timestamp,
             "reason_code": override_reason.value,
             "justification": justification,
-            "corrected_output_hash": dual_hash(json.dumps(corrected_output, sort_keys=True)),
+            "corrected_output_hash": dual_hash(json.dumps(corrected_output, sort_keys=True, cls=NumpyEncoder)),
             "feedback_loop_valid": True,  # For training example generation
         },
     )

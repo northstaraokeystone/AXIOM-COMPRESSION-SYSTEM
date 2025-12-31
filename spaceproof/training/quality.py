@@ -243,33 +243,37 @@ def score_example_quality(
 
 
 def filter_by_quality(
-    examples: List[TrainingExample],
+    examples,
     threshold: float = DEFAULT_QUALITY_THRESHOLD,
     labeled_map: Optional[Dict[str, LabeledExample]] = None,
-) -> Tuple[List[TrainingExample], List[TrainingExample]]:
+) -> List:
     """Filter examples by quality threshold.
 
     Args:
-        examples: List of TrainingExample objects
+        examples: List of TrainingExample or LabeledExample objects
         threshold: Quality threshold
         labeled_map: Optional mapping of example_id to LabeledExample
 
     Returns:
-        Tuple of (passed_examples, failed_examples)
+        List of examples that pass the threshold
     """
     passed = []
-    failed = []
 
     for example in examples:
-        labeled = labeled_map.get(example.example_id) if labeled_map else None
-        quality = score_example_quality(example, labeled, threshold)
-
-        if quality.passes_threshold:
-            passed.append(example)
+        # Handle LabeledExample - use label_confidence as quality
+        if isinstance(example, LabeledExample):
+            quality_score = example.label_confidence
+            if quality_score >= threshold:
+                passed.append(example)
         else:
-            failed.append(example)
+            # TrainingExample - use full quality scoring
+            labeled = labeled_map.get(example.example_id) if labeled_map else None
+            quality = score_example_quality(example, labeled, threshold)
 
-    return passed, failed
+            if quality.passes_threshold:
+                passed.append(example)
+
+    return passed
 
 
 def compute_quality_distribution(

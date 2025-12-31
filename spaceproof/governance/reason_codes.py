@@ -215,7 +215,7 @@ def emit_intervention_receipt(
         "raci_accountable": raci_accountable,
     }
 
-    return emit_receipt("human_intervention", receipt_data)
+    return emit_receipt("intervention", receipt_data)
 
 
 def create_intervention(

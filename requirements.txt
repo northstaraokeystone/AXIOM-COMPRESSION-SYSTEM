@@ -9,8 +9,7 @@ uvicorn[standard]>=0.27.0
 hypercorn>=0.16.0
 pydantic>=2.5.0
 
-# Cryptographic hashing
-hashlib
+# Cryptographic hashing (hashlib is a built-in module)
 blake3>=0.3.0
 
 # Testing

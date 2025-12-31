@@ -165,7 +165,7 @@ def append_offline(
 
 
 def get_offline_entries(
-    node_id: str,
+    node_id_or_ledger,
     synced_only: bool = False,
     unsynced_only: bool = False,
     limit: int = 1000,
@@ -173,7 +173,7 @@ def get_offline_entries(
     """Get entries from offline ledger.
 
     Args:
-        node_id: Node identifier
+        node_id_or_ledger: Node identifier (str) or OfflineLedger object
         synced_only: Only return synced entries
         unsynced_only: Only return unsynced entries
         limit: Maximum entries to return
@@ -181,7 +181,11 @@ def get_offline_entries(
     Returns:
         List of OfflineEntry objects
     """
-    ledger = _offline_ledgers.get(node_id)
+    # Accept either node_id string or OfflineLedger object
+    if isinstance(node_id_or_ledger, OfflineLedger):
+        ledger = node_id_or_ledger
+    else:
+        ledger = _offline_ledgers.get(node_id_or_ledger)
     if not ledger:
         return []
 
@@ -224,16 +228,22 @@ def mark_entries_synced(
     return count
 
 
-def prepare_for_sync(node_id: str) -> Dict[str, Any]:
+def prepare_for_sync(node_id_or_ledger) -> Dict[str, Any]:
     """Prepare ledger data for synchronization.
 
     Args:
-        node_id: Node identifier
+        node_id_or_ledger: Node identifier (str) or OfflineLedger object
 
     Returns:
         Dict with sync-ready data
     """
-    ledger = _offline_ledgers.get(node_id)
+    # Accept either node_id string or OfflineLedger object
+    if isinstance(node_id_or_ledger, OfflineLedger):
+        ledger = node_id_or_ledger
+        node_id = ledger.node_id
+    else:
+        node_id = node_id_or_ledger
+        ledger = _offline_ledgers.get(node_id)
     if not ledger:
         return {
             "node_id": node_id,

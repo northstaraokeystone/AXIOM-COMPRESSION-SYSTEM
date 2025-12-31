@@ -73,19 +73,69 @@ class ConflictResult:
         }
 
 
+def _extract_entries(ledgers_or_entries) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """Extract entries from ledgers or entry lists.
+
+    Args:
+        ledgers_or_entries: List containing OfflineLedger objects or entry dicts
+
+    Returns:
+        Tuple of (entries_a, entries_b)
+    """
+    from spaceproof.offline.offline_ledger import OfflineLedger
+
+    if len(ledgers_or_entries) < 2:
+        return [], []
+
+    item_a = ledgers_or_entries[0]
+    item_b = ledgers_or_entries[1]
+
+    if isinstance(item_a, OfflineLedger):
+        entries_a = [e.to_dict() for e in item_a.entries]
+    elif isinstance(item_a, list):
+        entries_a = item_a
+    else:
+        entries_a = [item_a] if item_a else []
+
+    if isinstance(item_b, OfflineLedger):
+        entries_b = [e.to_dict() for e in item_b.entries]
+    elif isinstance(item_b, list):
+        entries_b = item_b
+    else:
+        entries_b = [item_b] if item_b else []
+
+    return entries_a, entries_b
+
+
 def detect_conflicts(
-    entries_a: List[Dict[str, Any]],
-    entries_b: List[Dict[str, Any]],
+    entries_a_or_ledgers,
+    entries_b: List[Dict[str, Any]] = None,
 ) -> List[Conflict]:
     """Detect conflicts between two entry sets.
 
     Args:
-        entries_a: First entry set
-        entries_b: Second entry set
+        entries_a_or_ledgers: First entry set, or list of two OfflineLedger objects
+        entries_b: Second entry set (optional if ledgers list is passed)
 
     Returns:
         List of detected Conflict objects
     """
+    from spaceproof.offline.offline_ledger import OfflineLedger
+
+    # Handle list of ledgers format
+    if isinstance(entries_a_or_ledgers, list) and len(entries_a_or_ledgers) > 0:
+        if isinstance(entries_a_or_ledgers[0], OfflineLedger):
+            entries_a, entries_b = _extract_entries(entries_a_or_ledgers)
+        elif entries_b is None:
+            # List of entry lists
+            entries_a = entries_a_or_ledgers
+            entries_b = []
+        else:
+            entries_a = entries_a_or_ledgers
+    else:
+        entries_a = entries_a_or_ledgers if entries_a_or_ledgers else []
+        entries_b = entries_b if entries_b else []
+
     conflicts = []
 
     # Build hash map for quick lookup
@@ -173,20 +223,36 @@ def resolve_by_priority(
 
 
 def resolve_conflicts(
-    entries_a: List[Dict[str, Any]],
-    entries_b: List[Dict[str, Any]],
+    entries_a_or_ledgers,
+    entries_b_or_strategy = None,
     strategy: MergeStrategy = MergeStrategy.HASH_ORDER,
 ) -> ConflictResult:
     """Resolve conflicts between entry sets.
 
     Args:
-        entries_a: First entry set
-        entries_b: Second entry set
+        entries_a_or_ledgers: First entry set, or list of two OfflineLedger objects
+        entries_b_or_strategy: Second entry set, or strategy if ledgers list is passed
         strategy: Resolution strategy
 
     Returns:
         ConflictResult with merged entries
     """
+    from spaceproof.offline.offline_ledger import OfflineLedger
+
+    # Handle list of ledgers format
+    if isinstance(entries_a_or_ledgers, list) and len(entries_a_or_ledgers) > 0:
+        if isinstance(entries_a_or_ledgers[0], OfflineLedger):
+            entries_a, entries_b = _extract_entries(entries_a_or_ledgers)
+            # entries_b_or_strategy is actually the strategy in this case
+            if isinstance(entries_b_or_strategy, MergeStrategy):
+                strategy = entries_b_or_strategy
+        else:
+            entries_a = entries_a_or_ledgers
+            entries_b = entries_b_or_strategy if entries_b_or_strategy is not None else []
+    else:
+        entries_a = entries_a_or_ledgers if entries_a_or_ledgers else []
+        entries_b = entries_b_or_strategy if entries_b_or_strategy is not None else []
+
     conflicts = detect_conflicts(entries_a, entries_b)
     resolved = []
     rejected = []
@@ -239,22 +305,35 @@ def resolve_conflicts(
 
 
 def merge_receipts(
-    receipts_a: List[Dict[str, Any]],
-    receipts_b: List[Dict[str, Any]],
+    receipts_a_or_ledgers,
+    receipts_b: List[Dict[str, Any]] = None,
     strategy: MergeStrategy = MergeStrategy.HASH_ORDER,
-) -> Tuple[List[Dict[str, Any]], ConflictResult]:
+) -> List[Dict[str, Any]]:
     """Merge two receipt lists.
 
     Args:
-        receipts_a: First receipt list
-        receipts_b: Second receipt list
+        receipts_a_or_ledgers: First receipt list, or list of two OfflineLedger objects
+        receipts_b: Second receipt list (optional if ledgers list is passed)
         strategy: Resolution strategy
 
     Returns:
-        Tuple of (merged receipts, ConflictResult)
+        List of merged receipts
     """
+    from spaceproof.offline.offline_ledger import OfflineLedger
+
+    # Handle list of ledgers format
+    if isinstance(receipts_a_or_ledgers, list) and len(receipts_a_or_ledgers) > 0:
+        if isinstance(receipts_a_or_ledgers[0], OfflineLedger):
+            receipts_a, receipts_b = _extract_entries(receipts_a_or_ledgers)
+        else:
+            receipts_a = receipts_a_or_ledgers
+            receipts_b = receipts_b if receipts_b is not None else []
+    else:
+        receipts_a = receipts_a_or_ledgers if receipts_a_or_ledgers else []
+        receipts_b = receipts_b if receipts_b is not None else []
+
     result = resolve_conflicts(receipts_a, receipts_b, strategy)
-    return result.merged_entries, result
+    return result.merged_entries
 
 
 def emit_conflict_receipt(result: ConflictResult) -> Dict[str, Any]:

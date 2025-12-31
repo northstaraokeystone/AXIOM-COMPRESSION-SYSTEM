@@ -92,23 +92,37 @@ _current_correction_rate: float = 0.1
 
 
 def add_to_retraining_queue(
-    example: TrainingExample,
+    example,
     priority: Optional[str] = None,
-) -> bool:
+) -> "FeedbackLoopState":
     """Add example to retraining queue.
 
     Args:
-        example: TrainingExample to queue
+        example: TrainingExample or LabeledExample to queue
         priority: Optional priority override
 
     Returns:
-        True if added successfully
+        Current FeedbackLoopState
     """
     global _total_queued
 
-    # Determine priority
+    # Determine priority - handle both TrainingExample and LabeledExample
     if priority is None:
-        priority = example.retraining_priority
+        if hasattr(example, 'retraining_priority'):
+            priority = example.retraining_priority
+        elif hasattr(example, 'severity_weight'):
+            # Convert severity_weight to priority
+            weight = example.severity_weight
+            if weight >= 4:
+                priority = "IMMEDIATE"
+            elif weight >= 3:
+                priority = "HIGH"
+            elif weight >= 2:
+                priority = "MEDIUM"
+            else:
+                priority = "LOW"
+        else:
+            priority = "MEDIUM"
 
     if priority not in _retraining_queue:
         priority = "MEDIUM"
@@ -117,7 +131,8 @@ def add_to_retraining_queue(
     _retraining_queue[priority].append(example)
     _total_queued += 1
 
-    return True
+    # Return current state
+    return get_feedback_loop_state()
 
 
 def get_retraining_queue(priority: Optional[str] = None) -> List[TrainingExample]:
@@ -177,19 +192,29 @@ def create_retraining_batch(
 
 
 def process_retraining_batch(
-    batch: RetrainingBatch,
+    batch_or_list,
     simulate_training: bool = True,
 ) -> Dict[str, Any]:
     """Process a retraining batch.
 
     Args:
-        batch: RetrainingBatch to process
+        batch_or_list: RetrainingBatch or list of examples to process
         simulate_training: If True, simulate training (for testing)
 
     Returns:
         Processing result
     """
     global _total_processed
+
+    # Handle list input - convert to RetrainingBatch
+    if isinstance(batch_or_list, list):
+        batch = RetrainingBatch(
+            batch_id=str(uuid.uuid4()),
+            examples=batch_or_list,
+            priority="MEDIUM",
+        )
+    else:
+        batch = batch_or_list
 
     # In production, this would trigger actual model fine-tuning
     # For simulation, just mark as processed
