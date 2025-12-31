@@ -119,4 +119,29 @@ def create_parser() -> argparse.ArgumentParser:
     sim_p.add_argument("--all", action="store_true", help="Run all scenarios")
     sim_p.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
+    # === VALIDATION COMMAND (v6.0) ===
+    validate_p = subparsers.add_parser(
+        "validate",
+        help="Generate validation report for domain experts",
+    )
+    validate_p.add_argument(
+        "--report",
+        type=str,
+        default="all",
+        choices=["aerospace", "food", "medical", "all"],
+        help="Domain report to generate",
+    )
+    validate_p.add_argument(
+        "--format",
+        type=str,
+        default="terminal",
+        choices=["terminal", "json", "markdown"],
+        help="Output format",
+    )
+    validate_p.add_argument(
+        "--run-tests",
+        action="store_true",
+        help="Run tests before generating report",
+    )
+
     return parser
